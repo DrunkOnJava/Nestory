@@ -1,0 +1,42 @@
+{
+  "app": "Nestory",
+  "teamId": "2VXBQV4XC9",
+  "bundleIds": {
+    "dev": "com.nestory.app.dev",
+    "staging": "com.nestory.app.staging",
+    "prod": "com.nestory.app"
+  },
+  "minOS": "17.0",
+  "language": "Swift 6",
+  "state": "TCA",
+  "persistence": "SwiftData",
+  "sync": "CloudKit",
+  "layers": ["App", "Features", "UI", "Services", "Infrastructure", "Foundation"],
+  "features": ["Inventory", "Capture", "Analytics", "Search", "Maintenance", "Sharing", "Widgets", "StoreKit2"],
+  "allowedImports": {
+    "App": ["Features", "UI", "Services", "Infrastructure", "Foundation"],
+    "Features/*": ["UI", "Services", "Foundation"],
+    "UI/*": ["Foundation"],
+    "Services/*": ["Infrastructure", "Foundation"],
+    "Infrastructure/*": ["Foundation"],
+    "Foundation/*": []
+  },
+  "slo": {
+    "coldStartP95Ms": 1800,
+    "dbRead50P95Ms": 250,
+    "scrollJankPctMax": 3,
+    "crashFreeMin": 99.8
+  },
+  "ci": {
+    "coverageMin": 0.80,
+    "perfBudgetEnforced": true,
+    "archTestEnforced": true,
+    "spmPinned": true,
+    "specGuard": true
+  },
+  "policy": {
+    "banTrackingSDKs": true,
+    "requireADRForNewDeps": true,
+    "precommitHooks": true
+  }
+}

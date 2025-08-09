@@ -1,0 +1,118 @@
+name: Quality Gates
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+env:
+  SWIFT_VERSION: '5.9'
+
+jobs:
+  quality-checks:
+    name: Quality Verification
+    runs-on: macos-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: 'latest-stable'
+      
+      - name: Cache Swift Package Manager
+        uses: actions/cache@v3
+        with:
+          path: |
+            .build
+            ~/Library/Developer/Xcode/DerivedData
+            DevTools/nestoryctl/.build
+          key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-spm-
+      
+      - name: Install Tools
+        run: |
+          if ! command -v swiftformat &> /dev/null; then
+            echo "📦 Installing SwiftFormat..."
+            brew install swiftformat
+          fi
+          if ! command -v swiftlint &> /dev/null; then
+            echo "📦 Installing SwiftLint..."
+            brew install swiftlint
+          fi
+      
+      - name: Format Check
+        run: |
+          echo "📝 Checking code formatting..."
+          swiftformat --lint . || echo "⚠️ Formatting issues detected (non-blocking)"
+      
+      - name: Lint Check
+        run: |
+          echo "🧹 Running SwiftLint..."
+          swiftlint lint --quiet || echo "⚠️ Linting issues detected (non-blocking)"
+      
+      - name: Build nestoryctl
+        run: |
+          echo "🔨 Building nestoryctl..."
+          swift build -c release --package-path DevTools/nestoryctl
+      
+      - name: SPEC Verification
+        run: |
+          echo "📋 Verifying SPEC integrity..."
+          ./DevTools/nestoryctl/.build/release/nestoryctl spec-verify
+      
+      - name: Architecture Verification
+        run: |
+          echo "🏗️ Verifying architecture conformance..."
+          ./DevTools/nestoryctl/.build/release/nestoryctl arch-verify
+      
+      - name: Run Architecture Tests
+        run: |
+          echo "🧪 Running architecture tests..."
+          swift test --filter ArchitectureTests
+      
+      - name: SPM Audit
+        run: |
+          echo "📦 Auditing SPM dependencies..."
+          ./DevTools/nestoryctl/.build/release/nestoryctl spm-audit || echo "⚠️ Package.resolved not found (expected for initial setup)"
+      
+      - name: License Check
+        run: |
+          echo "📜 Checking licenses..."
+          ./DevTools/nestoryctl/.build/release/nestoryctl licenses
+      
+      - name: Full Guard Suite
+        run: |
+          echo "🔍 Running complete guard suite..."
+          make guard
+      
+      - name: Update Build Status
+        if: always()
+        run: |
+          echo "" >> BUILD_STATUS.md
+          echo "## CI Run: $(date '+%Y-%m-%d %H:%M:%S')" >> BUILD_STATUS.md
+          echo "- Branch: ${{ github.head_ref || github.ref_name }}" >> BUILD_STATUS.md
+          echo "- Commit: ${{ github.sha }}" >> BUILD_STATUS.md
+          echo "- Status: ${{ job.status }}" >> BUILD_STATUS.md
+          echo "" >> BUILD_STATUS.md
+      
+      - name: Upload Build Status
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-status
+          path: BUILD_STATUS.md
+      
+      - name: Upload Test Results
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results
+          path: |
+            .build/*/testOutput
+            *.xcresult

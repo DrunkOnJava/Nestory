@@ -1,0 +1,78 @@
+{
+  "features": {
+    "inventory": {
+      "enabled": true,
+      "maxItemsPerCollection": 1000,
+      "enableBulkOperations": true,
+      "enableAdvancedSearch": true
+    },
+    "capture": {
+      "enabled": true,
+      "enableOCR": true,
+      "enableBarcodeScan": true,
+      "maxPhotosPerItem": 10,
+      "photoQuality": "high"
+    },
+    "analytics": {
+      "enabled": true,
+      "trackingLevel": "aggregate",
+      "sendCrashReports": true,
+      "performanceMonitoring": true
+    },
+    "search": {
+      "enabled": true,
+      "enableFuzzySearch": true,
+      "enableVoiceSearch": false,
+      "searchHistoryLimit": 50
+    },
+    "maintenance": {
+      "enabled": true,
+      "enableAutoBackup": true,
+      "backupFrequencyDays": 7,
+      "enableDataExport": true
+    },
+    "sharing": {
+      "enabled": true,
+      "enablePublicLinks": false,
+      "enableCollaborativeEditing": false,
+      "maxShareRecipients": 10
+    },
+    "widgets": {
+      "enabled": true,
+      "availableWidgets": ["summary", "recentItems", "quickAdd"],
+      "enableInteractiveWidgets": true
+    },
+    "storeKit": {
+      "enabled": true,
+      "enableSubscriptions": true,
+      "enableOneTimePurchases": true,
+      "gracePeriodDays": 3
+    }
+  },
+  "experiments": {
+    "newOnboarding": {
+      "enabled": false,
+      "percentage": 0
+    },
+    "aiSuggestions": {
+      "enabled": false,
+      "percentage": 0
+    },
+    "darkMode": {
+      "enabled": true,
+      "percentage": 100
+    }
+  },
+  "performance": {
+    "imageCacheSize": 100,
+    "databaseQueryTimeout": 5000,
+    "networkTimeout": 30000,
+    "maxConcurrentOperations": 4
+  },
+  "limits": {
+    "maxCollections": 100,
+    "maxItemsTotal": 10000,
+    "maxFileSize": 52428800,
+    "maxExportSize": 104857600
+  }
+}
