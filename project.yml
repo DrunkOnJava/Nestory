@@ -1,0 +1,452 @@
+# project.yml - XcodeGen Configuration for Nestory
+name: Nestory
+options:
+  bundleIdPrefix: com.nestory
+  deploymentTarget:
+    iOS: 17.0
+    iPadOS: 17.0
+  developmentLanguage: en
+  xcodeVersion: 15.0
+  createIntermediateGroups: true
+  groupSortPosition: top
+  generateEmptyDirectories: true
+  findCarthageFrameworks: false
+  minimumXcodeGenVersion: 2.35.0
+  useBaseInternationalization: true
+  schemePathPrefix: "../../"
+
+attributes:
+  ORGANIZATIONNAME: Nestory
+  DEVELOPMENT_TEAM: 2VXBQV4XC9
+
+configs:
+  Debug:
+    xcconfig: Config/Debug.xcconfig
+  Staging:
+    xcconfig: Config/Staging.xcconfig
+  Release:
+    xcconfig: Config/Release.xcconfig
+
+configFiles:
+  Debug: Config/Debug.xcconfig
+  Staging: Config/Staging.xcconfig
+  Release: Config/Release.xcconfig
+
+settings:
+  base:
+    IPHONEOS_DEPLOYMENT_TARGET: 17.0
+    SWIFT_VERSION: 6.0
+    SWIFT_STRICT_CONCURRENCY: complete
+    ENABLE_PREVIEWS: YES
+    DEVELOPMENT_TEAM: 2VXBQV4XC9
+    CODE_SIGN_STYLE: Automatic
+    CURRENT_PROJECT_VERSION: 1
+    MARKETING_VERSION: 1.0.0
+    VERSIONING_SYSTEM: apple-generic
+    ENABLE_USER_SCRIPT_SANDBOXING: NO
+    SWIFT_EMIT_LOC_STRINGS: YES
+    SWIFT_ACTIVE_COMPILATION_CONDITIONS: DEBUG
+    GCC_PREPROCESSOR_DEFINITIONS: DEBUG=1
+    ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS: YES
+    LOCALIZATION_PREFERS_STRING_CATALOGS: YES
+    
+  configs:
+    Debug:
+      PRODUCT_BUNDLE_IDENTIFIER: com.nestory.app.dev
+      SWIFT_OPTIMIZATION_LEVEL: -Onone
+      ENABLE_TESTABILITY: YES
+      DEBUG_INFORMATION_FORMAT: dwarf
+      SWIFT_COMPILATION_MODE: incremental
+      COPY_PHASE_STRIP: NO
+      
+    Staging:
+      PRODUCT_BUNDLE_IDENTIFIER: com.nestory.app.staging
+      SWIFT_OPTIMIZATION_LEVEL: -O
+      DEBUG_INFORMATION_FORMAT: dwarf-with-dsym
+      SWIFT_COMPILATION_MODE: wholemodule
+      VALIDATE_PRODUCT: YES
+      
+    Release:
+      PRODUCT_BUNDLE_IDENTIFIER: com.nestory.app
+      SWIFT_OPTIMIZATION_LEVEL: -O
+      DEBUG_INFORMATION_FORMAT: dwarf-with-dsym
+      SWIFT_COMPILATION_MODE: wholemodule
+      VALIDATE_PRODUCT: YES
+      COPY_PHASE_STRIP: YES
+
+packages:
+  ComposableArchitecture:
+    url: https://github.com/pointfreeco/swift-composable-architecture
+    from: 1.15.0
+  SnapshotTesting:
+    url: https://github.com/pointfreeco/swift-snapshot-testing
+    from: 1.17.0
+  SwiftLint:
+    url: https://github.com/realm/SwiftLint
+    from: 0.54.0
+
+targets:
+  # Main App Target
+  Nestory:
+    type: application
+    platform: [iOS, iPadOS]
+    deploymentTarget:
+      iOS: 17.0
+      iPadOS: 17.0
+    
+    sources:
+      - App-Main
+      - Features
+      - UI
+      - Services
+      - Infrastructure
+      - Foundation
+      - Config/Secrets.template.swift
+      - Config/FeatureFlags.swift
+      
+    excludes:
+      - "**/*.md"
+      - "**/Tests"
+      - "**/.DS_Store"
+      
+    resources:
+      - path: Foundation/Resources
+        type: folder
+      - path: UI/UI-Styles/Colors.xcassets
+        type: folder
+      - path: App-Main/Assets.xcassets
+        type: folder
+      - path: App-Main/Preview Content
+        type: folder
+        buildPhase: none
+        
+    settings:
+      base:
+        PRODUCT_NAME: Nestory
+        INFOPLIST_FILE: App-Main/Info.plist
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ENABLE_PREVIEWS: YES
+        DEVELOPMENT_ASSET_PATHS: '"App-Main/Preview Content"'
+        
+    dependencies:
+      - package: ComposableArchitecture
+      - sdk: CloudKit.framework
+      - sdk: StoreKit.framework
+      - sdk: SwiftData.framework
+      - sdk: Vision.framework
+      - sdk: VisionKit.framework
+      - sdk: AVFoundation.framework
+      - sdk: CryptoKit.framework
+      - sdk: MetricKit.framework
+      - sdk: BackgroundTasks.framework
+      - sdk: Charts.framework
+      
+    preBuildScripts:
+      - name: SwiftLint
+        script: |
+          if command -v swiftlint >/dev/null 2>&1
+          then
+              swiftlint
+          else
+              echo "warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint"
+          fi
+        basedOnDependencyAnalysis: false
+        
+      - name: Architecture Verification
+        script: |
+          if [ -f "./DevTools/nestoryctl/.build/release/nestoryctl" ]; then
+              ./DevTools/nestoryctl/.build/release/nestoryctl arch-verify
+          else
+              echo "warning: nestoryctl not built yet. Run: swift build -c release --package-path DevTools/nestoryctl"
+          fi
+        basedOnDependencyAnalysis: false
+        
+    postBuildScripts:
+      - name: Copy dSYMs
+        script: |
+          if [ "${CONFIGURATION}" != "Debug" ]; then
+              cp -r "${DWARF_DSYM_FOLDER_PATH}" "${PROJECT_DIR}/dSYMs/"
+          fi
+        basedOnDependencyAnalysis: false
+        
+    entitlements:
+      path: App-Main/Nestory.entitlements
+      properties:
+        com.apple.developer.icloud-container-identifiers:
+          - iCloud.com.nestory.app
+        com.apple.developer.icloud-services:
+          - CloudKit
+          - CloudDocuments
+        com.apple.developer.ubiquity-kvstore-identifier: $(TeamIdentifierPrefix)$(PRODUCT_BUNDLE_IDENTIFIER)
+        com.apple.security.application-groups:
+          - group.com.nestory.app
+        keychain-access-groups:
+          - $(TeamIdentifierPrefix)com.nestory.app
+        com.apple.developer.in-app-purchases:
+          - true
+        com.apple.developer.aps-environment: development
+
+  # Widget Extension
+  NestoryWidgets:
+    type: app-extension
+    platform: iOS
+    deploymentTarget: 17.0
+    sources:
+      - App-Widgets
+      - path: Foundation
+        excludes:
+          - "**/Tests"
+      - path: Services
+        excludes:
+          - "**/Tests"
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: $(PRODUCT_BUNDLE_IDENTIFIER).widgets
+      INFOPLIST_FILE: App-Widgets/Info.plist
+    dependencies:
+      - target: Nestory
+        embed: false
+      - sdk: WidgetKit.framework
+      - sdk: SwiftUI.framework
+
+  # Unit Tests
+  NestoryTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: 17.0
+    sources:
+      - Tests/Unit
+      - TestSupport
+    dependencies:
+      - target: Nestory
+        embed: false
+      - package: SnapshotTesting
+      - package: ComposableArchitecture
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: $(PRODUCT_BUNDLE_IDENTIFIER).tests
+      TEST_HOST: $(BUILT_PRODUCTS_DIR)/Nestory.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Nestory
+
+  # Integration Tests
+  NestoryIntegrationTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: 17.0
+    sources:
+      - Tests/Integration
+      - TestSupport
+    dependencies:
+      - target: Nestory
+        embed: false
+      - package: ComposableArchitecture
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: $(PRODUCT_BUNDLE_IDENTIFIER).integration-tests
+      TEST_HOST: $(BUILT_PRODUCTS_DIR)/Nestory.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Nestory
+
+  # Snapshot Tests
+  NestorySnapshotTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: 17.0
+    sources:
+      - Tests/Snapshot
+      - TestSupport
+    dependencies:
+      - target: Nestory
+        embed: false
+      - package: SnapshotTesting
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: $(PRODUCT_BUNDLE_IDENTIFIER).snapshot-tests
+      TEST_HOST: $(BUILT_PRODUCTS_DIR)/Nestory.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Nestory
+
+  # Performance Tests
+  NestoryPerformanceTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: 17.0
+    sources:
+      - Tests/Performance
+      - TestSupport
+    dependencies:
+      - target: Nestory
+        embed: false
+      - package: ComposableArchitecture
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: $(PRODUCT_BUNDLE_IDENTIFIER).performance-tests
+      TEST_HOST: $(BUILT_PRODUCTS_DIR)/Nestory.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Nestory
+
+  # Architecture Tests (Command Line)
+  ArchitectureTests:
+    type: tool
+    platform: macOS
+    deploymentTarget: 13.0
+    sources:
+      - Tests/ArchitectureTests
+    dependencies:
+      - package: SwiftSyntax
+    settings:
+      PRODUCT_NAME: architecture-tests
+      SWIFT_VERSION: 6.0
+
+schemes:
+  # Development Scheme
+  Nestory-Dev:
+    build:
+      targets:
+        Nestory: all
+        NestoryTests: [test]
+        NestoryIntegrationTests: [test]
+        NestorySnapshotTests: [test]
+        NestoryPerformanceTests: [test]
+    run:
+      config: Debug
+      commandLineArguments:
+        "-com.apple.CoreData.CloudKitDebug": true
+        "FF_ALL": true
+      environmentVariables:
+        CLOUDKIT_CONTAINER: iCloud.com.nestory.app.dev
+        FX_API_KEY: DEMO_KEY
+      storeKitConfiguration: Config/StoreKit/StoreKitConfiguration.storekit
+      simulateLocation:
+        allow: true
+    test:
+      config: Debug
+      gatherCoverageData: true
+      coverageTargets:
+        - Nestory
+      targets:
+        - NestoryTests
+        - NestoryIntegrationTests
+      commandLineArguments:
+        "-com.apple.CoreData.CloudKitDebug": true
+    profile:
+      config: Debug
+    analyze:
+      config: Debug
+    archive:
+      config: Debug
+      
+  # Staging Scheme
+  Nestory-Staging:
+    build:
+      targets:
+        Nestory: all
+        NestoryWidgets: all
+    run:
+      config: Staging
+      commandLineArguments:
+        "FF_ALL": true
+      environmentVariables:
+        CLOUDKIT_CONTAINER: iCloud.com.nestory.app.staging
+        FX_API_KEY: $(FX_API_KEY)
+    test:
+      config: Staging
+      gatherCoverageData: true
+      targets:
+        - NestoryTests
+        - NestoryPerformanceTests
+    profile:
+      config: Staging
+    analyze:
+      config: Staging
+    archive:
+      config: Staging
+      postActions:
+        - name: Upload dSYMs
+          script: |
+            echo "Upload dSYMs to crash reporting service"
+          settingsTarget: Nestory
+      
+  # Production Scheme
+  Nestory-Release:
+    build:
+      targets:
+        Nestory: all
+        NestoryWidgets: all
+    run:
+      config: Release
+      environmentVariables:
+        CLOUDKIT_CONTAINER: iCloud.com.nestory.app
+        FX_API_KEY: $(FX_API_KEY)
+    test:
+      config: Release
+      targets:
+        - NestoryTests
+        - NestoryPerformanceTests
+    profile:
+      config: Release
+    analyze:
+      config: Release
+    archive:
+      config: Release
+      revealArchiveInOrganizer: true
+      customArchiveName: Nestory-$(MARKETING_VERSION)
+      postActions:
+        - name: Upload dSYMs
+          script: |
+            echo "Upload dSYMs to crash reporting service"
+            # Add your crash reporting service upload script here
+          settingsTarget: Nestory
+
+  # Test Suite Scheme
+  Nestory-TestSuite:
+    build:
+      targets:
+        Nestory: all
+        NestoryTests: all
+        NestoryIntegrationTests: all
+        NestorySnapshotTests: all
+        NestoryPerformanceTests: all
+    test:
+      config: Debug
+      gatherCoverageData: true
+      coverageTargets:
+        - Nestory
+      targets:
+        - NestoryTests
+          parallelizable: true
+          randomExecutionOrder: true
+        - NestoryIntegrationTests
+          parallelizable: false
+        - NestorySnapshotTests
+          parallelizable: true
+        - NestoryPerformanceTests
+          parallelizable: false
+      commandLineArguments:
+        "-com.apple.CoreData.CloudKitDebug": true
+      environmentVariables:
+        SNAPSHOT_TESTING_RECORD: false
+      testPlans:
+        - path: Tests/TestPlans/AllTests.xctestplan
+
+aggregateTargets:
+  # CI Target - runs all checks
+  CI:
+    targets:
+      - Nestory
+      - NestoryTests
+      - NestoryIntegrationTests
+      - NestorySnapshotTests
+      - NestoryPerformanceTests
+    schemes:
+      - Nestory-Dev
+      - Nestory-TestSuite
+    buildScripts:
+      - name: Full Validation
+        script: |
+          set -e
+          echo "🔍 Running full CI validation..."
+          
+          # Architecture check
+          ./DevTools/nestoryctl/.build/release/nestoryctl check
+          
+          # Build all targets
+          xcodebuild -scheme Nestory-Dev -destination "platform=iOS Simulator,name=iPhone 15" build
+          
+          # Run all tests with coverage
+          xcodebuild -scheme Nestory-TestSuite -destination "platform=iOS Simulator,name=iPhone 15" test
+          
+          # Generate coverage report
+          xcrun llvm-cov report \
+            .build/Build/Products/Debug-iphonesimulator/Nestory.app/Nestory \
+            -instr-profile .build/Build/ProfileData/*/Coverage.profdata
+          
+          echo "✅ CI validation complete!"

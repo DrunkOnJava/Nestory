@@ -38,5 +38,21 @@
     "banTrackingSDKs": true,
     "requireADRForNewDeps": true,
     "precommitHooks": true
+  },
+  "credentials": {
+    "pattern": "Environment",
+    "required": ["CLOUDKIT_CONTAINER", "FX_API_KEY"],
+    "optional": ["BARCODE_API_KEY", "OCR_SERVICE_KEY"],
+    "fallback": "GracefulDegradation"
+  },
+  "schemaPolicy": {
+    "cloudKitMode": "development",
+    "migrationStrategy": "progressive",
+    "rollbackSupported": true
+  },
+  "session": {
+    "startProtocol": ["read SPEC.json", "run nestoryctl arch-verify", "set focus in PROJECT_CONTEXT.md"],
+    "checkpointProtocol": ["swift build", "swift test", "nestoryctl check"],
+    "endProtocol": ["update PROJECT_CONTEXT.md", "update DECISIONS.md", "commit"]
   }
 }

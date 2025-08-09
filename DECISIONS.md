@@ -4,9 +4,9 @@ This document tracks significant architectural decisions for the Nestory project
 
 ## ADR-0001: Spec as Code & Guard Rails
 
-**Date:** 2024-01-01  
+**Date:** 2025-08-09  
 **Status:** Accepted  
-**Context:** We need a mechanism to enforce architectural constraints and prevent drift in a growing codebase.
+**Context:** Need to enforce architecture without human review on every commit.
 
 ### Decision
 

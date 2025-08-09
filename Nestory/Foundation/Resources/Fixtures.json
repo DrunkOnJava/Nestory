@@ -1,0 +1,264 @@
+{
+  "categories": [
+    {
+      "name": "Electronics",
+      "color": "#007AFF",
+      "iconName": "tv",
+      "children": [
+        {
+          "name": "Computers",
+          "color": "#34C759",
+          "iconName": "desktopcomputer"
+        },
+        {
+          "name": "Mobile Devices",
+          "color": "#5AC8FA",
+          "iconName": "iphone"
+        },
+        {
+          "name": "Audio",
+          "color": "#FF9500",
+          "iconName": "headphones"
+        }
+      ]
+    },
+    {
+      "name": "Furniture",
+      "color": "#8E8E93",
+      "iconName": "sofa",
+      "children": [
+        {
+          "name": "Living Room",
+          "color": "#AF52DE",
+          "iconName": "sofa.fill"
+        },
+        {
+          "name": "Bedroom",
+          "color": "#FF2D55",
+          "iconName": "bed.double.fill"
+        },
+        {
+          "name": "Office",
+          "color": "#00C7BE",
+          "iconName": "desk.fill"
+        }
+      ]
+    },
+    {
+      "name": "Tools",
+      "color": "#FF3B30",
+      "iconName": "hammer.fill",
+      "children": [
+        {
+          "name": "Power Tools",
+          "color": "#FF6482",
+          "iconName": "bolt.fill"
+        },
+        {
+          "name": "Hand Tools",
+          "color": "#FFD60A",
+          "iconName": "wrench.fill"
+        }
+      ]
+    },
+    {
+      "name": "Clothing",
+      "color": "#FF2D55",
+      "iconName": "tshirt.fill"
+    },
+    {
+      "name": "Books",
+      "color": "#30B0C7",
+      "iconName": "book.fill"
+    },
+    {
+      "name": "Kitchen",
+      "color": "#32D74B",
+      "iconName": "fork.knife"
+    },
+    {
+      "name": "Sports",
+      "color": "#FF9500",
+      "iconName": "sportscourt.fill"
+    }
+  ],
+  "locations": [
+    {
+      "name": "Home",
+      "type": "home",
+      "children": [
+        {
+          "name": "Living Room",
+          "type": "room",
+          "children": [
+            {
+              "name": "TV Stand",
+              "type": "shelf"
+            },
+            {
+              "name": "Bookshelf",
+              "type": "shelf"
+            }
+          ]
+        },
+        {
+          "name": "Master Bedroom",
+          "type": "room",
+          "children": [
+            {
+              "name": "Closet",
+              "type": "closet"
+            },
+            {
+              "name": "Nightstand",
+              "type": "drawer"
+            }
+          ]
+        },
+        {
+          "name": "Kitchen",
+          "type": "room",
+          "children": [
+            {
+              "name": "Pantry",
+              "type": "closet"
+            },
+            {
+              "name": "Upper Cabinets",
+              "type": "shelf"
+            }
+          ]
+        },
+        {
+          "name": "Garage",
+          "type": "garage",
+          "children": [
+            {
+              "name": "Tool Chest",
+              "type": "container"
+            },
+            {
+              "name": "Storage Shelves",
+              "type": "shelf"
+            }
+          ]
+        },
+        {
+          "name": "Basement",
+          "type": "basement"
+        },
+        {
+          "name": "Attic",
+          "type": "attic"
+        }
+      ]
+    },
+    {
+      "name": "Office",
+      "type": "office",
+      "children": [
+        {
+          "name": "Desk",
+          "type": "other"
+        },
+        {
+          "name": "Filing Cabinet",
+          "type": "container"
+        }
+      ]
+    },
+    {
+      "name": "Storage Unit",
+      "type": "storage",
+      "children": [
+        {
+          "name": "Box A1",
+          "type": "container"
+        },
+        {
+          "name": "Box A2",
+          "type": "container"
+        }
+      ]
+    }
+  ],
+  "sampleItems": [
+    {
+      "name": "MacBook Pro 16\"",
+      "description": "M3 Max, 64GB RAM, 2TB SSD",
+      "category": "Computers",
+      "location": "Office > Desk",
+      "quantity": 1,
+      "serialNumber": "C02XK2JDJH03",
+      "modelNumber": "MRW33LL/A",
+      "manufacturer": "Apple",
+      "purchasePrice": {
+        "amount": 4999.00,
+        "currency": "USD"
+      },
+      "purchaseDate": "2024-01-15",
+      "tags": ["work", "electronics", "apple"]
+    },
+    {
+      "name": "Standing Desk",
+      "description": "Electric height adjustable desk, bamboo top",
+      "category": "Office",
+      "location": "Office",
+      "quantity": 1,
+      "modelNumber": "E7B",
+      "manufacturer": "FlexiSpot",
+      "purchasePrice": {
+        "amount": 599.99,
+        "currency": "USD"
+      },
+      "purchaseDate": "2023-11-20",
+      "tags": ["furniture", "office", "ergonomic"]
+    },
+    {
+      "name": "Sony WH-1000XM5",
+      "description": "Wireless noise-canceling headphones",
+      "category": "Audio",
+      "location": "Living Room > TV Stand",
+      "quantity": 1,
+      "serialNumber": "5012345",
+      "modelNumber": "WH-1000XM5/B",
+      "manufacturer": "Sony",
+      "purchasePrice": {
+        "amount": 399.99,
+        "currency": "USD"
+      },
+      "purchaseDate": "2024-03-10",
+      "tags": ["audio", "electronics", "portable"]
+    },
+    {
+      "name": "DeWalt Drill Set",
+      "description": "20V MAX Cordless Drill/Driver Kit",
+      "category": "Power Tools",
+      "location": "Garage > Tool Chest",
+      "quantity": 1,
+      "modelNumber": "DCD771C2",
+      "manufacturer": "DeWalt",
+      "purchasePrice": {
+        "amount": 169.00,
+        "currency": "USD"
+      },
+      "purchaseDate": "2023-06-15",
+      "tags": ["tools", "power-tools", "diy"]
+    },
+    {
+      "name": "Coffee Maker",
+      "description": "Breville Barista Express Espresso Machine",
+      "category": "Kitchen",
+      "location": "Kitchen",
+      "quantity": 1,
+      "modelNumber": "BES870XL",
+      "manufacturer": "Breville",
+      "purchasePrice": {
+        "amount": 749.95,
+        "currency": "USD"
+      },
+      "purchaseDate": "2023-12-25",
+      "tags": ["kitchen", "appliances", "coffee"]
+    }
+  ]
+}

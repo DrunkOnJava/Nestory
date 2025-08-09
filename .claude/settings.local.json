@@ -3,7 +3,8 @@
     "allow": [
       "Bash(touch:*)",
       "Bash(shasum:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(xcodebuild test:*)"
     ],
     "deny": []
   }
