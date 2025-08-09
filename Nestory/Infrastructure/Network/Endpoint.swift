@@ -46,7 +46,7 @@ public struct Endpoint {
             request.setValue(value, forHTTPHeaderField: key)
         }
 
-        if let body, request.value(forHTTPHeaderField: "Content-Type") == nil {
+        if body != nil, request.value(forHTTPHeaderField: "Content-Type") == nil {
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         }
 

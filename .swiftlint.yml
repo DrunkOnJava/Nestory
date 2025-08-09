@@ -1,0 +1,170 @@
+# Nestory SwiftLint Configuration
+# Enforces architecture and code quality standards
+
+excluded:
+  - .build
+  - DerivedData
+  - Pods
+  - Carthage
+  - DevTools/nestoryctl/.build
+  - Sources/NestoryGuards/.build
+  # Note: Tests are NOT excluded - we lint test code too
+
+included:
+  - App-Main
+  - App-Widgets
+  - Features
+  - UI
+  - Services
+  - Infrastructure
+  - Foundation
+  - Tests
+
+opt_in_rules:
+  # Code Quality
+  - empty_count
+  - empty_string
+  - closure_spacing
+  - collection_alignment
+  - contains_over_filter_count
+  - contains_over_first_not_nil
+  - contains_over_range_nil_comparison
+  - discouraged_optional_boolean
+  - first_where
+  - force_unwrapping
+  - implicit_return
+  - joined_default_parameter
+  - last_where
+  - legacy_multiple
+  - legacy_random
+  - literal_expression_end_indentation
+  - lower_acl_than_parent
+  - modifier_order
+  - multiline_arguments
+  - multiline_parameters
+  - operator_usage_whitespace
+  - overridden_super_call
+  - pattern_matching_keywords
+  - prefer_self_type_over_type_of_self
+  - redundant_nil_coalescing
+  - redundant_type_annotation
+  - sorted_imports
+  - switch_case_on_newline
+  - trailing_closure
+  - unneeded_parentheses_in_closure_argument
+  - vertical_whitespace_closing_braces
+  - vertical_whitespace_opening_braces
+  - yoda_condition
+  
+  # Documentation
+  - missing_docs
+  
+  # Performance
+  - array_init
+  - empty_collection_literal
+  - enum_case_associated_values_count
+  - flatmap_over_map_reduce
+  - reduce_into
+  
+  # SwiftUI specific
+  - accessibility_label_for_image
+  - accessibility_trait_for_button
+
+disabled_rules:
+  - trailing_whitespace  # Let formatter handle this
+  - orphaned_doc_comment
+
+# Custom Rules
+custom_rules:
+  todo_must_reference_adr:
+    name: "TODO Must Reference ADR"
+    regex: '(//\s*(TODO|FIXME)(?!.*ADR-\d{4}))'
+    message: "TODOs and FIXMEs must reference an ADR (e.g., // TODO: ADR-0001)"
+    severity: error
+    
+  layer_header_required:
+    name: "Layer Header Required"
+    regex: '^(?!//\s*Layer:)'
+    match_kinds:
+      - comment
+    message: "Files must start with // Layer: [LayerName] header"
+    severity: warning
+
+# Length Rules (per guidelines)
+line_length:
+  warning: 100
+  error: 120
+  ignores_urls: true
+  ignores_function_declarations: false
+  ignores_comments: false
+
+file_length:
+  warning: 400
+  error: 600
+  ignore_comment_only_lines: true
+
+function_body_length:
+  warning: 40
+  error: 80
+
+type_body_length:
+  warning: 250
+  error: 400
+
+function_parameter_count:
+  warning: 5
+  error: 8
+
+# Naming
+identifier_name:
+  min_length:
+    warning: 2
+    error: 1
+  max_length:
+    warning: 40
+    error: 50
+  excluded:
+    - id
+    - ok
+    - no
+    - to
+    - up
+    - on
+    - x
+    - y
+    - z
+    - i
+    - j
+    - k
+
+type_name:
+  min_length: 3
+  max_length:
+    warning: 40
+    error: 50
+
+# Metrics
+cyclomatic_complexity:
+  warning: 10
+  error: 20
+
+nesting:
+  type_level: 2
+  function_level: 3
+
+# Force Unwrapping
+force_cast: error
+force_try: error
+force_unwrapping:
+  severity: error
+
+# Imports
+sorted_imports: true
+
+# SwiftUI Specific
+multiline_arguments:
+  first_argument_location: next_line
+  only_enforce_after_first_closure_on_first_line: true
+
+# Reporter
+reporter: "xcode"

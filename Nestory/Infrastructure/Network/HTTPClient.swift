@@ -102,14 +102,10 @@ public final class HTTPClient {
         config: RetryConfig,
         operation: @escaping () async throws -> T
     ) async throws -> T {
-        var lastError: Error?
-
         for attempt in 0 ..< config.maxAttempts {
             do {
                 return try await operation()
             } catch let error as NetworkError {
-                lastError = error
-
                 if !error.isRetryable || attempt == config.maxAttempts - 1 {
                     throw error
                 }

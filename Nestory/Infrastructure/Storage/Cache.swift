@@ -4,7 +4,7 @@ import Foundation
 import os.log
 import UIKit
 
-public final class Cache<Key: Hashable, Value> {
+public final class Cache<Key: Hashable, Value>: @unchecked Sendable {
     private let memoryCache = NSCache<WrappedKey, Entry>()
     private let fileManager = FileManager.default
     private let diskCacheURL: URL
@@ -365,7 +365,7 @@ public final class Cache<Key: Hashable, Value> {
     }
 }
 
-private final class WrappedKey: NSObject {
+private final class WrappedKey: NSObject, @unchecked Sendable {
     let key: AnyHashable
 
     init(_ key: some Hashable) {
@@ -383,7 +383,7 @@ private final class WrappedKey: NSObject {
     }
 }
 
-private final class Entry {
+private final class Entry: @unchecked Sendable {
     let value: Any
     let expirationDate: Date
 

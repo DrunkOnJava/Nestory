@@ -47,14 +47,14 @@ public final class MetricKitCollector: NSObject {
         if let cpuMetrics = payload.cpuMetrics {
             metrics.cpu = CPUMetrics(
                 cumulativeCPUTime: cpuMetrics.cumulativeCPUTime.value,
-                cumulativeCPUInstructions: cpuMetrics.cumulativeCPUInstructions?.value
+                cumulativeCPUInstructions: cpuMetrics.cumulativeCPUInstructions.value
             )
         }
 
         if let memoryMetrics = payload.memoryMetrics {
             metrics.memory = MemoryMetrics(
                 peakMemoryUsage: memoryMetrics.peakMemoryUsage.value,
-                averageSuspendedMemory: memoryMetrics.averageSuspendedMemory.averageValue
+                averageSuspendedMemory: memoryMetrics.averageSuspendedMemory.averageMeasurement.value
             )
         }
 
@@ -75,14 +75,14 @@ public final class MetricKitCollector: NSObject {
 
         if let displayMetrics = payload.displayMetrics {
             metrics.display = DisplayMetrics(
-                averagePixelLuminance: displayMetrics.averagePixelLuminance?.averageValue
+                averagePixelLuminance: displayMetrics.averagePixelLuminance?.averageMeasurement.value
             )
         }
 
-        if let applicationLaunchMetrics = payload.applicationLaunchMetrics {
+        if payload.applicationLaunchMetrics != nil {
             metrics.launch = LaunchMetrics(
-                timeToFirstDraw: applicationLaunchMetrics.histogrammedTimeToFirstDraw?.histogrammedApplicationResumeTime.averageValue,
-                applicationResumeTime: applicationLaunchMetrics.histogrammedApplicationResumeTime?.histogrammedApplicationResumeTime.averageValue
+                timeToFirstDraw: nil,
+                applicationResumeTime: nil
             )
         }
 

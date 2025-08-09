@@ -81,7 +81,11 @@ public enum CurrencyUtils {
     }
 
     public static func isValidCurrencyCode(_ code: String) -> Bool {
-        Locale.isoCurrencyCodes.contains(code.uppercased())
+        if #available(iOS 16.0, *) {
+            Locale.Currency.isoCurrencies.contains(where: { $0.identifier == code.uppercased() })
+        } else {
+            Locale.isoCurrencyCodes.contains(code.uppercased())
+        }
     }
 
     public static func currencyName(for code: String, locale: Locale = .current) -> String? {

@@ -136,9 +136,10 @@ public final class PerceptualHash {
                     }
                 }
 
-                let cu = u == 0 ? 1.0 / sqrt(2.0) : 1.0
-                let cv = v == 0 ? 1.0 / sqrt(2.0) : 1.0
-                dctMatrix[u][v] = sum * cu * cv * 2.0 / Float(width)
+                let cu: Float = u == 0 ? 1.0 / sqrt(2.0) : 1.0
+                let cv: Float = v == 0 ? 1.0 / sqrt(2.0) : 1.0
+                let coefficient = sum * cu * cv
+                dctMatrix[u][v] = coefficient * 2.0 / Float(width)
             }
         }
 

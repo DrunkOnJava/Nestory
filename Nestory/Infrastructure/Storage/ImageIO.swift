@@ -112,7 +112,7 @@ public final class ImageIO {
     }
 
     public func resizeImage(_ image: UIImage, maxDimension: CGFloat) async throws -> UIImage {
-        try await Task.detached(priority: .userInitiated) {
+        await Task.detached(priority: .userInitiated) {
             let size = image.size
 
             guard size.width > maxDimension || size.height > maxDimension else {

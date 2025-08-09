@@ -151,7 +151,7 @@ public final class Thumbnailer {
                 thumbnails[index] = thumbnail
             }
 
-            return thumbnails.compactMap { $0 }
+            return thumbnails.compactMap(\.self)
         }
     }
 
