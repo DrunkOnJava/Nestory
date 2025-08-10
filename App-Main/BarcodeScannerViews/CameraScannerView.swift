@@ -10,7 +10,7 @@ struct CameraScannerView: UIViewControllerRepresentable {
     let scanner: BarcodeScannerService
     let onScan: (BarcodeResult) -> Void
     @Environment(\.dismiss) private var dismiss
-    
+
     func makeUIViewController(context _: Context) -> CameraScannerViewController {
         let controller = CameraScannerViewController()
         controller.scanner = scanner
@@ -20,7 +20,7 @@ struct CameraScannerView: UIViewControllerRepresentable {
         }
         return controller
     }
-    
+
     func updateUIViewController(_: CameraScannerViewController, context _: Context) {}
 }
 

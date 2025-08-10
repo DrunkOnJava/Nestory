@@ -14,7 +14,7 @@ struct BarcodeScannerView: View {
     @Bindable var item: Item
     @StateObject private var scanner = BarcodeScannerService()
     @Environment(\.dismiss) private var dismiss
-    
+
     @State private var showingCamera = false
     @State private var showingPhotoPicker = false
     @State private var selectedImage: Data?
@@ -22,7 +22,7 @@ struct BarcodeScannerView: View {
     @State private var productInfo: ProductInfo?
     @State private var isProcessing = false
     @State private var showingManualEntry = false
-    
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
@@ -41,9 +41,9 @@ struct BarcodeScannerView: View {
                         onManualEntry: { showingManualEntry = true }
                     )
                 }
-                
+
                 Spacer()
-                
+
                 // Tips section
                 if scannedResult == nil {
                     ScanningTipsView()
@@ -88,9 +88,9 @@ struct BarcodeScannerView: View {
             }
         }
     }
-    
+
     // MARK: - Actions
-    
+
     private func checkCameraAndScan() {
         Task {
             if await scanner.checkCameraPermission() {
@@ -98,10 +98,10 @@ struct BarcodeScannerView: View {
             }
         }
     }
-    
+
     private func handleScanResult(_ result: BarcodeResult) {
         scannedResult = result
-        
+
         // Look up product info if it's a product barcode
         if !result.isSerialNumber {
             Task {
@@ -112,11 +112,11 @@ struct BarcodeScannerView: View {
             }
         }
     }
-    
+
     private func processImageForBarcode(_ imageData: Data) async {
         isProcessing = true
         defer { isProcessing = false }
-        
+
         do {
             if let result = try await scanner.detectBarcode(from: imageData) {
                 await MainActor.run {
@@ -133,7 +133,7 @@ struct BarcodeScannerView: View {
             }
         }
     }
-    
+
     private func handleManualEntry(value: String, type: String) {
         let result = BarcodeResult(
             value: value,
@@ -142,10 +142,10 @@ struct BarcodeScannerView: View {
         )
         handleScanResult(result)
     }
-    
+
     private func applyScanResult() {
         guard let result = scannedResult else { return }
-        
+
         // Apply scanned data to item
         if result.isSerialNumber {
             item.serialNumber = result.value
@@ -153,7 +153,7 @@ struct BarcodeScannerView: View {
             // It's a product barcode - store in model number field
             item.modelNumber = result.value
         }
-        
+
         // Apply product info if available
         if let product = productInfo {
             if item.name.isEmpty || item.name == "New Item" {
@@ -163,11 +163,11 @@ struct BarcodeScannerView: View {
                 item.brand = brand
             }
         }
-        
+
         item.updatedAt = Date()
         dismiss()
     }
-    
+
     private func rescan() {
         scannedResult = nil
         productInfo = nil

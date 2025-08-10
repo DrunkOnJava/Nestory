@@ -10,15 +10,15 @@ public struct ManualBarcodeEntryView: View {
     @State private var barcodeValue = ""
     @State private var selectedType = "UPC"
     @Environment(\.dismiss) private var dismiss
-    
+
     let onSave: (String, String) -> Void
-    
+
     let barcodeTypes = ["UPC", "EAN", "Serial Number", "QR Code", "Other"]
-    
+
     public init(onSave: @escaping (String, String) -> Void) {
         self.onSave = onSave
     }
-    
+
     public var body: some View {
         NavigationStack {
             Form {
@@ -27,14 +27,14 @@ public struct ManualBarcodeEntryView: View {
                         .textInputAutocapitalization(.characters)
                         .autocorrectionDisabled()
                         .font(.system(.body, design: .monospaced))
-                    
+
                     Picker("Type", selection: $selectedType) {
                         ForEach(barcodeTypes, id: \.self) { type in
                             Text(type).tag(type)
                         }
                     }
                 }
-                
+
                 Section {
                     Text("Enter the barcode number exactly as it appears on the product label.")
                         .font(.caption)
@@ -49,7 +49,7 @@ public struct ManualBarcodeEntryView: View {
                         dismiss()
                     }
                 }
-                
+
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Save") {
                         onSave(barcodeValue, selectedType)

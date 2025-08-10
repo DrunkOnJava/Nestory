@@ -10,7 +10,7 @@ struct ScanOptionsView: View {
     let onCameraScan: () -> Void
     let onPhotoScan: () -> Void
     let onManualEntry: () -> Void
-    
+
     var body: some View {
         VStack(spacing: 20) {
             // Camera scan button
@@ -31,7 +31,7 @@ struct ScanOptionsView: View {
                 .cornerRadius(12)
             }
             .buttonStyle(.plain)
-            
+
             // Photo picker button
             Button(action: onPhotoScan) {
                 VStack(spacing: 12) {
@@ -50,7 +50,7 @@ struct ScanOptionsView: View {
                 .cornerRadius(12)
             }
             .buttonStyle(.plain)
-            
+
             // Manual entry button
             Button(action: onManualEntry) {
                 HStack {

@@ -11,13 +11,13 @@ struct ScanResultView: View {
     let productInfo: ProductInfo?
     let onApply: () -> Void
     let onRescan: () -> Void
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Scanned Successfully!")
                 .font(.headline)
                 .foregroundColor(.green)
-            
+
             GroupBox {
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
@@ -27,14 +27,14 @@ struct ScanResultView: View {
                             .font(.system(.body, design: .monospaced))
                             .textSelection(.enabled)
                     }
-                    
+
                     HStack {
                         Text("Type:")
                             .foregroundColor(.secondary)
                         Text(result.type)
-                        
+
                         Spacer()
-                        
+
                         if result.isSerialNumber {
                             Label("Serial Number", systemImage: "number")
                                 .font(.caption)
@@ -55,7 +55,7 @@ struct ScanResultView: View {
                     }
                 }
             }
-            
+
             // Product info if available
             if let product = productInfo {
                 GroupBox("Product Information") {
@@ -72,7 +72,7 @@ struct ScanResultView: View {
                     }
                 }
             }
-            
+
             // Action buttons
             HStack(spacing: 12) {
                 Button(action: onApply) {
@@ -80,7 +80,7 @@ struct ScanResultView: View {
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
-                
+
                 Button(action: onRescan) {
                     Label("Scan Again", systemImage: "arrow.clockwise")
                         .frame(maxWidth: .infinity)
@@ -97,7 +97,7 @@ struct ScanResultView: View {
 struct DetailRow: View {
     let label: String
     let value: String
-    
+
     var body: some View {
         HStack {
             Text("\(label):")

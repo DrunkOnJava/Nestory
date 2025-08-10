@@ -13,7 +13,7 @@ struct ScanningTipsView: View {
                 Label("Scanning Tips", systemImage: "lightbulb")
                     .font(.caption)
                     .foregroundColor(.secondary)
-                
+
                 Text("• Hold steady with good lighting")
                     .font(.caption2)
                 Text("• Barcode should fill most of frame")
