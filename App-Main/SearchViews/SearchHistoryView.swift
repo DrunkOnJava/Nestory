@@ -11,7 +11,7 @@ struct SearchHistoryView: View {
     @Binding var searchHistory: SearchHistory
     @Binding var searchText: String
     let onSearch: (String) -> Void
-    
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
@@ -21,9 +21,9 @@ struct SearchHistoryView: View {
                         HStack {
                             Text("Recent Searches")
                                 .font(.headline)
-                            
+
                             Spacer()
-                            
+
                             Button("Clear") {
                                 withAnimation {
                                     searchHistory.clearAll()
@@ -32,18 +32,18 @@ struct SearchHistoryView: View {
                             .font(.caption)
                             .foregroundColor(.secondary)
                         }
-                        
+
                         ForEach(searchHistory.recentSearches, id: \.self) { term in
                             HStack {
                                 Image(systemName: "clock.arrow.circlepath")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
-                                
+
                                 Text(term)
                                     .foregroundColor(.primary)
-                                
+
                                 Spacer()
-                                
+
                                 Button(action: {
                                     searchHistory.removeSearch(term)
                                 }) {
@@ -60,12 +60,12 @@ struct SearchHistoryView: View {
                         }
                     }
                 }
-                
+
                 // Suggested Searches
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Suggested Searches")
                         .font(.headline)
-                    
+
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 100))], spacing: 8) {
                         ForEach(suggestedSearches, id: \.self) { term in
                             SearchChip(text: term) {
@@ -75,12 +75,12 @@ struct SearchHistoryView: View {
                         }
                     }
                 }
-                
+
                 // Quick Filters
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Quick Filters")
                         .font(.headline)
-                    
+
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 140))], spacing: 8) {
                         QuickFilterButton(
                             title: "With Photos",
@@ -89,7 +89,7 @@ struct SearchHistoryView: View {
                         ) {
                             onSearch("has:photo")
                         }
-                        
+
                         QuickFilterButton(
                             title: "With Receipts",
                             icon: "doc.text.fill",
@@ -97,7 +97,7 @@ struct SearchHistoryView: View {
                         ) {
                             onSearch("has:receipt")
                         }
-                        
+
                         QuickFilterButton(
                             title: "Warranty Active",
                             icon: "shield.fill",
@@ -105,7 +105,7 @@ struct SearchHistoryView: View {
                         ) {
                             onSearch("warranty:active")
                         }
-                        
+
                         QuickFilterButton(
                             title: "High Value",
                             icon: "dollarsign.circle.fill",
@@ -119,7 +119,7 @@ struct SearchHistoryView: View {
             .padding()
         }
     }
-    
+
     private var suggestedSearches: [String] {
         ["Electronics", "Furniture", "Documents", "Kitchen", "Warranty", "Receipt", "Serial Number"]
     }
@@ -130,7 +130,7 @@ struct SearchHistoryView: View {
 struct SearchChip: View {
     let text: String
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             Text(text)
@@ -151,7 +151,7 @@ struct QuickFilterButton: View {
     let icon: String
     let color: Color
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             HStack {

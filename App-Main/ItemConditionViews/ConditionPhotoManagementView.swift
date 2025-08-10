@@ -5,9 +5,9 @@
 //  Photo management for condition documentation
 //
 
-import SwiftUI
-import SwiftData
 import PhotosUI
+import SwiftData
+import SwiftUI
 
 struct ConditionPhotoManagementView: View {
     @Bindable var item: Item
@@ -18,20 +18,20 @@ struct ConditionPhotoManagementView: View {
     @State private var showingDeleteAlert = false
     @State private var photoToDelete: Int?
     @State private var selectedImageData: Data?
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text("Condition Photos")
                     .font(.headline)
-                
+
                 Spacer()
-                
+
                 Menu {
                     Button(action: { showingCamera = true }) {
                         Label("Take Photo", systemImage: "camera")
                     }
-                    
+
                     Button(action: { showingPhotoPicker = true }) {
                         Label("Choose from Library", systemImage: "photo.on.rectangle")
                     }
@@ -41,7 +41,7 @@ struct ConditionPhotoManagementView: View {
                         .foregroundColor(.accentColor)
                 }
             }
-            
+
             if item.conditionPhotos.isEmpty {
                 ConditionPhotoEmptyState(
                     showingCamera: $showingCamera
@@ -55,7 +55,7 @@ struct ConditionPhotoManagementView: View {
                     showingDeleteAlert: $showingDeleteAlert
                 )
             }
-            
+
             Text("\(item.conditionPhotos.count) photo\(item.conditionPhotos.count == 1 ? "" : "s") documenting condition")
                 .font(.caption)
                 .foregroundColor(.secondary)
@@ -100,7 +100,7 @@ struct ConditionPhotoManagementView: View {
             }
         }
         .alert("Delete Photo?", isPresented: $showingDeleteAlert) {
-            Button("Cancel", role: .cancel) { }
+            Button("Cancel", role: .cancel) {}
             Button("Delete", role: .destructive) {
                 if let index = photoToDelete {
                     deletePhoto(at: index)
@@ -110,7 +110,7 @@ struct ConditionPhotoManagementView: View {
             Text("This photo will be permanently removed from the condition documentation.")
         }
     }
-    
+
     private func deletePhoto(at index: Int) {
         guard index < item.conditionPhotos.count else { return }
         item.conditionPhotos.remove(at: index)
@@ -122,7 +122,7 @@ struct ConditionPhotoManagementView: View {
 
 struct ConditionPhotoEmptyState: View {
     @Binding var showingCamera: Bool
-    
+
     var body: some View {
         VStack(spacing: 12) {
             Image(systemName: "camera.on.rectangle")
@@ -134,7 +134,7 @@ struct ConditionPhotoEmptyState: View {
             Text("Add photos to document current condition")
                 .font(.caption)
                 .foregroundColor(.secondary)
-            
+
             Button(action: { showingCamera = true }) {
                 Label("Add First Photo", systemImage: "camera.fill")
             }
@@ -153,7 +153,7 @@ struct ConditionPhotoGrid: View {
     @Binding var selectedPhotoIndex: Int?
     @Binding var photoToDelete: Int?
     @Binding var showingDeleteAlert: Bool
-    
+
     var body: some View {
         LazyVGrid(columns: [GridItem(.adaptive(minimum: 100))], spacing: 12) {
             ForEach(Array(photos.enumerated()), id: \.offset) { index, photoData in
@@ -176,7 +176,7 @@ struct ConditionPhotoCard: View {
     let description: String
     let onTap: () -> Void
     let onDelete: () -> Void
-    
+
     var body: some View {
         ZStack(alignment: .topTrailing) {
             Button(action: onTap) {
@@ -194,7 +194,7 @@ struct ConditionPhotoCard: View {
                 }
             }
             .buttonStyle(.plain)
-            
+
             Button(action: onDelete) {
                 Image(systemName: "xmark.circle.fill")
                     .foregroundColor(.red)
@@ -209,7 +209,7 @@ struct ConditionPhotoDetailView: View {
     let photoData: Data
     @Binding var description: String
     @Environment(\.dismiss) private var dismiss
-    
+
     var body: some View {
         NavigationStack {
             VStack {
@@ -219,11 +219,11 @@ struct ConditionPhotoDetailView: View {
                         .scaledToFit()
                         .frame(maxHeight: 400)
                 }
-                
+
                 Form {
                     Section("Photo Description") {
                         TextField("Describe what this photo shows", text: $description, axis: .vertical)
-                            .lineLimit(3...6)
+                            .lineLimit(3 ... 6)
                     }
                 }
             }
@@ -243,40 +243,40 @@ struct ConditionPhotoDetailView: View {
 struct PhotoPickerView: UIViewControllerRepresentable {
     @Binding var imageData: Data?
     @Environment(\.dismiss) private var dismiss
-    
+
     func makeUIViewController(context: Context) -> PHPickerViewController {
         var config = PHPickerConfiguration()
         config.filter = .images
         config.selectionLimit = 1
-        
+
         let picker = PHPickerViewController(configuration: config)
         picker.delegate = context.coordinator
         return picker
     }
-    
-    func updateUIViewController(_ uiViewController: PHPickerViewController, context: Context) {}
-    
+
+    func updateUIViewController(_: PHPickerViewController, context _: Context) {}
+
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
-    
+
     class Coordinator: NSObject, PHPickerViewControllerDelegate {
         let parent: PhotoPickerView
-        
+
         init(_ parent: PhotoPickerView) {
             self.parent = parent
         }
-        
-        func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+
+        func picker(_: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
             parent.dismiss()
-            
+
             guard let provider = results.first?.itemProvider,
                   provider.canLoadObject(ofClass: UIImage.self) else { return }
-            
+
             provider.loadObject(ofClass: UIImage.self) { image, _ in
                 guard let uiImage = image as? UIImage,
                       let data = uiImage.jpegData(compressionQuality: 0.8) else { return }
-                
+
                 DispatchQueue.main.async {
                     self.parent.imageData = data
                 }

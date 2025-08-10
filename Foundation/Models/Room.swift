@@ -11,27 +11,27 @@ import SwiftData
 public final class Room {
     @Attribute(.unique)
     public var id: UUID
-    
+
     public var name: String
     public var icon: String
     public var roomDescription: String?
     public var floor: String?
-    
+
     // Computed property for item count will be handled via queries
-    
+
     public init(
         name: String,
         icon: String = "door.left.hand.open",
         roomDescription: String? = nil,
         floor: String? = nil
     ) {
-        self.id = UUID()
+        id = UUID()
         self.name = name
         self.icon = icon
         self.roomDescription = roomDescription
         self.floor = floor
     }
-    
+
     // Default rooms for initial setup
     public static func createDefaultRooms() -> [Room] {
         [
@@ -46,7 +46,7 @@ public final class Room {
             Room(name: "Attic", icon: "house.lodge"),
             Room(name: "Dining Room", icon: "fork.knife"),
             Room(name: "Kids Room", icon: "figure.2.and.child.holdinghands"),
-            Room(name: "Storage", icon: "shippingbox")
+            Room(name: "Storage", icon: "shippingbox"),
         ]
     }
 }

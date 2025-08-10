@@ -5,15 +5,15 @@
 //  REMINDER: This view is WIRED UP in SettingsView
 //  Provides export options specifically formatted for insurance companies
 
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 struct InsuranceExportOptionsView: View {
     let items: [Item]
     let categories: [Category]
     let rooms: [Room]
     let exportService: InsuranceExportService
-    
+
     @Environment(\.dismiss) private var dismiss
     @State private var selectedFormat = InsuranceExportService.ExportFormat.standardForm
     @State private var exportOptions = ExportOptions()
@@ -22,7 +22,7 @@ struct InsuranceExportOptionsView: View {
     @State private var showingExportError = false
     @State private var showingShareSheet = false
     @State private var exportedFileURL: URL?
-    
+
     var body: some View {
         NavigationStack {
             Form {
@@ -37,9 +37,9 @@ struct InsuranceExportOptionsView: View {
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
-                            
+
                             Spacer()
-                            
+
                             if selectedFormat == format {
                                 Image(systemName: "checkmark.circle.fill")
                                     .foregroundColor(.accentColor)
@@ -52,40 +52,40 @@ struct InsuranceExportOptionsView: View {
                         .padding(.vertical, 4)
                     }
                 }
-                
+
                 // Policy Information
                 Section("Policy Information (Optional)") {
                     TextField("Policy Holder Name", text: .init(
                         get: { exportOptions.policyHolderName ?? "" },
                         set: { exportOptions.policyHolderName = $0.isEmpty ? nil : $0 }
                     ))
-                    
+
                     TextField("Policy Number", text: .init(
                         get: { exportOptions.policyNumber ?? "" },
                         set: { exportOptions.policyNumber = $0.isEmpty ? nil : $0 }
                     ))
-                    
+
                     TextField("Property Address", text: .init(
                         get: { exportOptions.propertyAddress ?? "" },
                         set: { exportOptions.propertyAddress = $0.isEmpty ? nil : $0 }
                     ))
                     .textContentType(.fullStreetAddress)
                 }
-                
+
                 // Export Options
                 Section("Include in Export") {
                     Toggle("Photos", isOn: $exportOptions.includePhotos)
                     Toggle("Receipts", isOn: $exportOptions.includeReceipts)
                     Toggle("Warranty Information", isOn: $exportOptions.includeWarrantyInfo)
                     Toggle("Group by Room", isOn: $exportOptions.groupByRoom)
-                    
+
                     VStack(alignment: .leading) {
                         Toggle("Calculate Depreciation", isOn: $exportOptions.includeDepreciation)
-                        
+
                         if exportOptions.includeDepreciation {
                             HStack {
                                 Text("Annual Rate:")
-                                Slider(value: $exportOptions.depreciationRate, in: 0.05...0.25, step: 0.05)
+                                Slider(value: $exportOptions.depreciationRate, in: 0.05 ... 0.25, step: 0.05)
                                 Text("\(Int(exportOptions.depreciationRate * 100))%")
                                     .frame(width: 40)
                             }
@@ -93,7 +93,7 @@ struct InsuranceExportOptionsView: View {
                         }
                     }
                 }
-                
+
                 // Statistics
                 Section("Export Summary") {
                     HStack {
@@ -102,28 +102,28 @@ struct InsuranceExportOptionsView: View {
                         Text("\(items.count)")
                             .foregroundColor(.secondary)
                     }
-                    
+
                     HStack {
                         Text("Total Value")
                         Spacer()
                         Text(formatCurrency(totalValue))
                             .foregroundColor(.secondary)
                     }
-                    
+
                     HStack {
                         Text("Items with Photos")
                         Spacer()
                         Text("\(itemsWithPhotos)")
                             .foregroundColor(.secondary)
                     }
-                    
+
                     HStack {
                         Text("Items with Receipts")
                         Spacer()
                         Text("\(itemsWithReceipts)")
                             .foregroundColor(.secondary)
                     }
-                    
+
                     HStack {
                         Text("Format")
                         Spacer()
@@ -132,7 +132,7 @@ struct InsuranceExportOptionsView: View {
                             .font(.system(.body, design: .monospaced))
                     }
                 }
-                
+
                 // Export Button
                 Section {
                     Button(action: performExport) {
@@ -162,7 +162,7 @@ struct InsuranceExportOptionsView: View {
                 }
             }
             .alert("Export Error", isPresented: $showingExportError) {
-                Button("OK") { }
+                Button("OK") {}
             } message: {
                 Text(exportError?.localizedDescription ?? "Failed to export inventory")
             }
@@ -173,46 +173,46 @@ struct InsuranceExportOptionsView: View {
             }
         }
     }
-    
+
     // MARK: - Helper Methods
-    
+
     private var totalValue: Decimal {
-        items.compactMap { $0.purchasePrice }.reduce(0, +)
+        items.compactMap(\.purchasePrice).reduce(0, +)
     }
-    
+
     private var itemsWithPhotos: Int {
-        items.filter { $0.imageData != nil }.count
+        items.count(where: { $0.imageData != nil })
     }
-    
+
     private var itemsWithReceipts: Int {
-        items.filter { $0.receiptImageData != nil }.count
+        items.count(where: { $0.receiptImageData != nil })
     }
-    
+
     private func formatCurrency(_ value: Decimal) -> String {
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
         formatter.currencyCode = "USD"
         return formatter.string(from: value as NSNumber) ?? "$0"
     }
-    
+
     private func formatDescription(_ format: InsuranceExportService.ExportFormat) -> String {
         switch format {
         case .standardForm:
-            return "PDF with photos and values for claims"
+            "PDF with photos and values for claims"
         case .detailedSpreadsheet:
-            return "Excel-compatible CSV with all data"
+            "Excel-compatible CSV with all data"
         case .digitalPackage:
-            return "ZIP file with all photos and documents"
+            "ZIP file with all photos and documents"
         case .xmlFormat:
-            return "Industry-standard XML format"
+            "Industry-standard XML format"
         case .claimsReady:
-            return "Complete package for adjusters"
+            "Complete package for adjusters"
         }
     }
-    
+
     private func performExport() {
         isExporting = true
-        
+
         Task {
             do {
                 let result = try await exportService.exportInventory(
@@ -222,7 +222,7 @@ struct InsuranceExportOptionsView: View {
                     format: selectedFormat,
                     options: exportOptions
                 )
-                
+
                 await MainActor.run {
                     exportedFileURL = result.fileURL
                     showingShareSheet = true
@@ -243,12 +243,12 @@ struct InsuranceExportOptionsView: View {
 
 struct ShareSheet: UIViewControllerRepresentable {
     let items: [Any]
-    
-    func makeUIViewController(context: Context) -> UIActivityViewController {
+
+    func makeUIViewController(context _: Context) -> UIActivityViewController {
         UIActivityViewController(activityItems: items, applicationActivities: nil)
     }
-    
-    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
+
+    func updateUIViewController(_: UIActivityViewController, context _: Context) {}
 }
 
 #Preview {

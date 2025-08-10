@@ -15,31 +15,31 @@ public final class InsuranceExportService: ObservableObject {
     @Published public var isExporting = false
     @Published public var exportProgress: Double = 0.0
     @Published public var errorMessage: String?
-    
+
     public init() {}
-    
+
     // MARK: - Export Formats
-    
+
     public enum ExportFormat: String, CaseIterable {
         case standardForm = "Standard Insurance Form (PDF)"
         case detailedSpreadsheet = "Detailed Spreadsheet (Excel)"
         case digitalPackage = "Digital Evidence Package (ZIP)"
         case xmlFormat = "Industry XML Format"
         case claimsReady = "Claims-Ready Package"
-        
+
         var fileExtension: String {
             switch self {
-            case .standardForm: return "pdf"
-            case .detailedSpreadsheet: return "xlsx"
-            case .digitalPackage: return "zip"
-            case .xmlFormat: return "xml"
-            case .claimsReady: return "zip"
+            case .standardForm: "pdf"
+            case .detailedSpreadsheet: "xlsx"
+            case .digitalPackage: "zip"
+            case .xmlFormat: "xml"
+            case .claimsReady: "zip"
             }
         }
     }
-    
+
     // MARK: - Main Export Method
-    
+
     public func exportInventory(
         items: [Item],
         categories: [Category],
@@ -53,7 +53,7 @@ public final class InsuranceExportService: ObservableObject {
             isExporting = false
             exportProgress = 1.0
         }
-        
+
         switch format {
         case .standardForm:
             return try await exportStandardForm(items: items, categories: categories, rooms: rooms, options: options)
@@ -67,10 +67,10 @@ public final class InsuranceExportService: ObservableObject {
             return try await exportClaimsReadyPackage(items: items, categories: categories, rooms: rooms, options: options)
         }
     }
-    
+
     // MARK: - Standard Insurance Form (PDF)
-    
-    private func exportStandardForm(items: [Item], categories: [Category], rooms: [Room], options: ExportOptions) async throws -> ExportResult {
+
+    private func exportStandardForm(items: [Item], categories _: [Category], rooms: [Room], options: ExportOptions) async throws -> ExportResult {
         var htmlContent = """
         <!DOCTYPE html>
         <html>
@@ -109,7 +109,7 @@ public final class InsuranceExportService: ObservableObject {
         </head>
         <body>
         """
-        
+
         // Header
         htmlContent += """
         <div class="header">
@@ -122,13 +122,13 @@ public final class InsuranceExportService: ObservableObject {
             </div>
         </div>
         """
-        
+
         // Summary Statistics
-        let totalValue = items.compactMap { $0.purchasePrice }.reduce(0, +)
-        let itemsWithReceipts = items.filter { $0.receiptImageData != nil }.count
-        let itemsWithSerialNumbers = items.filter { $0.serialNumber != nil }.count
-        let itemsWithWarranty = items.filter { $0.warrantyExpirationDate != nil }.count
-        
+        let totalValue = items.compactMap(\.purchasePrice).reduce(0, +)
+        let itemsWithReceipts = items.count(where: { $0.receiptImageData != nil })
+        let itemsWithSerialNumbers = items.count(where: { $0.serialNumber != nil })
+        let itemsWithWarranty = items.count(where: { $0.warrantyExpirationDate != nil })
+
         htmlContent += """
         <div class="summary-box">
             <h2>Inventory Summary</h2>
@@ -160,23 +160,23 @@ public final class InsuranceExportService: ObservableObject {
             </div>
         </div>
         """
-        
+
         // Group items by room if requested
         if options.groupByRoom {
             let itemsByRoom = Dictionary(grouping: items) { $0.room ?? "Unassigned" }
-            
+
             for (room, roomItems) in itemsByRoom.sorted(by: { $0.key < $1.key }) {
-                let roomTotal = roomItems.compactMap { $0.purchasePrice }.reduce(0, +)
-                
+                let roomTotal = roomItems.compactMap(\.purchasePrice).reduce(0, +)
+
                 htmlContent += """
                 <div class="section">
                     <div class="section-title">\(room) - \(roomItems.count) items - Total: $\(roomTotal)</div>
                 """
-                
+
                 for item in roomItems {
                     htmlContent += generateItemCard(item: item, options: options)
                 }
-                
+
                 htmlContent += "</div>"
                 exportProgress += Double(roomItems.count) / Double(items.count) * 0.8
             }
@@ -189,7 +189,7 @@ public final class InsuranceExportService: ObservableObject {
             }
             htmlContent += "</div>"
         }
-        
+
         // Footer
         htmlContent += """
         <div class="footer">
@@ -202,17 +202,17 @@ public final class InsuranceExportService: ObservableObject {
         </body>
         </html>
         """
-        
+
         // Convert HTML to PDF
         let pdfData = try await convertHTMLToPDF(html: htmlContent)
-        
+
         // Save to temporary file
         let fileName = "Insurance_Inventory_\(Date().timeIntervalSince1970).pdf"
         let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
         try pdfData.write(to: tempURL)
-        
+
         exportProgress = 1.0
-        
+
         return ExportResult(
             fileURL: tempURL,
             format: .standardForm,
@@ -221,13 +221,13 @@ public final class InsuranceExportService: ObservableObject {
             fileSize: pdfData.count
         )
     }
-    
+
     // MARK: - Detailed Spreadsheet Export
-    
-    private func exportDetailedSpreadsheet(items: [Item], categories: [Category], rooms: [Room], options: ExportOptions) async throws -> ExportResult {
+
+    private func exportDetailedSpreadsheet(items: [Item], categories _: [Category], rooms _: [Room], options _: ExportOptions) async throws -> ExportResult {
         // Create CSV with all fields (Excel can open CSV)
         var csvContent = "Item ID,Name,Description,Category,Room,Location,Quantity,Brand,Model,Serial Number,Purchase Date,Purchase Price,Currency,Warranty Expiration,Warranty Provider,Has Photo,Has Receipt,Receipt Text,Tags,Notes,Created Date,Updated Date\n"
-        
+
         for item in items {
             let row = [
                 item.id.uuidString,
@@ -251,37 +251,37 @@ public final class InsuranceExportService: ObservableObject {
                 escapeCSV(item.tags.joined(separator: "; ")),
                 escapeCSV(item.notes ?? ""),
                 item.createdAt.formatted(date: .numeric, time: .omitted),
-                item.updatedAt.formatted(date: .numeric, time: .omitted)
+                item.updatedAt.formatted(date: .numeric, time: .omitted),
             ].joined(separator: ",")
-            
+
             csvContent += row + "\n"
         }
-        
+
         // Add summary section
         csvContent += "\n\nSUMMARY\n"
         csvContent += "Total Items,\(items.count)\n"
-        csvContent += "Total Value,\(items.compactMap { $0.purchasePrice }.reduce(0, +))\n"
-        csvContent += "Items with Photos,\(items.filter { $0.imageData != nil }.count)\n"
-        csvContent += "Items with Receipts,\(items.filter { $0.receiptImageData != nil }.count)\n"
-        csvContent += "Items with Serial Numbers,\(items.filter { $0.serialNumber != nil }.count)\n"
-        csvContent += "Items under Warranty,\(items.filter { $0.warrantyExpirationDate != nil && $0.warrantyExpirationDate! > Date() }.count)\n"
-        
+        csvContent += "Total Value,\(items.compactMap(\.purchasePrice).reduce(0, +))\n"
+        csvContent += "Items with Photos,\(items.count(where: { $0.imageData != nil }))\n"
+        csvContent += "Items with Receipts,\(items.count(where: { $0.receiptImageData != nil }))\n"
+        csvContent += "Items with Serial Numbers,\(items.count(where: { $0.serialNumber != nil }))\n"
+        csvContent += "Items under Warranty,\(items.count(where: { $0.warrantyExpirationDate != nil && $0.warrantyExpirationDate! > Date() }))\n"
+
         let data = csvContent.data(using: .utf8)!
         let fileName = "Insurance_Inventory_Detailed_\(Date().timeIntervalSince1970).csv"
         let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
         try data.write(to: tempURL)
-        
+
         return ExportResult(
             fileURL: tempURL,
             format: .detailedSpreadsheet,
             itemCount: items.count,
-            totalValue: items.compactMap { $0.purchasePrice }.reduce(0, +),
+            totalValue: items.compactMap(\.purchasePrice).reduce(0, +),
             fileSize: data.count
         )
     }
-    
+
     // MARK: - Digital Evidence Package
-    
+
     private func exportDigitalPackage(items: [Item], categories: [Category], rooms: [Room], options: ExportOptions) async throws -> ExportResult {
         // This would create a ZIP file with:
         // - PDF report
@@ -289,23 +289,23 @@ public final class InsuranceExportService: ObservableObject {
         // - All receipts in a receipts folder
         // - CSV data file
         // - JSON backup
-        
+
         // For now, return a simplified version
         let pdfResult = try await exportStandardForm(items: items, categories: categories, rooms: rooms, options: options)
-        
+
         // In production, would create ZIP with all assets
         return ExportResult(
             fileURL: pdfResult.fileURL,
             format: .digitalPackage,
             itemCount: items.count,
-            totalValue: items.compactMap { $0.purchasePrice }.reduce(0, +),
+            totalValue: items.compactMap(\.purchasePrice).reduce(0, +),
             fileSize: pdfResult.fileSize
         )
     }
-    
+
     // MARK: - XML Format (Industry Standard)
-    
-    private func exportXMLFormat(items: [Item], categories: [Category], rooms: [Room], options: ExportOptions) async throws -> ExportResult {
+
+    private func exportXMLFormat(items: [Item], categories _: [Category], rooms _: [Room], options: ExportOptions) async throws -> ExportResult {
         var xmlContent = """
         <?xml version="1.0" encoding="UTF-8"?>
         <HomeInventory xmlns="http://insurance.standards.org/inventory/2.0">
@@ -317,7 +317,7 @@ public final class InsuranceExportService: ObservableObject {
             </PolicyInformation>
             <Items>
         """
-        
+
         for item in items {
             xmlContent += """
                 <Item id="\(item.id.uuidString)">
@@ -349,47 +349,47 @@ public final class InsuranceExportService: ObservableObject {
                 </Item>
             """
         }
-        
+
         xmlContent += """
             </Items>
             <Summary>
                 <TotalItems>\(items.count)</TotalItems>
-                <TotalValue>\(items.compactMap { $0.purchasePrice }.reduce(0, +))</TotalValue>
-                <ItemsWithPhotos>\(items.filter { $0.imageData != nil }.count)</ItemsWithPhotos>
-                <ItemsWithReceipts>\(items.filter { $0.receiptImageData != nil }.count)</ItemsWithReceipts>
+                <TotalValue>\(items.compactMap(\.purchasePrice).reduce(0, +))</TotalValue>
+                <ItemsWithPhotos>\(items.count(where: { $0.imageData != nil }))</ItemsWithPhotos>
+                <ItemsWithReceipts>\(items.count(where: { $0.receiptImageData != nil }))</ItemsWithReceipts>
             </Summary>
         </HomeInventory>
         """
-        
+
         let data = xmlContent.data(using: .utf8)!
         let fileName = "Insurance_Inventory_\(Date().timeIntervalSince1970).xml"
         let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
         try data.write(to: tempURL)
-        
+
         return ExportResult(
             fileURL: tempURL,
             format: .xmlFormat,
             itemCount: items.count,
-            totalValue: items.compactMap { $0.purchasePrice }.reduce(0, +),
+            totalValue: items.compactMap(\.purchasePrice).reduce(0, +),
             fileSize: data.count
         )
     }
-    
+
     // MARK: - Claims-Ready Package
-    
+
     private func exportClaimsReadyPackage(items: [Item], categories: [Category], rooms: [Room], options: ExportOptions) async throws -> ExportResult {
         // This creates a comprehensive package ready for insurance claims
         // Includes everything an adjuster would need
-        
+
         // For now, use the standard form
-        return try await exportStandardForm(items: items, categories: categories, rooms: rooms, options: options)
+        try await exportStandardForm(items: items, categories: categories, rooms: rooms, options: options)
     }
-    
+
     // MARK: - Helper Methods
-    
-    private func generateItemCard(item: Item, options: ExportOptions) -> String {
+
+    private func generateItemCard(item: Item, options _: ExportOptions) -> String {
         var html = "<div class=\"item-card\">"
-        
+
         // Header
         html += """
         <div class="item-header">
@@ -397,83 +397,83 @@ public final class InsuranceExportService: ObservableObject {
             <div class="item-value">$\(item.purchasePrice ?? 0)</div>
         </div>
         """
-        
+
         // Details grid
         html += "<div class=\"item-details\">"
-        
+
         if let description = item.itemDescription {
             html += "<div class=\"detail-row\"><span class=\"detail-label\">Description:</span> \(escapeHTML(description))</div>"
         }
-        
+
         if item.quantity > 1 {
             html += "<div class=\"detail-row\"><span class=\"detail-label\">Quantity:</span> \(item.quantity)</div>"
         }
-        
+
         if let brand = item.brand {
             html += "<div class=\"detail-row\"><span class=\"detail-label\">Brand:</span> \(escapeHTML(brand))</div>"
         }
-        
+
         if let model = item.modelNumber {
             html += "<div class=\"detail-row\"><span class=\"detail-label\">Model:</span> \(escapeHTML(model))</div>"
         }
-        
+
         if let serial = item.serialNumber {
             html += "<div class=\"detail-row\"><span class=\"detail-label\">Serial #:</span> \(escapeHTML(serial))</div>"
         }
-        
+
         if let purchaseDate = item.purchaseDate {
             html += "<div class=\"detail-row\"><span class=\"detail-label\">Purchase Date:</span> \(purchaseDate.formatted(date: .abbreviated, time: .omitted))</div>"
         }
-        
+
         if let warranty = item.warrantyExpirationDate {
             let isActive = warranty > Date()
             html += "<div class=\"detail-row\"><span class=\"detail-label\">Warranty:</span> \(isActive ? "Active until" : "Expired") \(warranty.formatted(date: .abbreviated, time: .omitted))</div>"
         }
-        
+
         if let location = item.specificLocation {
             html += "<div class=\"detail-row\"><span class=\"detail-label\">Location:</span> \(escapeHTML(location))</div>"
         }
-        
+
         html += "</div>"
-        
+
         // Documentation status
         var docStatus: [String] = []
         if item.imageData != nil { docStatus.append("✓ Photo") }
         if item.receiptImageData != nil { docStatus.append("✓ Receipt") }
         if !item.documentNames.isEmpty { docStatus.append("✓ \(item.documentNames.count) Documents") }
-        
+
         if !docStatus.isEmpty {
             html += "<div style=\"margin-top: 10px; color: #007AFF; font-size: 12px;\">\(docStatus.joined(separator: " • "))</div>"
         }
-        
+
         html += "</div>"
         return html
     }
-    
+
     private func convertHTMLToPDF(html: String) async throws -> Data {
         // In production, use proper HTML to PDF conversion
         // For now, return the HTML as data
-        return html.data(using: .utf8)!
+        html.data(using: .utf8)!
     }
-    
+
     private func escapeCSV(_ string: String) -> String {
         if string.contains(",") || string.contains("\"") || string.contains("\n") {
             return "\"\(string.replacingOccurrences(of: "\"", with: "\"\""))\""
         }
         return string
     }
-    
+
     private func escapeXML(_ string: String) -> String {
-        return string
+        string
             .replacingOccurrences(of: "&", with: "&amp;")
             .replacingOccurrences(of: "<", with: "&lt;")
             .replacingOccurrences(of: ">", with: "&gt;")
             .replacingOccurrences(of: "\"", with: "&quot;")
             .replacingOccurrences(of: "'", with: "&apos;")
     }
-    
+
     private func escapeHTML(_ string: String) -> String {
-        return string
+        string
             .replacingOccurrences(of: "&", with: "&amp;")
             .replacingOccurrences(of: "<", with: "&lt;")
             .replacingOccurrences(of: ">", with: "&gt;")
@@ -492,7 +492,7 @@ public struct ExportOptions {
     public var groupByRoom: Bool = true
     public var includeDepreciation: Bool = false
     public var depreciationRate: Double = 0.1 // 10% per year default
-    
+
     public init() {}
 }
 
@@ -502,7 +502,7 @@ public struct ExportResult {
     public let itemCount: Int
     public let totalValue: Decimal
     public let fileSize: Int
-    
+
     public var formattedSize: String {
         let formatter = ByteCountFormatter()
         formatter.countStyle = .file

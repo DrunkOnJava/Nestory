@@ -50,7 +50,7 @@ public final class KeychainStore: @unchecked Sendable {
     }
 
     public func load(key: String) throws -> Data {
-        return try load(for: key)
+        try load(for: key)
     }
 
     public func load(for key: String) throws -> Data {
@@ -97,7 +97,7 @@ public final class KeychainStore: @unchecked Sendable {
             throw KeychainError.deleteAllFailed(status)
         }
 
-        logger.debug("Deleted all keychain items for service: \(self.service)")
+        logger.debug("Deleted all keychain items for service: \(service)")
     }
 
     public func exists(for key: String) -> Bool {
@@ -114,7 +114,7 @@ public final class KeychainStore: @unchecked Sendable {
     }
 
     public func loadString(key: String) throws -> String {
-        return try loadString(for: key)
+        try loadString(for: key)
     }
 
     public func loadString(for key: String) throws -> String {
@@ -132,10 +132,10 @@ public final class KeychainStore: @unchecked Sendable {
     }
 
     public func load<T: Codable>(key: String, type: T.Type) throws -> T {
-        return try loadCodable(type, for: key)
+        try loadCodable(type, for: key)
     }
 
-    public func save<T: Codable>(key: String, value: T, accessibility: KeychainAccessibility = .whenUnlocked) throws {
+    public func save(key: String, value: some Codable, accessibility: KeychainAccessibility = .whenUnlocked) throws {
         try saveCodable(value, for: key, accessibility: accessibility)
     }
 

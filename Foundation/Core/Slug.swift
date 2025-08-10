@@ -7,7 +7,7 @@ import Foundation
 /// A URL-safe slug (lowercase, alphanumeric with hyphens)
 public struct Slug: Codable, Hashable, Sendable {
     public let value: String
-    
+
     /// Initialize with a string, converting to slug format
     public init(_ value: String) throws {
         let slug = Slug.slugify(value)
@@ -16,36 +16,36 @@ public struct Slug: Codable, Hashable, Sendable {
         }
         self.value = slug
     }
-    
+
     /// Create from an already-valid slug (use carefully)
     public static func unchecked(_ value: String) -> Slug {
         try! Slug(value)
     }
-    
+
     /// Convert any string to slug format
     private static func slugify(_ string: String) -> String {
         // Convert to lowercase
         var slug = string.lowercased()
-        
+
         // Replace spaces and underscores with hyphens
         slug = slug.replacingOccurrences(of: " ", with: "-")
         slug = slug.replacingOccurrences(of: "_", with: "-")
-        
+
         // Remove any character that isn't alphanumeric or hyphen
         let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-"))
         slug = slug.unicodeScalars.filter { allowed.contains($0) }.map { String($0) }.joined()
-        
+
         // Replace multiple hyphens with single hyphen
         while slug.contains("--") {
             slug = slug.replacingOccurrences(of: "--", with: "-")
         }
-        
+
         // Remove leading and trailing hyphens
         slug = slug.trimmingCharacters(in: CharacterSet(charactersIn: "-"))
-        
+
         return slug
     }
-    
+
     /// Validate if a string is a valid slug
     public static func isValid(_ string: String) -> Bool {
         let pattern = "^[a-z0-9]+(?:-[a-z0-9]+)*$"
@@ -77,25 +77,25 @@ extension Slug: Comparable {
 
 // MARK: - Utilities
 
-extension Slug {
+public extension Slug {
     /// Generate a random slug with optional prefix
-    public static func random(prefix: String? = nil, length: Int = 8) -> Slug {
+    static func random(prefix: String? = nil, length: Int = 8) -> Slug {
         let characters = "abcdefghijklmnopqrstuvwxyz0123456789"
-        let random = (0..<length).map { _ in
+        let random = (0 ..< length).map { _ in
             characters.randomElement()!
         }.map { String($0) }.joined()
-        
+
         let value = prefix.map { "\($0)-\(random)" } ?? random
         return try! Slug(value)
     }
-    
+
     /// Append a suffix to the slug
-    public func appending(_ suffix: String) -> Slug {
+    func appending(_ suffix: String) -> Slug {
         try! Slug("\(value)-\(suffix)")
     }
-    
+
     /// Prepend a prefix to the slug
-    public func prepending(_ prefix: String) -> Slug {
+    func prepending(_ prefix: String) -> Slug {
         try! Slug("\(prefix)-\(value)")
     }
 }

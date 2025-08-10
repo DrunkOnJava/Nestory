@@ -12,7 +12,7 @@ public struct ItemCard: View {
     let imageSystemName: String?
     let price: String?
     let badge: String?
-    
+
     public init(
         title: String,
         subtitle: String? = nil,
@@ -26,11 +26,11 @@ public struct ItemCard: View {
         self.price = price
         self.badge = badge
     }
-    
+
     public var body: some View {
         HStack(spacing: Theme.Spacing.md) {
             // Icon/Image
-            if let imageSystemName = imageSystemName {
+            if let imageSystemName {
                 Image(systemName: imageSystemName)
                     .font(.title2)
                     .foregroundColor(.accentColor)
@@ -38,7 +38,7 @@ public struct ItemCard: View {
                     .background(Color.accentColor.opacity(0.1))
                     .cornerRadius(Theme.CornerRadius.md)
             }
-            
+
             // Content
             VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
                 HStack {
@@ -46,29 +46,29 @@ public struct ItemCard: View {
                         .font(Typography.headline())
                         .foregroundColor(.primaryText)
                         .lineLimit(1)
-                    
-                    if let badge = badge {
+
+                    if let badge {
                         BadgeView(text: badge)
                     }
                 }
-                
-                if let subtitle = subtitle {
+
+                if let subtitle {
                     Text(subtitle)
                         .font(Typography.subheadline())
                         .foregroundColor(.secondaryText)
                         .lineLimit(1)
                 }
             }
-            
+
             Spacer()
-            
+
             // Price
-            if let price = price {
+            if let price {
                 Text(price)
                     .font(Typography.headline())
                     .foregroundColor(.primaryText)
             }
-            
+
             // Chevron
             Image(systemName: "chevron.right")
                 .font(.caption)
@@ -81,29 +81,30 @@ public struct ItemCard: View {
 }
 
 // MARK: - Badge View
+
 public struct BadgeView: View {
     let text: String
     let style: BadgeStyle
-    
+
     public enum BadgeStyle {
         case `default`, success, warning, destructive, info
-        
+
         var backgroundColor: Color {
             switch self {
-            case .default: return .gray
-            case .success: return .success
-            case .warning: return .warning
-            case .destructive: return .destructive
-            case .info: return .info
+            case .default: .gray
+            case .success: .success
+            case .warning: .warning
+            case .destructive: .destructive
+            case .info: .info
             }
         }
     }
-    
+
     public init(text: String, style: BadgeStyle = .default) {
         self.text = text
         self.style = style
     }
-    
+
     public var body: some View {
         Text(text)
             .font(Typography.caption())
@@ -124,14 +125,14 @@ public struct BadgeView: View {
             price: "$2,499",
             badge: "New"
         )
-        
+
         ItemCard(
             title: "Office Chair",
             subtitle: "Furniture",
             imageSystemName: "chair",
             price: "$450"
         )
-        
+
         ItemCard(
             title: "Coffee Maker",
             imageSystemName: "cup.and.saucer"

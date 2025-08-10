@@ -281,7 +281,7 @@ public struct Currency: Codable, Identifiable, Sendable {
     public let name: String
     public let symbol: String
     public let decimals: Int
-    
+
     public var id: String { code }
 }
 

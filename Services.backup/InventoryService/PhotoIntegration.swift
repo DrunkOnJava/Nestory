@@ -62,7 +62,7 @@ public struct LivePhotoIntegrationService: PhotoIntegrationService, Sendable {
         }
     }
 
-    nonisolated public func processPhoto(_ image: UIImage) async throws -> ProcessedPhoto {
+    public nonisolated func processPhoto(_ image: UIImage) async throws -> ProcessedPhoto {
         let signpost = OSSignposter()
         let state = signpost.beginInterval("process_photo", id: signpost.makeSignpostID())
         defer { signpost.endInterval("process_photo", state) }
@@ -95,7 +95,7 @@ public struct LivePhotoIntegrationService: PhotoIntegrationService, Sendable {
         )
     }
 
-    nonisolated public func extractText(from image: UIImage) async throws -> [String] {
+    public nonisolated func extractText(from image: UIImage) async throws -> [String] {
         guard let cgImage = image.cgImage else {
             throw PhotoError.invalidImage
         }
@@ -133,7 +133,7 @@ public struct LivePhotoIntegrationService: PhotoIntegrationService, Sendable {
         }
     }
 
-    nonisolated public func detectObjects(in image: UIImage) async throws -> [DetectedObject] {
+    public nonisolated func detectObjects(in image: UIImage) async throws -> [DetectedObject] {
         guard let cgImage = image.cgImage else {
             throw PhotoError.invalidImage
         }
@@ -174,7 +174,7 @@ public struct LivePhotoIntegrationService: PhotoIntegrationService, Sendable {
         }
     }
 
-    nonisolated public func generateThumbnail(from image: UIImage, size: CGSize) async throws -> UIImage {
+    public nonisolated func generateThumbnail(from image: UIImage, size: CGSize) async throws -> UIImage {
         try await thumbnailer.generate(from: image, targetSize: size)
     }
 

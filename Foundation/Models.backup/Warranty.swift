@@ -9,10 +9,10 @@ import SwiftData
 @Model
 public final class Warranty {
     // MARK: - Properties
-    
+
     @Attribute(.unique)
     public var id: UUID
-    
+
     public var provider: String
     public var warrantyType: String // "manufacturer", "extended", "dealer", "third-party"
     public var startDate: Date
@@ -23,18 +23,18 @@ public final class Warranty {
     public var claimWebsite: String?
     public var policyNumber: String?
     public var documentFileName: String?
-    
+
     // Timestamps
     public var createdAt: Date
     public var updatedAt: Date
-    
+
     // MARK: - Relationships
-    
+
     @Relationship(inverse: \Item.warranty)
     public var item: Item?
-    
+
     // MARK: - Initialization
-    
+
     public init(
         provider: String,
         type: WarrantyType = .manufacturer,
@@ -42,18 +42,18 @@ public final class Warranty {
         expiresAt: Date,
         item: Item? = nil
     ) {
-        self.id = UUID()
+        id = UUID()
         self.provider = provider
-        self.warrantyType = type.rawValue
+        warrantyType = type.rawValue
         self.startDate = startDate
         self.expiresAt = expiresAt
         self.item = item
-        self.createdAt = Date()
-        self.updatedAt = Date()
+        createdAt = Date()
+        updatedAt = Date()
     }
-    
+
     // MARK: - Computed Properties
-    
+
     /// Warranty type enum
     public var type: WarrantyType {
         get { WarrantyType(rawValue: warrantyType) ?? .manufacturer }
@@ -62,39 +62,39 @@ public final class Warranty {
             updatedAt = Date()
         }
     }
-    
+
     /// Duration of warranty in days
     public var durationInDays: Int {
         let calendar = Calendar.current
         let components = calendar.dateComponents([.day], from: startDate, to: expiresAt)
         return components.day ?? 0
     }
-    
+
     /// Duration of warranty in months
     public var durationInMonths: Int {
         let calendar = Calendar.current
         let components = calendar.dateComponents([.month], from: startDate, to: expiresAt)
         return components.month ?? 0
     }
-    
+
     /// Check if warranty is currently active
     public var isActive: Bool {
         let now = Date()
         return now >= startDate && now < expiresAt
     }
-    
+
     /// Check if warranty has expired
     public var isExpired: Bool {
         Date() >= expiresAt
     }
-    
+
     /// Days until expiration (negative if expired)
     public var daysUntilExpiration: Int {
         let calendar = Calendar.current
         let components = calendar.dateComponents([.day], from: Date(), to: expiresAt)
         return components.day ?? 0
     }
-    
+
     /// Formatted duration string
     public var formattedDuration: String {
         let months = durationInMonths
@@ -108,7 +108,7 @@ public final class Warranty {
         }
         return "\(years) year\(years == 1 ? "" : "s"), \(remainingMonths) month\(remainingMonths == 1 ? "" : "s")"
     }
-    
+
     /// Status description
     public var status: String {
         if isExpired {
@@ -123,14 +123,14 @@ public final class Warranty {
             return "Not yet started"
         }
     }
-    
+
     /// Check if warranty has documentation attached
     public var hasDocument: Bool {
         documentFileName != nil && !documentFileName!.isEmpty
     }
-    
+
     // MARK: - Methods
-    
+
     /// Update warranty properties
     public func update(
         provider: String? = nil,
@@ -140,75 +140,75 @@ public final class Warranty {
         coverageNotes: String? = nil,
         policyNumber: String? = nil
     ) {
-        if let provider = provider {
+        if let provider {
             self.provider = provider
         }
-        if let type = type {
+        if let type {
             self.type = type
         }
-        if let startDate = startDate {
+        if let startDate {
             self.startDate = startDate
         }
-        if let expiresAt = expiresAt {
+        if let expiresAt {
             self.expiresAt = expiresAt
         }
-        if let coverageNotes = coverageNotes {
+        if let coverageNotes {
             self.coverageNotes = coverageNotes
         }
-        if let policyNumber = policyNumber {
+        if let policyNumber {
             self.policyNumber = policyNumber
         }
-        self.updatedAt = Date()
+        updatedAt = Date()
     }
-    
+
     /// Set claim contact information
     public func setClaimContact(
         phone: String? = nil,
         email: String? = nil,
         website: String? = nil
     ) {
-        self.claimPhone = phone
-        self.claimEmail = email
-        self.claimWebsite = website
-        self.updatedAt = Date()
+        claimPhone = phone
+        claimEmail = email
+        claimWebsite = website
+        updatedAt = Date()
     }
-    
+
     /// Attach warranty document
     public func attachDocument(fileName: String) {
-        self.documentFileName = fileName
-        self.updatedAt = Date()
+        documentFileName = fileName
+        updatedAt = Date()
     }
 }
 
 // MARK: - Warranty Type
 
 public enum WarrantyType: String, CaseIterable, Codable {
-    case manufacturer = "manufacturer"
-    case extended = "extended"
-    case dealer = "dealer"
+    case manufacturer
+    case extended
+    case dealer
     case thirdParty = "third-party"
-    case insurance = "insurance"
-    case service = "service"
-    
+    case insurance
+    case service
+
     public var displayName: String {
         switch self {
-        case .manufacturer: return "Manufacturer Warranty"
-        case .extended: return "Extended Warranty"
-        case .dealer: return "Dealer Warranty"
-        case .thirdParty: return "Third-Party Warranty"
-        case .insurance: return "Insurance Coverage"
-        case .service: return "Service Contract"
+        case .manufacturer: "Manufacturer Warranty"
+        case .extended: "Extended Warranty"
+        case .dealer: "Dealer Warranty"
+        case .thirdParty: "Third-Party Warranty"
+        case .insurance: "Insurance Coverage"
+        case .service: "Service Contract"
         }
     }
-    
+
     public var icon: String {
         switch self {
-        case .manufacturer: return "checkmark.shield.fill"
-        case .extended: return "shield.lefthalf.filled"
-        case .dealer: return "building.2.fill"
-        case .thirdParty: return "person.3.fill"
-        case .insurance: return "umbrella.fill"
-        case .service: return "wrench.and.screwdriver.fill"
+        case .manufacturer: "checkmark.shield.fill"
+        case .extended: "shield.lefthalf.filled"
+        case .dealer: "building.2.fill"
+        case .thirdParty: "person.3.fill"
+        case .insurance: "umbrella.fill"
+        case .service: "wrench.and.screwdriver.fill"
         }
     }
 }

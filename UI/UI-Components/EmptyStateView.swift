@@ -12,7 +12,7 @@ public struct EmptyStateView: View {
     let systemImage: String
     let actionTitle: String?
     let action: (() -> Void)?
-    
+
     public init(
         title: String,
         message: String,
@@ -26,26 +26,26 @@ public struct EmptyStateView: View {
         self.actionTitle = actionTitle
         self.action = action
     }
-    
+
     public var body: some View {
         VStack(spacing: Theme.Spacing.lg) {
             Image(systemName: systemImage)
                 .font(.system(size: 60))
                 .foregroundColor(.secondaryText)
-            
+
             VStack(spacing: Theme.Spacing.sm) {
                 Text(title)
                     .font(Typography.title2())
                     .foregroundColor(.primaryText)
-                
+
                 Text(message)
                     .font(Typography.body())
                     .foregroundColor(.secondaryText)
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            
-            if let actionTitle = actionTitle, let action = action {
+
+            if let actionTitle, let action {
                 PrimaryButton(title: actionTitle, action: action)
                     .frame(maxWidth: 200)
             }
@@ -57,20 +57,21 @@ public struct EmptyStateView: View {
 }
 
 // MARK: - Loading View
+
 public struct LoadingView: View {
     let message: String?
-    
+
     public init(message: String? = nil) {
         self.message = message
     }
-    
+
     public var body: some View {
         VStack(spacing: Theme.Spacing.lg) {
             ProgressView()
                 .progressViewStyle(CircularProgressViewStyle())
                 .scaleEffect(1.5)
-            
-            if let message = message {
+
+            if let message {
                 Text(message)
                     .font(Typography.body())
                     .foregroundColor(.secondaryText)
@@ -82,11 +83,12 @@ public struct LoadingView: View {
 }
 
 // MARK: - Error View
+
 public struct ErrorView: View {
     let title: String
     let message: String
     let retryAction: (() -> Void)?
-    
+
     public init(
         title: String = "Something went wrong",
         message: String,
@@ -96,25 +98,25 @@ public struct ErrorView: View {
         self.message = message
         self.retryAction = retryAction
     }
-    
+
     public var body: some View {
         VStack(spacing: Theme.Spacing.lg) {
             Image(systemName: "exclamationmark.triangle")
                 .font(.system(size: 60))
                 .foregroundColor(.destructive)
-            
+
             VStack(spacing: Theme.Spacing.sm) {
                 Text(title)
                     .font(Typography.title2())
                     .foregroundColor(.primaryText)
-                
+
                 Text(message)
                     .font(Typography.body())
                     .foregroundColor(.secondaryText)
                     .multilineTextAlignment(.center)
             }
-            
-            if let retryAction = retryAction {
+
+            if let retryAction {
                 PrimaryButton(title: "Try Again", action: retryAction)
                     .frame(maxWidth: 200)
             }

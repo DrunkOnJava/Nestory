@@ -26,7 +26,7 @@ public struct LiveAnalyticsService: AnalyticsService, Sendable {
         self.currencyService = currencyService
     }
 
-    nonisolated public func calculateTotalValue(for items: [Item]) async -> Decimal {
+    public nonisolated func calculateTotalValue(for items: [Item]) async -> Decimal {
         let signpost = OSSignposter()
         let state = signpost.beginInterval("calculate_total_value", id: signpost.makeSignpostID())
         defer { signpost.endInterval("calculate_total_value", state) }
@@ -57,7 +57,7 @@ public struct LiveAnalyticsService: AnalyticsService, Sendable {
         return totalValue
     }
 
-    nonisolated public func calculateCategoryBreakdown(for items: [Item]) async -> [CategoryBreakdown] {
+    public nonisolated func calculateCategoryBreakdown(for items: [Item]) async -> [CategoryBreakdown] {
         var categoryMap: [String: CategoryBreakdown] = [:]
 
         for item in items {
@@ -106,7 +106,7 @@ public struct LiveAnalyticsService: AnalyticsService, Sendable {
         return Array(categoryMap.values).sorted { $0.totalValue > $1.totalValue }
     }
 
-    nonisolated public func calculateValueTrends(for items: [Item], period: TrendPeriod) async -> [TrendPoint] {
+    public nonisolated func calculateValueTrends(for items: [Item], period: TrendPeriod) async -> [TrendPoint] {
         let _ = Calendar.current
         let now = Date()
         var trendPoints: [TrendPoint] = []
@@ -132,7 +132,7 @@ public struct LiveAnalyticsService: AnalyticsService, Sendable {
         return trendPoints
     }
 
-    nonisolated public func calculateTopItems(from items: [Item], limit: Int = 10) async -> [Item] {
+    public nonisolated func calculateTopItems(from items: [Item], limit: Int = 10) async -> [Item] {
         let sortedItems = items.sorted { item1, item2 in
             let value1 = item1.purchasePriceMoney?.amount ?? 0
             let value2 = item2.purchasePriceMoney?.amount ?? 0
@@ -142,7 +142,7 @@ public struct LiveAnalyticsService: AnalyticsService, Sendable {
         return Array(sortedItems.prefix(limit))
     }
 
-    nonisolated public func calculateDepreciation(for items: [Item]) async -> [DepreciationReport] {
+    public nonisolated func calculateDepreciation(for items: [Item]) async -> [DepreciationReport] {
         var reports: [DepreciationReport] = []
 
         for item in items {
@@ -151,7 +151,7 @@ public struct LiveAnalyticsService: AnalyticsService, Sendable {
             else {
                 continue
             }
-            
+
             let purchasePrice = purchasePriceMoney.amount
 
             let ageInYears = Calendar.current.dateComponents(
@@ -180,7 +180,7 @@ public struct LiveAnalyticsService: AnalyticsService, Sendable {
         return reports.sorted { $0.totalDepreciation > $1.totalDepreciation }
     }
 
-    nonisolated public func generateDashboard(for items: [Item]) async -> DashboardData {
+    public nonisolated func generateDashboard(for items: [Item]) async -> DashboardData {
         let cacheKey = "dashboard_\(items.count)"
 
         if let cached = await cache.get(for: cacheKey) {
@@ -214,7 +214,7 @@ public struct LiveAnalyticsService: AnalyticsService, Sendable {
             totalDepreciation: depreciation.reduce(Decimal(0)) { $0 + $1.totalDepreciation },
             lastUpdated: Date()
         )
-        
+
         // Set non-Codable properties for immediate use
         dashboard.topValueItems = top
         dashboard.recentItems = Array(recentItems)
@@ -225,7 +225,7 @@ public struct LiveAnalyticsService: AnalyticsService, Sendable {
         return dashboard
     }
 
-    nonisolated public func trackEvent(_ event: AnalyticsEvent) async {
+    public nonisolated func trackEvent(_ event: AnalyticsEvent) async {
         logger.info("Analytics event: \(event.name) - \(event.parameters)")
 
         UserDefaults.standard.set(
@@ -244,11 +244,11 @@ public struct DashboardData: Codable {
     public let valueTrends: [TrendPoint]
     public let totalDepreciation: Decimal
     public let lastUpdated: Date
-    
+
     // Non-Codable computed properties for UI
     public var topValueItems: [Item] = []
     public var recentItems: [Item] = []
-    
+
     enum CodingKeys: String, CodingKey {
         case totalItems, totalValue, categoryBreakdown
         case topValueItemIds, recentItemIds, valueTrends

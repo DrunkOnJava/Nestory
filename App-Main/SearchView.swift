@@ -11,7 +11,7 @@ import SwiftUI
 struct SearchView: View {
     @Query private var items: [Item]
     @Query private var categories: [Category]
-    
+
     @State private var searchText = ""
     @State private var isSearching = false
     @State private var filters = SearchFilters()
@@ -19,58 +19,60 @@ struct SearchView: View {
     @State private var searchHistory = SearchHistory()
     @State private var showFilters = false
     @State private var selectedItem: Item?
-    
+
     @AppStorage("searchHistoryData") private var searchHistoryData = Data()
-    
+
     var filteredItems: [Item] {
         items.filter { item in
             // Text search
-            let matchesSearch = searchText.isEmpty || 
+            let matchesSearch = searchText.isEmpty ||
                 item.name.localizedCaseInsensitiveContains(searchText) ||
                 (item.itemDescription?.localizedCaseInsensitiveContains(searchText) ?? false) ||
                 (item.notes?.localizedCaseInsensitiveContains(searchText) ?? false) ||
                 (item.category?.name.localizedCaseInsensitiveContains(searchText) ?? false)
-            
+
             guard matchesSearch else { return false }
-            
+
             // Category filter
             if !filters.selectedCategories.isEmpty {
                 guard let category = item.category,
-                      filters.selectedCategories.contains(category.id) else {
+                      filters.selectedCategories.contains(category.id)
+                else {
                     return false
                 }
             }
-            
+
             // Price filter
             if let price = item.purchasePrice {
                 guard filters.priceRange.contains(Double(truncating: price as NSNumber)) else {
                     return false
                 }
             }
-            
+
             // Documentation filters
             if filters.hasPhoto && item.imageData == nil { return false }
             if filters.hasReceipt && item.receiptImageData == nil { return false }
             if filters.hasWarranty && item.warrantyExpirationDate == nil { return false }
             if filters.hasSerialNumber && item.serialNumber == nil { return false }
-            
+
             // Quantity filter
             if item.quantity < filters.minQuantity || item.quantity > filters.maxQuantity {
                 return false
             }
-            
+
             // Room filter
             if !filters.rooms.isEmpty {
                 guard let room = item.room,
-                      filters.rooms.contains(room) else {
+                      filters.rooms.contains(room)
+                else {
                     return false
                 }
             }
-            
+
             return true
         }
     }
-    
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
@@ -80,7 +82,7 @@ struct SearchView: View {
                     isSearching: $isSearching,
                     onCommit: { performSearch() }
                 )
-                
+
                 // Filter Pills
                 if filters.isActive || !searchText.isEmpty {
                     ScrollView(.horizontal, showsIndicators: false) {
@@ -91,21 +93,21 @@ struct SearchView: View {
                                     onRemove: { searchText = "" }
                                 )
                             }
-                            
+
                             if !filters.selectedCategories.isEmpty {
                                 FilterPill(
                                     label: "\(filters.selectedCategories.count) Categories",
                                     onRemove: { filters.selectedCategories = [] }
                                 )
                             }
-                            
-                            if filters.priceRange != 0...10000 {
+
+                            if filters.priceRange != 0 ... 10000 {
                                 FilterPill(
                                     label: "$\(Int(filters.priceRange.lowerBound))-$\(Int(filters.priceRange.upperBound))",
-                                    onRemove: { filters.priceRange = 0...10000 }
+                                    onRemove: { filters.priceRange = 0 ... 10000 }
                                 )
                             }
-                            
+
                             if filters.hasPhoto || filters.hasReceipt || filters.hasWarranty || filters.hasSerialNumber {
                                 FilterPill(
                                     label: "Documentation",
@@ -117,7 +119,7 @@ struct SearchView: View {
                                     }
                                 )
                             }
-                            
+
                             if !filters.rooms.isEmpty {
                                 FilterPill(
                                     label: "\(filters.rooms.count) Rooms",
@@ -130,9 +132,9 @@ struct SearchView: View {
                     .frame(height: 44)
                     .background(Color(.systemGray6))
                 }
-                
+
                 // Main Content
-                if !isSearching && searchText.isEmpty && !filters.isActive {
+                if !isSearching, searchText.isEmpty, !filters.isActive {
                     // Show search history
                     SearchHistoryView(
                         searchHistory: $searchHistory,
@@ -168,9 +170,9 @@ struct SearchView: View {
                                 }
                             }
                         }
-                        
+
                         Divider()
-                        
+
                         // Filter button
                         Button(action: { showFilters = true }) {
                             Label("Filters", systemImage: "line.3.horizontal.decrease.circle")
@@ -194,14 +196,14 @@ struct SearchView: View {
             .onAppear {
                 loadSearchHistory()
             }
-            .onChange(of: searchHistory) { _, newValue in
+            .onChange(of: searchHistory) { _, _ in
                 saveSearchHistory()
             }
         }
     }
-    
+
     // MARK: - Private Methods
-    
+
     private func performSearch() {
         if !searchText.isEmpty {
             searchHistory.addSearch(searchText)
@@ -209,13 +211,13 @@ struct SearchView: View {
         }
         isSearching = false
     }
-    
+
     private func loadSearchHistory() {
         if let decoded = try? JSONDecoder().decode(SearchHistory.self, from: searchHistoryData) {
             searchHistory = decoded
         }
     }
-    
+
     private func saveSearchHistory() {
         if let encoded = try? JSONEncoder().encode(searchHistory) {
             searchHistoryData = encoded
@@ -229,18 +231,18 @@ struct SearchBarView: View {
     @Binding var text: String
     @Binding var isSearching: Bool
     let onCommit: () -> Void
-    
+
     var body: some View {
         HStack {
             HStack {
                 Image(systemName: "magnifyingglass")
                     .foregroundColor(.secondary)
-                
+
                 TextField("Search items, categories, notes...", text: $text, onEditingChanged: { editing in
                     isSearching = editing
                 }, onCommit: onCommit)
-                .textFieldStyle(PlainTextFieldStyle())
-                
+                    .textFieldStyle(PlainTextFieldStyle())
+
                 if !text.isEmpty {
                     Button(action: { text = "" }) {
                         Image(systemName: "xmark.circle.fill")
@@ -251,7 +253,7 @@ struct SearchBarView: View {
             .padding(8)
             .background(Color(.systemGray6))
             .cornerRadius(10)
-            
+
             if isSearching {
                 Button("Cancel") {
                     text = ""
@@ -272,12 +274,12 @@ struct SearchBarView: View {
 struct FilterPill: View {
     let label: String
     let onRemove: () -> Void
-    
+
     var body: some View {
         HStack(spacing: 4) {
             Text(label)
                 .font(.caption)
-            
+
             Button(action: onRemove) {
                 Image(systemName: "xmark.circle.fill")
                     .font(.caption)

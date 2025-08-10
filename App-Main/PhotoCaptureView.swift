@@ -3,33 +3,34 @@
 //  Nestory
 //
 
-import SwiftUI
 import PhotosUI
+import SwiftUI
 
 struct PhotoCaptureView: View {
     @Binding var imageData: Data?
     @Environment(\.dismiss) private var dismiss
     @State private var selectedItem: PhotosPickerItem?
     @State private var showingCamera = false
-    
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 20) {
-                if let imageData = imageData,
-                   let uiImage = UIImage(data: imageData) {
+                if let imageData,
+                   let uiImage = UIImage(data: imageData)
+                {
                     Image(uiImage: uiImage)
                         .resizable()
                         .scaledToFit()
                         .frame(maxHeight: 400)
                         .cornerRadius(12)
                         .padding()
-                    
+
                     HStack(spacing: 20) {
                         Button("Retake") {
                             self.imageData = nil
                         }
                         .buttonStyle(.bordered)
-                        
+
                         Button("Use Photo") {
                             dismiss()
                         }
@@ -41,11 +42,11 @@ struct PhotoCaptureView: View {
                         Image(systemName: "camera.fill")
                             .font(.system(size: 80))
                             .foregroundColor(.secondary)
-                        
+
                         Text("Add a photo for this item")
                             .font(.title2)
                             .multilineTextAlignment(.center)
-                        
+
                         VStack(spacing: 16) {
                             PhotosPicker(
                                 selection: $selectedItem,
@@ -57,7 +58,7 @@ struct PhotoCaptureView: View {
                             }
                             .buttonStyle(.borderedProminent)
                             .controlSize(.large)
-                            
+
                             Button(action: { showingCamera = true }) {
                                 Label("Take Photo", systemImage: "camera")
                                     .frame(maxWidth: .infinity)
@@ -69,7 +70,7 @@ struct PhotoCaptureView: View {
                     }
                     .padding()
                 }
-                
+
                 Spacer()
             }
             .navigationTitle("Item Photo")
@@ -96,35 +97,35 @@ struct PhotoCaptureView: View {
 struct CameraView: UIViewControllerRepresentable {
     @Binding var imageData: Data?
     @Environment(\.dismiss) private var dismiss
-    
+
     func makeUIViewController(context: Context) -> UIImagePickerController {
         let picker = UIImagePickerController()
         picker.sourceType = .camera
         picker.delegate = context.coordinator
         return picker
     }
-    
-    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
-    
+
+    func updateUIViewController(_: UIImagePickerController, context _: Context) {}
+
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
-    
+
     class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
         let parent: CameraView
-        
+
         init(_ parent: CameraView) {
             self.parent = parent
         }
-        
-        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
+
+        func imagePickerController(_: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
             if let image = info[.originalImage] as? UIImage {
                 parent.imageData = image.jpegData(compressionQuality: 0.8)
             }
             parent.dismiss()
         }
-        
-        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+
+        func imagePickerControllerDidCancel(_: UIImagePickerController) {
             parent.dismiss()
         }
     }

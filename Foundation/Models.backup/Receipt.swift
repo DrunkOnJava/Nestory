@@ -9,10 +9,10 @@ import SwiftData
 @Model
 public final class Receipt {
     // MARK: - Properties
-    
+
     @Attribute(.unique)
     public var id: UUID
-    
+
     public var vendor: String
     public var total: Data? // Encoded Money
     public var tax: Data? // Encoded Money
@@ -21,35 +21,35 @@ public final class Receipt {
     public var paymentMethod: String?
     public var rawText: String? // OCR extracted text
     public var fileName: String? // Scanned receipt image
-    
+
     // Timestamps
     public var createdAt: Date
     public var updatedAt: Date
-    
+
     // MARK: - Relationships
-    
+
     @Relationship(inverse: \Item.receipts)
     public var item: Item?
-    
+
     // MARK: - Initialization
-    
+
     public init(
         vendor: String,
         total: Money,
         purchaseDate: Date,
         item: Item? = nil
     ) {
-        self.id = UUID()
+        id = UUID()
         self.vendor = vendor
         self.total = try? JSONEncoder().encode(total)
         self.purchaseDate = purchaseDate
         self.item = item
-        self.createdAt = Date()
-        self.updatedAt = Date()
+        createdAt = Date()
+        updatedAt = Date()
     }
-    
+
     // MARK: - Computed Properties
-    
+
     /// Get total as Money object
     public var totalMoney: Money? {
         get {
@@ -61,7 +61,7 @@ public final class Receipt {
             updatedAt = Date()
         }
     }
-    
+
     /// Get tax as Money object
     public var taxMoney: Money? {
         get {
@@ -73,28 +73,29 @@ public final class Receipt {
             updatedAt = Date()
         }
     }
-    
+
     /// Subtotal (total minus tax)
     public var subtotal: Money? {
         guard let total = totalMoney,
-              let tax = taxMoney else {
+              let tax = taxMoney
+        else {
             return totalMoney
         }
         return try? total - tax
     }
-    
+
     /// Check if receipt has been OCR processed
     public var hasOCRData: Bool {
         rawText != nil && !rawText!.isEmpty
     }
-    
+
     /// Check if receipt has image attached
     public var hasImage: Bool {
         fileName != nil && !fileName!.isEmpty
     }
-    
+
     // MARK: - Methods
-    
+
     /// Update receipt properties
     public func update(
         vendor: String? = nil,
@@ -104,36 +105,36 @@ public final class Receipt {
         receiptNumber: String? = nil,
         paymentMethod: String? = nil
     ) {
-        if let vendor = vendor {
+        if let vendor {
             self.vendor = vendor
         }
-        if let total = total {
-            self.totalMoney = total
+        if let total {
+            totalMoney = total
         }
-        if let tax = tax {
-            self.taxMoney = tax
+        if let tax {
+            taxMoney = tax
         }
-        if let purchaseDate = purchaseDate {
+        if let purchaseDate {
             self.purchaseDate = purchaseDate
         }
-        if let receiptNumber = receiptNumber {
+        if let receiptNumber {
             self.receiptNumber = receiptNumber
         }
-        if let paymentMethod = paymentMethod {
+        if let paymentMethod {
             self.paymentMethod = paymentMethod
         }
-        self.updatedAt = Date()
+        updatedAt = Date()
     }
-    
+
     /// Set OCR extracted text
     public func setOCRText(_ text: String) {
-        self.rawText = text
-        self.updatedAt = Date()
+        rawText = text
+        updatedAt = Date()
     }
-    
+
     /// Attach scanned image
     public func attachImage(fileName: String) {
         self.fileName = fileName
-        self.updatedAt = Date()
+        updatedAt = Date()
     }
 }

@@ -6,32 +6,32 @@
 //  REMINDER: This view is WIRED UP in ItemDetailView and EditItemView
 //  Provides warranty tracking, document attachments, and room assignment
 
-import SwiftUI
 import SwiftData
+import SwiftUI
 import UniformTypeIdentifiers
 
 struct WarrantyDocumentsView: View {
     @Bindable var item: Item
     @Environment(\.dismiss) private var dismiss
     @Query private var rooms: [Room]
-    
+
     @State private var selectedTab = 0
     @State private var showingDocumentPicker = false
     @State private var showingRoomPicker = false
     @State private var newRoomName = ""
     @State private var showingNewRoomAlert = false
-    
+
     // Warranty states
     @State private var warrantyEnabled = false
     @State private var warrantyExpiration = Date()
     @State private var warrantyProvider = ""
     @State private var warrantyNotes = ""
     @State private var showingWarrantyAlert = false
-    
+
     // Room states
     @State private var selectedRoom = ""
     @State private var specificLocation = ""
-    
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
@@ -43,7 +43,7 @@ struct WarrantyDocumentsView: View {
                 }
                 .pickerStyle(.segmented)
                 .padding()
-                
+
                 ScrollView {
                     VStack(spacing: 20) {
                         switch selectedTab {
@@ -71,13 +71,13 @@ struct WarrantyDocumentsView: View {
                 }
             }
             .alert("Warranty Expiring Soon", isPresented: $showingWarrantyAlert) {
-                Button("OK") { }
+                Button("OK") {}
             } message: {
                 Text("This warranty expires in less than 30 days. You'll receive a notification reminder.")
             }
             .alert("Add New Room", isPresented: $showingNewRoomAlert) {
                 TextField("Room Name", text: $newRoomName)
-                Button("Cancel", role: .cancel) { }
+                Button("Cancel", role: .cancel) {}
                 Button("Add") {
                     addNewRoom()
                 }
@@ -96,14 +96,14 @@ struct WarrantyDocumentsView: View {
             loadExistingData()
         }
     }
-    
+
     // MARK: - Warranty Section
-    
+
     private var warrantySection: some View {
         VStack(alignment: .leading, spacing: 16) {
             Toggle("Warranty Coverage", isOn: $warrantyEnabled)
                 .tint(.green)
-            
+
             if warrantyEnabled {
                 GroupBox {
                     VStack(spacing: 12) {
@@ -113,10 +113,10 @@ struct WarrantyDocumentsView: View {
                             in: Date()...,
                             displayedComponents: .date
                         )
-                        
+
                         TextField("Warranty Provider", text: $warrantyProvider)
                             .textFieldStyle(.roundedBorder)
-                        
+
                         VStack(alignment: .leading) {
                             Text("Warranty Notes")
                                 .font(.caption)
@@ -131,7 +131,7 @@ struct WarrantyDocumentsView: View {
                         }
                     }
                 }
-                
+
                 // Warranty status
                 if let days = daysUntilExpiration {
                     HStack {
@@ -149,14 +149,14 @@ struct WarrantyDocumentsView: View {
             }
         }
     }
-    
+
     // MARK: - Location Section
-    
+
     private var locationSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Room Assignment")
                 .font(.headline)
-            
+
             // Room picker
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
@@ -167,7 +167,7 @@ struct WarrantyDocumentsView: View {
                             action: { selectedRoom = room.name }
                         )
                     }
-                    
+
                     // Add new room button
                     Button(action: { showingNewRoomAlert = true }) {
                         Label("Add Room", systemImage: "plus.circle")
@@ -179,20 +179,20 @@ struct WarrantyDocumentsView: View {
                     }
                 }
             }
-            
+
             // Specific location
             VStack(alignment: .leading, spacing: 8) {
                 Text("Specific Location")
                     .font(.headline)
-                
+
                 TextField("e.g., Top shelf, closet, drawer #3", text: $specificLocation)
                     .textFieldStyle(.roundedBorder)
-                
+
                 Text("Add details to help locate this item quickly during an emergency")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
-            
+
             // Visual location preview
             if !selectedRoom.isEmpty || !specificLocation.isEmpty {
                 GroupBox {
@@ -216,9 +216,9 @@ struct WarrantyDocumentsView: View {
             }
         }
     }
-    
+
     // MARK: - Documents Section
-    
+
     private var documentsSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
@@ -229,7 +229,7 @@ struct WarrantyDocumentsView: View {
                     Label("Add", systemImage: "plus.circle.fill")
                 }
             }
-            
+
             if item.documentNames.isEmpty {
                 GroupBox {
                     VStack(spacing: 12) {
@@ -242,7 +242,7 @@ struct WarrantyDocumentsView: View {
                             .font(.caption)
                             .foregroundColor(.secondary)
                             .multilineTextAlignment(.center)
-                        
+
                         Button(action: { showingDocumentPicker = true }) {
                             Label("Add Document", systemImage: "doc.badge.plus")
                         }
@@ -260,14 +260,14 @@ struct WarrantyDocumentsView: View {
                     )
                 }
             }
-            
+
             // Tips
             GroupBox {
                 VStack(alignment: .leading, spacing: 8) {
                     Label("Document Tips", systemImage: "lightbulb")
                         .font(.caption)
                         .foregroundColor(.secondary)
-                    
+
                     Text("• Keep user manuals for warranty claims")
                         .font(.caption2)
                     Text("• Store purchase invoices for proof")
@@ -281,9 +281,9 @@ struct WarrantyDocumentsView: View {
             }
         }
     }
-    
+
     // MARK: - Helper Methods
-    
+
     private func loadExistingData() {
         warrantyEnabled = item.warrantyExpirationDate != nil
         warrantyExpiration = item.warrantyExpirationDate ?? Date()
@@ -292,14 +292,14 @@ struct WarrantyDocumentsView: View {
         selectedRoom = item.room ?? ""
         specificLocation = item.specificLocation ?? ""
     }
-    
+
     private func saveChanges() {
         // Save warranty info
         if warrantyEnabled {
             item.warrantyExpirationDate = warrantyExpiration
             item.warrantyProvider = warrantyProvider.isEmpty ? nil : warrantyProvider
             item.warrantyNotes = warrantyNotes.isEmpty ? nil : warrantyNotes
-            
+
             // Check if warranty is expiring soon
             if let days = daysUntilExpiration, days < 30 {
                 showingWarrantyAlert = true
@@ -309,40 +309,40 @@ struct WarrantyDocumentsView: View {
             item.warrantyProvider = nil
             item.warrantyNotes = nil
         }
-        
+
         // Save location info
         item.room = selectedRoom.isEmpty ? nil : selectedRoom
         item.specificLocation = specificLocation.isEmpty ? nil : specificLocation
-        
+
         item.updatedAt = Date()
     }
-    
+
     private func addNewRoom() {
         guard !newRoomName.isEmpty else { return }
-        
+
         _ = Room(name: newRoomName)
         // Would need to inject ModelContext to save
         selectedRoom = newRoomName
         newRoomName = ""
     }
-    
+
     private func handleDocumentImport(_ result: Result<[URL], Error>) {
         switch result {
-        case .success(let urls):
+        case let .success(urls):
             for url in urls {
                 guard url.startAccessingSecurityScopedResource() else { continue }
                 defer { url.stopAccessingSecurityScopedResource() }
-                
+
                 if let data = try? Data(contentsOf: url) {
                     item.documentAttachments.append(data)
                     item.documentNames.append(url.lastPathComponent)
                 }
             }
-        case .failure(let error):
+        case let .failure(error):
             print("Document import error: \(error)")
         }
     }
-    
+
     private func removeDocument(at index: Int) {
         guard index < item.documentNames.count else { return }
         item.documentNames.remove(at: index)
@@ -350,15 +350,15 @@ struct WarrantyDocumentsView: View {
             item.documentAttachments.remove(at: index)
         }
     }
-    
+
     // MARK: - Computed Properties
-    
+
     private var daysUntilExpiration: Int? {
         guard warrantyEnabled else { return nil }
         let days = Calendar.current.dateComponents([.day], from: Date(), to: warrantyExpiration).day
         return days
     }
-    
+
     private var warrantyStatusIcon: String {
         guard let days = daysUntilExpiration else { return "shield" }
         if days < 0 { return "shield.slash" }
@@ -366,7 +366,7 @@ struct WarrantyDocumentsView: View {
         if days < 90 { return "shield.checkerboard" }
         return "shield.fill"
     }
-    
+
     private var warrantyStatusColor: Color {
         guard let days = daysUntilExpiration else { return .gray }
         if days < 0 { return .red }
@@ -374,7 +374,7 @@ struct WarrantyDocumentsView: View {
         if days < 90 { return .yellow }
         return .green
     }
-    
+
     private func warrantyStatusText(days: Int) -> String {
         if days < 0 { return "Warranty expired \(abs(days)) days ago" }
         if days == 0 { return "Warranty expires today!" }
@@ -392,7 +392,7 @@ struct RoomChip: View {
     let room: Room
     let isSelected: Bool
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             HStack(spacing: 4) {
@@ -413,13 +413,13 @@ struct DocumentRow: View {
     let name: String
     let size: Int
     let onDelete: () -> Void
-    
+
     var body: some View {
         HStack {
             Image(systemName: documentIcon)
                 .foregroundColor(.blue)
                 .frame(width: 30)
-            
+
             VStack(alignment: .leading) {
                 Text(name)
                     .font(.subheadline)
@@ -428,9 +428,9 @@ struct DocumentRow: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
-            
+
             Spacer()
-            
+
             Button(action: onDelete) {
                 Image(systemName: "trash")
                     .foregroundColor(.red)
@@ -441,13 +441,13 @@ struct DocumentRow: View {
         .background(Color(.secondarySystemBackground))
         .cornerRadius(8)
     }
-    
+
     private var documentIcon: String {
         if name.hasSuffix(".pdf") { return "doc.richtext" }
         if name.hasSuffix(".jpg") || name.hasSuffix(".png") { return "photo" }
         return "doc"
     }
-    
+
     private func formatFileSize(_ bytes: Int) -> String {
         let formatter = ByteCountFormatter()
         formatter.countStyle = .file

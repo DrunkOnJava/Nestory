@@ -167,9 +167,9 @@ public struct LiveExportService: ExportService, @unchecked Sendable {
         let page = PDFPage()
         let bounds = CGRect(origin: .zero, size: size)
 
-        let _: String = "Inventory Report" // title unused
-        let _: String = "Generated on \(Date().formatted())" // subtitle unused
-        let _: String = "\(data.items.count) items • Total value: \(formatCurrency(data.totalValue))" // summary unused
+        let _ = "Inventory Report" // title unused
+        let _ = "Generated on \(Date().formatted())" // subtitle unused
+        let _ = "\(data.items.count) items • Total value: \(formatCurrency(data.totalValue))" // summary unused
 
         let _: [NSAttributedString.Key: Any] = [
             .font: UIFont.systemFont(ofSize: 36, weight: .bold),
@@ -280,7 +280,7 @@ public struct BackupPackage: Codable {
     public let metadata: BackupMetadata
     public let items: [Item]
     public let images: [BackupImage]
-    
+
     public init(metadata: BackupMetadata, items: [Item], images: [BackupImage]) {
         self.metadata = metadata
         self.items = items
@@ -294,7 +294,7 @@ public struct BackupMetadata: Codable {
     public let deviceName: String
     public let itemCount: Int
     public var checksum: String?
-    
+
     public init(version: String, createdAt: Date, deviceName: String, itemCount: Int, checksum: String? = nil) {
         self.version = version
         self.createdAt = createdAt
@@ -308,7 +308,7 @@ public struct BackupImage: Codable {
     public let itemId: UUID
     public let imageData: Data
     public let thumbnail: Data?
-    
+
     public init(itemId: UUID, imageData: Data, thumbnail: Data? = nil) {
         self.itemId = itemId
         self.imageData = imageData

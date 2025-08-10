@@ -19,7 +19,7 @@ public final class PerceptualHash: @unchecked Sendable {
         ])
     }
 
-    nonisolated public func hash(image: UIImage) async throws -> UInt64 {
+    public nonisolated func hash(image: UIImage) async throws -> UInt64 {
         let startTime = CFAbsoluteTimeGetCurrent()
 
         let grayscale = try convertToGrayscale(image)
@@ -55,7 +55,7 @@ public final class PerceptualHash: @unchecked Sendable {
         UInt64(string, radix: 16)
     }
 
-    nonisolated private func convertToGrayscale(_ image: UIImage) throws -> CIImage {
+    private nonisolated func convertToGrayscale(_ image: UIImage) throws -> CIImage {
         guard let ciImage = CIImage(image: image) else {
             throw PerceptualHashError.invalidImage
         }
@@ -74,7 +74,7 @@ public final class PerceptualHash: @unchecked Sendable {
         return outputImage
     }
 
-    nonisolated private func resize(_ image: CIImage, to size: CGSize) throws -> CIImage {
+    private nonisolated func resize(_ image: CIImage, to size: CGSize) throws -> CIImage {
         let scaleX = size.width / image.extent.width
         let scaleY = size.height / image.extent.height
 
@@ -88,7 +88,7 @@ public final class PerceptualHash: @unchecked Sendable {
         return CIImage(cgImage: cgImage)
     }
 
-    nonisolated private func performDCT(_ image: CIImage) throws -> [[Float]] {
+    private nonisolated func performDCT(_ image: CIImage) throws -> [[Float]] {
         let width = resizeSize
         let height = resizeSize
 
@@ -144,7 +144,7 @@ public final class PerceptualHash: @unchecked Sendable {
         return dctMatrix
     }
 
-    nonisolated private func computeHash(from dctMatrix: [[Float]]) -> UInt64 {
+    private nonisolated func computeHash(from dctMatrix: [[Float]]) -> UInt64 {
         var values: [Float] = []
 
         for u in 0 ..< hashSize {
@@ -174,7 +174,7 @@ public final class PerceptualHash: @unchecked Sendable {
         return hash
     }
 
-    nonisolated private func calculateMedian(_ values: [Float]) -> Float {
+    private nonisolated func calculateMedian(_ values: [Float]) -> Float {
         let sorted = values.sorted()
         let count = sorted.count
 

@@ -7,6 +7,6 @@
 
 import Foundation
 
-// Note: ItemCondition enum extensions (icon, color, insuranceImpact) 
+// Note: ItemCondition enum extensions (icon, color, insuranceImpact)
 // are already defined in Foundation/Models/Item.swift
 // No additional extensions needed here

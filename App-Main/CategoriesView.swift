@@ -3,15 +3,15 @@
 //  Nestory
 //
 
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 struct CategoriesView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var categories: [Category]
     @State private var showingAddCategory = false
     @State private var selectedCategory: Category?
-    
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -47,7 +47,7 @@ struct CategoriesView: View {
             }
         }
     }
-    
+
     private func setupDefaultCategories() {
         for defaultCategory in Category.createDefaultCategories() {
             modelContext.insert(defaultCategory)
@@ -57,17 +57,17 @@ struct CategoriesView: View {
 
 struct CategoryCard: View {
     let category: Category
-    
+
     var body: some View {
         VStack(spacing: 12) {
             Image(systemName: category.icon)
                 .font(.system(size: 32))
                 .foregroundColor(Color(hex: category.colorHex) ?? .blue)
-            
+
             Text(category.name)
                 .font(.headline)
                 .foregroundColor(.primary)
-            
+
             Text("\(category.items?.count ?? 0) items")
                 .font(.caption)
                 .foregroundColor(.secondary)
@@ -85,26 +85,26 @@ struct AddCategoryView: View {
     @State private var name = ""
     @State private var selectedIcon = "folder.fill"
     @State private var selectedColor = "#007AFF"
-    
+
     let availableIcons = [
         "folder.fill", "tv.fill", "sofa.fill", "tshirt.fill",
         "book.fill", "fork.knife", "hammer.fill", "sportscourt.fill",
-        "house.fill", "car.fill", "airplane", "gamecontroller.fill"
+        "house.fill", "car.fill", "airplane", "gamecontroller.fill",
     ]
-    
+
     let availableColors = [
         "#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4",
         "#FFEAA7", "#DDA0DD", "#98D8C8", "#B0B0B0",
-        "#007AFF", "#34C759", "#FF9500", "#FF3B30"
+        "#007AFF", "#34C759", "#FF9500", "#FF3B30",
     ]
-    
+
     var body: some View {
         NavigationStack {
             Form {
                 Section("Category Details") {
                     TextField("Name", text: $name)
                 }
-                
+
                 Section("Icon") {
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 50))]) {
                         ForEach(availableIcons, id: \.self) { icon in
@@ -120,7 +120,7 @@ struct AddCategoryView: View {
                         }
                     }
                 }
-                
+
                 Section("Color") {
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 50))]) {
                         ForEach(availableColors, id: \.self) { color in
@@ -129,9 +129,9 @@ struct AddCategoryView: View {
                                 .frame(width: 50, height: 50)
                                 .overlay(
                                     selectedColor == color ?
-                                    Image(systemName: "checkmark")
+                                        Image(systemName: "checkmark")
                                         .foregroundColor(.white)
-                                    : nil
+                                        : nil
                                 )
                                 .onTapGesture {
                                     selectedColor = color
@@ -167,11 +167,11 @@ struct CategoryDetailView: View {
     let category: Category
     @Environment(\.dismiss) private var dismiss
     @Query private var allItems: [Item]
-    
+
     var categoryItems: [Item] {
         allItems.filter { $0.category?.id == category.id }
     }
-    
+
     var body: some View {
         NavigationStack {
             List {
@@ -190,7 +190,7 @@ struct CategoryDetailView: View {
                     }
                     .padding(.vertical, 4)
                 }
-                
+
                 Section("Items") {
                     if categoryItems.isEmpty {
                         Text("No items in this category")

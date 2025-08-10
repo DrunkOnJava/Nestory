@@ -67,7 +67,7 @@ public struct LiveSyncService: SyncService, Sendable {
         try await createSubscription(for: "Category")
     }
 
-    nonisolated public func syncInventory() async throws -> SyncResult {
+    public nonisolated func syncInventory() async throws -> SyncResult {
         let signpost = OSSignposter()
         let state = signpost.beginInterval("sync_inventory", id: signpost.makeSignpostID())
         defer { signpost.endInterval("sync_inventory", state) }
@@ -132,7 +132,7 @@ public struct LiveSyncService: SyncService, Sendable {
         logger.info("Pushed \(changes.count) changes to CloudKit")
     }
 
-    nonisolated public func pullChanges(since date: Date?) async throws -> [SyncChange] {
+    public nonisolated func pullChanges(since date: Date?) async throws -> [SyncChange] {
         var allChanges: [SyncChange] = []
         var cursor: CKQueryOperation.Cursor?
 
@@ -195,15 +195,14 @@ public struct LiveSyncService: SyncService, Sendable {
         try await container.userRecordID()
     }
 
-    nonisolated private func pushLocalChanges() async throws -> [SyncChange] {
+    private nonisolated func pushLocalChanges() async throws -> [SyncChange] {
         []
     }
 
-    nonisolated private func fetchBatch(
+    private nonisolated func fetchBatch(
         since date: Date?,
         cursor: CKQueryOperation.Cursor?
     ) async throws -> (changes: [SyncChange], cursor: CKQueryOperation.Cursor?) {
-
         let predicate = if let date {
             NSPredicate(format: "modificationDate > %@", date as NSDate)
         } else {
@@ -256,7 +255,7 @@ public struct LiveSyncService: SyncService, Sendable {
         }
     }
 
-    nonisolated private func detectConflicts(local: [SyncChange], remote: [SyncChange]) -> [SyncConflict] {
+    private nonisolated func detectConflicts(local: [SyncChange], remote: [SyncChange]) -> [SyncConflict] {
         var conflicts: [SyncConflict] = []
 
         for localChange in local {
@@ -319,7 +318,7 @@ public struct SyncChange: @unchecked Sendable {
     public let action: SyncAction
     public let fields: [String: Any]
     public let timestamp: Date
-    
+
     // SyncChange is @unchecked Sendable - fields dictionary is only read, never mutated
 }
 

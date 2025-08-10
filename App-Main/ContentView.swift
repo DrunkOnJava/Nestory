@@ -11,29 +11,29 @@ import SwiftUI
 
 struct ContentView: View {
     @EnvironmentObject var themeManager: ThemeManager
-    
+
     var body: some View {
         TabView {
             InventoryListView()
                 .tabItem {
                     Label("Inventory", systemImage: "shippingbox.fill")
                 }
-            
+
             SearchView()
                 .tabItem {
                     Label("Search", systemImage: "magnifyingglass")
                 }
-            
+
             AnalyticsDashboardView()
                 .tabItem {
                     Label("Analytics", systemImage: "chart.bar.fill")
                 }
-            
+
             CategoriesView()
                 .tabItem {
                     Label("Categories", systemImage: "square.grid.2x2")
                 }
-            
+
             SettingsView()
                 .tabItem {
                     Label("Settings", systemImage: "gear")

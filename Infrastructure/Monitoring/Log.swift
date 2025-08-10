@@ -34,51 +34,51 @@ public final class Log {
     }
 
     public func logger(for category: LogCategory) -> Logger {
-        self.loggers[category] ?? Logger(subsystem: self.subsystem, category: "General")
+        loggers[category] ?? Logger(subsystem: subsystem, category: "General")
     }
 
     public func debug(_ message: String, category: LogCategory = .app, metadata: [String: Any]? = nil) {
-        let logger = self.logger(for: category)
+        let logger = logger(for: category)
 
         if let metadata {
-            logger.debug("\(message) | \(self.formatMetadata(metadata))")
+            logger.debug("\(message) | \(formatMetadata(metadata))")
         } else {
             logger.debug("\(message)")
         }
     }
 
     public func info(_ message: String, category: LogCategory = .app, metadata: [String: Any]? = nil) {
-        let logger = self.logger(for: category)
+        let logger = logger(for: category)
 
         if let metadata {
-            logger.info("\(message) | \(self.formatMetadata(metadata))")
+            logger.info("\(message) | \(formatMetadata(metadata))")
         } else {
             logger.info("\(message)")
         }
     }
 
     public func notice(_ message: String, category: LogCategory = .app, metadata: [String: Any]? = nil) {
-        let logger = self.logger(for: category)
+        let logger = logger(for: category)
 
         if let metadata {
-            logger.notice("\(message) | \(self.formatMetadata(metadata))")
+            logger.notice("\(message) | \(formatMetadata(metadata))")
         } else {
             logger.notice("\(message)")
         }
     }
 
     public func warning(_ message: String, category: LogCategory = .app, metadata: [String: Any]? = nil) {
-        let logger = self.logger(for: category)
+        let logger = logger(for: category)
 
         if let metadata {
-            logger.warning("\(message) | \(self.formatMetadata(metadata))")
+            logger.warning("\(message) | \(formatMetadata(metadata))")
         } else {
             logger.warning("\(message)")
         }
     }
 
     public func error(_ message: String, category: LogCategory = .app, error: (any Error)? = nil, metadata: [String: Any]? = nil) {
-        let logger = self.logger(for: category)
+        let logger = logger(for: category)
 
         var fullMessage = message
 
@@ -94,7 +94,7 @@ public final class Log {
     }
 
     public func critical(_ message: String, category: LogCategory = .app, error: (any Error)? = nil, metadata: [String: Any]? = nil) {
-        let logger = self.logger(for: category)
+        let logger = logger(for: category)
 
         var fullMessage = "CRITICAL: \(message)"
 
@@ -110,7 +110,7 @@ public final class Log {
     }
 
     public func fault(_ message: String, category: LogCategory = .app, error: (any Error)? = nil, metadata: [String: Any]? = nil) {
-        let logger = self.logger(for: category)
+        let logger = logger(for: category)
 
         var fullMessage = "FAULT: \(message)"
 
@@ -153,7 +153,7 @@ public final class Log {
     }
 
     public func networkRequest(url: String, method: String, statusCode: Int?, duration: TimeInterval, error: (any Error)? = nil) {
-        let logger = self.logger(for: .network)
+        let logger = logger(for: .network)
 
         var message = "Network: \(method) \(url)"
 
@@ -172,7 +172,7 @@ public final class Log {
     }
 
     public func databaseOperation(_ operation: String, table: String? = nil, duration: TimeInterval, recordCount: Int? = nil, error: (any Error)? = nil) {
-        let logger = self.logger(for: .database)
+        let logger = logger(for: .database)
 
         var message = "Database: \(operation)"
 
@@ -195,7 +195,7 @@ public final class Log {
     }
 
     public func userAction(_ action: String, category: LogCategory = .ui, metadata: [String: Any]? = nil) {
-        let logger = self.logger(for: category)
+        let logger = logger(for: category)
 
         var message = "User Action: \(action)"
 
@@ -258,7 +258,7 @@ public extension Log {
         }
     }
 
-    nonisolated(unsafe) private static var currentContext: Context?
+    private nonisolated(unsafe) static var currentContext: Context?
 
     static func setContext(_ context: Context) {
         currentContext = context
@@ -273,15 +273,15 @@ public extension Log {
 
         switch level {
         case .debug:
-            self.debug(message, category: category, metadata: metadata)
+            debug(message, category: category, metadata: metadata)
         case .info:
-            self.info(message, category: category, metadata: metadata)
+            info(message, category: category, metadata: metadata)
         case .error:
-            self.error(message, category: category, metadata: metadata)
+            error(message, category: category, metadata: metadata)
         case .fault:
-            self.fault(message, category: category, metadata: metadata)
+            fault(message, category: category, metadata: metadata)
         default:
-            self.info(message, category: category, metadata: metadata)
+            info(message, category: category, metadata: metadata)
         }
     }
 }

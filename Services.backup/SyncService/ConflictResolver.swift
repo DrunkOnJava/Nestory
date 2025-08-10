@@ -57,14 +57,14 @@ public struct AutomaticConflictResolver: ConflictResolver, Sendable {
 
     private func resolveConflict(_ conflict: SyncConflict) -> ConflictResolution {
         if conflict.localChange.timestamp > conflict.remoteChange.timestamp {
-            return ConflictResolution(
+            ConflictResolution(
                 recordID: conflict.recordID,
                 strategy: .useLocal,
                 localChange: conflict.localChange,
                 remoteChange: conflict.remoteChange
             )
         } else if conflict.remoteChange.timestamp > conflict.localChange.timestamp {
-            return ConflictResolution(
+            ConflictResolution(
                 recordID: conflict.recordID,
                 strategy: .useRemote,
                 localChange: conflict.localChange,
@@ -72,7 +72,7 @@ public struct AutomaticConflictResolver: ConflictResolver, Sendable {
             )
         } else {
             if let merged = mergeChanges(conflict.localChange, conflict.remoteChange) {
-                return ConflictResolution(
+                ConflictResolution(
                     recordID: conflict.recordID,
                     strategy: .merge,
                     localChange: conflict.localChange,
@@ -80,7 +80,7 @@ public struct AutomaticConflictResolver: ConflictResolver, Sendable {
                     mergedChange: merged
                 )
             } else {
-                return ConflictResolution(
+                ConflictResolution(
                     recordID: conflict.recordID,
                     strategy: .useLocal,
                     localChange: conflict.localChange,

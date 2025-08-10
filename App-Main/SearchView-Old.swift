@@ -1,5 +1,5 @@
 //
-//  SearchView.swift
+//  SearchView-Old.swift
 //  Nestory
 //
 
@@ -12,13 +12,13 @@ struct SearchView: View {
     @State private var searchText = ""
     @State private var isSearching = false
     @State private var selectedCategories: Set<UUID> = []
-    @State private var priceRange: ClosedRange<Double> = 0...10000
+    @State private var priceRange: ClosedRange<Double> = 0 ... 10000
     @State private var showFilters = false
     @State private var sortOption: SortOption = .nameAscending
     @State private var recentSearches: [String] = []
-    
+
     @AppStorage("searchHistory") private var searchHistoryData = Data()
-    
+
     enum SortOption: String, CaseIterable {
         case nameAscending = "Name (A-Z)"
         case nameDescending = "Name (Z-A)"
@@ -26,17 +26,17 @@ struct SearchView: View {
         case priceDescending = "Price (High to Low)"
         case dateAdded = "Recently Added"
         case quantity = "Quantity"
-        
+
         var icon: String {
             switch self {
-            case .nameAscending, .nameDescending: return "textformat"
-            case .priceAscending, .priceDescending: return "dollarsign.circle"
-            case .dateAdded: return "calendar"
-            case .quantity: return "number"
+            case .nameAscending, .nameDescending: "textformat"
+            case .priceAscending, .priceDescending: "dollarsign.circle"
+            case .dateAdded: "calendar"
+            case .quantity: "number"
             }
         }
     }
-    
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
@@ -50,7 +50,7 @@ struct SearchView: View {
                             addToRecentSearches(searchText)
                         }
                     )
-                    
+
                     // Filter Chips
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 8) {
@@ -60,10 +60,10 @@ struct SearchView: View {
                             ) {
                                 showFilters.toggle()
                             }
-                            
+
                             Divider()
                                 .frame(height: 20)
-                            
+
                             ForEach(categories) { category in
                                 FilterChip(
                                     title: category.name,
@@ -77,9 +77,9 @@ struct SearchView: View {
                 }
                 .padding()
                 .background(Color(.systemBackground))
-                
+
                 // Results or Suggestions
-                if searchText.isEmpty && !isSearching {
+                if searchText.isEmpty, !isSearching {
                     // Recent Searches & Suggestions
                     List {
                         if !recentSearches.isEmpty {
@@ -95,7 +95,7 @@ struct SearchView: View {
                                 }
                             }
                         }
-                        
+
                         Section("Smart Filters") {
                             SearchSuggestionRow(
                                 icon: "doc.text.magnifyingglass",
@@ -104,7 +104,7 @@ struct SearchView: View {
                             ) {
                                 searchText = "missing:documentation"
                             }
-                            
+
                             SearchSuggestionRow(
                                 icon: "dollarsign.circle",
                                 title: "High Value Items",
@@ -112,7 +112,7 @@ struct SearchView: View {
                             ) {
                                 searchText = "price:>100"
                             }
-                            
+
                             SearchSuggestionRow(
                                 icon: "calendar",
                                 title: "Recently Added",
@@ -120,7 +120,7 @@ struct SearchView: View {
                             ) {
                                 searchText = "added:week"
                             }
-                            
+
                             if !itemsWithoutCategory.isEmpty {
                                 SearchSuggestionRow(
                                     icon: "questionmark.folder",
@@ -147,7 +147,7 @@ struct SearchView: View {
                             }
                             .pickerStyle(.menu)
                         }
-                        
+
                         Section("Results (\(searchResults.count))") {
                             ForEach(sortedResults) { item in
                                 NavigationLink(destination: ItemDetailView(item: item)) {
@@ -172,12 +172,12 @@ struct SearchView: View {
             loadRecentSearches()
         }
     }
-    
+
     // MARK: - Computed Properties
-    
+
     private var searchResults: [Item] {
         guard !searchText.isEmpty else { return [] }
-        
+
         // Handle special search syntax
         if searchText.hasPrefix("missing:") {
             return filterByMissingInfo(searchText)
@@ -190,60 +190,60 @@ struct SearchView: View {
         } else if searchText.hasPrefix("added:") {
             return filterByDateAdded(searchText)
         }
-        
+
         // Regular text search
         return items.filter { item in
             let matchesText = item.name.localizedCaseInsensitiveContains(searchText) ||
-                             (item.itemDescription?.localizedCaseInsensitiveContains(searchText) ?? false) ||
-                             (item.notes?.localizedCaseInsensitiveContains(searchText) ?? false) ||
-                             (item.brand?.localizedCaseInsensitiveContains(searchText) ?? false) ||
-                             (item.category?.name.localizedCaseInsensitiveContains(searchText) ?? false)
-            
-            let matchesCategory = selectedCategories.isEmpty || 
-                                 (item.category != nil && selectedCategories.contains(item.category!.id))
-            
+                (item.itemDescription?.localizedCaseInsensitiveContains(searchText) ?? false) ||
+                (item.notes?.localizedCaseInsensitiveContains(searchText) ?? false) ||
+                (item.brand?.localizedCaseInsensitiveContains(searchText) ?? false) ||
+                (item.category?.name.localizedCaseInsensitiveContains(searchText) ?? false)
+
+            let matchesCategory = selectedCategories.isEmpty ||
+                (item.category != nil && selectedCategories.contains(item.category!.id))
+
             return matchesText && matchesCategory
         }
     }
-    
+
     private var sortedResults: [Item] {
         switch sortOption {
         case .nameAscending:
-            return searchResults.sorted { $0.name < $1.name }
+            searchResults.sorted { $0.name < $1.name }
         case .nameDescending:
-            return searchResults.sorted { $0.name > $1.name }
+            searchResults.sorted { $0.name > $1.name }
         case .priceAscending:
-            return searchResults.sorted {
+            searchResults.sorted {
                 ($0.purchasePrice ?? 0) < ($1.purchasePrice ?? 0)
             }
         case .priceDescending:
-            return searchResults.sorted {
+            searchResults.sorted {
                 ($0.purchasePrice ?? 0) > ($1.purchasePrice ?? 0)
             }
         case .dateAdded:
-            return searchResults.sorted { $0.createdAt > $1.createdAt }
+            searchResults.sorted { $0.createdAt > $1.createdAt }
         case .quantity:
-            return searchResults.sorted { $0.quantity > $1.quantity }
+            searchResults.sorted { $0.quantity > $1.quantity }
         }
     }
-    
+
     private var activeFilterCount: Int {
         var count = 0
         if !selectedCategories.isEmpty { count += selectedCategories.count }
-        if priceRange != 0...10000 { count += 1 }
+        if priceRange != 0 ... 10000 { count += 1 }
         return count
     }
-    
+
     private var itemsNeedingDocumentation: [Item] {
         items.filter { $0.serialNumber == nil || $0.purchasePrice == nil || $0.imageData == nil }
     }
-    
+
     private var itemsWithoutCategory: [Item] {
         items.filter { $0.category == nil }
     }
-    
+
     // MARK: - Helper Methods
-    
+
     private func filterByMissingInfo(_ query: String) -> [Item] {
         let value = query.replacingOccurrences(of: "missing:", with: "")
         switch value {
@@ -259,7 +259,7 @@ struct SearchView: View {
             return []
         }
     }
-    
+
     private func filterByQuantity(_ query: String) -> [Item] {
         let value = query.replacingOccurrences(of: "quantity:", with: "")
         if value.hasPrefix("=") {
@@ -273,7 +273,7 @@ struct SearchView: View {
         }
         return []
     }
-    
+
     private func filterByPrice(_ query: String) -> [Item] {
         let value = query.replacingOccurrences(of: "price:", with: "")
         if value.hasPrefix(">") {
@@ -287,7 +287,7 @@ struct SearchView: View {
         }
         return []
     }
-    
+
     private func filterBySpecialCategory(_ query: String) -> [Item] {
         let value = query.replacingOccurrences(of: "category:", with: "")
         if value == "none" {
@@ -295,12 +295,12 @@ struct SearchView: View {
         }
         return []
     }
-    
+
     private func filterByDateAdded(_ query: String) -> [Item] {
         let value = query.replacingOccurrences(of: "added:", with: "")
         let calendar = Calendar.current
         let now = Date()
-        
+
         switch value {
         case "today":
             return items.filter { calendar.isDateInToday($0.createdAt) }
@@ -317,7 +317,7 @@ struct SearchView: View {
         }
         return []
     }
-    
+
     private func toggleCategory(_ id: UUID) {
         if selectedCategories.contains(id) {
             selectedCategories.remove(id)
@@ -325,7 +325,7 @@ struct SearchView: View {
             selectedCategories.insert(id)
         }
     }
-    
+
     private func addToRecentSearches(_ search: String) {
         guard !search.isEmpty else { return }
         recentSearches.removeAll { $0 == search }
@@ -335,13 +335,13 @@ struct SearchView: View {
         }
         saveRecentSearches()
     }
-    
+
     private func loadRecentSearches() {
         if let searches = try? JSONDecoder().decode([String].self, from: searchHistoryData) {
             recentSearches = searches
         }
     }
-    
+
     private func saveRecentSearches() {
         if let data = try? JSONEncoder().encode(recentSearches) {
             searchHistoryData = data
@@ -350,14 +350,16 @@ struct SearchView: View {
 }
 
 // MARK: - Search Result Row
+
 struct SearchResultRow: View {
     let item: Item
     let searchText: String
-    
+
     var body: some View {
         HStack(spacing: 12) {
             if let imageData = item.imageData,
-               let uiImage = UIImage(data: imageData) {
+               let uiImage = UIImage(data: imageData)
+            {
                 Image(uiImage: uiImage)
                     .resizable()
                     .scaledToFill()
@@ -372,19 +374,19 @@ struct SearchResultRow: View {
                             .foregroundColor(.secondary)
                     )
             }
-            
+
             VStack(alignment: .leading, spacing: 4) {
                 Text(item.name)
                     .font(.headline)
                     .lineLimit(1)
-                
+
                 HStack {
                     if let category = item.category {
                         Label(category.name, systemImage: category.icon)
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
-                    
+
                     if let price = item.purchasePrice {
                         Text("$\(price)")
                             .font(.caption)
@@ -392,14 +394,14 @@ struct SearchResultRow: View {
                     }
                 }
             }
-            
+
             Spacer()
-            
+
             VStack(alignment: .trailing, spacing: 4) {
                 Text("Qty: \(item.quantity)")
                     .font(.caption)
                     .foregroundColor(.secondary)
-                
+
                 if let match = highlightedMatch(for: item) {
                     Text(match)
                         .font(.caption2)
@@ -409,7 +411,7 @@ struct SearchResultRow: View {
         }
         .padding(.vertical, 4)
     }
-    
+
     private func highlightedMatch(for item: Item) -> String? {
         if item.itemDescription?.localizedCaseInsensitiveContains(searchText) ?? false {
             return "in description"
@@ -423,12 +425,13 @@ struct SearchResultRow: View {
 }
 
 // MARK: - Filter Settings View
+
 struct FilterSettingsView: View {
     @Binding var selectedCategories: Set<UUID>
     @Binding var priceRange: ClosedRange<Double>
     let categories: [Category]
     @Environment(\.dismiss) private var dismiss
-    
+
     var body: some View {
         NavigationStack {
             Form {
@@ -436,13 +439,13 @@ struct FilterSettingsView: View {
                     ForEach(categories) { category in
                         let isSelected = selectedCategories.contains(category.id)
                         let categoryColor = Color(hex: category.colorHex) ?? .accentColor
-                        
+
                         HStack {
                             Label(category.name, systemImage: category.icon)
                                 .foregroundColor(categoryColor)
-                            
+
                             Spacer()
-                            
+
                             if isSelected {
                                 Image(systemName: "checkmark")
                                     .foregroundColor(.accentColor)
@@ -458,7 +461,7 @@ struct FilterSettingsView: View {
                         }
                     }
                 }
-                
+
                 Section("Price Range") {
                     VStack {
                         HStack {
@@ -468,17 +471,17 @@ struct FilterSettingsView: View {
                         }
                         .font(.caption)
                         .foregroundColor(.secondary)
-                        
+
                         Text("Price filtering coming soon")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
                 }
-                
+
                 Section {
                     Button("Clear All Filters") {
                         selectedCategories.removeAll()
-                        priceRange = 0...10000
+                        priceRange = 0 ... 10000
                     }
                     .foregroundColor(.red)
                 }

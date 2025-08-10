@@ -3,14 +3,14 @@
 //  Nestory
 //
 
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 struct EditItemView: View {
     @Bindable var item: Item
     @Environment(\.dismiss) private var dismiss
     @Query private var categories: [Category]
-    
+
     @State private var name: String
     @State private var itemDescription: String
     @State private var quantity: Int
@@ -27,7 +27,7 @@ struct EditItemView: View {
     @State private var showingReceiptCapture = false
     @State private var showingWarrantyDocuments = false
     @State private var showingBarcodeScanner = false
-    
+
     init(item: Item) {
         self.item = item
         _name = State(initialValue: item.name)
@@ -43,14 +43,15 @@ struct EditItemView: View {
         _showPurchaseDetails = State(initialValue: item.purchasePrice != nil || item.purchaseDate != nil)
         _imageData = State(initialValue: item.imageData)
     }
-    
+
     var body: some View {
         NavigationStack {
             Form {
                 Section {
                     Button(action: { showingPhotoCapture = true }) {
-                        if let imageData = imageData,
-                           let uiImage = UIImage(data: imageData) {
+                        if let imageData,
+                           let uiImage = UIImage(data: imageData)
+                        {
                             Image(uiImage: uiImage)
                                 .resizable()
                                 .scaledToFill()
@@ -72,14 +73,14 @@ struct EditItemView: View {
                     }
                     .buttonStyle(.plain)
                 }
-                
+
                 Section("Item Information") {
                     TextField("Item Name", text: $name)
                     TextField("Description", text: $itemDescription, axis: .vertical)
-                        .lineLimit(2...4)
-                    
-                    Stepper("Quantity: \(quantity)", value: $quantity, in: 1...999)
-                    
+                        .lineLimit(2 ... 4)
+
+                    Stepper("Quantity: \(quantity)", value: $quantity, in: 1 ... 999)
+
                     Picker("Category", selection: $selectedCategory) {
                         Text("None").tag(nil as Category?)
                         ForEach(categories) { category in
@@ -88,10 +89,10 @@ struct EditItemView: View {
                         }
                     }
                 }
-                
+
                 Section("Additional Details") {
                     TextField("Brand", text: $brand)
-                    
+
                     HStack {
                         TextField("Model Number", text: $modelNumber)
                         Button(action: { showingBarcodeScanner = true }) {
@@ -99,7 +100,7 @@ struct EditItemView: View {
                                 .foregroundColor(.accentColor)
                         }
                     }
-                    
+
                     HStack {
                         TextField("Serial Number", text: $serialNumber)
                         Button(action: { showingBarcodeScanner = true }) {
@@ -107,7 +108,7 @@ struct EditItemView: View {
                                 .foregroundColor(.accentColor)
                         }
                     }
-                    
+
                     // REMINDER: Barcode scanner is wired here for editing!
                     if !modelNumber.isEmpty || !serialNumber.isEmpty {
                         HStack {
@@ -120,7 +121,7 @@ struct EditItemView: View {
                         }
                     }
                 }
-                
+
                 Section {
                     Toggle("Purchase Information", isOn: $showPurchaseDetails)
                     if showPurchaseDetails {
@@ -129,7 +130,7 @@ struct EditItemView: View {
                         DatePicker("Purchase Date", selection: $purchaseDate, displayedComponents: .date)
                     }
                 }
-                
+
                 Section("Warranty, Location & Documents") {
                     // Warranty & Location button
                     Button(action: { showingWarrantyDocuments = true }) {
@@ -141,7 +142,7 @@ struct EditItemView: View {
                                     Text("Warranty & Location")
                                         .foregroundColor(.primary)
                                 }
-                                
+
                                 HStack(spacing: 16) {
                                     if item.warrantyExpirationDate != nil {
                                         Label("Warranty Active", systemImage: "checkmark.circle.fill")
@@ -168,7 +169,7 @@ struct EditItemView: View {
                     }
                     .foregroundColor(.primary)
                 }
-                
+
                 Section("Receipt & Documentation") {
                     Button(action: { showingReceiptCapture = true }) {
                         HStack {
@@ -182,14 +183,14 @@ struct EditItemView: View {
                         }
                     }
                     .foregroundColor(.primary)
-                    
+
                     if item.extractedReceiptText != nil {
                         Text("OCR data available")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
                 }
-                
+
                 Section("Notes") {
                     TextEditor(text: $notes)
                         .frame(minHeight: 60)
@@ -203,7 +204,7 @@ struct EditItemView: View {
                         dismiss()
                     }
                 }
-                
+
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Save") {
                         saveChanges()
@@ -238,7 +239,7 @@ struct EditItemView: View {
             }
         }
     }
-    
+
     private func saveChanges() {
         item.name = name
         item.itemDescription = itemDescription.isEmpty ? nil : itemDescription
@@ -248,7 +249,7 @@ struct EditItemView: View {
         item.modelNumber = modelNumber.isEmpty ? nil : modelNumber
         item.serialNumber = serialNumber.isEmpty ? nil : serialNumber
         item.notes = notes.isEmpty ? nil : notes
-        
+
         if showPurchaseDetails {
             if let price = Decimal(string: purchasePrice) {
                 item.purchasePrice = price
@@ -260,7 +261,7 @@ struct EditItemView: View {
             item.purchasePrice = nil
             item.purchaseDate = nil
         }
-        
+
         item.imageData = imageData
         item.updatedAt = Date()
         dismiss()

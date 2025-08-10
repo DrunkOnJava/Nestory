@@ -7,7 +7,7 @@ import Foundation
 /// A string that is guaranteed to be non-empty
 public struct NonEmptyString: Codable, Hashable, Sendable {
     public let value: String
-    
+
     /// Initialize with a string, throwing if empty
     public init(_ value: String) throws {
         let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -16,17 +16,17 @@ public struct NonEmptyString: Codable, Hashable, Sendable {
         }
         self.value = trimmed
     }
-    
+
     /// Initialize with a string, returning nil if empty
     public init?(_ value: String?) {
-        guard let value = value else { return nil }
+        guard let value else { return nil }
         do {
             try self.init(value)
         } catch {
             return nil
         }
     }
-    
+
     /// Create from a literal (use carefully, will crash if empty)
     public static func unchecked(_ value: String) -> NonEmptyString {
         try! NonEmptyString(value)
@@ -47,27 +47,27 @@ extension NonEmptyString: ExpressibleByStringLiteral {
 
 // MARK: - Utilities
 
-extension NonEmptyString {
+public extension NonEmptyString {
     /// Length of the string
-    public var count: Int { value.count }
-    
+    var count: Int { value.count }
+
     /// Check if string contains a substring
-    public func contains(_ substring: String) -> Bool {
+    func contains(_ substring: String) -> Bool {
         value.contains(substring)
     }
-    
+
     /// Lowercase version
-    public var lowercased: NonEmptyString {
+    var lowercased: NonEmptyString {
         try! NonEmptyString(value.lowercased())
     }
-    
+
     /// Uppercase version
-    public var uppercased: NonEmptyString {
+    var uppercased: NonEmptyString {
         try! NonEmptyString(value.uppercased())
     }
-    
+
     /// Truncate to maximum length
-    public func truncated(to maxLength: Int) -> NonEmptyString {
+    func truncated(to maxLength: Int) -> NonEmptyString {
         guard value.count > maxLength else { return self }
         let endIndex = value.index(value.startIndex, offsetBy: maxLength)
         let truncated = String(value[..<endIndex])

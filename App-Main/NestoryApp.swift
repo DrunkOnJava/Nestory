@@ -4,8 +4,8 @@
 // Purpose: App Entry Point
 //
 
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 @main
 struct NestoryApp: App {

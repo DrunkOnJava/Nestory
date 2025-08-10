@@ -17,13 +17,13 @@ public enum SearchSortOption: String, CaseIterable {
     case priceDescending = "Price (High to Low)"
     case dateAdded = "Recently Added"
     case quantity = "Quantity"
-    
+
     var icon: String {
         switch self {
-        case .nameAscending, .nameDescending: return "textformat"
-        case .priceAscending, .priceDescending: return "dollarsign.circle"
-        case .dateAdded: return "calendar"
-        case .quantity: return "number"
+        case .nameAscending, .nameDescending: "textformat"
+        case .priceAscending, .priceDescending: "dollarsign.circle"
+        case .dateAdded: "calendar"
+        case .quantity: "number"
         }
     }
 }
@@ -32,7 +32,7 @@ public enum SearchSortOption: String, CaseIterable {
 
 public struct SearchFilters {
     var selectedCategories: Set<UUID> = []
-    var priceRange: ClosedRange<Double> = 0...10000
+    var priceRange: ClosedRange<Double> = 0 ... 10000
     var hasPhoto: Bool = false
     var hasReceipt: Bool = false
     var hasWarranty: Bool = false
@@ -40,18 +40,18 @@ public struct SearchFilters {
     var minQuantity: Int = 0
     var maxQuantity: Int = 100
     var rooms: Set<String> = []
-    
+
     var isActive: Bool {
         !selectedCategories.isEmpty ||
-        priceRange != 0...10000 ||
-        hasPhoto || hasReceipt || hasWarranty || hasSerialNumber ||
-        minQuantity > 0 || maxQuantity < 100 ||
-        !rooms.isEmpty
+            priceRange != 0 ... 10000 ||
+            hasPhoto || hasReceipt || hasWarranty || hasSerialNumber ||
+            minQuantity > 0 || maxQuantity < 100 ||
+            !rooms.isEmpty
     }
-    
+
     mutating func reset() {
         selectedCategories = []
-        priceRange = 0...10000
+        priceRange = 0 ... 10000
         hasPhoto = false
         hasReceipt = false
         hasWarranty = false
@@ -67,7 +67,7 @@ public struct SearchFilters {
 public struct SearchHistory: Codable, Equatable {
     var recentSearches: [String] = []
     var popularSearches: [String] = []
-    
+
     mutating func addSearch(_ term: String) {
         // Remove if already exists
         recentSearches.removeAll { $0 == term }
@@ -78,11 +78,11 @@ public struct SearchHistory: Codable, Equatable {
             recentSearches = Array(recentSearches.prefix(10))
         }
     }
-    
+
     mutating func removeSearch(_ term: String) {
         recentSearches.removeAll { $0 == term }
     }
-    
+
     mutating func clearAll() {
         recentSearches.removeAll()
     }

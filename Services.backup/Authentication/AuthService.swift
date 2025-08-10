@@ -118,7 +118,7 @@ public struct LiveAuthService: AuthService, @unchecked Sendable {
         request.requestedScopes = [.fullName, .email]
 
         let controller = ASAuthorizationController(authorizationRequests: [request])
-        
+
         return try await withCheckedThrowingContinuation { continuation in
             let delegate = AuthControllerDelegate()
             controller.delegate = delegate

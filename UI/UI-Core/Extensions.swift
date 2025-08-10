@@ -24,12 +24,12 @@ public extension Color {
         default:
             return nil
         }
-        
+
         self.init(
             .sRGB,
             red: Double(r) / 255,
             green: Double(g) / 255,
-            blue:  Double(b) / 255,
+            blue: Double(b) / 255,
             opacity: Double(a) / 255
         )
     }
@@ -39,8 +39,6 @@ public extension Color {
 
 public extension Array {
     subscript(safe index: Index) -> Element? {
-        get {
-            indices.contains(index) ? self[index] : nil
-        }
+        indices.contains(index) ? self[index] : nil
     }
 }

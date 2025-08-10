@@ -9,33 +9,33 @@ import SwiftData
 @Model
 public final class Category {
     // MARK: - Properties
-    
+
     @Attribute(.unique)
     public var id: UUID
-    
+
     public var name: String
     public var categoryDescription: String?
     public var color: String? // Hex color code
     public var icon: String? // SF Symbol name
     public var sortOrder: Int
-    
+
     // Timestamps
     public var createdAt: Date
     public var updatedAt: Date
-    
+
     // MARK: - Relationships
-    
+
     @Relationship(deleteRule: .nullify)
     public var parent: Category?
-    
+
     @Relationship(deleteRule: .cascade, inverse: \Category.parent)
     public var children: [Category]
-    
+
     @Relationship(inverse: \Item.category)
     public var items: [Item]
-    
+
     // MARK: - Initialization
-    
+
     public init(
         name: String,
         description: String? = nil,
@@ -43,29 +43,29 @@ public final class Category {
         color: String? = nil,
         icon: String? = nil
     ) {
-        self.id = UUID()
+        id = UUID()
         self.name = name
-        self.categoryDescription = description
+        categoryDescription = description
         self.parent = parent
         self.color = color
         self.icon = icon
-        self.sortOrder = 0
-        self.children = []
-        self.items = []
-        self.createdAt = Date()
-        self.updatedAt = Date()
+        sortOrder = 0
+        children = []
+        items = []
+        createdAt = Date()
+        updatedAt = Date()
     }
-    
+
     // MARK: - Computed Properties
-    
+
     /// Full path from root category
     public var path: String {
-        if let parent = parent {
+        if let parent {
             return "\(parent.path) → \(name)"
         }
         return name
     }
-    
+
     /// Depth in hierarchy (0 for root)
     public var depth: Int {
         var count = 0
@@ -76,17 +76,17 @@ public final class Category {
         }
         return count
     }
-    
+
     /// Check if this is a root category
     public var isRoot: Bool {
         parent == nil
     }
-    
+
     /// Check if this is a leaf category (no children)
     public var isLeaf: Bool {
         children.isEmpty
     }
-    
+
     /// Total count of items including subcategories
     public var totalItemCount: Int {
         var count = items.count
@@ -95,7 +95,7 @@ public final class Category {
         }
         return count
     }
-    
+
     /// All descendant categories (recursive)
     public var allDescendants: [Category] {
         var descendants: [Category] = []
@@ -105,7 +105,7 @@ public final class Category {
         }
         return descendants
     }
-    
+
     /// All ancestor categories from parent to root
     public var ancestors: [Category] {
         var ancestors: [Category] = []
@@ -116,9 +116,9 @@ public final class Category {
         }
         return ancestors
     }
-    
+
     // MARK: - Methods
-    
+
     /// Add a subcategory
     public func addChild(_ category: Category) {
         category.parent = self
@@ -128,39 +128,39 @@ public final class Category {
             updatedAt = Date()
         }
     }
-    
+
     /// Remove a subcategory
     public func removeChild(_ category: Category) {
         children.removeAll { $0.id == category.id }
         category.parent = nil
         updatedAt = Date()
     }
-    
+
     /// Move to a different parent
     public func move(to newParent: Category?) {
         // Check for circular reference
-        if let newParent = newParent {
+        if let newParent {
             if newParent.id == id || newParent.ancestors.contains(where: { $0.id == id }) {
                 return // Would create circular reference
             }
         }
-        
+
         parent?.removeChild(self)
         parent = newParent
         newParent?.addChild(self)
         updatedAt = Date()
     }
-    
+
     /// Check if this category is an ancestor of another
     public func isAncestor(of category: Category) -> Bool {
         category.ancestors.contains { $0.id == id }
     }
-    
+
     /// Check if this category is a descendant of another
     public func isDescendant(of category: Category) -> Bool {
         ancestors.contains { $0.id == category.id }
     }
-    
+
     /// Update category properties
     public func update(
         name: String? = nil,
@@ -169,22 +169,22 @@ public final class Category {
         icon: String? = nil,
         sortOrder: Int? = nil
     ) {
-        if let name = name {
+        if let name {
             self.name = name
         }
-        if let description = description {
-            self.categoryDescription = description
+        if let description {
+            categoryDescription = description
         }
-        if let color = color {
+        if let color {
             self.color = color
         }
-        if let icon = icon {
+        if let icon {
             self.icon = icon
         }
-        if let sortOrder = sortOrder {
+        if let sortOrder {
             self.sortOrder = sortOrder
         }
-        self.updatedAt = Date()
+        updatedAt = Date()
     }
 }
 

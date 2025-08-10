@@ -5,17 +5,17 @@
 //  Condition selection grid with buttons
 //
 
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 struct ConditionSelectionView: View {
     @Binding var selectedCondition: ItemCondition
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Item Condition")
                 .font(.headline)
-            
+
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 100))], spacing: 12) {
                 ForEach(ItemCondition.allCases, id: \.self) { condition in
                     ConditionButton(
@@ -29,7 +29,7 @@ struct ConditionSelectionView: View {
                     )
                 }
             }
-            
+
             HStack {
                 Image(systemName: "info.circle.fill")
                     .foregroundColor(.blue)
@@ -48,14 +48,14 @@ struct ConditionButton: View {
     let condition: ItemCondition
     let isSelected: Bool
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             VStack(spacing: 6) {
                 Image(systemName: condition.icon)
                     .font(.title2)
                     .foregroundColor(isSelected ? .white : Color(hex: condition.color))
-                
+
                 Text(condition.rawValue)
                     .font(.caption)
                     .foregroundColor(isSelected ? .white : .primary)

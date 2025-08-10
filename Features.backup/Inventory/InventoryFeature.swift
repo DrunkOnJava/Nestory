@@ -5,8 +5,8 @@
 //
 
 import ComposableArchitecture
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 @Reducer
 struct InventoryFeature {
@@ -18,26 +18,26 @@ struct InventoryFeature {
         var isLoading = false
         var alert: AlertState<Action>? = nil
         var path = StackState<Path.State>()
-        
+
         var filteredItems: [InventoryItem] {
             var result = items
-            
+
             if !searchText.isEmpty {
                 result = result.filter { item in
                     item.name.localizedCaseInsensitiveContains(searchText) ||
-                    item.category?.localizedCaseInsensitiveContains(searchText) == true ||
-                    item.location?.localizedCaseInsensitiveContains(searchText) == true
+                        item.category?.localizedCaseInsensitiveContains(searchText) == true ||
+                        item.location?.localizedCaseInsensitiveContains(searchText) == true
                 }
             }
-            
+
             if let category = selectedCategory {
                 result = result.filter { $0.category == category }
             }
-            
+
             return result
         }
     }
-    
+
     enum Action {
         case onAppear
         case loadItems
@@ -50,24 +50,24 @@ struct InventoryFeature {
         case deleteConfirmed(IndexSet)
         case alert(PresentationAction<Alert>)
         case path(StackAction<Path.State, Path.Action>)
-        
+
         enum Alert: Equatable {
             case confirmDelete
         }
     }
-    
+
     @Reducer
     struct Path {
         enum State: Equatable {
             case itemDetail(ItemDetailFeature.State)
             case itemEdit(ItemEditFeature.State)
         }
-        
+
         enum Action {
             case itemDetail(ItemDetailFeature.Action)
             case itemEdit(ItemEditFeature.Action)
         }
-        
+
         var body: some ReducerOf<Self> {
             Scope(state: \.itemDetail, action: \.itemDetail) {
                 ItemDetailFeature()
@@ -77,43 +77,43 @@ struct InventoryFeature {
             }
         }
     }
-    
+
     @Dependency(\.inventoryService) var inventoryService
-    
+
     var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
             case .onAppear:
                 return .send(.loadItems)
-                
+
             case .loadItems:
                 state.isLoading = true
                 return .run { send in
                     let items = await inventoryService.fetchAll()
                     await send(.itemsLoaded(items))
                 }
-                
+
             case let .itemsLoaded(items):
                 state.isLoading = false
                 state.items = items
                 return .none
-                
+
             case let .searchTextChanged(text):
                 state.searchText = text
                 return .none
-                
+
             case let .categorySelected(category):
                 state.selectedCategory = category
                 return .none
-                
+
             case .addItemTapped:
                 state.path.append(.itemEdit(ItemEditFeature.State(mode: .create)))
                 return .none
-                
+
             case let .itemTapped(item):
                 state.path.append(.itemDetail(ItemDetailFeature.State(item: item)))
                 return .none
-                
+
             case let .deleteItems(indexSet):
                 state.alert = AlertState {
                     TextState("Delete Items")
@@ -128,21 +128,21 @@ struct InventoryFeature {
                     TextState("Are you sure you want to delete \(indexSet.count) item(s)?")
                 }
                 return .none
-                
+
             case .alert(.presented(.confirmDelete)):
                 // Handle delete confirmation
                 return .none
-                
+
             case .alert:
                 return .none
-                
+
             case .path:
                 return .none
-                
+
             case let .deleteConfirmed(indexSet):
                 let itemsToDelete = indexSet.map { state.items[$0] }
                 state.items.remove(atOffsets: indexSet)
-                
+
                 return .run { _ in
                     for item in itemsToDelete {
                         await inventoryService.delete(item.id)
@@ -158,6 +158,7 @@ struct InventoryFeature {
 }
 
 // MARK: - Models
+
 struct InventoryItem: Equatable, Identifiable {
     let id: UUID
     let name: String
@@ -169,7 +170,7 @@ struct InventoryItem: Equatable, Identifiable {
     let photoCount: Int
     let createdAt: Date
     let updatedAt: Date
-    
+
     static func mock() -> InventoryItem {
         InventoryItem(
             id: UUID(),
@@ -187,6 +188,7 @@ struct InventoryItem: Equatable, Identifiable {
 }
 
 // MARK: - Service Dependency
+
 struct InventoryService {
     var fetchAll: @Sendable () async -> [InventoryItem]
     var fetch: @Sendable (UUID) async -> InventoryItem?
@@ -199,7 +201,7 @@ extension InventoryService: DependencyKey {
     static let liveValue = InventoryService(
         fetchAll: {
             // TODO: Implement with SwiftData
-            return [
+            [
                 InventoryItem.mock(),
                 InventoryItem(
                     id: UUID(),
@@ -224,7 +226,7 @@ extension InventoryService: DependencyKey {
                     photoCount: 1,
                     createdAt: Date(),
                     updatedAt: Date()
-                )
+                ),
             ]
         },
         fetch: { _ in nil },
@@ -232,7 +234,7 @@ extension InventoryService: DependencyKey {
         update: { _ in },
         delete: { _ in }
     )
-    
+
     static let testValue = InventoryService(
         fetchAll: { [] },
         fetch: { _ in nil },

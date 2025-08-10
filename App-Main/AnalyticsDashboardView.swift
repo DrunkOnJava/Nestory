@@ -3,32 +3,32 @@
 //  Nestory
 //
 
-import SwiftUI
-import SwiftData
 import Charts
+import SwiftData
+import SwiftUI
 
 struct AnalyticsDashboardView: View {
     @Query private var items: [Item]
     @Query private var categories: [Category]
     @State private var selectedTimeRange: TimeRange = .month
     @State private var showingInsights = false
-    
+
     enum TimeRange: String, CaseIterable {
         case week = "Week"
         case month = "Month"
         case year = "Year"
         case all = "All Time"
-        
+
         var days: Int {
             switch self {
-            case .week: return 7
-            case .month: return 30
-            case .year: return 365
-            case .all: return 9999
+            case .week: 7
+            case .month: 30
+            case .year: 365
+            case .all: 9999
             }
         }
     }
-    
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -41,7 +41,7 @@ struct AnalyticsDashboardView: View {
                     }
                     .pickerStyle(.segmented)
                     .padding(.horizontal)
-                    
+
                     // Summary Cards
                     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
                         SummaryCard(
@@ -50,21 +50,21 @@ struct AnalyticsDashboardView: View {
                             icon: "shippingbox.fill",
                             color: .blue
                         )
-                        
+
                         SummaryCard(
                             title: "Total Value",
                             value: formatCurrency(totalValue),
                             icon: "dollarsign.circle.fill",
                             color: .green
                         )
-                        
+
                         SummaryCard(
                             title: "Categories",
                             value: "\(categoriesWithItems.count)",
                             icon: "square.grid.2x2.fill",
                             color: .purple
                         )
-                        
+
                         SummaryCard(
                             title: "Avg. Value",
                             value: formatCurrency(averageValue),
@@ -73,45 +73,45 @@ struct AnalyticsDashboardView: View {
                         )
                     }
                     .padding(.horizontal)
-                    
+
                     // Charts Section
                     VStack(alignment: .leading, spacing: 16) {
                         // Category Distribution Chart
                         ChartContainer(title: "Category Distribution") {
                             CategoryDistributionChart(categories: categoriesWithItems)
                         }
-                        
+
                         // Value by Category Chart
                         ChartContainer(title: "Value by Category") {
                             ValueByCategoryChart(categories: categoriesWithItems, items: items)
                         }
-                        
+
                         // Recent Activity Chart
                         ChartContainer(title: "Recent Activity") {
                             RecentActivityChart(items: recentItems, timeRange: selectedTimeRange)
                         }
-                        
+
                         // Item Categories Overview
                         ChartContainer(title: "Item Status Overview") {
                             ItemStatusChart(items: items)
                         }
                     }
                     .padding(.horizontal)
-                    
+
                     // Insights Section
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
                             Text("Insights")
                                 .font(.title2)
                                 .fontWeight(.bold)
-                            
+
                             Spacer()
-                            
+
                             Button(action: { showingInsights.toggle() }) {
                                 Image(systemName: showingInsights ? "chevron.up" : "chevron.down")
                             }
                         }
-                        
+
                         if showingInsights {
                             VStack(alignment: .leading, spacing: 12) {
                                 InsightRow(
@@ -119,21 +119,21 @@ struct AnalyticsDashboardView: View {
                                     text: "\(itemsNeedingDocumentation.count) items need documentation",
                                     color: .orange
                                 )
-                                
-                                if let mostValuableCategory = mostValuableCategory {
+
+                                if let mostValuableCategory {
                                     InsightRow(
                                         icon: "crown.fill",
                                         text: "\(mostValuableCategory.name) is your most valuable category",
                                         color: .yellow
                                     )
                                 }
-                                
+
                                 InsightRow(
                                     icon: "chart.line.uptrend.xyaxis",
                                     text: "You've added \(recentlyAddedCount) items this month",
                                     color: .green
                                 )
-                                
+
                                 if uncategorizedCount > 0 {
                                     InsightRow(
                                         icon: "questionmark.folder.fill",
@@ -155,56 +155,57 @@ struct AnalyticsDashboardView: View {
             .navigationBarTitleDisplayMode(.large)
         }
     }
-    
+
     // MARK: - Computed Properties
-    
+
     private var totalValue: Decimal {
-        items.compactMap { $0.purchasePrice }.reduce(0, +)
+        items.compactMap(\.purchasePrice).reduce(0, +)
     }
-    
+
     private var averageValue: Decimal {
         let total = totalValue
-        let count = items.filter { $0.purchasePrice != nil }.count
+        let count = items.count(where: { $0.purchasePrice != nil })
         return count > 0 ? total / Decimal(count) : 0
     }
-    
+
     private var categoriesWithItems: [Category] {
         categories.filter { category in
             items.contains { $0.category?.id == category.id }
         }
     }
-    
+
     private var itemsNeedingDocumentation: [Item] {
         items.filter { $0.serialNumber == nil || $0.purchasePrice == nil || $0.imageData == nil }
     }
-    
+
     private var mostValuableCategory: Category? {
         var categoryValues: [Category: Decimal] = [:]
-        
+
         for item in items {
             if let category = item.category,
-               let price = item.purchasePrice {
+               let price = item.purchasePrice
+            {
                 categoryValues[category, default: 0] += price * Decimal(item.quantity)
             }
         }
-        
+
         return categoryValues.max(by: { $0.value < $1.value })?.key
     }
-    
+
     private var recentItems: [Item] {
         let cutoffDate = Calendar.current.date(byAdding: .day, value: -selectedTimeRange.days, to: Date()) ?? Date()
         return items.filter { $0.createdAt > cutoffDate }
     }
-    
+
     private var recentlyAddedCount: Int {
         let cutoffDate = Calendar.current.date(byAdding: .month, value: -1, to: Date()) ?? Date()
-        return items.filter { $0.createdAt > cutoffDate }.count
+        return items.count(where: { $0.createdAt > cutoffDate })
     }
-    
+
     private var uncategorizedCount: Int {
-        items.filter { $0.category == nil }.count
+        items.count(where: { $0.category == nil })
     }
-    
+
     private func formatCurrency(_ value: Decimal) -> String {
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
@@ -221,7 +222,7 @@ struct SummaryCard: View {
     let value: String
     let icon: String
     let color: Color
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
@@ -230,11 +231,11 @@ struct SummaryCard: View {
                     .foregroundColor(color)
                 Spacer()
             }
-            
+
             Text(value)
                 .font(.title)
                 .fontWeight(.bold)
-            
+
             Text(title)
                 .font(.caption)
                 .foregroundColor(.secondary)
@@ -250,17 +251,17 @@ struct SummaryCard: View {
 struct ChartContainer<Content: View>: View {
     let title: String
     let content: Content
-    
+
     init(title: String, @ViewBuilder content: () -> Content) {
         self.title = title
         self.content = content()
     }
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(title)
                 .font(.headline)
-            
+
             content
                 .frame(height: 200)
                 .padding()
@@ -275,11 +276,11 @@ struct ChartContainer<Content: View>: View {
 struct CategoryDistributionChart: View {
     let categories: [Category]
     @Query private var items: [Item]
-    
+
     var body: some View {
         Chart {
             ForEach(categories) { category in
-                let count = items.filter { $0.category?.id == category.id }.count
+                let count = items.count(where: { $0.category?.id == category.id })
                 SectorMark(
                     angle: .value("Count", count),
                     innerRadius: .ratio(0.5)
@@ -301,18 +302,18 @@ struct CategoryDistributionChart: View {
 struct ValueByCategoryChart: View {
     let categories: [Category]
     let items: [Item]
-    
+
     var categoryData: [(category: Category, value: Decimal)] {
         categories.compactMap { category in
             let categoryItems = items.filter { $0.category?.id == category.id }
-            let value = categoryItems.compactMap { $0.purchasePrice }.reduce(0, +)
+            let value = categoryItems.compactMap(\.purchasePrice).reduce(0, +)
             return value > 0 ? (category, value) : nil
         }
         .sorted { $0.value > $1.value }
         .prefix(5)
         .reversed()
     }
-    
+
     var body: some View {
         Chart(categoryData, id: \.category.id) { data in
             BarMark(
@@ -327,21 +328,21 @@ struct ValueByCategoryChart: View {
 struct RecentActivityChart: View {
     let items: [Item]
     let timeRange: AnalyticsDashboardView.TimeRange
-    
+
     var activityData: [(date: Date, count: Int)] {
         let calendar = Calendar.current
         var groupedItems: [Date: Int] = [:]
-        
+
         for item in items {
             let startOfDay = calendar.startOfDay(for: item.createdAt)
             groupedItems[startOfDay, default: 0] += 1
         }
-        
+
         return groupedItems.map { ($0.key, $0.value) }
             .sorted { $0.date < $1.date }
             .suffix(timeRange == .week ? 7 : 30)
     }
-    
+
     var body: some View {
         if activityData.isEmpty {
             Text("No recent activity")
@@ -355,7 +356,7 @@ struct RecentActivityChart: View {
                     y: .value("Items", data.count)
                 )
                 .foregroundStyle(.blue)
-                
+
                 AreaMark(
                     x: .value("Date", data.date),
                     y: .value("Items", data.count)
@@ -374,26 +375,26 @@ struct RecentActivityChart: View {
 
 struct ItemStatusChart: View {
     let items: [Item]
-    
+
     var statusData: [(label: String, count: Int, color: Color)] {
-        let fullyDocumented = items.filter { item in
+        let fullyDocumented = items.count(where: { item in
             item.imageData != nil && item.purchasePrice != nil && item.serialNumber != nil
-        }.count
-        let partiallyDocumented = items.filter { item in
+        })
+        let partiallyDocumented = items.count(where: { item in
             (item.imageData != nil || item.purchasePrice != nil || item.serialNumber != nil) &&
-            !(item.imageData != nil && item.purchasePrice != nil && item.serialNumber != nil)
-        }.count
-        let needsDocumentation = items.filter { item in
+                !(item.imageData != nil && item.purchasePrice != nil && item.serialNumber != nil)
+        })
+        let needsDocumentation = items.count(where: { item in
             item.imageData == nil && item.purchasePrice == nil && item.serialNumber == nil
-        }.count
-        
+        })
+
         return [
             ("Complete", fullyDocumented, .green),
             ("Partial", partiallyDocumented, .orange),
-            ("Missing", needsDocumentation, .red)
+            ("Missing", needsDocumentation, .red),
         ]
     }
-    
+
     var body: some View {
         HStack(spacing: 12) {
             ForEach(statusData, id: \.label) { data in
@@ -402,11 +403,11 @@ struct ItemStatusChart: View {
                         .font(.title2)
                         .fontWeight(.bold)
                         .foregroundColor(data.color)
-                    
+
                     Text(data.label)
                         .font(.caption)
                         .foregroundColor(.secondary)
-                    
+
                     RoundedRectangle(cornerRadius: 4)
                         .fill(data.color.opacity(0.2))
                         .frame(height: 60)
@@ -433,17 +434,17 @@ struct InsightRow: View {
     let icon: String
     let text: String
     let color: Color
-    
+
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: icon)
                 .foregroundColor(color)
                 .frame(width: 24)
-            
+
             Text(text)
                 .font(.subheadline)
                 .foregroundColor(.primary)
-            
+
             Spacer()
         }
     }

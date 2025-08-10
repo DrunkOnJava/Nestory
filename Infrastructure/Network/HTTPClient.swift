@@ -19,8 +19,8 @@ public final class HTTPClient: @unchecked Sendable {
         circuitBreaker = CircuitBreaker()
 
         monitor.pathUpdateHandler = { [weak self] path in
-            guard let self = self else { return }
-            self.isNetworkAvailable = path.status == .satisfied
+            guard let self else { return }
+            isNetworkAvailable = path.status == .satisfied
         }
         monitor.start(queue: monitorQueue)
     }

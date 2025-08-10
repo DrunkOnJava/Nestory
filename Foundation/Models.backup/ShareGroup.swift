@@ -1,5 +1,5 @@
 // Layer: Foundation
-// Module: Foundation/Models  
+// Module: Foundation/Models
 // Purpose: Share group model for family/group sharing
 
 import Foundation
@@ -9,10 +9,10 @@ import SwiftData
 @Model
 public final class ShareGroup {
     // MARK: - Properties
-    
+
     @Attribute(.unique)
     public var id: UUID
-    
+
     public var name: String
     public var groupDescription: String?
     public var members: Data // JSON array of member info
@@ -21,31 +21,31 @@ public final class ShareGroup {
     public var permissions: Data // JSON permissions object
     public var inviteCode: String?
     public var isActive: Bool
-    
+
     // Timestamps
     public var createdAt: Date
     public var updatedAt: Date
-    
+
     // MARK: - Initialization
-    
+
     public init(
         name: String,
         ownerUserId: String,
         scope: ShareScope = .full
     ) {
-        self.id = UUID()
+        id = UUID()
         self.name = name
         self.ownerUserId = ownerUserId
-        self.shareScope = scope.rawValue
-        self.members = try! JSONEncoder().encode([Member]())
-        self.permissions = try! JSONEncoder().encode(Permissions())
-        self.isActive = true
-        self.createdAt = Date()
-        self.updatedAt = Date()
+        shareScope = scope.rawValue
+        members = try! JSONEncoder().encode([Member]())
+        permissions = try! JSONEncoder().encode(Permissions())
+        isActive = true
+        createdAt = Date()
+        updatedAt = Date()
     }
-    
+
     // MARK: - Computed Properties
-    
+
     /// Share scope enum
     public var scope: ShareScope {
         get { ShareScope(rawValue: shareScope) ?? .full }
@@ -54,7 +54,7 @@ public final class ShareGroup {
             updatedAt = Date()
         }
     }
-    
+
     /// Get members array
     public var membersList: [Member] {
         get {
@@ -68,7 +68,7 @@ public final class ShareGroup {
             updatedAt = Date()
         }
     }
-    
+
     /// Get permissions object
     public var permissionsSettings: Permissions {
         get {
@@ -82,29 +82,29 @@ public final class ShareGroup {
             updatedAt = Date()
         }
     }
-    
+
     /// Number of members
     public var memberCount: Int {
         membersList.count
     }
-    
+
     /// Check if user is owner
     public func isOwner(userId: String) -> Bool {
         ownerUserId == userId
     }
-    
+
     /// Check if user is member
     public func isMember(userId: String) -> Bool {
         membersList.contains { $0.userId == userId }
     }
-    
+
     /// Get member by user ID
     public func member(for userId: String) -> Member? {
         membersList.first { $0.userId == userId }
     }
-    
+
     // MARK: - Methods
-    
+
     /// Add a member to the group
     public func addMember(_ member: Member) {
         var members = membersList
@@ -113,14 +113,14 @@ public final class ShareGroup {
             membersList = members
         }
     }
-    
+
     /// Remove a member from the group
     public func removeMember(userId: String) {
         var members = membersList
         members.removeAll { $0.userId == userId }
         membersList = members
     }
-    
+
     /// Update member role
     public func updateMemberRole(userId: String, role: MemberRole) {
         var members = membersList
@@ -129,40 +129,40 @@ public final class ShareGroup {
             membersList = members
         }
     }
-    
+
     /// Generate new invite code
     public func generateInviteCode() {
         let characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-        let code = (0..<8).map { _ in
+        let code = (0 ..< 8).map { _ in
             characters.randomElement()!
         }.map { String($0) }.joined()
-        
+
         inviteCode = code
         updatedAt = Date()
     }
-    
+
     /// Revoke invite code
     public func revokeInviteCode() {
         inviteCode = nil
         updatedAt = Date()
     }
-    
+
     /// Update group properties
     public func update(
         name: String? = nil,
         description: String? = nil,
         scope: ShareScope? = nil
     ) {
-        if let name = name {
+        if let name {
             self.name = name
         }
-        if let description = description {
-            self.groupDescription = description
+        if let description {
+            groupDescription = description
         }
-        if let scope = scope {
+        if let scope {
             self.scope = scope
         }
-        self.updatedAt = Date()
+        updatedAt = Date()
     }
 }
 
@@ -175,15 +175,15 @@ public struct Member: Codable {
     public var email: String
     public var role: String // "owner", "editor", "viewer"
     public var joinedAt: Date
-    
+
     public init(userId: String, name: String, email: String, role: MemberRole) {
         self.userId = userId
         self.name = name
         self.email = email
         self.role = role.rawValue
-        self.joinedAt = Date()
+        joinedAt = Date()
     }
-    
+
     public var memberRole: MemberRole {
         MemberRole(rawValue: role) ?? .viewer
     }
@@ -199,7 +199,7 @@ public struct Permissions: Codable {
     public var canEditCategories: Bool
     public var canEditLocations: Bool
     public var canExport: Bool
-    
+
     public init(
         canAddItems: Bool = true,
         canEditItems: Bool = true,
@@ -223,37 +223,37 @@ public struct Permissions: Codable {
 
 /// Share scope
 public enum ShareScope: String, CaseIterable, Codable {
-    case full = "full"
-    case category = "category"
-    case location = "location"
-    
+    case full
+    case category
+    case location
+
     public var displayName: String {
         switch self {
-        case .full: return "Full Inventory"
-        case .category: return "Specific Categories"
-        case .location: return "Specific Locations"
+        case .full: "Full Inventory"
+        case .category: "Specific Categories"
+        case .location: "Specific Locations"
         }
     }
 }
 
 /// Member role
 public enum MemberRole: String, CaseIterable, Codable {
-    case owner = "owner"
-    case editor = "editor"
-    case viewer = "viewer"
-    
+    case owner
+    case editor
+    case viewer
+
     public var displayName: String {
         switch self {
-        case .owner: return "Owner"
-        case .editor: return "Editor"
-        case .viewer: return "Viewer"
+        case .owner: "Owner"
+        case .editor: "Editor"
+        case .viewer: "Viewer"
         }
     }
-    
+
     public var permissions: Permissions {
         switch self {
         case .owner:
-            return Permissions(
+            Permissions(
                 canAddItems: true,
                 canEditItems: true,
                 canDeleteItems: true,
@@ -264,7 +264,7 @@ public enum MemberRole: String, CaseIterable, Codable {
                 canExport: true
             )
         case .editor:
-            return Permissions(
+            Permissions(
                 canAddItems: true,
                 canEditItems: true,
                 canDeleteItems: false,
@@ -275,7 +275,7 @@ public enum MemberRole: String, CaseIterable, Codable {
                 canExport: true
             )
         case .viewer:
-            return Permissions(
+            Permissions(
                 canAddItems: false,
                 canEditItems: false,
                 canDeleteItems: false,

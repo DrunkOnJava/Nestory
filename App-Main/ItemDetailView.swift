@@ -9,8 +9,8 @@
 //  - Document Attachments
 //  Always check if new item-related services should be accessible from here!
 
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 struct ItemDetailView: View {
     @Bindable var item: Item
@@ -19,13 +19,14 @@ struct ItemDetailView: View {
     @State private var showingReceiptCapture = false
     @State private var showingWarrantyDocuments = false
     @State private var showingConditionDocumentation = false
-    
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 // Item Image
                 if let imageData = item.imageData,
-                   let uiImage = UIImage(data: imageData) {
+                   let uiImage = UIImage(data: imageData)
+                {
                     Image(uiImage: uiImage)
                         .resizable()
                         .scaledToFit()
@@ -42,19 +43,19 @@ struct ItemDetailView: View {
                                 .foregroundColor(.gray)
                         )
                 }
-                
+
                 VStack(alignment: .leading, spacing: 16) {
                     // Basic Info
                     GroupBox("Basic Information") {
                         VStack(alignment: .leading, spacing: 12) {
                             DetailRow(label: "Name", value: item.name)
-                            
+
                             if let description = item.itemDescription {
                                 DetailRow(label: "Description", value: description)
                             }
-                            
+
                             DetailRow(label: "Quantity", value: "\(item.quantity)")
-                            
+
                             if let category = item.category {
                                 HStack {
                                     Text("Category")
@@ -68,7 +69,7 @@ struct ItemDetailView: View {
                             }
                         }
                     }
-                    
+
                     // Additional Details
                     if item.brand != nil || item.modelNumber != nil || item.serialNumber != nil {
                         GroupBox("Product Details") {
@@ -85,7 +86,7 @@ struct ItemDetailView: View {
                             }
                         }
                     }
-                    
+
                     // Purchase Info
                     if item.purchasePrice != nil || item.purchaseDate != nil {
                         GroupBox("Purchase Information") {
@@ -99,7 +100,7 @@ struct ItemDetailView: View {
                             }
                         }
                     }
-                    
+
                     // Condition Section - WIRED UP!
                     GroupBox("Condition Documentation") {
                         VStack(spacing: 12) {
@@ -115,14 +116,14 @@ struct ItemDetailView: View {
                                 }
                                 Spacer()
                             }
-                            
+
                             if let notes = item.conditionNotes {
                                 Text(notes)
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                             }
-                            
+
                             if !item.conditionPhotos.isEmpty {
                                 HStack {
                                     Image(systemName: "photo.stack.fill")
@@ -131,7 +132,7 @@ struct ItemDetailView: View {
                                     Spacer()
                                 }
                             }
-                            
+
                             Button(action: { showingConditionDocumentation = true }) {
                                 Label("Update Condition", systemImage: "pencil.circle")
                                     .frame(maxWidth: .infinity)
@@ -140,7 +141,7 @@ struct ItemDetailView: View {
                         }
                         .padding(.vertical, 4)
                     }
-                    
+
                     // Warranty & Location Section
                     GroupBox("Warranty & Location") {
                         VStack(spacing: 12) {
@@ -159,7 +160,7 @@ struct ItemDetailView: View {
                                     Spacer()
                                 }
                             }
-                            
+
                             // Location info
                             if let room = item.room {
                                 HStack {
@@ -177,7 +178,7 @@ struct ItemDetailView: View {
                                     Spacer()
                                 }
                             }
-                            
+
                             // Documents count
                             if !item.documentNames.isEmpty {
                                 HStack {
@@ -187,7 +188,7 @@ struct ItemDetailView: View {
                                     Spacer()
                                 }
                             }
-                            
+
                             // Action button
                             Button(action: { showingWarrantyDocuments = true }) {
                                 Label("Manage Warranty & Documents", systemImage: "shield.checkerboard")
@@ -197,12 +198,13 @@ struct ItemDetailView: View {
                         }
                         .padding(.vertical, 4)
                     }
-                    
+
                     // Receipt Section
                     GroupBox("Receipt Documentation") {
                         VStack(spacing: 12) {
                             if let receiptData = item.receiptImageData,
-                               let uiImage = UIImage(data: receiptData) {
+                               let uiImage = UIImage(data: receiptData)
+                            {
                                 // Receipt exists
                                 HStack {
                                     Image(uiImage: uiImage)
@@ -210,7 +212,7 @@ struct ItemDetailView: View {
                                         .scaledToFit()
                                         .frame(width: 60, height: 60)
                                         .cornerRadius(8)
-                                    
+
                                     VStack(alignment: .leading) {
                                         Text("Receipt Attached")
                                             .font(.headline)
@@ -220,9 +222,9 @@ struct ItemDetailView: View {
                                                 .foregroundColor(.secondary)
                                         }
                                     }
-                                    
+
                                     Spacer()
-                                    
+
                                     Button("View/Edit") {
                                         showingReceiptCapture = true
                                     }
@@ -238,9 +240,9 @@ struct ItemDetailView: View {
                                             .font(.caption)
                                             .foregroundColor(.secondary)
                                     }
-                                    
+
                                     Spacer()
-                                    
+
                                     Button(action: { showingReceiptCapture = true }) {
                                         Label("Add Receipt", systemImage: "doc.text.viewfinder")
                                     }
@@ -250,7 +252,7 @@ struct ItemDetailView: View {
                         }
                         .padding(.vertical, 4)
                     }
-                    
+
                     // Notes
                     if let notes = item.notes {
                         GroupBox("Notes") {
@@ -259,7 +261,7 @@ struct ItemDetailView: View {
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }
                     }
-                    
+
                     // Metadata
                     GroupBox("Metadata") {
                         VStack(alignment: .leading, spacing: 12) {
@@ -298,7 +300,7 @@ struct ItemDetailView: View {
 struct DetailRow: View {
     let label: String
     let value: String
-    
+
     var body: some View {
         HStack {
             Text(label)

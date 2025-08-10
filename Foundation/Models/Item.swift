@@ -11,72 +11,72 @@ import SwiftData
 public final class Item {
     @Attribute(.unique)
     public var id: UUID
-    
+
     public var name: String
     public var itemDescription: String?
     public var brand: String?
     public var modelNumber: String?
     public var serialNumber: String?
     public var notes: String?
-    
+
     public var quantity: Int
     public var purchasePrice: Decimal?
     public var purchaseDate: Date?
     public var currency: String = "USD"
-    
+
     public var tags: [String] = []
     public var imageData: Data?
     public var receiptImageData: Data?
     public var extractedReceiptText: String?
-    
+
     // Warranty tracking
     public var warrantyExpirationDate: Date?
     public var warrantyProvider: String?
     public var warrantyNotes: String?
-    
+
     // Location/Room assignment
     public var room: String?
     public var specificLocation: String?
-    
+
     // Document attachments
     public var manualPDFData: Data?
     public var documentAttachments: [Data] = []
     public var documentNames: [String] = []
-    
+
     // Condition documentation
-    public var condition: String = "excellent"  // SwiftData doesn't support enum defaults
+    public var condition: String = "excellent" // SwiftData doesn't support enum defaults
     public var conditionNotes: String?
     public var conditionPhotos: [Data] = []
     public var conditionPhotoDescriptions: [String] = []
     public var lastConditionUpdate: Date?
-    
+
     // Computed property for type-safe condition
     public var itemCondition: ItemCondition {
         get { ItemCondition(rawValue: condition) ?? .excellent }
         set { condition = newValue.rawValue }
     }
-    
+
     public var createdAt: Date
     public var updatedAt: Date
-    
+
     // Relationships
     public var category: Category?
-    
+
     public init(
         name: String,
         itemDescription: String? = nil,
         quantity: Int = 1,
         category: Category? = nil
     ) {
-        self.id = UUID()
+        id = UUID()
         self.name = name
         self.itemDescription = itemDescription
         self.quantity = quantity
         self.category = category
-        self.currency = "USD"
-        self.tags = []
-        self.createdAt = Date()
-        self.updatedAt = Date()
+        currency = "USD"
+        tags = []
+        createdAt = Date()
+        updatedAt = Date()
     }
 }
 
@@ -91,51 +91,51 @@ public enum ItemCondition: String, CaseIterable, Codable {
     case new = "New"
     case likeNew = "Like New"
     case refurbished = "Refurbished"
-    
+
     public var color: String {
         switch self {
         case .new, .excellent:
-            return "#34C759" // Green
+            "#34C759" // Green
         case .likeNew, .good:
-            return "#007AFF" // Blue
+            "#007AFF" // Blue
         case .fair, .refurbished:
-            return "#FF9500" // Orange
+            "#FF9500" // Orange
         case .poor, .damaged:
-            return "#FF3B30" // Red
+            "#FF3B30" // Red
         }
     }
-    
+
     public var icon: String {
         switch self {
         case .new:
-            return "sparkles"
+            "sparkles"
         case .excellent, .likeNew:
-            return "star.fill"
+            "star.fill"
         case .good:
-            return "star.leadinghalf.filled"
+            "star.leadinghalf.filled"
         case .fair, .refurbished:
-            return "star"
+            "star"
         case .poor:
-            return "exclamationmark.triangle"
+            "exclamationmark.triangle"
         case .damaged:
-            return "xmark.octagon"
+            "xmark.octagon"
         }
     }
-    
+
     public var insuranceImpact: String {
         switch self {
         case .new:
-            return "100% replacement value"
+            "100% replacement value"
         case .excellent, .likeNew:
-            return "90-95% replacement value"
+            "90-95% replacement value"
         case .good:
-            return "75-85% replacement value"
+            "75-85% replacement value"
         case .fair, .refurbished:
-            return "50-70% replacement value"
+            "50-70% replacement value"
         case .poor:
-            return "25-45% replacement value"
+            "25-45% replacement value"
         case .damaged:
-            return "Requires assessment"
+            "Requires assessment"
         }
     }
 }

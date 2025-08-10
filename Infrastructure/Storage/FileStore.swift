@@ -46,7 +46,7 @@ public final class FileStore: @unchecked Sendable {
         }
     }
 
-    public func save<T: Encodable & Sendable>(_ object: T, to relativePath: String) async throws {
+    public func save(_ object: some Encodable & Sendable, to relativePath: String) async throws {
         try await withCheckedThrowingContinuation { continuation in
             queue.async(flags: .barrier) {
                 do {

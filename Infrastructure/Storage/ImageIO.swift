@@ -20,7 +20,7 @@ public final class ImageIO: @unchecked Sendable {
         ])
     }
 
-    nonisolated public func loadImage(from url: URL) async throws -> UIImage {
+    public nonisolated func loadImage(from url: URL) async throws -> UIImage {
         guard let imageSource = CGImageSourceCreateWithURL(url as CFURL, nil) else {
             throw ImageError.cannotLoadImage(url.lastPathComponent)
         }
@@ -38,7 +38,7 @@ public final class ImageIO: @unchecked Sendable {
         return UIImage(cgImage: cgImage, scale: 1.0, orientation: orientation)
     }
 
-    nonisolated public func loadImage(from data: Data) async throws -> UIImage {
+    public nonisolated func loadImage(from data: Data) async throws -> UIImage {
         guard let imageSource = CGImageSourceCreateWithData(data as CFData, nil) else {
             throw ImageError.invalidImageData
         }
@@ -56,13 +56,13 @@ public final class ImageIO: @unchecked Sendable {
         return UIImage(cgImage: cgImage, scale: 1.0, orientation: orientation)
     }
 
-    nonisolated public func saveImage(_ image: UIImage, to url: URL, format: ImageFormat = .jpeg) async throws {
+    public nonisolated func saveImage(_ image: UIImage, to url: URL, format: ImageFormat = .jpeg) async throws {
         let data = try encodeImage(image, format: format)
         try data.write(to: url, options: .atomic)
         logger.debug("Saved image to \(url.lastPathComponent)")
     }
 
-    nonisolated public func encodeImage(_ image: UIImage, format: ImageFormat) throws -> Data {
+    public nonisolated func encodeImage(_ image: UIImage, format: ImageFormat) throws -> Data {
         switch format {
         case .jpeg:
             guard let data = image.jpegData(compressionQuality: compressionQuality) else {
@@ -105,7 +105,7 @@ public final class ImageIO: @unchecked Sendable {
         }
     }
 
-    nonisolated public func resizeImage(_ image: UIImage, maxDimension: CGFloat) async throws -> UIImage {
+    public nonisolated func resizeImage(_ image: UIImage, maxDimension: CGFloat) async throws -> UIImage {
         let size = image.size
 
         guard size.width > maxDimension || size.height > maxDimension else {
@@ -129,7 +129,7 @@ public final class ImageIO: @unchecked Sendable {
         }
     }
 
-    nonisolated public func cropImage(_ image: UIImage, to rect: CGRect) async throws -> UIImage {
+    public nonisolated func cropImage(_ image: UIImage, to rect: CGRect) async throws -> UIImage {
         guard let cgImage = image.cgImage else {
             throw ImageError.cannotProcessImage
         }
@@ -153,7 +153,7 @@ public final class ImageIO: @unchecked Sendable {
         )
     }
 
-    nonisolated public func extractMetadata(from url: URL) async throws -> ImageMetadata {
+    public nonisolated func extractMetadata(from url: URL) async throws -> ImageMetadata {
         guard let imageSource = CGImageSourceCreateWithURL(url as CFURL, nil) else {
             throw ImageError.cannotLoadImage(url.lastPathComponent)
         }
@@ -181,7 +181,7 @@ public final class ImageIO: @unchecked Sendable {
         )
     }
 
-    nonisolated private func getOrientation(from imageSource: CGImageSource) -> UIImage.Orientation {
+    private nonisolated func getOrientation(from imageSource: CGImageSource) -> UIImage.Orientation {
         guard let properties = CGImageSourceCopyPropertiesAtIndex(imageSource, 0, nil) as? [CFString: Any] else {
             return .up
         }
@@ -189,7 +189,7 @@ public final class ImageIO: @unchecked Sendable {
         return extractOrientation(from: properties)
     }
 
-    nonisolated private func extractOrientation(from properties: [CFString: Any]) -> UIImage.Orientation {
+    private nonisolated func extractOrientation(from properties: [CFString: Any]) -> UIImage.Orientation {
         guard let orientationValue = properties[kCGImagePropertyOrientation] as? Int32 else {
             return .up
         }
@@ -207,7 +207,7 @@ public final class ImageIO: @unchecked Sendable {
         }
     }
 
-    nonisolated private func extractDate(from exif: [CFString: Any]?, tiff: [CFString: Any]?) -> Date? {
+    private nonisolated func extractDate(from exif: [CFString: Any]?, tiff: [CFString: Any]?) -> Date? {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy:MM:dd HH:mm:ss"
 

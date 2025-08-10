@@ -9,10 +9,10 @@ import SwiftData
 @Model
 public final class MaintenanceTask {
     // MARK: - Properties
-    
+
     @Attribute(.unique)
     public var id: UUID
-    
+
     public var title: String
     public var taskDescription: String?
     public var schedule: String // "daily", "weekly", "monthly", "quarterly", "yearly", "custom"
@@ -24,18 +24,18 @@ public final class MaintenanceTask {
     public var priority: String // "low", "medium", "high", "critical"
     public var notes: String?
     public var isActive: Bool
-    
+
     // Timestamps
     public var createdAt: Date
     public var updatedAt: Date
-    
+
     // MARK: - Relationships
-    
+
     @Relationship(inverse: \Item.maintenanceTasks)
     public var item: Item?
-    
+
     // MARK: - Initialization
-    
+
     public init(
         title: String,
         schedule: MaintenanceSchedule = .monthly,
@@ -43,19 +43,19 @@ public final class MaintenanceTask {
         priority: Priority = .medium,
         item: Item? = nil
     ) {
-        self.id = UUID()
+        id = UUID()
         self.title = title
         self.schedule = schedule.rawValue
         self.nextDueAt = nextDueAt
         self.priority = priority.rawValue
         self.item = item
-        self.isActive = true
-        self.createdAt = Date()
-        self.updatedAt = Date()
+        isActive = true
+        createdAt = Date()
+        updatedAt = Date()
     }
-    
+
     // MARK: - Computed Properties
-    
+
     /// Schedule type enum
     public var scheduleType: MaintenanceSchedule {
         get { MaintenanceSchedule(rawValue: schedule) ?? .custom }
@@ -64,7 +64,7 @@ public final class MaintenanceTask {
             updatedAt = Date()
         }
     }
-    
+
     /// Priority level enum
     public var priorityLevel: Priority {
         get { Priority(rawValue: priority) ?? .medium }
@@ -73,7 +73,7 @@ public final class MaintenanceTask {
             updatedAt = Date()
         }
     }
-    
+
     /// Get completion history as array of dates
     public var completionDates: [Date] {
         get {
@@ -86,19 +86,19 @@ public final class MaintenanceTask {
             updatedAt = Date()
         }
     }
-    
+
     /// Check if task is overdue
     public var isOverdue: Bool {
         isActive && Date() > nextDueAt
     }
-    
+
     /// Days until due (negative if overdue)
     public var daysUntilDue: Int {
         let calendar = Calendar.current
         let components = calendar.dateComponents([.day], from: Date(), to: nextDueAt)
         return components.day ?? 0
     }
-    
+
     /// Status description
     public var status: String {
         if !isActive {
@@ -119,71 +119,71 @@ public final class MaintenanceTask {
             }
         }
     }
-    
+
     /// Number of times completed
     public var completionCount: Int {
         completionDates.count
     }
-    
+
     /// Average days between completions
     public var averageCompletionInterval: Int? {
         let dates = completionDates.sorted()
         guard dates.count >= 2 else { return nil }
-        
+
         var totalDays = 0
-        for i in 1..<dates.count {
+        for i in 1 ..< dates.count {
             let calendar = Calendar.current
-            let components = calendar.dateComponents([.day], from: dates[i-1], to: dates[i])
+            let components = calendar.dateComponents([.day], from: dates[i - 1], to: dates[i])
             totalDays += components.day ?? 0
         }
-        
+
         return totalDays / (dates.count - 1)
     }
-    
+
     /// Calculate next interval based on schedule
     public var scheduleInterval: Int {
         switch scheduleType {
-        case .daily: return 1
-        case .weekly: return 7
-        case .monthly: return 30
-        case .quarterly: return 90
-        case .yearly: return 365
-        case .custom: return intervalDays ?? 30
+        case .daily: 1
+        case .weekly: 7
+        case .monthly: 30
+        case .quarterly: 90
+        case .yearly: 365
+        case .custom: intervalDays ?? 30
         }
     }
-    
+
     // MARK: - Methods
-    
+
     /// Mark task as completed
     public func markCompleted(on date: Date = Date()) {
         lastCompletedAt = date
-        
+
         // Add to completion history
         var dates = completionDates
         dates.append(date)
         completionDates = dates
-        
+
         // Calculate next due date
         let calendar = Calendar.current
         nextDueAt = calendar.date(byAdding: .day, value: scheduleInterval, to: date) ?? date
-        
+
         updatedAt = Date()
     }
-    
+
     /// Skip this occurrence
     public func skip() {
         let calendar = Calendar.current
         nextDueAt = calendar.date(byAdding: .day, value: scheduleInterval, to: nextDueAt) ?? nextDueAt
         updatedAt = Date()
     }
-    
+
     /// Snooze for a number of days
     public func snooze(days: Int) {
         let calendar = Calendar.current
         nextDueAt = calendar.date(byAdding: .day, value: days, to: Date()) ?? nextDueAt
         updatedAt = Date()
     }
-    
+
     /// Update task properties
     public func update(
         title: String? = nil,
@@ -194,55 +194,55 @@ public final class MaintenanceTask {
         estimatedDuration: Int? = nil,
         notes: String? = nil
     ) {
-        if let title = title {
+        if let title {
             self.title = title
         }
-        if let description = description {
-            self.taskDescription = description
+        if let description {
+            taskDescription = description
         }
-        if let schedule = schedule {
-            self.scheduleType = schedule
+        if let schedule {
+            scheduleType = schedule
         }
-        if let intervalDays = intervalDays {
+        if let intervalDays {
             self.intervalDays = intervalDays
         }
-        if let priority = priority {
-            self.priorityLevel = priority
+        if let priority {
+            priorityLevel = priority
         }
-        if let estimatedDuration = estimatedDuration {
+        if let estimatedDuration {
             self.estimatedDuration = estimatedDuration
         }
-        if let notes = notes {
+        if let notes {
             self.notes = notes
         }
-        self.updatedAt = Date()
+        updatedAt = Date()
     }
-    
+
     /// Activate or deactivate the task
     public func setActive(_ active: Bool) {
-        self.isActive = active
-        self.updatedAt = Date()
+        isActive = active
+        updatedAt = Date()
     }
 }
 
 // MARK: - Maintenance Schedule
 
 public enum MaintenanceSchedule: String, CaseIterable, Codable {
-    case daily = "daily"
-    case weekly = "weekly"
-    case monthly = "monthly"
-    case quarterly = "quarterly"
-    case yearly = "yearly"
-    case custom = "custom"
-    
+    case daily
+    case weekly
+    case monthly
+    case quarterly
+    case yearly
+    case custom
+
     public var displayName: String {
         switch self {
-        case .daily: return "Daily"
-        case .weekly: return "Weekly"
-        case .monthly: return "Monthly"
-        case .quarterly: return "Quarterly"
-        case .yearly: return "Yearly"
-        case .custom: return "Custom"
+        case .daily: "Daily"
+        case .weekly: "Weekly"
+        case .monthly: "Monthly"
+        case .quarterly: "Quarterly"
+        case .yearly: "Yearly"
+        case .custom: "Custom"
         }
     }
 }
@@ -250,35 +250,35 @@ public enum MaintenanceSchedule: String, CaseIterable, Codable {
 // MARK: - Priority
 
 public enum Priority: String, CaseIterable, Codable {
-    case low = "low"
-    case medium = "medium"
-    case high = "high"
-    case critical = "critical"
-    
+    case low
+    case medium
+    case high
+    case critical
+
     public var displayName: String {
         switch self {
-        case .low: return "Low"
-        case .medium: return "Medium"
-        case .high: return "High"
-        case .critical: return "Critical"
+        case .low: "Low"
+        case .medium: "Medium"
+        case .high: "High"
+        case .critical: "Critical"
         }
     }
-    
+
     public var color: String {
         switch self {
-        case .low: return "#808080" // Gray
-        case .medium: return "#007AFF" // Blue
-        case .high: return "#FF9500" // Orange
-        case .critical: return "#FF3B30" // Red
+        case .low: "#808080" // Gray
+        case .medium: "#007AFF" // Blue
+        case .high: "#FF9500" // Orange
+        case .critical: "#FF3B30" // Red
         }
     }
-    
+
     public var sortOrder: Int {
         switch self {
-        case .critical: return 0
-        case .high: return 1
-        case .medium: return 2
-        case .low: return 3
+        case .critical: 0
+        case .high: 1
+        case .medium: 2
+        case .low: 3
         }
     }
 }

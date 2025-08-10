@@ -15,7 +15,7 @@ public final class Thumbnailer: @unchecked Sendable {
         self.imageIO = imageIO ?? ImageIO()
     }
 
-    nonisolated public func generate(from image: UIImage, targetSize size: CGSize) async throws -> UIImage {
+    public nonisolated func generate(from image: UIImage, targetSize size: CGSize) async throws -> UIImage {
         let startTime = CFAbsoluteTimeGetCurrent()
 
         let imageSize = image.size
@@ -45,7 +45,7 @@ public final class Thumbnailer: @unchecked Sendable {
         return thumbnail
     }
 
-    nonisolated public func generateThumbnail(from image: UIImage) async throws -> UIImage {
+    public nonisolated func generateThumbnail(from image: UIImage) async throws -> UIImage {
         await Task.detached(priority: .userInitiated) {
             let startTime = CFAbsoluteTimeGetCurrent()
 
@@ -77,7 +77,7 @@ public final class Thumbnailer: @unchecked Sendable {
         }.value
     }
 
-    nonisolated public func generateDisplayImage(from image: UIImage) async throws -> UIImage {
+    public nonisolated func generateDisplayImage(from image: UIImage) async throws -> UIImage {
         let startTime = CFAbsoluteTimeGetCurrent()
 
         let size = image.size
@@ -131,7 +131,7 @@ public final class Thumbnailer: @unchecked Sendable {
         return try await generateDisplayImage(from: image)
     }
 
-    nonisolated public func processImage(from url: URL) async throws -> ProcessedImages {
+    public nonisolated func processImage(from url: URL) async throws -> ProcessedImages {
         let image = try await imageIO.loadImage(from: url)
 
         async let thumbnail = generateThumbnail(from: image)
@@ -144,7 +144,7 @@ public final class Thumbnailer: @unchecked Sendable {
         )
     }
 
-    nonisolated public func processImage(from data: Data) async throws -> ProcessedImages {
+    public nonisolated func processImage(from data: Data) async throws -> ProcessedImages {
         let image = try await imageIO.loadImage(from: data)
 
         async let thumbnail = generateThumbnail(from: image)
@@ -165,7 +165,7 @@ public final class Thumbnailer: @unchecked Sendable {
         try await imageIO.saveImage(displayImage, to: url, format: .jpeg)
     }
 
-    nonisolated public func batchGenerateThumbnails(from urls: [URL]) async throws -> [UIImage] {
+    public nonisolated func batchGenerateThumbnails(from urls: [URL]) async throws -> [UIImage] {
         try await withThrowingTaskGroup(of: (Int, UIImage).self) { group in
             for (index, url) in urls.enumerated() {
                 group.addTask {

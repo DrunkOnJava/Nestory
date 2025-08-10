@@ -18,7 +18,7 @@ public extension Identifier {
         let value = try container.decode(Value.self)
         self.init(value: value)
     }
-    
+
     func encode(to encoder: any Encoder) throws {
         var container = encoder.singleValueContainer()
         try container.encode(value)
@@ -34,14 +34,14 @@ public extension UUIDIdentifier {
     init() {
         self.init(value: UUID())
     }
-    
+
     init(_ string: String) throws {
         guard let uuid = UUID(uuidString: string) else {
             throw AppError.invalidFormat(field: "ID", expectedFormat: "UUID")
         }
         self.init(value: uuid)
     }
-    
+
     var uuidString: String {
         value.uuidString
     }
@@ -52,7 +52,7 @@ public extension UUIDIdentifier {
 /// Item identifier
 public struct ItemID: UUIDIdentifier {
     public let value: UUID
-    
+
     public init(value: UUID) {
         self.value = value
     }
@@ -61,7 +61,7 @@ public struct ItemID: UUIDIdentifier {
 /// Category identifier
 public struct CategoryID: UUIDIdentifier {
     public let value: UUID
-    
+
     public init(value: UUID) {
         self.value = value
     }
@@ -70,7 +70,7 @@ public struct CategoryID: UUIDIdentifier {
 /// Location identifier
 public struct LocationID: UUIDIdentifier {
     public let value: UUID
-    
+
     public init(value: UUID) {
         self.value = value
     }
@@ -79,7 +79,7 @@ public struct LocationID: UUIDIdentifier {
 /// Photo asset identifier
 public struct PhotoAssetID: UUIDIdentifier {
     public let value: UUID
-    
+
     public init(value: UUID) {
         self.value = value
     }
@@ -88,7 +88,7 @@ public struct PhotoAssetID: UUIDIdentifier {
 /// Receipt identifier
 public struct ReceiptID: UUIDIdentifier {
     public let value: UUID
-    
+
     public init(value: UUID) {
         self.value = value
     }
@@ -97,7 +97,7 @@ public struct ReceiptID: UUIDIdentifier {
 /// Warranty identifier
 public struct WarrantyID: UUIDIdentifier {
     public let value: UUID
-    
+
     public init(value: UUID) {
         self.value = value
     }
@@ -106,7 +106,7 @@ public struct WarrantyID: UUIDIdentifier {
 /// Maintenance task identifier
 public struct MaintenanceTaskID: UUIDIdentifier {
     public let value: UUID
-    
+
     public init(value: UUID) {
         self.value = value
     }
@@ -115,7 +115,7 @@ public struct MaintenanceTaskID: UUIDIdentifier {
 /// Share group identifier
 public struct ShareGroupID: UUIDIdentifier {
     public let value: UUID
-    
+
     public init(value: UUID) {
         self.value = value
     }
@@ -124,7 +124,7 @@ public struct ShareGroupID: UUIDIdentifier {
 /// User identifier
 public struct UserID: Identifier {
     public let value: String
-    
+
     public init(value: String) {
         self.value = value
     }

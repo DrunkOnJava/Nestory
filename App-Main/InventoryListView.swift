@@ -11,7 +11,7 @@ struct InventoryListView: View {
     @Query private var items: [Item]
     @State private var showingAddItem = false
     @State private var searchText = ""
-    
+
     var body: some View {
         NavigationStack {
             List {
@@ -47,7 +47,7 @@ struct InventoryListView: View {
             }
         }
     }
-    
+
     private var filteredItems: [Item] {
         if searchText.isEmpty {
             items
@@ -57,7 +57,7 @@ struct InventoryListView: View {
             }
         }
     }
-    
+
     private func deleteItems(offsets: IndexSet) {
         withAnimation {
             for index in offsets {
@@ -69,7 +69,7 @@ struct InventoryListView: View {
 
 struct ItemRowView: View {
     let item: Item
-    
+
     var body: some View {
         HStack(spacing: 12) {
             // Category color indicator
@@ -78,30 +78,30 @@ struct ItemRowView: View {
                     .fill(Color(category.colorHex) ?? .gray)
                     .frame(width: 4)
             }
-            
+
             VStack(alignment: .leading, spacing: 4) {
                 Text(item.name)
                     .font(.headline)
                     .lineLimit(1)
-                
+
                 HStack {
                     if let category = item.category {
                         Label(category.name, systemImage: category.icon)
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
-                    
+
                     Spacer()
-                    
+
                     Text("Qty: \(item.quantity)")
                         .font(.caption)
                         .foregroundColor(item.quantity > 5 ? .green : item.quantity > 0 ? .orange : .red)
                         .fontWeight(.medium)
                 }
             }
-            
+
             Spacer()
-            
+
             // Documentation status badge
             if item.imageData != nil && item.purchasePrice != nil && item.serialNumber != nil {
                 Image(systemName: "checkmark.shield.fill")

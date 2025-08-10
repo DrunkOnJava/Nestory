@@ -11,7 +11,7 @@ public struct PrimaryButton: View {
     let action: () -> Void
     let isLoading: Bool
     let isDisabled: Bool
-    
+
     public init(
         title: String,
         isLoading: Bool = false,
@@ -23,7 +23,7 @@ public struct PrimaryButton: View {
         self.isDisabled = isDisabled
         self.action = action
     }
-    
+
     public var body: some View {
         Button(action: action) {
             HStack(spacing: Theme.Spacing.sm) {
@@ -32,7 +32,7 @@ public struct PrimaryButton: View {
                         .progressViewStyle(CircularProgressViewStyle())
                         .scaleEffect(0.8)
                 }
-                
+
                 Text(title)
                     .font(Typography.headline())
             }
@@ -49,15 +49,16 @@ public struct PrimaryButton: View {
 }
 
 // MARK: - Secondary Button
+
 public struct SecondaryButton: View {
     let title: String
     let action: () -> Void
-    
+
     public init(title: String, action: @escaping () -> Void) {
         self.title = title
         self.action = action
     }
-    
+
     public var body: some View {
         Button(action: action) {
             Text(title)
@@ -73,15 +74,16 @@ public struct SecondaryButton: View {
 }
 
 // MARK: - Destructive Button
+
 public struct DestructiveButton: View {
     let title: String
     let action: () -> Void
-    
+
     public init(title: String, action: @escaping () -> Void) {
         self.title = title
         self.action = action
     }
-    
+
     public var body: some View {
         Button(action: action) {
             Text(title)

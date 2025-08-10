@@ -272,7 +272,7 @@ public struct LiveInventoryService: InventoryService, @unchecked Sendable {
                 let categoryString = item.category?.name ?? ""
                 let createdString = item.createdAt.ISO8601Format()
                 let updatedString = item.updatedAt.ISO8601Format()
-                
+
                 let fields = [
                     idString,
                     nameString,
@@ -288,9 +288,9 @@ public struct LiveInventoryService: InventoryService, @unchecked Sendable {
                     conditionString,
                     categoryString,
                     createdString,
-                    updatedString
+                    updatedString,
                 ]
-                
+
                 let row = fields.map { field in
                     if field.contains(",") || field.contains("\"") || field.contains("\n") {
                         return "\"\(field.replacingOccurrences(of: "\"", with: "\"\""))\""
