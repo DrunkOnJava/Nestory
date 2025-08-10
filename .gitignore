@@ -91,3 +91,4 @@ yarn-error.log*
 local/
 private/
 secrets/.build_counter
+frustratingResults.jpg
