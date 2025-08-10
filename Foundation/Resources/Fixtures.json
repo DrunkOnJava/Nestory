@@ -1,0 +1,185 @@
+{
+  "items": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440001",
+      "name": "MacBook Pro 14\"",
+      "description": "M3 Pro, 18GB RAM, 512GB SSD",
+      "serialNumber": "C02XR2JYMD6T",
+      "modelNumber": "MRX33LL/A",
+      "purchasePrice": {
+        "amount": 1999.00,
+        "currency": "USD"
+      },
+      "purchaseDate": "2024-01-15T10:00:00Z",
+      "tags": ["electronics", "work", "apple"],
+      "categoryId": "tech",
+      "locationId": "home-office"
+    },
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440002",
+      "name": "Sony WH-1000XM5",
+      "description": "Wireless Noise Canceling Headphones",
+      "serialNumber": "5001234567890",
+      "modelNumber": "WH1000XM5/B",
+      "purchasePrice": {
+        "amount": 399.99,
+        "currency": "USD"
+      },
+      "purchaseDate": "2024-02-20T14:30:00Z",
+      "tags": ["audio", "electronics", "travel"],
+      "categoryId": "tech",
+      "locationId": "living-room"
+    },
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440003",
+      "name": "Dyson V15 Detect",
+      "description": "Cordless Vacuum Cleaner",
+      "serialNumber": "DY123456789",
+      "modelNumber": "V15-US-GMA",
+      "purchasePrice": {
+        "amount": 749.99,
+        "currency": "USD"
+      },
+      "purchaseDate": "2023-11-25T09:00:00Z",
+      "tags": ["appliances", "cleaning"],
+      "categoryId": "appliances",
+      "locationId": "utility-closet"
+    },
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440004",
+      "name": "Nintendo Switch OLED",
+      "description": "White Joy-Con",
+      "serialNumber": "XKW10012345678",
+      "modelNumber": "HEG-001",
+      "purchasePrice": {
+        "amount": 349.99,
+        "currency": "USD"
+      },
+      "purchaseDate": "2023-12-25T08:00:00Z",
+      "tags": ["gaming", "electronics", "entertainment"],
+      "categoryId": "entertainment",
+      "locationId": "living-room"
+    },
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440005",
+      "name": "Instant Pot Duo 7-in-1",
+      "description": "8 Quart Pressure Cooker",
+      "modelNumber": "IP-DUO80",
+      "purchasePrice": {
+        "amount": 89.95,
+        "currency": "USD"
+      },
+      "purchaseDate": "2023-09-10T16:45:00Z",
+      "tags": ["kitchen", "appliances", "cooking"],
+      "categoryId": "appliances",
+      "locationId": "kitchen"
+    }
+  ],
+  "categories": [
+    {
+      "id": "tech",
+      "name": "Technology",
+      "description": "Electronic devices and gadgets",
+      "color": "#007AFF",
+      "icon": "desktopcomputer"
+    },
+    {
+      "id": "appliances",
+      "name": "Appliances",
+      "description": "Household appliances",
+      "color": "#34C759",
+      "icon": "house.fill"
+    },
+    {
+      "id": "entertainment",
+      "name": "Entertainment",
+      "description": "Games, media, and entertainment devices",
+      "color": "#FF9500",
+      "icon": "gamecontroller.fill"
+    },
+    {
+      "id": "furniture",
+      "name": "Furniture",
+      "description": "Home and office furniture",
+      "color": "#8E8E93",
+      "icon": "sofa.fill"
+    },
+    {
+      "id": "tools",
+      "name": "Tools",
+      "description": "Hand and power tools",
+      "color": "#FF3B30",
+      "icon": "wrench.fill"
+    }
+  ],
+  "locations": [
+    {
+      "id": "home",
+      "name": "Home",
+      "type": "home",
+      "address": "123 Main Street, Anytown, USA 12345"
+    },
+    {
+      "id": "home-office",
+      "name": "Home Office",
+      "type": "room",
+      "parentId": "home"
+    },
+    {
+      "id": "living-room",
+      "name": "Living Room",
+      "type": "room",
+      "parentId": "home"
+    },
+    {
+      "id": "kitchen",
+      "name": "Kitchen",
+      "type": "room",
+      "parentId": "home"
+    },
+    {
+      "id": "garage",
+      "name": "Garage",
+      "type": "garage",
+      "parentId": "home"
+    },
+    {
+      "id": "utility-closet",
+      "name": "Utility Closet",
+      "type": "closet",
+      "parentId": "home"
+    },
+    {
+      "id": "office-desk",
+      "name": "Desk Drawer",
+      "type": "drawer",
+      "parentId": "home-office"
+    }
+  ],
+  "currencyRates": [
+    {
+      "from": "USD",
+      "to": "EUR",
+      "rate": 0.92,
+      "asOf": "2024-03-01T00:00:00Z"
+    },
+    {
+      "from": "USD",
+      "to": "GBP",
+      "rate": 0.79,
+      "asOf": "2024-03-01T00:00:00Z"
+    },
+    {
+      "from": "USD",
+      "to": "JPY",
+      "rate": 150.50,
+      "asOf": "2024-03-01T00:00:00Z"
+    },
+    {
+      "from": "EUR",
+      "to": "GBP",
+      "rate": 0.86,
+      "asOf": "2024-03-01T00:00:00Z"
+    }
+  ]
+}

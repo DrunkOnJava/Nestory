@@ -1,0 +1,317 @@
+// Layer: Foundation
+// Module: Foundation/Models
+// Purpose: Core Item model for inventory
+
+import Foundation
+import SwiftData
+
+/// Core inventory item model
+@Model
+public final class Item: Codable {
+    // MARK: - Properties
+    
+    @Attribute(.unique)
+    public var id: UUID
+    
+    public var name: String
+    public var itemDescription: String?
+    public var serialNumber: String?
+    public var modelNumber: String?
+    public var notes: String?
+    
+    // Financial
+    public var purchasePrice: Data? // Encoded Money
+    public var purchaseDate: Date?
+    public var estimatedValue: Data? // Encoded Money
+    public var currency: String = "USD"
+    public var depreciationRate: Decimal?
+    
+    // Physical Properties
+    public var quantity: Int = 1
+    public var brand: String?
+    
+    // Metadata
+    public var tags: [String]
+    public var customAttributes: Data? // JSON encoded dictionary
+    
+    // Timestamps
+    public var createdAt: Date
+    public var updatedAt: Date
+    
+    // MARK: - Relationships
+    
+    @Relationship(deleteRule: .nullify)
+    public var category: Category?
+    
+    @Relationship(deleteRule: .nullify)
+    public var location: Location?
+    
+    @Relationship(deleteRule: .cascade)
+    public var photos: [PhotoAsset]
+    
+    @Relationship(deleteRule: .cascade)
+    public var receipts: [Receipt]
+    
+    @Relationship(deleteRule: .cascade)
+    public var warranty: Warranty?
+    
+    @Relationship(deleteRule: .cascade)
+    public var maintenanceTasks: [MaintenanceTask]
+    
+    // MARK: - Initialization
+    
+    public init(
+        name: String,
+        itemDescription: String? = nil,
+        category: Category? = nil,
+        location: Location? = nil
+    ) {
+        self.id = UUID()
+        self.name = name
+        self.itemDescription = itemDescription
+        self.category = category
+        self.location = location
+        self.tags = []
+        self.photos = []
+        self.receipts = []
+        self.maintenanceTasks = []
+        self.createdAt = Date()
+        self.updatedAt = Date()
+    }
+    
+    // MARK: - Computed Properties
+    
+    /// Get purchase price as Money object
+    public var purchasePriceMoney: Money? {
+        get {
+            guard let data = purchasePrice else { return nil }
+            return try? JSONDecoder().decode(Money.self, from: data)
+        }
+        set {
+            purchasePrice = try? JSONEncoder().encode(newValue)
+            updatedAt = Date()
+        }
+    }
+    
+    /// Get estimated value as Money object
+    public var estimatedValueMoney: Money? {
+        get {
+            guard let data = estimatedValue else { return nil }
+            return try? JSONDecoder().decode(Money.self, from: data)
+        }
+        set {
+            estimatedValue = try? JSONEncoder().encode(newValue)
+            updatedAt = Date()
+        }
+    }
+    
+    /// Get custom attributes as dictionary
+    public var customAttributesDict: [String: String]? {
+        get {
+            guard let data = customAttributes else { return nil }
+            return try? JSONDecoder().decode([String: String].self, from: data)
+        }
+        set {
+            customAttributes = try? JSONEncoder().encode(newValue)
+            updatedAt = Date()
+        }
+    }
+    
+    /// Check if item has complete information
+    public var isComplete: Bool {
+        !name.isEmpty &&
+        category != nil &&
+        location != nil &&
+        purchasePrice != nil
+    }
+    
+    /// Primary photo if available
+    public var primaryPhoto: PhotoAsset? {
+        photos.first
+    }
+    
+    /// Total value including purchase price or estimated value
+    public var currentValue: Money? {
+        estimatedValueMoney ?? purchasePriceMoney
+    }
+    
+    // MARK: - Methods
+    
+    /// Add a tag if not already present
+    public func addTag(_ tag: String) {
+        let normalized = tag.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+        if !normalized.isEmpty && !tags.contains(normalized) {
+            tags.append(normalized)
+            updatedAt = Date()
+        }
+    }
+    
+    /// Remove a tag
+    public func removeTag(_ tag: String) {
+        let normalized = tag.lowercased()
+        tags.removeAll { $0 == normalized }
+        updatedAt = Date()
+    }
+    
+    /// Set a custom attribute
+    public func setCustomAttribute(key: String, value: String) {
+        var attributes = customAttributesDict ?? [:]
+        attributes[key] = value
+        customAttributesDict = attributes
+    }
+    
+    /// Remove a custom attribute
+    public func removeCustomAttribute(key: String) {
+        var attributes = customAttributesDict ?? [:]
+        attributes.removeValue(forKey: key)
+        customAttributesDict = attributes.isEmpty ? nil : attributes
+    }
+    
+    /// Update the item with new values
+    public func update(
+        name: String? = nil,
+        description: String? = nil,
+        category: Category? = nil,
+        location: Location? = nil
+    ) {
+        if let name = name {
+            self.name = name
+        }
+        if let description = description {
+            self.itemDescription = description
+        }
+        if let category = category {
+            self.category = category
+        }
+        if let location = location {
+            self.location = location
+        }
+        self.updatedAt = Date()
+    }
+}
+
+// MARK: - Search Support
+
+extension Item {
+    /// Check if item matches search query
+    public func matches(searchText: String) -> Bool {
+        let query = searchText.lowercased()
+        
+        // Check name
+        if name.lowercased().contains(query) {
+            return true
+        }
+        
+        // Check description
+        if let description = itemDescription,
+           description.lowercased().contains(query) {
+            return true
+        }
+        
+        // Check serial number
+        if let serial = serialNumber,
+           serial.lowercased().contains(query) {
+            return true
+        }
+        
+        // Check model number
+        if let model = modelNumber,
+           model.lowercased().contains(query) {
+            return true
+        }
+        
+        // Check tags
+        if tags.contains(where: { $0.contains(query) }) {
+            return true
+        }
+        
+        // Check category name
+        if let categoryName = category?.name,
+           categoryName.lowercased().contains(query) {
+            return true
+        }
+        
+        // Check location name
+        if let locationName = location?.name,
+           locationName.lowercased().contains(query) {
+            return true
+        }
+        
+        return false
+    }
+}
+
+// MARK: - Codable Implementation
+
+extension Item {
+    enum CodingKeys: String, CodingKey {
+        case id
+        case name
+        case itemDescription
+        case serialNumber
+        case modelNumber
+        case notes
+        case purchasePrice
+        case purchaseDate
+        case estimatedValue
+        case currency
+        case depreciationRate
+        case quantity
+        case brand
+        case tags
+        case customAttributes
+        case createdAt
+        case updatedAt
+        // Note: Relationships are not included in Codable for export/import
+        // They should be handled separately during data import/export
+    }
+    
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
+        try container.encode(id, forKey: .id)
+        try container.encode(name, forKey: .name)
+        try container.encodeIfPresent(itemDescription, forKey: .itemDescription)
+        try container.encodeIfPresent(serialNumber, forKey: .serialNumber)
+        try container.encodeIfPresent(modelNumber, forKey: .modelNumber)
+        try container.encodeIfPresent(notes, forKey: .notes)
+        try container.encodeIfPresent(purchasePrice, forKey: .purchasePrice)
+        try container.encodeIfPresent(purchaseDate, forKey: .purchaseDate)
+        try container.encodeIfPresent(estimatedValue, forKey: .estimatedValue)
+        try container.encode(currency, forKey: .currency)
+        try container.encodeIfPresent(depreciationRate, forKey: .depreciationRate)
+        try container.encode(quantity, forKey: .quantity)
+        try container.encodeIfPresent(brand, forKey: .brand)
+        try container.encode(tags, forKey: .tags)
+        try container.encodeIfPresent(customAttributes, forKey: .customAttributes)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encode(updatedAt, forKey: .updatedAt)
+    }
+    
+    public convenience init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        let name = try container.decode(String.self, forKey: .name)
+        let itemDescription = try container.decodeIfPresent(String.self, forKey: .itemDescription)
+        
+        // Initialize with basic properties first
+        self.init(name: name, itemDescription: itemDescription)
+        
+        // Then set additional properties
+        self.id = try container.decode(UUID.self, forKey: .id)
+        self.serialNumber = try container.decodeIfPresent(String.self, forKey: .serialNumber)
+        self.modelNumber = try container.decodeIfPresent(String.self, forKey: .modelNumber)
+        self.notes = try container.decodeIfPresent(String.self, forKey: .notes)
+        self.purchasePrice = try container.decodeIfPresent(Data.self, forKey: .purchasePrice)
+        self.purchaseDate = try container.decodeIfPresent(Date.self, forKey: .purchaseDate)
+        self.estimatedValue = try container.decodeIfPresent(Data.self, forKey: .estimatedValue)
+        self.currency = try container.decode(String.self, forKey: .currency)
+        self.depreciationRate = try container.decodeIfPresent(Decimal.self, forKey: .depreciationRate)
+        self.quantity = try container.decode(Int.self, forKey: .quantity)
+        self.brand = try container.decodeIfPresent(String.self, forKey: .brand)
+        self.tags = try container.decode([String].self, forKey: .tags)
+        self.customAttributes = try container.decodeIfPresent(Data.self, forKey: .customAttributes)
+        self.createdAt = try container.decode(Date.self, forKey: .createdAt)
+        self.updatedAt = try container.decode(Date.self, forKey: .updatedAt)
+    }
+}
