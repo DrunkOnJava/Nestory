@@ -1,12 +1,41 @@
 # CLAUDE.md
 ### Strategic Context for Claude Code CLI - Nestory Project
 
+## 📱 PROJECT OVERVIEW
+
+**CRITICAL**: Nestory is a **personal home inventory app for insurance documentation**, NOT a business inventory/stock management system. 
+
+The app helps homeowners and renters catalog their belongings for:
+- Insurance claims after disasters (fire, flood, theft)
+- Warranty tracking and expiration alerts
+- Receipt storage and purchase documentation
+- Estate planning and value tracking
+- Personal organization (NOT stock levels)
+
+### Current Implementation Status
+- ✅ Core inventory management with photos
+- ✅ Category system with SwiftData relationships
+- ✅ Insurance PDF report generation (InsuranceReportService)
+- ✅ Receipt OCR with automatic data extraction (ReceiptOCRService)
+- ✅ CSV/JSON import/export (ImportExportService)
+- ✅ Analytics dashboard with value insights
+- ✅ Advanced search with documentation tracking
+- ✅ Swift 6 strict concurrency compliance
+- ✅ Documentation status indicators (NOT stock indicators)
+
+### Key Implementation Details
+- **NO "low stock" or "out of stock" references** - This is for personal belongings
+- **Focus on documentation completeness** - Missing photos, receipts, serial numbers
+- **Insurance-first features** - Everything oriented toward disaster preparedness
+
 ## 🎯 PRIME DIRECTIVES
 1. **SPEC.json is LAW** - Never modify. All architecture decisions flow from it.
 2. **Build incrementally** - Complete small working features, not partial large ones.
-3. **No placeholders** - Every `TODO` or `FIXME` must reference `ADR-\d+` or be rejected.
-4. **Test everything** - 80% coverage minimum. No untested code ships.
-5. **Fail fast** - If uncertain about architecture compliance, run `nestoryctl arch-verify` immediately.
+3. **ALWAYS WIRE UP IMPLEMENTATIONS** - Every service/feature MUST be accessible from the UI. No orphaned code!
+4. **No placeholders** - Every `TODO` or `FIXME` must reference `ADR-\d+` or be rejected.
+5. **Test everything** - 80% coverage minimum. No untested code ships.
+6. **Fail fast** - If uncertain about architecture compliance, run `nestoryctl arch-verify` immediately.
+7. **ALWAYS USE iPhone 16 Plus** - When building/testing in simulator, always use "iPhone 16 Plus" as the target device.
 
 ## 📐 ARCHITECTURE (IMMUTABLE)
 ```
@@ -210,12 +239,81 @@ if !networkAvailable {
 }
 ```
 
+## 🛠️ MAKEFILE SYSTEM
+
+### Purpose
+The Makefile serves as the **single source of truth** for all project operations, ensuring consistency across different chat sessions and context windows.
+
+### Key Commands for Every Session
+
+```bash
+# Start of session
+make doctor      # Verify project setup
+make context     # Generate CURRENT_CONTEXT.md for session continuity
+
+# Development workflow  
+make run         # ALWAYS builds and runs on iPhone 16 Plus
+make build       # Build with consistent settings
+make check       # Run ALL verification checks
+
+# Verify compliance
+make verify-wiring      # Ensure all services are wired to UI
+make verify-no-stock    # Check for inappropriate inventory references
+make verify-arch        # Verify architecture compliance
+
+# Quick shortcuts
+make r           # Shortcut for run
+make b           # Shortcut for build
+make c           # Shortcut for check
+make d           # Shortcut for doctor
+```
+
+### Development Tools
+
+```bash
+# Create new components
+make new-service NAME=MyService    # Create properly formatted service
+make new-feature NAME=MyFeature    # Create feature scaffold
+
+# Project maintenance
+make stats       # Show project statistics
+make todo        # List all TODOs
+make clean       # Clean build artifacts
+make fix         # Emergency rebuild when things go wrong
+```
+
+### Critical Enforcement
+
+The Makefile **automatically enforces**:
+- ✅ iPhone 16 Plus simulator usage (no more simulator confusion!)
+- ✅ All services must be wired to UI (catches orphaned code)
+- ✅ No business inventory references (insurance focus only)
+- ✅ Architecture layer compliance
+- ✅ Proper service template with @MainActor and ObservableObject
+
+### Context Preservation
+
+**ALWAYS run at session start:**
+```bash
+make context
+```
+
+This generates `CURRENT_CONTEXT.md` containing:
+- Current wiring status
+- Active services and views
+- Project rules and reminders
+- Git status
+- Recent TODOs
+
+Share this file when starting new chat sessions to maintain continuity!
+
 ## 📋 SESSION BEHAVIOR
 
 ### Start Every Response With
-1. Check what layer/module we're in
-2. Verify allowed imports for that layer
-3. Read relevant parts of SPEC.json
+1. Run `make doctor` to verify setup
+2. Check what layer/module we're in
+3. Verify allowed imports for that layer
+4. Read relevant parts of SPEC.json
 
 ### Before Writing Code
 1. State the layer explicitly: "Creating in Services layer..."
@@ -225,7 +323,34 @@ if !networkAvailable {
 ### After Writing Code
 1. Show the file header with Layer tag
 2. Confirm no illegal imports
-3. Suggest the verification command
+3. **CRITICAL: Show exactly how to wire this up in the UI**
+4. Run `make verify-wiring` to ensure it's accessible
+5. Suggest the verification command: `make check`
+
+## ⚠️ IMPLEMENTATION CHECKLIST
+
+**EVERY new feature/service MUST have:**
+- [ ] Service/Logic implementation
+- [ ] UI component/view
+- [ ] **WIRED UP in existing navigation** (Tab, Sheet, Navigation Link, Button)
+- [ ] Accessible from user interaction
+- [ ] Build verification after wiring
+
+**Example: Receipt OCR was created but NOT wired up initially:**
+```swift
+// ❌ WRONG: Created ReceiptOCRService and ReceiptCaptureView
+// But no way for users to access it!
+
+// ✅ RIGHT: Added to ItemDetailView
+GroupBox("Receipt Documentation") {
+    Button("Add Receipt") { 
+        showingReceiptCapture = true  // WIRED UP!
+    }
+}
+.sheet(isPresented: $showingReceiptCapture) {
+    ReceiptCaptureView(item: item)  // ACCESSIBLE!
+}
+```
 
 ## 🔧 QUICK PATTERNS
 
@@ -263,6 +388,43 @@ AsyncImage(url: url) { image in
     ProgressView()
 }
 .onAppear { ImageCache.prefetch(url) }
+```
+
+## 🔌 WIRING CHECKLIST - NEVER SKIP THIS!
+
+When implementing ANY new feature:
+
+1. **Create the Service/Logic** ✓
+2. **Create the View/UI** ✓  
+3. **WIRE IT UP** ⚠️ **← MOST IMPORTANT STEP**
+4. **Test in Simulator** ✓
+
+### Where to Wire Features:
+
+| Feature Type | Wire Location | How to Wire |
+|-------------|---------------|-------------|
+| Item-specific | ItemDetailView | Add button/section with sheet/navigation |
+| Global utility | SettingsView | Add to Import/Export section |
+| Browse/Search | SearchView | Add filter or search syntax |
+| Analytics | AnalyticsDashboardView | Add chart/insight |
+| Category | CategoriesView | Add management option |
+| New major feature | ContentView | Add new tab |
+
+### Wiring Examples:
+
+```swift
+// ALWAYS add @State for presentation
+@State private var showingFeature = false
+
+// ALWAYS add trigger in UI
+Button("Access Feature") {
+    showingFeature = true
+}
+
+// ALWAYS add presentation modifier
+.sheet(isPresented: $showingFeature) {
+    YourFeatureView()
+}
 ```
 
 ## ⛔ NEVER DO THIS
