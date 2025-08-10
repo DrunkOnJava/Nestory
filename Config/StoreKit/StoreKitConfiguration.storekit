@@ -1,0 +1,172 @@
+{
+  "appPolicies" : {
+
+  },
+  "identifier" : "F0A8A88D",
+  "name" : "StoreKit Configuration",
+  "products" : [
+    {
+      "displayPrice" : "2.99",
+      "familyShareable" : false,
+      "id" : "com.nestory.premium.monthly",
+      "internalID" : "6678154215",
+      "localizations" : [
+        {
+          "description" : "Unlock all features with Premium",
+          "displayName" : "Premium Monthly",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.nestory.premium.monthly",
+      "referenceName" : "Premium Monthly",
+      "type" : "AutoRenewable"
+    },
+    {
+      "displayPrice" : "19.99",
+      "familyShareable" : false,
+      "id" : "com.nestory.premium.yearly",
+      "internalID" : "6678154216",
+      "localizations" : [
+        {
+          "description" : "Unlock all features with Premium",
+          "displayName" : "Premium Yearly",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.nestory.premium.yearly",
+      "referenceName" : "Premium Yearly",
+      "type" : "AutoRenewable"
+    },
+    {
+      "displayPrice" : "4.99",
+      "familyShareable" : false,
+      "id" : "com.nestory.export.pdf",
+      "internalID" : "6678154217",
+      "localizations" : [
+        {
+          "description" : "Export your inventory as PDF",
+          "displayName" : "PDF Export",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.nestory.export.pdf",
+      "referenceName" : "PDF Export",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_applicationInternalID" : "6678154214",
+    "_developerTeamID" : "2VXBQV4XC9",
+    "_failTransactionsEnabled" : false,
+    "_lastSynchronizedDate" : 739280628.01,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Load Products"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Purchase"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Verification"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Store Sync"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Subscription Status"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Transaction"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Manage Subscriptions Sheet"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Refund Request Sheet"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Offer Code Redeem Sheet"
+      }
+    ]
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "21435743",
+      "internalID" : "6678154218",
+      "localizations" : [
+
+      ],
+      "name" : "Premium",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "2.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "id" : "com.nestory.premium.monthly",
+          "internalID" : "6678154219",
+          "introductoryOffer" : null,
+          "localizations" : [
+
+          ],
+          "productID" : "com.nestory.premium.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Premium Monthly",
+          "subscriptionGroupID" : "21435743",
+          "type" : "AutoRenewable"
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "19.99",
+          "familyShareable" : false,
+          "groupNumber" : 2,
+          "id" : "com.nestory.premium.yearly",
+          "internalID" : "6678154220",
+          "introductoryOffer" : null,
+          "localizations" : [
+
+          ],
+          "productID" : "com.nestory.premium.yearly",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Premium Yearly",
+          "subscriptionGroupID" : "21435743",
+          "type" : "AutoRenewable"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}

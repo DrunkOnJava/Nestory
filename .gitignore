@@ -90,4 +90,4 @@ yarn-error.log*
 # Custom
 local/
 private/
-secrets/
+secrets/.build_counter

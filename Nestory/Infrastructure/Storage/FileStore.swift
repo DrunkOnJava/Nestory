@@ -11,7 +11,7 @@ public final class FileStore: @unchecked Sendable {
 
     public enum Directory {
         case documents
-        case cache
+        case caches
         case temporary
         case applicationSupport
         case custom(URL)
@@ -20,7 +20,7 @@ public final class FileStore: @unchecked Sendable {
             switch self {
             case .documents:
                 FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-            case .cache:
+            case .caches:
                 FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
             case .temporary:
                 FileManager.default.temporaryDirectory
