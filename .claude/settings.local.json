@@ -4,7 +4,8 @@
       "Bash(touch:*)",
       "Bash(shasum:*)",
       "Bash(mkdir:*)",
-      "Bash(xcodebuild test:*)"
+      "Bash(xcodebuild test:*)",
+      "Bash(git add:*)"
     ],
     "deny": []
   }
