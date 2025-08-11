@@ -64,14 +64,14 @@ public struct BackupDataTransformer {
         if let imageData = item.imageData {
             record["imageData"] = try await assetManager.createAsset(
                 from: imageData,
-                filename: "item_\(item.id).jpg"
+                filename: "item_\(item.id).jpg",
             )
         }
 
         if let receiptData = item.receiptImageData {
             record["receiptData"] = try await assetManager.createAsset(
                 from: receiptData,
-                filename: "receipt_\(item.id).jpg"
+                filename: "receipt_\(item.id).jpg",
             )
         }
 

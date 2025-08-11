@@ -37,7 +37,7 @@ public final class Signpost: @unchecked Sendable {
         _ name: StaticString,
         category: SignpostCategory = .general,
         id: OSSignpostID = .exclusive,
-        message: String? = nil
+        message: String? = nil,
     ) {
         let log = signpostLogs[category] ?? OSLog.default
 
@@ -52,7 +52,7 @@ public final class Signpost: @unchecked Sendable {
         _ name: StaticString,
         category: SignpostCategory = .general,
         id: OSSignpostID = .exclusive,
-        message: String? = nil
+        message: String? = nil,
     ) {
         let log = signpostLogs[category] ?? OSLog.default
 
@@ -67,7 +67,7 @@ public final class Signpost: @unchecked Sendable {
         _ name: StaticString,
         category: SignpostCategory = .general,
         id: OSSignpostID = .exclusive,
-        message: String? = nil
+        message: String? = nil,
     ) {
         let log = signpostLogs[category] ?? OSLog.default
 

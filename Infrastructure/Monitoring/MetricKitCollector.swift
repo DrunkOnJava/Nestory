@@ -37,7 +37,7 @@ public final class MetricKitCollector: NSObject {
             deviceModel: ProcessInfo.processInfo.environment["SIMULATOR_DEVICE_NAME"] ?? "Device",
             osVersion: ProcessInfo.processInfo.operatingSystemVersionString,
             appVersion: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown",
-            buildNumber: Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "Unknown"
+            buildNumber: Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "Unknown",
         )
     }
 
@@ -48,20 +48,20 @@ public final class MetricKitCollector: NSObject {
         if let cpuMetrics = payload.cpuMetrics {
             metrics.cpu = CPUMetrics(
                 cumulativeCPUTime: cpuMetrics.cumulativeCPUTime.value,
-                cumulativeCPUInstructions: cpuMetrics.cumulativeCPUInstructions.value
+                cumulativeCPUInstructions: cpuMetrics.cumulativeCPUInstructions.value,
             )
         }
 
         if let memoryMetrics = payload.memoryMetrics {
             metrics.memory = MemoryMetrics(
                 peakMemoryUsage: memoryMetrics.peakMemoryUsage.value,
-                averageSuspendedMemory: memoryMetrics.averageSuspendedMemory.averageMeasurement.value
+                averageSuspendedMemory: memoryMetrics.averageSuspendedMemory.averageMeasurement.value,
             )
         }
 
         if let diskMetrics = payload.diskIOMetrics {
             metrics.disk = DiskMetrics(
-                cumulativeLogicalWrites: diskMetrics.cumulativeLogicalWrites.value
+                cumulativeLogicalWrites: diskMetrics.cumulativeLogicalWrites.value,
             )
         }
 
@@ -70,26 +70,26 @@ public final class MetricKitCollector: NSObject {
                 cumulativeCellularUpload: networkMetrics.cumulativeCellularUpload.value,
                 cumulativeCellularDownload: networkMetrics.cumulativeCellularDownload.value,
                 cumulativeWiFiUpload: networkMetrics.cumulativeWifiUpload.value,
-                cumulativeWiFiDownload: networkMetrics.cumulativeWifiDownload.value
+                cumulativeWiFiDownload: networkMetrics.cumulativeWifiDownload.value,
             )
         }
 
         if let displayMetrics = payload.displayMetrics {
             metrics.display = DisplayMetrics(
-                averagePixelLuminance: displayMetrics.averagePixelLuminance?.averageMeasurement.value
+                averagePixelLuminance: displayMetrics.averagePixelLuminance?.averageMeasurement.value,
             )
         }
 
         if payload.applicationLaunchMetrics != nil {
             metrics.launch = LaunchMetrics(
                 timeToFirstDraw: nil,
-                applicationResumeTime: nil
+                applicationResumeTime: nil,
             )
         }
 
         if let applicationResponsivenessMetrics = payload.applicationResponsivenessMetrics {
             metrics.responsiveness = ResponsivenessMetrics(
-                histogrammedAppHangTime: applicationResponsivenessMetrics.histogrammedApplicationHangTime
+                histogrammedAppHangTime: applicationResponsivenessMetrics.histogrammedApplicationHangTime,
             )
         }
 
@@ -108,7 +108,7 @@ public final class MetricKitCollector: NSObject {
                     signal: diagnostic.signal?.intValue,
                     terminationReason: diagnostic.terminationReason,
                     virtualMemoryRegionInfo: diagnostic.virtualMemoryRegionInfo,
-                    diagnosticMetaData: diagnostic.metaData
+                    diagnosticMetaData: diagnostic.metaData,
                 )
             }
         }
@@ -117,7 +117,7 @@ public final class MetricKitCollector: NSObject {
             diagnostics.hangs = hangDiagnostics.map { diagnostic in
                 HangReport(
                     hangDuration: diagnostic.hangDuration.value,
-                    diagnosticMetaData: diagnostic.metaData
+                    diagnosticMetaData: diagnostic.metaData,
                 )
             }
         }
@@ -126,7 +126,7 @@ public final class MetricKitCollector: NSObject {
             diagnostics.diskWrites = diskWriteDiagnostics.map { diagnostic in
                 DiskWriteReport(
                     totalWritesCaused: diagnostic.totalWritesCaused.value,
-                    diagnosticMetaData: diagnostic.metaData
+                    diagnosticMetaData: diagnostic.metaData,
                 )
             }
         }

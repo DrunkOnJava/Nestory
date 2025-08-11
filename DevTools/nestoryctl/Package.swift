@@ -9,7 +9,7 @@ let package = Package(
     products: [
         .executable(
             name: "nestoryctl",
-            targets: ["NestoryCtl"]
+            targets: ["NestoryCtl"],
         ),
     ],
     dependencies: [
@@ -21,7 +21,7 @@ let package = Package(
             dependencies: [
                 .product(name: "SwiftSyntax", package: "swift-syntax"),
                 .product(name: "SwiftParser", package: "swift-syntax"),
-            ]
+            ],
         ),
-    ]
+    ],
 )

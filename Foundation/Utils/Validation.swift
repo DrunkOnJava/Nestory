@@ -34,7 +34,7 @@ public enum Validation {
         _ string: String,
         field: String,
         min: Int? = nil,
-        max: Int? = nil
+        max: Int? = nil,
     ) throws {
         if let min, string.count < min {
             throw AppError.validation("\(field) must be at least \(min) characters")
@@ -125,7 +125,7 @@ public enum Validation {
         start: Date,
         end: Date,
         startField: String = "startDate",
-        endField: String = "endDate"
+        endField: String = "endDate",
     ) throws {
         guard start < end else {
             throw AppError.validation("Start date (\(startField)) must be before end date (\(endField))")
@@ -134,7 +134,7 @@ public enum Validation {
 
     public static func validatePositive(
         _ value: some Numeric & Comparable & ExpressibleByIntegerLiteral,
-        field: String
+        field: String,
     ) throws {
         guard value > 0 else {
             throw AppError.validation("\(field) must be positive")
@@ -143,7 +143,7 @@ public enum Validation {
 
     public static func validateNonNegative(
         _ value: some Numeric & Comparable & ExpressibleByIntegerLiteral,
-        field: String
+        field: String,
     ) throws {
         guard value >= 0 else {
             throw AppError.validation("\(field) cannot be negative")

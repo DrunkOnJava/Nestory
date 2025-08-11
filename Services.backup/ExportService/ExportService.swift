@@ -83,7 +83,7 @@ public struct LiveExportService: ExportService, @unchecked Sendable {
                 let page = createItemPage(
                     items: Array(data.items[index ..< min(index + itemsPerPage, data.items.count)]),
                     pageNumber: currentPage + 1,
-                    size: pageSize
+                    size: pageSize,
                 )
                 pdfDocument.insert(page, at: currentPage)
                 currentPage += 1
@@ -112,7 +112,7 @@ public struct LiveExportService: ExportService, @unchecked Sendable {
             createdAt: Date(),
             deviceName: ProcessInfo.processInfo.hostName,
             itemCount: inventory.count,
-            checksum: nil
+            checksum: nil,
         )
 
         let encoder = JSONEncoder()
@@ -127,7 +127,7 @@ public struct LiveExportService: ExportService, @unchecked Sendable {
         let package = BackupPackage(
             metadata: updatedMetadata,
             items: inventory,
-            images: []
+            images: [],
         )
 
         let filename = "backup_\(Date().timeIntervalSince1970).nestory"

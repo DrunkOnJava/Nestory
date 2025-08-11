@@ -41,7 +41,7 @@ public struct LiveAnalyticsService: AnalyticsService, Sendable {
                     if let convertedValue = try? await currencyService.convert(
                         amount: itemValue,
                         from: purchasePriceMoney.currencyCode,
-                        to: "USD"
+                        to: "USD",
                     ) {
                         totalValue += convertedValue
                     } else {
@@ -67,7 +67,7 @@ public struct LiveAnalyticsService: AnalyticsService, Sendable {
                 categoryName: categoryName,
                 itemCount: 0,
                 totalValue: 0,
-                percentage: 0
+                percentage: 0,
             )
 
             breakdown.itemCount += 1
@@ -79,7 +79,7 @@ public struct LiveAnalyticsService: AnalyticsService, Sendable {
                     if let convertedValue = try? await currencyService.convert(
                         amount: itemValue,
                         from: purchasePriceMoney.currencyCode,
-                        to: "USD"
+                        to: "USD",
                     ) {
                         breakdown.totalValue += convertedValue
                     } else {
@@ -124,7 +124,7 @@ public struct LiveAnalyticsService: AnalyticsService, Sendable {
             trendPoints.append(TrendPoint(
                 date: interval.start,
                 value: value,
-                itemCount: itemsInInterval.count
+                itemCount: itemsInInterval.count,
             ))
         }
 
@@ -157,7 +157,7 @@ public struct LiveAnalyticsService: AnalyticsService, Sendable {
             let ageInYears = Calendar.current.dateComponents(
                 [.year],
                 from: purchaseDate,
-                to: Date()
+                to: Date(),
             ).year ?? 0
 
             let depreciationRate = item.depreciationRate ?? Decimal(0.15)
@@ -173,7 +173,7 @@ public struct LiveAnalyticsService: AnalyticsService, Sendable {
                 currentValue: currentValue,
                 totalDepreciation: totalDepreciation,
                 depreciationRate: Double(truncating: depreciationRate as NSNumber),
-                ageInYears: ageInYears
+                ageInYears: ageInYears,
             ))
         }
 
@@ -212,7 +212,7 @@ public struct LiveAnalyticsService: AnalyticsService, Sendable {
             recentItemIds: Array(recentItems.map(\.id)),
             valueTrends: trends,
             totalDepreciation: depreciation.reduce(Decimal(0)) { $0 + $1.totalDepreciation },
-            lastUpdated: Date()
+            lastUpdated: Date(),
         )
 
         // Set non-Codable properties for immediate use
@@ -230,7 +230,7 @@ public struct LiveAnalyticsService: AnalyticsService, Sendable {
 
         UserDefaults.standard.set(
             UserDefaults.standard.integer(forKey: "analytics.\(event.name)") + 1,
-            forKey: "analytics.\(event.name)"
+            forKey: "analytics.\(event.name)",
         )
     }
 }
@@ -339,21 +339,21 @@ public extension AnalyticsEvent {
             parameters: [
                 "item_id": itemId.uuidString,
                 "value": value?.description ?? "0",
-            ]
+            ],
         )
     }
 
     static func itemDeleted(itemId: UUID) -> AnalyticsEvent {
         AnalyticsEvent(
             name: "item_deleted",
-            parameters: ["item_id": itemId.uuidString]
+            parameters: ["item_id": itemId.uuidString],
         )
     }
 
     static func categoryCreated(name: String) -> AnalyticsEvent {
         AnalyticsEvent(
             name: "category_created",
-            parameters: ["name": name]
+            parameters: ["name": name],
         )
     }
 
@@ -363,7 +363,7 @@ public extension AnalyticsEvent {
             parameters: [
                 "format": format,
                 "item_count": itemCount,
-            ]
+            ],
         )
     }
 
@@ -374,7 +374,7 @@ public extension AnalyticsEvent {
                 "pushed": result.pushedCount,
                 "pulled": result.pulledCount,
                 "conflicts": result.conflictsResolved,
-            ]
+            ],
         )
     }
 }

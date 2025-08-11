@@ -115,7 +115,7 @@ struct MockAuthService: AuthService {
             accessToken: "test-token",
             refreshToken: "test-refresh",
             expiresAt: Date().addingTimeInterval(3600),
-            provider: .demo
+            provider: .demo,
         )
     }
 
@@ -127,7 +127,7 @@ struct MockAuthService: AuthService {
             accessToken: "test-token",
             refreshToken: "test-refresh",
             expiresAt: Date().addingTimeInterval(3600),
-            provider: provider
+            provider: provider,
         )
     }
 
@@ -139,7 +139,7 @@ struct MockAuthService: AuthService {
             accessToken: "new-token",
             refreshToken: "new-refresh",
             expiresAt: Date().addingTimeInterval(3600),
-            provider: .demo
+            provider: .demo,
         )
     }
 
@@ -178,8 +178,8 @@ struct MockPhotoIntegrationService: PhotoIntegrationService {
                 lensMake: nil,
                 latitude: nil,
                 longitude: nil,
-                orientation: .up
-            )
+                orientation: .up,
+            ),
         )
     }
 
@@ -201,10 +201,10 @@ struct MockExportService: ExportService {
                 createdAt: Date(),
                 deviceName: "Test",
                 itemCount: 0,
-                checksum: nil
+                checksum: nil,
             ),
             items: [],
-            images: []
+            images: [],
         )
     }
 
@@ -218,7 +218,7 @@ struct MockSyncService: SyncService {
             pushedCount: 0,
             pulledCount: 0,
             conflictsResolved: 0,
-            timestamp: Date()
+            timestamp: Date(),
         )
     }
 
@@ -246,7 +246,7 @@ struct MockAnalyticsService: AnalyticsService {
             recentItems: [],
             valueTrends: [],
             totalDepreciation: 0,
-            lastUpdated: Date()
+            lastUpdated: Date(),
         )
     }
 

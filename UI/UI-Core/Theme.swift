@@ -54,7 +54,7 @@ public enum Theme {
                     color: .black.opacity(0.1),
                     radius: radius,
                     x: 0,
-                    y: y
+                    y: y,
                 )
             }
         }

@@ -85,7 +85,7 @@ struct SearchHistoryView: View {
                         QuickFilterButton(
                             title: "With Photos",
                             icon: "camera.fill",
-                            color: .green
+                            color: .green,
                         ) {
                             onSearch("has:photo")
                         }
@@ -93,7 +93,7 @@ struct SearchHistoryView: View {
                         QuickFilterButton(
                             title: "With Receipts",
                             icon: "doc.text.fill",
-                            color: .blue
+                            color: .blue,
                         ) {
                             onSearch("has:receipt")
                         }
@@ -101,7 +101,7 @@ struct SearchHistoryView: View {
                         QuickFilterButton(
                             title: "Warranty Active",
                             icon: "shield.fill",
-                            color: .orange
+                            color: .orange,
                         ) {
                             onSearch("warranty:active")
                         }
@@ -109,7 +109,7 @@ struct SearchHistoryView: View {
                         QuickFilterButton(
                             title: "High Value",
                             icon: "dollarsign.circle.fill",
-                            color: .purple
+                            color: .purple,
                         ) {
                             onSearch("price:>1000")
                         }

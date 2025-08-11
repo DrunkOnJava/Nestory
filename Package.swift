@@ -10,7 +10,7 @@ let package = Package(
     products: [
         .library(
             name: "NestoryGuards",
-            targets: ["NestoryGuards"]
+            targets: ["NestoryGuards"],
         ),
     ],
     dependencies: [
@@ -19,7 +19,7 @@ let package = Package(
     targets: [
         .target(
             name: "NestoryGuards",
-            path: "Sources/NestoryGuards"
+            path: "Sources/NestoryGuards",
         ),
         .testTarget(
             name: "ArchitectureTests",
@@ -28,7 +28,7 @@ let package = Package(
                 .product(name: "SwiftSyntax", package: "swift-syntax"),
                 .product(name: "SwiftParser", package: "swift-syntax"),
             ],
-            path: "Tests/ArchitectureTests"
+            path: "Tests/ArchitectureTests",
         ),
-    ]
+    ],
 )

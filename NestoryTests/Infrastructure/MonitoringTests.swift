@@ -76,7 +76,7 @@ final class LogTests: XCTestCase {
             url: "https://api.example.com/items",
             method: "GET",
             statusCode: 200,
-            duration: 0.523
+            duration: 0.523,
         )
 
         log.networkRequest(
@@ -84,7 +84,7 @@ final class LogTests: XCTestCase {
             method: "POST",
             statusCode: 500,
             duration: 1.234,
-            error: NSError(domain: "Network", code: 500)
+            error: NSError(domain: "Network", code: 500),
         )
 
         XCTAssertTrue(true)
@@ -95,14 +95,14 @@ final class LogTests: XCTestCase {
             "SELECT",
             table: "items",
             duration: 0.012,
-            recordCount: 42
+            recordCount: 42,
         )
 
         log.databaseOperation(
             "INSERT",
             table: "items",
             duration: 0.034,
-            error: NSError(domain: "Database", code: 1)
+            error: NSError(domain: "Database", code: 1),
         )
 
         XCTAssertTrue(true)
@@ -121,7 +121,7 @@ final class LogTests: XCTestCase {
             sessionId: "session456",
             deviceId: "device789",
             appVersion: "1.0.0",
-            buildNumber: "100"
+            buildNumber: "100",
         )
 
         Log.setContext(context)
@@ -222,21 +222,21 @@ final class SignpostTests: XCTestCase {
             name: "NetworkRequest",
             category: .network,
             startTime: 0,
-            endTime: 0.5
+            endTime: 0.5,
         )
 
         let metric2 = Signpost.Metrics(
             name: "NetworkRequest",
             category: .network,
             startTime: 1,
-            endTime: 1.3
+            endTime: 1.3,
         )
 
         let metric3 = Signpost.Metrics(
             name: "DatabaseQuery",
             category: .database,
             startTime: 2,
-            endTime: 2.1
+            endTime: 2.1,
         )
 
         collector.record(metric1)

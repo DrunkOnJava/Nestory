@@ -45,7 +45,7 @@ public final class InsuranceExportService: ObservableObject {
         categories: [Category],
         rooms: [Room],
         format: ExportFormat,
-        options: ExportOptions
+        options: ExportOptions,
     ) async throws -> ExportResult {
         isExporting = true
         exportProgress = 0.0
@@ -74,7 +74,7 @@ public final class InsuranceExportService: ObservableObject {
         let htmlContent = await StandardFormExporter.generateHTMLReport(
             items: items,
             rooms: rooms,
-            options: options
+            options: options,
         ) { [weak self] progress in
             Task { @MainActor in
                 self?.exportProgress = progress
@@ -96,7 +96,7 @@ public final class InsuranceExportService: ObservableObject {
             format: .standardForm,
             itemCount: items.count,
             totalValue: items.compactMap(\.purchasePrice).reduce(0, +),
-            fileSize: pdfData.count
+            fileSize: pdfData.count,
         )
     }
 
@@ -112,7 +112,7 @@ public final class InsuranceExportService: ObservableObject {
             format: .detailedSpreadsheet,
             itemCount: items.count,
             totalValue: items.compactMap(\.purchasePrice).reduce(0, +),
-            fileSize: csvData.count
+            fileSize: csvData.count,
         )
     }
 
@@ -128,7 +128,7 @@ public final class InsuranceExportService: ObservableObject {
             format: .xmlFormat,
             itemCount: items.count,
             totalValue: items.compactMap(\.purchasePrice).reduce(0, +),
-            fileSize: xmlData.count
+            fileSize: xmlData.count,
         )
     }
 
@@ -136,7 +136,7 @@ public final class InsuranceExportService: ObservableObject {
         items: [Item],
         categories _: [Category],
         rooms: [Room],
-        options: ExportOptions
+        options: ExportOptions,
     ) async throws -> ExportResult {
         // This would create a ZIP file with all assets
         // For now, return the standard form
@@ -147,7 +147,7 @@ public final class InsuranceExportService: ObservableObject {
         items: [Item],
         categories _: [Category],
         rooms: [Room],
-        options: ExportOptions
+        options: ExportOptions,
     ) async throws -> ExportResult {
         // This creates a comprehensive package for insurance claims
         // For now, use the standard form

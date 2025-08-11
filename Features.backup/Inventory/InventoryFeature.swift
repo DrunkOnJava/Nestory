@@ -182,7 +182,7 @@ struct InventoryItem: Equatable, Identifiable {
             notes: nil,
             photoCount: 0,
             createdAt: Date(),
-            updatedAt: Date()
+            updatedAt: Date(),
         )
     }
 }
@@ -213,7 +213,7 @@ extension InventoryService: DependencyKey {
                     notes: "16-inch, M3 Pro",
                     photoCount: 2,
                     createdAt: Date(),
-                    updatedAt: Date()
+                    updatedAt: Date(),
                 ),
                 InventoryItem(
                     id: UUID(),
@@ -225,14 +225,14 @@ extension InventoryService: DependencyKey {
                     notes: "Ergonomic design",
                     photoCount: 1,
                     createdAt: Date(),
-                    updatedAt: Date()
+                    updatedAt: Date(),
                 ),
             ]
         },
         fetch: { _ in nil },
         create: { _ in },
         update: { _ in },
-        delete: { _ in }
+        delete: { _ in },
     )
 
     static let testValue = InventoryService(
@@ -240,7 +240,7 @@ extension InventoryService: DependencyKey {
         fetch: { _ in nil },
         create: { _ in },
         update: { _ in },
-        delete: { _ in }
+        delete: { _ in },
     )
 }
 

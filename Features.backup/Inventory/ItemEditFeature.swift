@@ -102,7 +102,7 @@ struct ItemEditFeature {
                     notes: state.notes.isEmpty ? nil : state.notes,
                     photoCount: 0,
                     createdAt: Date(),
-                    updatedAt: Date()
+                    updatedAt: Date(),
                 )
 
                 return .run { send in
@@ -163,7 +163,7 @@ struct ItemEditView: View {
 
                     Stepper("Quantity: \(store.quantity)", value: .init(
                         get: { store.quantity },
-                        set: { store.send(.quantityChanged($0)) }
+                        set: { store.send(.quantityChanged($0)) },
                     ), in: 1 ... 999)
                 }
 
@@ -202,7 +202,7 @@ struct ItemEditView: View {
         ItemEditView(
             store: Store(initialState: ItemEditFeature.State(mode: .create)) {
                 ItemEditFeature()
-            }
+            },
         )
     }
 }

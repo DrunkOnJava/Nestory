@@ -44,7 +44,7 @@ final class NestoryUIScreenshotFlow: XCTestCase {
             location: "Home Office",
             category: "Electronics",
             price: "3499.00",
-            notes: "AppleCare+ until 2026"
+            notes: "AppleCare+ until 2026",
         )
         takeScreenshot("03_Add_Item_Filled")
 

@@ -57,17 +57,17 @@ struct InsuranceExportOptionsView: View {
                 Section("Policy Information (Optional)") {
                     TextField("Policy Holder Name", text: .init(
                         get: { exportOptions.policyHolderName ?? "" },
-                        set: { exportOptions.policyHolderName = $0.isEmpty ? nil : $0 }
+                        set: { exportOptions.policyHolderName = $0.isEmpty ? nil : $0 },
                     ))
 
                     TextField("Policy Number", text: .init(
                         get: { exportOptions.policyNumber ?? "" },
-                        set: { exportOptions.policyNumber = $0.isEmpty ? nil : $0 }
+                        set: { exportOptions.policyNumber = $0.isEmpty ? nil : $0 },
                     ))
 
                     TextField("Property Address", text: .init(
                         get: { exportOptions.propertyAddress ?? "" },
-                        set: { exportOptions.propertyAddress = $0.isEmpty ? nil : $0 }
+                        set: { exportOptions.propertyAddress = $0.isEmpty ? nil : $0 },
                     ))
                     .textContentType(.fullStreetAddress)
                 }
@@ -220,7 +220,7 @@ struct InsuranceExportOptionsView: View {
                     categories: categories,
                     rooms: rooms,
                     format: selectedFormat,
-                    options: exportOptions
+                    options: exportOptions,
                 )
 
                 await MainActor.run {
@@ -256,6 +256,6 @@ struct ShareSheet: UIViewControllerRepresentable {
         items: [],
         categories: [],
         rooms: [],
-        exportService: InsuranceExportService()
+        exportService: InsuranceExportService(),
     )
 }

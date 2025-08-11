@@ -17,7 +17,7 @@ final class ModelInvariantTests: XCTestCase {
                 for: Item.self, Category.self, Location.self, PhotoAsset.self,
                 Receipt.self, Warranty.self, MaintenanceTask.self, ShareGroup.self,
                 CurrencyRate.self,
-                configurations: config
+                configurations: config,
             )
             context = ModelContext(container)
         } catch {
@@ -35,7 +35,7 @@ final class ModelInvariantTests: XCTestCase {
         let item = try Item(
             name: "Test Item",
             description: "Test Description",
-            quantity: 5
+            quantity: 5,
         )
 
         XCTAssertEqual(item.name, "Test Item")
@@ -87,7 +87,7 @@ final class ModelInvariantTests: XCTestCase {
     func testCategoryCreation() throws {
         let category = try Category(
             name: "Electronics",
-            color: "#007AFF"
+            color: "#007AFF",
         )
 
         XCTAssertEqual(category.name, "Electronics")
@@ -113,7 +113,7 @@ final class ModelInvariantTests: XCTestCase {
     func testLocationCreation() throws {
         let location = try Location(
             name: "Living Room",
-            type: .room
+            type: .room,
         )
 
         XCTAssertEqual(location.name, "Living Room")
@@ -141,7 +141,7 @@ final class ModelInvariantTests: XCTestCase {
             fileName: "IMG_001.jpg",
             width: 1920,
             height: 1080,
-            sizeInBytes: 2_500_000
+            sizeInBytes: 2_500_000,
         )
 
         XCTAssertEqual(photo.fileName, "IMG_001.jpg")
@@ -156,7 +156,7 @@ final class ModelInvariantTests: XCTestCase {
         let receipt = try Receipt(
             vendor: "Apple Store",
             total: total,
-            purchaseDate: Date()
+            purchaseDate: Date(),
         )
 
         XCTAssertEqual(receipt.vendor, "Apple Store")
@@ -172,7 +172,7 @@ final class ModelInvariantTests: XCTestCase {
             provider: "AppleCare+",
             startDate: startDate,
             expiresAt: expiresAt,
-            coverageType: .extended
+            coverageType: .extended,
         )
 
         XCTAssertEqual(warranty.provider, "AppleCare+")
@@ -189,7 +189,7 @@ final class ModelInvariantTests: XCTestCase {
             _ = try Warranty(
                 provider: "Test",
                 startDate: startDate,
-                expiresAt: pastDate
+                expiresAt: pastDate,
             )
         }
     }
@@ -197,7 +197,7 @@ final class ModelInvariantTests: XCTestCase {
     func testMaintenanceTaskCreation() throws {
         let task = try MaintenanceTask(
             title: "Clean filters",
-            schedule: .monthly
+            schedule: .monthly,
         )
 
         XCTAssertEqual(task.title, "Clean filters")

@@ -29,7 +29,7 @@ public struct LiveSyncService: SyncService, Sendable {
     private let retryConfig = RetryConfig(
         maxAttempts: 5,
         baseDelay: 2.0,
-        maxDelay: 60.0
+        maxDelay: 60.0,
     )
 
     public init(
@@ -40,7 +40,7 @@ public struct LiveSyncService: SyncService, Sendable {
         database = container.privateCloudDatabase
         zoneID = CKRecordZone.ID(
             zoneName: "InventoryZone",
-            ownerName: CKCurrentUserDefaultName
+            ownerName: CKCurrentUserDefaultName,
         )
         self.conflictResolver = conflictResolver
     }
@@ -90,7 +90,7 @@ public struct LiveSyncService: SyncService, Sendable {
             pushedCount: pushed.count,
             pulledCount: pulled.count,
             conflictsResolved: conflicts.count,
-            timestamp: Date()
+            timestamp: Date(),
         )
 
         logger.info("Sync completed: \(String(describing: result))")
@@ -103,7 +103,7 @@ public struct LiveSyncService: SyncService, Sendable {
         let records = changes.map { change -> CKRecord in
             let record = CKRecord(
                 recordType: change.recordType,
-                recordID: CKRecord.ID(recordName: change.recordID, zoneID: zoneID)
+                recordID: CKRecord.ID(recordName: change.recordID, zoneID: zoneID),
             )
 
             for (key, value) in change.fields {
@@ -115,7 +115,7 @@ public struct LiveSyncService: SyncService, Sendable {
 
         let operation = CKModifyRecordsOperation(
             recordsToSave: records,
-            recordIDsToDelete: nil
+            recordIDsToDelete: nil,
         )
 
         operation.savePolicy = .changedKeys
@@ -125,7 +125,7 @@ public struct LiveSyncService: SyncService, Sendable {
             try await database.modifyRecords(
                 saving: records,
                 deleting: [],
-                savePolicy: .changedKeys
+                savePolicy: .changedKeys,
             )
         }
 
@@ -179,7 +179,7 @@ public struct LiveSyncService: SyncService, Sendable {
             recordType: recordType,
             predicate: predicate,
             subscriptionID: subscriptionID,
-            options: [.firesOnRecordCreation, .firesOnRecordUpdate, .firesOnRecordDeletion]
+            options: [.firesOnRecordCreation, .firesOnRecordUpdate, .firesOnRecordDeletion],
         )
 
         let notification = CKSubscription.NotificationInfo()
@@ -201,7 +201,7 @@ public struct LiveSyncService: SyncService, Sendable {
 
     private nonisolated func fetchBatch(
         since date: Date?,
-        cursor: CKQueryOperation.Cursor?
+        cursor: CKQueryOperation.Cursor?,
     ) async throws -> (changes: [SyncChange], cursor: CKQueryOperation.Cursor?) {
         let predicate = if let date {
             NSPredicate(format: "modificationDate > %@", date as NSDate)
@@ -234,7 +234,7 @@ public struct LiveSyncService: SyncService, Sendable {
                         fields: record.allKeys().reduce(into: [:]) { dict, key in
                             dict[key] = record[key]
                         },
-                        timestamp: record.modificationDate ?? Date()
+                        timestamp: record.modificationDate ?? Date(),
                     )
                     fetchedChanges.append(change)
                 case let .failure(error):
@@ -264,7 +264,7 @@ public struct LiveSyncService: SyncService, Sendable {
                     conflicts.append(SyncConflict(
                         recordID: localChange.recordID,
                         localChange: localChange,
-                        remoteChange: remoteChange
+                        remoteChange: remoteChange,
                     ))
                 }
             }

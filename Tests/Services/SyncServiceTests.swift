@@ -31,7 +31,7 @@ final class SyncServiceTests: XCTestCase {
             pushedCount: 5,
             pulledCount: 3,
             conflictsResolved: 1,
-            timestamp: Date()
+            timestamp: Date(),
         )
         service.syncInventoryResult = .success(result)
 
@@ -50,7 +50,7 @@ final class SyncServiceTests: XCTestCase {
                 recordType: "Item",
                 action: .create,
                 fields: [:],
-                timestamp: Date()
+                timestamp: Date(),
             ),
         ]
 
@@ -68,7 +68,7 @@ final class SyncServiceTests: XCTestCase {
                 recordType: "Item",
                 action: .update,
                 fields: [:],
-                timestamp: Date()
+                timestamp: Date(),
             ),
         ]
         service.pullChangesResult = .success(changes)
@@ -95,15 +95,15 @@ final class ConflictResolverTests: XCTestCase {
                     recordType: "Item",
                     action: .update,
                     fields: [:],
-                    timestamp: Date().addingTimeInterval(100)
+                    timestamp: Date().addingTimeInterval(100),
                 ),
                 remoteChange: SyncChange(
                     recordID: "test-1",
                     recordType: "Item",
                     action: .update,
                     fields: [:],
-                    timestamp: Date()
-                )
+                    timestamp: Date(),
+                ),
             ),
         ]
 
@@ -126,15 +126,15 @@ final class ConflictResolverTests: XCTestCase {
                     recordType: "Item",
                     action: .update,
                     fields: [:],
-                    timestamp: Date()
+                    timestamp: Date(),
                 ),
                 remoteChange: SyncChange(
                     recordID: "test-1",
                     recordType: "Item",
                     action: .update,
                     fields: [:],
-                    timestamp: Date()
-                )
+                    timestamp: Date(),
+                ),
             ),
         ]
 
@@ -159,15 +159,15 @@ final class ConflictResolverTests: XCTestCase {
                     recordType: "Item",
                     action: .update,
                     fields: ["updatedAt": Date().addingTimeInterval(100)],
-                    timestamp: Date().addingTimeInterval(100)
+                    timestamp: Date().addingTimeInterval(100),
                 ),
                 remoteChange: SyncChange(
                     recordID: "test-1",
                     recordType: "Item",
                     action: .update,
                     fields: ["updatedAt": Date()],
-                    timestamp: Date()
-                )
+                    timestamp: Date(),
+                ),
             ),
         ]
 

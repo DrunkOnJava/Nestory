@@ -143,7 +143,7 @@ public struct SchemaMigrator: Sendable {
             guard let planType = migrationPlans.first(where: { $0.toVersion == targetVersion }) else {
                 throw AppError.migrationFailed(
                     from: oldVersion.displayName,
-                    to: targetVersion.displayName
+                    to: targetVersion.displayName,
                 )
             }
 

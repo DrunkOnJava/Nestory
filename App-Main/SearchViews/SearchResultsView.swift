@@ -72,7 +72,7 @@ struct SearchResultCard: View {
                     .frame(width: 60, height: 60)
                     .overlay(
                         Image(systemName: "photo")
-                            .foregroundColor(.gray)
+                            .foregroundColor(.gray),
                     )
             }
 

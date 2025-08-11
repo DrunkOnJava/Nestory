@@ -134,7 +134,7 @@ public struct ErrorView: View {
             message: "Start by adding your first item to the inventory",
             systemImage: "archivebox",
             actionTitle: "Add Item",
-            action: {}
+            action: {},
         )
     }
 }

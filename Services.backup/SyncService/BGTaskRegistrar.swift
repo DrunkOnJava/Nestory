@@ -21,7 +21,7 @@ public final class BGTaskRegistrar {
 
     public func configure(
         syncService: any SyncService,
-        inventoryService: any InventoryService
+        inventoryService: any InventoryService,
     ) {
         self.syncService = syncService
         self.inventoryService = inventoryService
@@ -30,7 +30,7 @@ public final class BGTaskRegistrar {
     public func registerBackgroundTasks() {
         BGTaskScheduler.shared.register(
             forTaskWithIdentifier: syncTaskIdentifier,
-            using: nil
+            using: nil,
         ) { [weak self] task in
             Task { @MainActor in
                 self?.handleSyncTask(task as! BGProcessingTask)
@@ -39,7 +39,7 @@ public final class BGTaskRegistrar {
 
         BGTaskScheduler.shared.register(
             forTaskWithIdentifier: cleanupTaskIdentifier,
-            using: nil
+            using: nil,
         ) { [weak self] task in
             Task { @MainActor in
                 self?.handleCleanupTask(task as! BGAppRefreshTask)
@@ -136,7 +136,7 @@ public final class BGTaskRegistrar {
     private func cleanupOldData() async {
         let cacheDirectory = FileManager.default.urls(
             for: .cachesDirectory,
-            in: .userDomainMask
+            in: .userDomainMask,
         ).first!
 
         let oneWeekAgo = Date().addingTimeInterval(-604_800)
@@ -145,7 +145,7 @@ public final class BGTaskRegistrar {
             let contents = try FileManager.default.contentsOfDirectory(
                 at: cacheDirectory,
                 includingPropertiesForKeys: [.contentModificationDateKey],
-                options: [.skipsHiddenFiles]
+                options: [.skipsHiddenFiles],
             )
 
             for url in contents {

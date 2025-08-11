@@ -21,7 +21,7 @@ struct InventoryView: View {
                             title: "No Items",
                             message: "Start by adding your first item to the inventory",
                             systemImage: "archivebox",
-                            actionTitle: "Add Item"
+                            actionTitle: "Add Item",
                         ) {
                             store.send(.addItemTapped)
                         }
@@ -29,7 +29,7 @@ struct InventoryView: View {
                         EmptyStateView(
                             title: "No Results",
                             message: "Try adjusting your search or filters",
-                            systemImage: "magnifyingglass"
+                            systemImage: "magnifyingglass",
                         )
                     }
                 } else {
@@ -42,7 +42,7 @@ struct InventoryView: View {
                                 top: Theme.Spacing.sm,
                                 leading: Theme.Spacing.md,
                                 bottom: Theme.Spacing.sm,
-                                trailing: Theme.Spacing.md
+                                trailing: Theme.Spacing.md,
                             ))
                             .listRowSeparator(.hidden)
                             .listRowBackground(Color.clear)
@@ -54,7 +54,7 @@ struct InventoryView: View {
                     .listStyle(.plain)
                     .searchable(
                         text: $store.searchText.sending(\.searchTextChanged),
-                        prompt: "Search items, categories, or locations"
+                        prompt: "Search items, categories, or locations",
                     )
                 }
             }
@@ -184,6 +184,6 @@ struct ItemRow: View {
     InventoryView(
         store: Store(initialState: InventoryFeature.State()) {
             InventoryFeature()
-        }
+        },
     )
 }

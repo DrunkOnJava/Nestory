@@ -121,7 +121,7 @@ public final class CloudBackupService: ObservableObject {
         try await operations.saveBackupMetadata(
             itemCount: items.count,
             deviceName: UIDevice.current.name,
-            appVersion: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
+            appVersion: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown",
         )
 
         lastBackupDate = Date()
@@ -156,7 +156,7 @@ public final class CloudBackupService: ObservableObject {
         let metadata = BackupMetadata(
             date: metadataRecord["date"] as? Date ?? Date(),
             itemCount: metadataRecord["itemCount"] as? Int ?? 0,
-            deviceName: metadataRecord["deviceName"] as? String ?? "Unknown"
+            deviceName: metadataRecord["deviceName"] as? String ?? "Unknown",
         )
 
         // Restore categories
@@ -176,7 +176,7 @@ public final class CloudBackupService: ObservableObject {
         let itemRecords = try await operations.fetchRecords(recordType: "BackupItem")
         let items = try await restoreTransformer.restoreItems(
             from: itemRecords,
-            modelContext: modelContext
+            modelContext: modelContext,
         ) { [weak self] itemProgress in
             Task { @MainActor in
                 self?.progress = 0.3 + (0.6 * itemProgress)
@@ -190,7 +190,7 @@ public final class CloudBackupService: ObservableObject {
             itemsRestored: items.count,
             categoriesRestored: categories.count,
             roomsRestored: rooms.count,
-            backupDate: metadata.date
+            backupDate: metadata.date,
         )
     }
 
@@ -208,7 +208,7 @@ public final class CloudBackupService: ObservableObject {
         return BackupMetadata(
             date: record["date"] as? Date ?? Date(),
             itemCount: record["itemCount"] as? Int ?? 0,
-            deviceName: record["deviceName"] as? String ?? "Unknown"
+            deviceName: record["deviceName"] as? String ?? "Unknown",
         )
     }
 

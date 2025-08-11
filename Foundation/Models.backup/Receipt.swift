@@ -103,7 +103,7 @@ public final class Receipt {
         tax: Money? = nil,
         purchaseDate: Date? = nil,
         receiptNumber: String? = nil,
-        paymentMethod: String? = nil
+        paymentMethod: String? = nil,
     ) {
         if let vendor {
             self.vendor = vendor

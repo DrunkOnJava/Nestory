@@ -82,7 +82,7 @@ public struct LivePhotoIntegrationService: PhotoIntegrationService, Sendable {
             lensMake: nil,
             latitude: nil,
             longitude: nil,
-            orientation: image.imageOrientation
+            orientation: image.imageOrientation,
         )
 
         return ProcessedPhoto(
@@ -91,7 +91,7 @@ public struct LivePhotoIntegrationService: PhotoIntegrationService, Sendable {
             perceptualHash: phash,
             extractedText: text,
             detectedObjects: objects,
-            metadata: metadata
+            metadata: metadata,
         )
     }
 
@@ -154,7 +154,7 @@ public struct LivePhotoIntegrationService: PhotoIntegrationService, Sendable {
                     DetectedObject(
                         confidence: observation.confidence,
                         boundingBox: observation.boundingBox,
-                        label: "Rectangle"
+                        label: "Rectangle",
                     )
                 }
 
@@ -197,7 +197,7 @@ public struct LivePhotoIntegrationService: PhotoIntegrationService, Sendable {
 
         let fetchResult = PHAsset.fetchAssets(
             withLocalIdentifiers: [identifier],
-            options: nil
+            options: nil,
         )
 
         guard let asset = fetchResult.firstObject else {
@@ -213,7 +213,7 @@ public struct LivePhotoIntegrationService: PhotoIntegrationService, Sendable {
                 for: asset,
                 targetSize: PHImageManagerMaximumSize,
                 contentMode: .aspectFit,
-                options: options
+                options: options,
             ) { image, info in
                 if let error = info?[PHImageErrorKey] as? any Error {
                     continuation.resume(throwing: PhotoError.loadFailed(error.localizedDescription))

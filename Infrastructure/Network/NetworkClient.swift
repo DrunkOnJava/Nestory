@@ -48,7 +48,7 @@ public actor NetworkClient {
             path: path,
             method: .get,
             parameters: parameters,
-            headers: headers
+            headers: headers,
         )
         return try await execute(request)
     }
@@ -63,7 +63,7 @@ public actor NetworkClient {
             path: path,
             method: .post,
             body: body,
-            headers: headers
+            headers: headers,
         )
         return try await execute(request)
     }
@@ -78,7 +78,7 @@ public actor NetworkClient {
             path: path,
             method: .put,
             body: body,
-            headers: headers
+            headers: headers,
         )
         return try await execute(request)
     }
@@ -86,12 +86,12 @@ public actor NetworkClient {
     /// Execute DELETE request
     public func delete(
         _ path: String,
-        headers: [String: String]? = nil
+        headers: [String: String]? = nil,
     ) async throws {
         let request = try buildRequest(
             path: path,
             method: .delete,
-            headers: headers
+            headers: headers,
         )
         let _: EmptyResponse = try await execute(request)
     }
@@ -101,12 +101,12 @@ public actor NetworkClient {
         _ path: String,
         to destination: URL,
         headers: [String: String]? = nil,
-        progress _: ((Double) -> Void)? = nil
+        progress _: ((Double) -> Void)? = nil,
     ) async throws -> URL {
         let request = try buildRequest(
             path: path,
             method: .get,
-            headers: headers
+            headers: headers,
         )
 
         let (tempURL, response) = try await session.download(for: request)
@@ -135,7 +135,7 @@ public actor NetworkClient {
         let request = try buildRequest(
             path: path,
             method: .post,
-            headers: headers
+            headers: headers,
         )
 
         let (data, response) = try await session.upload(for: request, fromFile: file)
@@ -158,7 +158,7 @@ public actor NetworkClient {
         method: HTTPMethod,
         parameters: [String: Any]? = nil,
         body: (any Encodable)? = nil,
-        headers: [String: String]? = nil
+        headers: [String: String]? = nil,
     ) throws -> URLRequest {
         // Build URL
         let url: URL

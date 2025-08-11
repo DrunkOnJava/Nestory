@@ -108,7 +108,7 @@ public final class PerceptualHash: @unchecked Sendable {
             bitsPerComponent: 8,
             bytesPerRow: width,
             space: colorSpace,
-            bitmapInfo: bitmapInfo.rawValue
+            bitmapInfo: bitmapInfo.rawValue,
         ) else {
             throw PerceptualHashError.contextCreationFailed
         }

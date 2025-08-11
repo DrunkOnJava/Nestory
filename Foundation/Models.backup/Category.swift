@@ -167,7 +167,7 @@ public final class Category {
         description: String? = nil,
         color: String? = nil,
         icon: String? = nil,
-        sortOrder: Int? = nil
+        sortOrder: Int? = nil,
     ) {
         if let name {
             self.name = name

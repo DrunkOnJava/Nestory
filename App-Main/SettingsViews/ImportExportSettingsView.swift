@@ -73,7 +73,7 @@ struct ImportExportSettingsView: View {
                 items: items,
                 categories: categories,
                 insuranceReportService: insuranceReportService,
-                isGenerating: $isGeneratingReport
+                isGenerating: $isGeneratingReport,
             )
         }
         .sheet(isPresented: $showingInsuranceExportOptions) {
@@ -81,13 +81,13 @@ struct ImportExportSettingsView: View {
                 items: items,
                 categories: categories,
                 rooms: rooms,
-                exportService: insuranceExportService
+                exportService: insuranceExportService,
             )
         }
         .fileImporter(
             isPresented: $showingImportPicker,
             allowedContentTypes: [.json, .commaSeparatedText],
-            allowsMultipleSelection: false
+            allowsMultipleSelection: false,
         ) { result in
             Task {
                 switch result {
@@ -99,7 +99,7 @@ struct ImportExportSettingsView: View {
                     importResult = ImportExportService.ImportResult(
                         itemsImported: 0,
                         itemsSkipped: 0,
-                        errors: [error.localizedDescription]
+                        errors: [error.localizedDescription],
                     )
                     showingImportResult = true
                 }
@@ -142,7 +142,7 @@ struct ImportExportSettingsView: View {
             importResult = ImportExportService.ImportResult(
                 itemsImported: 0,
                 itemsSkipped: 0,
-                errors: [error.localizedDescription]
+                errors: [error.localizedDescription],
             )
             showingImportResult = true
         }

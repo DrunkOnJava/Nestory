@@ -40,7 +40,7 @@ struct ItemDetailView: View {
                         .overlay(
                             Image(systemName: "photo")
                                 .font(.system(size: 50))
-                                .foregroundColor(.gray)
+                                .foregroundColor(.gray),
                         )
                 }
 

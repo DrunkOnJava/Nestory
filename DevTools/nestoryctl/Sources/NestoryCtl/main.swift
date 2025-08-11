@@ -242,7 +242,7 @@ func runArchVerify(projectRoot: URL) -> Int32 {
                 if !isImportAllowed(from: module, to: importedModule, spec: spec) {
                     let relativePath = file.path.replacingOccurrences(of: projectRoot.path + "/", with: "")
                     violations.append(
-                        "  \(relativePath):\(line) - Illegal import: \(module) → \(importedModule)"
+                        "  \(relativePath):\(line) - Illegal import: \(module) → \(importedModule)",
                     )
                 }
             }
@@ -371,7 +371,7 @@ func findSwiftFiles(in directory: URL) -> [URL] {
         guard let enumerator = fileManager.enumerator(
             at: dirPath,
             includingPropertiesForKeys: nil,
-            options: [.skipsHiddenFiles]
+            options: [.skipsHiddenFiles],
         ) else { continue }
 
         for case let file as URL in enumerator {

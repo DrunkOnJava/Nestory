@@ -109,7 +109,7 @@ public final class ImportExportService: ObservableObject {
         return ImportResult(
             itemsImported: itemsImported,
             itemsSkipped: itemsSkipped,
-            errors: errors
+            errors: errors,
         )
     }
 
@@ -238,7 +238,7 @@ public final class ImportExportService: ObservableObject {
 
             throw DecodingError.dataCorruptedError(
                 in: container,
-                debugDescription: "Cannot decode date string \(dateString)"
+                debugDescription: "Cannot decode date string \(dateString)",
             )
         }
 
@@ -267,7 +267,7 @@ public final class ImportExportService: ObservableObject {
         return ImportResult(
             itemsImported: itemsImported,
             itemsSkipped: itemsSkipped,
-            errors: errors
+            errors: errors,
         )
     }
 

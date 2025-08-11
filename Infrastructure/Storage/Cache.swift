@@ -125,7 +125,7 @@ public final class Cache<Key: Hashable & Sendable, Value>: @unchecked Sendable {
                     let contents = try fileManager.contentsOfDirectory(
                         at: diskCacheURL,
                         includingPropertiesForKeys: [.fileSizeKey],
-                        options: [.skipsHiddenFiles]
+                        options: [.skipsHiddenFiles],
                     )
 
                     let totalSize = contents.reduce(0) { sum, url in
@@ -257,7 +257,7 @@ public final class Cache<Key: Hashable & Sendable, Value>: @unchecked Sendable {
                     let contents = try fileManager.contentsOfDirectory(
                         at: diskCacheURL,
                         includingPropertiesForKeys: [.contentModificationDateKey],
-                        options: [.skipsHiddenFiles]
+                        options: [.skipsHiddenFiles],
                     )
 
                     let now = Date()
@@ -296,7 +296,7 @@ public final class Cache<Key: Hashable & Sendable, Value>: @unchecked Sendable {
                     let contents = try fileManager.contentsOfDirectory(
                         at: diskCacheURL,
                         includingPropertiesForKeys: [.fileSizeKey, .contentModificationDateKey],
-                        options: [.skipsHiddenFiles]
+                        options: [.skipsHiddenFiles],
                     )
 
                     let sortedContents = contents.sorted { url1, url2 in

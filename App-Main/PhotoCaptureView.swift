@@ -51,7 +51,7 @@ struct PhotoCaptureView: View {
                             PhotosPicker(
                                 selection: $selectedItem,
                                 matching: .images,
-                                photoLibrary: .shared()
+                                photoLibrary: .shared(),
                             ) {
                                 Label("Choose from Library", systemImage: "photo.on.rectangle")
                                     .frame(maxWidth: .infinity)

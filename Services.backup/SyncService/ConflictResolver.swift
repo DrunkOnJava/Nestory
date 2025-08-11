@@ -61,14 +61,14 @@ public struct AutomaticConflictResolver: ConflictResolver, Sendable {
                 recordID: conflict.recordID,
                 strategy: .useLocal,
                 localChange: conflict.localChange,
-                remoteChange: conflict.remoteChange
+                remoteChange: conflict.remoteChange,
             )
         } else if conflict.remoteChange.timestamp > conflict.localChange.timestamp {
             ConflictResolution(
                 recordID: conflict.recordID,
                 strategy: .useRemote,
                 localChange: conflict.localChange,
-                remoteChange: conflict.remoteChange
+                remoteChange: conflict.remoteChange,
             )
         } else {
             if let merged = mergeChanges(conflict.localChange, conflict.remoteChange) {
@@ -77,14 +77,14 @@ public struct AutomaticConflictResolver: ConflictResolver, Sendable {
                     strategy: .merge,
                     localChange: conflict.localChange,
                     remoteChange: conflict.remoteChange,
-                    mergedChange: merged
+                    mergedChange: merged,
                 )
             } else {
                 ConflictResolution(
                     recordID: conflict.recordID,
                     strategy: .useLocal,
                     localChange: conflict.localChange,
-                    remoteChange: conflict.remoteChange
+                    remoteChange: conflict.remoteChange,
                 )
             }
         }
@@ -130,7 +130,7 @@ public struct AutomaticConflictResolver: ConflictResolver, Sendable {
             recordType: local.recordType,
             action: local.action,
             fields: mergedFields,
-            timestamp: Date()
+            timestamp: Date(),
         )
     }
 }
@@ -155,7 +155,7 @@ public struct ManualConflictResolver: ConflictResolver, @unchecked Sendable {
                 recordID: conflict.recordID,
                 strategy: strategy,
                 localChange: conflict.localChange,
-                remoteChange: conflict.remoteChange
+                remoteChange: conflict.remoteChange,
             )
 
             resolutions.append(resolution)
@@ -221,7 +221,7 @@ public struct RuleBasedConflictResolver: ConflictResolver, @unchecked Sendable {
                 recordID: conflict.recordID,
                 strategy: strategy,
                 localChange: conflict.localChange,
-                remoteChange: conflict.remoteChange
+                remoteChange: conflict.remoteChange,
             )
         }
 

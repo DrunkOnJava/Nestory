@@ -21,7 +21,7 @@ public struct RestoreDataTransformer {
         let category = Category(
             name: record["name"] as? String ?? "Unknown",
             icon: record["icon"] as? String ?? "folder",
-            colorHex: record["colorHex"] as? String ?? "#007AFF"
+            colorHex: record["colorHex"] as? String ?? "#007AFF",
         )
 
         return category
@@ -34,7 +34,7 @@ public struct RestoreDataTransformer {
             name: record["name"] as? String ?? "Unknown",
             icon: record["icon"] as? String ?? "door.left.hand.open",
             roomDescription: record["roomDescription"] as? String,
-            floor: record["floor"] as? String
+            floor: record["floor"] as? String,
         )
 
         return room
@@ -46,7 +46,7 @@ public struct RestoreDataTransformer {
         let item = Item(
             name: record["name"] as? String ?? "Unknown",
             itemDescription: record["itemDescription"] as? String,
-            quantity: record["quantity"] as? Int ?? 1
+            quantity: record["quantity"] as? Int ?? 1,
         )
 
         // Restore all properties
@@ -92,7 +92,7 @@ public struct RestoreDataTransformer {
 
     public func restoreCategories(
         from records: [(CKRecord.ID, Result<CKRecord, Error>)],
-        modelContext: ModelContext
+        modelContext: ModelContext,
     ) -> [Category] {
         var categories: [Category] = []
 
@@ -109,7 +109,7 @@ public struct RestoreDataTransformer {
 
     public func restoreRooms(
         from records: [(CKRecord.ID, Result<CKRecord, Error>)],
-        modelContext: ModelContext
+        modelContext: ModelContext,
     ) -> [Room] {
         var rooms: [Room] = []
 
@@ -127,7 +127,7 @@ public struct RestoreDataTransformer {
     public func restoreItems(
         from records: [(CKRecord.ID, Result<CKRecord, Error>)],
         modelContext: ModelContext,
-        progressHandler: ((Double) -> Void)? = nil
+        progressHandler: ((Double) -> Void)? = nil,
     ) async throws -> [Item] {
         var items: [Item] = []
         let totalCount = records.count

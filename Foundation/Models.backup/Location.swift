@@ -184,7 +184,7 @@ public final class Location {
         description: String? = nil,
         address: String? = nil,
         notes: String? = nil,
-        sortOrder: Int? = nil
+        sortOrder: Int? = nil,
     ) {
         if let name {
             self.name = name

@@ -47,7 +47,7 @@ public final class HTTPClient: @unchecked Sendable {
 
     public func requestData(
         _ endpoint: Endpoint,
-        retryConfig: RetryConfig = .default
+        retryConfig: RetryConfig = .default,
     ) async throws -> Data {
         guard isNetworkAvailable else {
             throw NetworkError.networkUnavailable
@@ -147,7 +147,7 @@ public struct RetryConfig: Sendable {
     public static let aggressive = RetryConfig(
         maxAttempts: 5,
         baseDelay: 0.5,
-        maxDelay: 60.0
+        maxDelay: 60.0,
     )
 
     public static let none = RetryConfig(maxAttempts: 1)

@@ -75,13 +75,13 @@ public struct LiveCurrencyService: CurrencyService, @unchecked Sendable {
 
         let endpoint = Endpoint.get(
             "latest",
-            query: ["base": "USD"]
+            query: ["base": "USD"],
         )
 
         do {
             let response: ExchangeRateResponse = try await httpClient.request(
                 endpoint,
-                responseType: ExchangeRateResponse.self
+                responseType: ExchangeRateResponse.self,
             )
 
             for (currency, rate) in response.rates {
@@ -89,7 +89,7 @@ public struct LiveCurrencyService: CurrencyService, @unchecked Sendable {
                     from: "USD",
                     to: currency,
                     rate: rate,
-                    timestamp: response.timestamp
+                    timestamp: response.timestamp,
                 )
 
                 let cacheKey = "USD_\(currency)"
@@ -99,7 +99,7 @@ public struct LiveCurrencyService: CurrencyService, @unchecked Sendable {
                     from: currency,
                     to: "USD",
                     rate: 1 / rate,
-                    timestamp: response.timestamp
+                    timestamp: response.timestamp,
                 )
 
                 let inverseCacheKey = "\(currency)_USD"
@@ -134,7 +134,7 @@ public struct LiveCurrencyService: CurrencyService, @unchecked Sendable {
                 from: from,
                 to: to,
                 rate: offlineRate,
-                timestamp: Date()
+                timestamp: Date(),
             )
             await cache.set(exchangeRate, for: cacheKey)
             return offlineRate
@@ -151,7 +151,7 @@ public struct LiveCurrencyService: CurrencyService, @unchecked Sendable {
                 code: code,
                 name: currencyName(for: code),
                 symbol: currencySymbol(for: code),
-                decimals: currencyDecimals(for: code)
+                decimals: currencyDecimals(for: code),
             )
             currencies.append(currency)
         }

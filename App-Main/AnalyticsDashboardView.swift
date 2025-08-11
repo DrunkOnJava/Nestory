@@ -48,28 +48,28 @@ struct AnalyticsDashboardView: View {
                             title: "Total Items",
                             value: "\(items.count)",
                             icon: "shippingbox.fill",
-                            color: .blue
+                            color: .blue,
                         )
 
                         SummaryCard(
                             title: "Total Value",
                             value: formatCurrency(totalValue),
                             icon: "dollarsign.circle.fill",
-                            color: .green
+                            color: .green,
                         )
 
                         SummaryCard(
                             title: "Categories",
                             value: "\(categoriesWithItems.count)",
                             icon: "square.grid.2x2.fill",
-                            color: .purple
+                            color: .purple,
                         )
 
                         SummaryCard(
                             title: "Avg. Value",
                             value: formatCurrency(averageValue),
                             icon: "chart.line.uptrend.xyaxis",
-                            color: .orange
+                            color: .orange,
                         )
                     }
                     .padding(.horizontal)
@@ -117,28 +117,28 @@ struct AnalyticsDashboardView: View {
                                 InsightRow(
                                     icon: "doc.text.fill",
                                     text: "\(itemsNeedingDocumentation.count) items need documentation",
-                                    color: .orange
+                                    color: .orange,
                                 )
 
                                 if let mostValuableCategory {
                                     InsightRow(
                                         icon: "crown.fill",
                                         text: "\(mostValuableCategory.name) is your most valuable category",
-                                        color: .yellow
+                                        color: .yellow,
                                     )
                                 }
 
                                 InsightRow(
                                     icon: "chart.line.uptrend.xyaxis",
                                     text: "You've added \(recentlyAddedCount) items this month",
-                                    color: .green
+                                    color: .green,
                                 )
 
                                 if uncategorizedCount > 0 {
                                     InsightRow(
                                         icon: "questionmark.folder.fill",
                                         text: "\(uncategorizedCount) items need categorization",
-                                        color: .red
+                                        color: .red,
                                     )
                                 }
                             }
@@ -283,7 +283,7 @@ struct CategoryDistributionChart: View {
                 let count = items.count(where: { $0.category?.id == category.id })
                 SectorMark(
                     angle: .value("Count", count),
-                    innerRadius: .ratio(0.5)
+                    innerRadius: .ratio(0.5),
                 )
                 .foregroundStyle(Color(hex: category.colorHex) ?? .blue)
                 .annotation(position: .overlay) {
@@ -318,7 +318,7 @@ struct ValueByCategoryChart: View {
         Chart(categoryData, id: \.category.id) { data in
             BarMark(
                 x: .value("Value", data.value),
-                y: .value("Category", data.category.name)
+                y: .value("Category", data.category.name),
             )
             .foregroundStyle(Color(hex: data.category.colorHex) ?? .blue)
         }
@@ -353,20 +353,20 @@ struct RecentActivityChart: View {
             Chart(activityData, id: \.date) { data in
                 LineMark(
                     x: .value("Date", data.date),
-                    y: .value("Items", data.count)
+                    y: .value("Items", data.count),
                 )
                 .foregroundStyle(.blue)
 
                 AreaMark(
                     x: .value("Date", data.date),
-                    y: .value("Items", data.count)
+                    y: .value("Items", data.count),
                 )
                 .foregroundStyle(
                     .linearGradient(
                         colors: [.blue.opacity(0.3), .blue.opacity(0.1)],
                         startPoint: .top,
-                        endPoint: .bottom
-                    )
+                        endPoint: .bottom,
+                    ),
                 )
             }
         }
@@ -419,7 +419,7 @@ struct ItemStatusChart: View {
                                         .fill(data.color)
                                         .frame(height: geometry.size.height * CGFloat(data.count) / CGFloat(max(items.count, 1)))
                                 }
-                            }
+                            },
                         )
                 }
                 .frame(maxWidth: .infinity)

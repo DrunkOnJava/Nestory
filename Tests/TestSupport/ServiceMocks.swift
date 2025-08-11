@@ -150,7 +150,7 @@ public final class TestSyncService: SyncService {
 
     public var syncInventoryCalled = false
     public var syncInventoryResult: Result<SyncResult, Error> = .success(
-        SyncResult(pushedCount: 0, pulledCount: 0, conflictsResolved: 0, timestamp: Date())
+        SyncResult(pushedCount: 0, pulledCount: 0, conflictsResolved: 0, timestamp: Date()),
     )
 
     public var pushChangesCalled = false
@@ -220,7 +220,7 @@ public final class TestAnalyticsService: AnalyticsService {
             recentItems: [],
             valueTrends: [],
             totalDepreciation: 0,
-            lastUpdated: Date()
+            lastUpdated: Date(),
         )
     }
 
@@ -266,14 +266,14 @@ public enum TestData {
         accessToken: "test-access-token",
         refreshToken: "test-refresh-token",
         expiresAt: Date().addingTimeInterval(3600),
-        provider: .demo
+        provider: .demo,
     )
 
     public static func makeItem(
         id _: UUID = UUID(),
         name: String = "Test Item",
         purchasePrice: Decimal? = 99.99,
-        quantity: Int = 1
+        quantity: Int = 1,
     ) -> Item {
         let item = Item(name: name)
         item.purchasePrice = purchasePrice

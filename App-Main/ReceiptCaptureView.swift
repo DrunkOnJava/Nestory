@@ -173,7 +173,7 @@ struct ReceiptCaptureView: View {
                 isPresented: $showingPhotoPicker,
                 selection: $selectedPhoto,
                 matching: .images,
-                photoLibrary: .shared()
+                photoLibrary: .shared(),
             )
             .onChange(of: selectedPhoto) { _, newValue in
                 Task {

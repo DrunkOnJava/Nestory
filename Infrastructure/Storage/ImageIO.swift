@@ -80,7 +80,7 @@ public final class ImageIO: @unchecked Sendable {
                 data as CFMutableData,
                 UTType.heic.identifier as CFString,
                 1,
-                nil
+                nil,
             ) else {
                 throw ImageError.cannotEncodeImage
             }
@@ -120,7 +120,7 @@ public final class ImageIO: @unchecked Sendable {
 
         let newSize = CGSize(
             width: size.width * scale,
-            height: size.height * scale
+            height: size.height * scale,
         )
 
         let renderer = UIGraphicsImageRenderer(size: newSize)
@@ -139,7 +139,7 @@ public final class ImageIO: @unchecked Sendable {
             x: rect.origin.x * scale,
             y: rect.origin.y * scale,
             width: rect.size.width * scale,
-            height: rect.size.height * scale
+            height: rect.size.height * scale,
         )
 
         guard let croppedCGImage = cgImage.cropping(to: scaledRect) else {
@@ -149,7 +149,7 @@ public final class ImageIO: @unchecked Sendable {
         return UIImage(
             cgImage: croppedCGImage,
             scale: scale,
-            orientation: image.imageOrientation
+            orientation: image.imageOrientation,
         )
     }
 
@@ -177,7 +177,7 @@ public final class ImageIO: @unchecked Sendable {
             lensMake: exif?[kCGImagePropertyExifLensMake] as? String,
             latitude: gps?[kCGImagePropertyGPSLatitude] as? Double,
             longitude: gps?[kCGImagePropertyGPSLongitude] as? Double,
-            orientation: extractOrientation(from: properties)
+            orientation: extractOrientation(from: properties),
         )
     }
 

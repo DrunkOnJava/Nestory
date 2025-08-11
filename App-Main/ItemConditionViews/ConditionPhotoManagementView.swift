@@ -44,7 +44,7 @@ struct ConditionPhotoManagementView: View {
 
             if item.conditionPhotos.isEmpty {
                 ConditionPhotoEmptyState(
-                    showingCamera: $showingCamera
+                    showingCamera: $showingCamera,
                 )
             } else {
                 ConditionPhotoGrid(
@@ -52,7 +52,7 @@ struct ConditionPhotoManagementView: View {
                     descriptions: photoDescriptions,
                     selectedPhotoIndex: $selectedPhotoIndex,
                     photoToDelete: $photoToDelete,
-                    showingDeleteAlert: $showingDeleteAlert
+                    showingDeleteAlert: $showingDeleteAlert,
                 )
             }
 
@@ -82,7 +82,7 @@ struct ConditionPhotoManagementView: View {
         }
         .sheet(isPresented: Binding(
             get: { selectedPhotoIndex != nil },
-            set: { if !$0 { selectedPhotoIndex = nil } }
+            set: { if !$0 { selectedPhotoIndex = nil } },
         )) {
             if let index = selectedPhotoIndex {
                 ConditionPhotoDetailView(
@@ -94,8 +94,8 @@ struct ConditionPhotoManagementView: View {
                                 photoDescriptions.append("")
                             }
                             photoDescriptions[index] = newValue
-                        }
-                    )
+                        },
+                    ),
                 )
             }
         }
@@ -164,7 +164,7 @@ struct ConditionPhotoGrid: View {
                     onDelete: {
                         photoToDelete = index
                         showingDeleteAlert = true
-                    }
+                    },
                 )
             }
         }
@@ -189,7 +189,7 @@ struct ConditionPhotoCard: View {
                         .cornerRadius(8)
                         .overlay(
                             RoundedRectangle(cornerRadius: 8)
-                                .stroke(Color(.systemGray4), lineWidth: 1)
+                                .stroke(Color(.systemGray4), lineWidth: 1),
                         )
                 }
             }

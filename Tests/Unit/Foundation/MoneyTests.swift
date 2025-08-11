@@ -110,7 +110,7 @@ extension XCTestCase {
         _ expression: @autoclosure () throws -> some Any,
         _ message: @autoclosure () -> String = "",
         file: StaticString = #filePath,
-        line: UInt = #line
+        line: UInt = #line,
     ) {
         XCTAssertThrowsError(try expression(), message(), file: file, line: line)
     }

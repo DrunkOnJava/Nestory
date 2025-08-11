@@ -89,7 +89,7 @@ struct CloudBackupSettingsView: View {
                 try await cloudBackup.performBackup(
                     items: items,
                     categories: categories,
-                    rooms: rooms
+                    rooms: rooms,
                 )
                 backupResult = "Backup completed successfully! \(items.count) items backed up to iCloud."
                 showingBackupResult = true

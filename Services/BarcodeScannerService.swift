@@ -71,7 +71,7 @@ public final class BarcodeScannerService: ObservableObject {
                     let result = BarcodeResult(
                         value: payload,
                         type: symbologyToString(firstBarcode.symbology),
-                        confidence: firstBarcode.confidence
+                        confidence: firstBarcode.confidence,
                     )
                     continuation.resume(returning: result)
                 } else {
@@ -128,7 +128,7 @@ public final class BarcodeScannerService: ObservableObject {
                 brand: nil,
                 model: nil,
                 category: "Electronics",
-                estimatedValue: nil
+                estimatedValue: nil,
             )
         }
 

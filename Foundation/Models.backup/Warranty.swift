@@ -138,7 +138,7 @@ public final class Warranty {
         startDate: Date? = nil,
         expiresAt: Date? = nil,
         coverageNotes: String? = nil,
-        policyNumber: String? = nil
+        policyNumber: String? = nil,
     ) {
         if let provider {
             self.provider = provider
@@ -165,7 +165,7 @@ public final class Warranty {
     public func setClaimContact(
         phone: String? = nil,
         email: String? = nil,
-        website: String? = nil
+        website: String? = nil,
     ) {
         claimPhone = phone
         claimEmail = email

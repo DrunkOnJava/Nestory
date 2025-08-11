@@ -123,19 +123,19 @@ public struct BadgeView: View {
             subtitle: "Electronics",
             imageSystemName: "laptopcomputer",
             price: "$2,499",
-            badge: "New"
+            badge: "New",
         )
 
         ItemCard(
             title: "Office Chair",
             subtitle: "Furniture",
             imageSystemName: "chair",
-            price: "$450"
+            price: "$450",
         )
 
         ItemCard(
             title: "Coffee Maker",
-            imageSystemName: "cup.and.saucer"
+            imageSystemName: "cup.and.saucer",
         )
     }
     .padding()

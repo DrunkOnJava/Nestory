@@ -7,7 +7,7 @@ final class NetworkTests: XCTestCase {
             method: .get,
             path: "/api/items",
             query: ["page": "1", "limit": "10"],
-            headers: ["Authorization": "Bearer token"]
+            headers: ["Authorization": "Bearer token"],
         )
 
         XCTAssertEqual(endpoint.method, .get)
@@ -23,7 +23,7 @@ final class NetworkTests: XCTestCase {
             path: "/items",
             query: ["category": "electronics"],
             headers: ["Content-Type": "application/json"],
-            body: "test".data(using: .utf8)
+            body: "test".data(using: .utf8),
         )
 
         let request = try endpoint.urlRequest(baseURL: baseURL)
@@ -63,7 +63,7 @@ final class NetworkTests: XCTestCase {
             maxAttempts: 3,
             baseDelay: 1.0,
             maxDelay: 10.0,
-            jitterRange: 1.0 ... 1.0
+            jitterRange: 1.0 ... 1.0,
         )
 
         XCTAssertEqual(config.delay(for: 0), 1.0)

@@ -76,6 +76,6 @@ struct ScanOptionsView: View {
     ScanOptionsView(
         onCameraScan: {},
         onPhotoScan: {},
-        onManualEntry: {}
+        onManualEntry: {},
     )
 }

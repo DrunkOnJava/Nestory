@@ -30,7 +30,7 @@ public actor PerformanceMonitor {
             id: id,
             name: name,
             startTime: Date(),
-            metadata: metadata ?? [:]
+            metadata: metadata ?? [:],
         )
 
         activeTransactions[id] = transaction
@@ -53,7 +53,7 @@ public actor PerformanceMonitor {
         let metric = MetricValue(
             value: duration,
             timestamp: Date(),
-            metadata: transaction.metadata.merging(["success": success]) { _, new in new }
+            metadata: transaction.metadata.merging(["success": success]) { _, new in new },
         )
 
         recordMetric(for: MetricKey.transaction(transaction.name), value: metric)
@@ -86,7 +86,7 @@ public actor PerformanceMonitor {
         let metric = MetricValue(
             value: value,
             timestamp: Date(),
-            metadata: metadata ?? [:]
+            metadata: metadata ?? [:],
         )
 
         recordMetric(for: key, value: metric)
@@ -105,7 +105,7 @@ public actor PerformanceMonitor {
             metadata: [
                 "used_bytes": usedMemory,
                 "total_bytes": physicalMemory,
-            ]
+            ],
         )
 
         recordMetric(for: .memory, value: metric)
@@ -120,7 +120,7 @@ public actor PerformanceMonitor {
         let metric = MetricValue(
             value: latency,
             timestamp: Date(),
-            metadata: ["endpoint": endpoint]
+            metadata: ["endpoint": endpoint],
         )
 
         recordMetric(for: .networkLatency, value: metric)
@@ -134,7 +134,7 @@ public actor PerformanceMonitor {
             metadata: [
                 "operation": operation,
                 "success": success,
-            ]
+            ],
         )
 
         recordMetric(for: .database, value: metric)
@@ -145,7 +145,7 @@ public actor PerformanceMonitor {
         let metric = MetricValue(
             value: duration,
             timestamp: Date(),
-            metadata: ["screen": screen]
+            metadata: ["screen": screen],
         )
 
         recordMetric(for: .uiResponsiveness, value: metric)
@@ -185,7 +185,7 @@ public actor PerformanceMonitor {
             mean: mean,
             p50: p50,
             p95: p95,
-            p99: p99
+            p99: p99,
         )
     }
 

@@ -32,13 +32,13 @@ struct BarcodeScannerView: View {
                         result: result,
                         productInfo: productInfo,
                         onApply: applyScanResult,
-                        onRescan: rescan
+                        onRescan: rescan,
                     )
                 } else {
                     ScanOptionsView(
                         onCameraScan: checkCameraAndScan,
                         onPhotoScan: { showingPhotoPicker = true },
-                        onManualEntry: { showingManualEntry = true }
+                        onManualEntry: { showingManualEntry = true },
                     )
                 }
 
@@ -107,7 +107,7 @@ struct BarcodeScannerView: View {
             Task {
                 productInfo = await scanner.lookupProduct(
                     barcode: result.value,
-                    type: result.type
+                    type: result.type,
                 )
             }
         }
@@ -138,7 +138,7 @@ struct BarcodeScannerView: View {
         let result = BarcodeResult(
             value: value,
             type: type,
-            confidence: 1.0
+            confidence: 1.0,
         )
         handleScanResult(result)
     }

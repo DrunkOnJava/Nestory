@@ -63,7 +63,7 @@ final class DashboardDataTests: XCTestCase {
             recentItems: [],
             valueTrends: [],
             totalDepreciation: 100,
-            lastUpdated: Date()
+            lastUpdated: Date(),
         )
 
         let encoder = JSONEncoder()

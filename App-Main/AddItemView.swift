@@ -163,7 +163,7 @@ struct AddItemView: View {
             name: name,
             itemDescription: itemDescription.isEmpty ? nil : itemDescription,
             quantity: quantity,
-            category: selectedCategory
+            category: selectedCategory,
         )
 
         newItem.brand = brand.isEmpty ? nil : brand

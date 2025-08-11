@@ -192,7 +192,7 @@ public final class MaintenanceTask {
         intervalDays: Int? = nil,
         priority: Priority? = nil,
         estimatedDuration: Int? = nil,
-        notes: String? = nil
+        notes: String? = nil,
     ) {
         if let title {
             self.title = title

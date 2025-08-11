@@ -85,7 +85,7 @@ final class ArchitectureTests: XCTestCase {
                     fromFile: file.path,
                     fromModule: module,
                     toModule: importedModule,
-                    line: line
+                    line: line,
                 ))
             }
         }
@@ -95,7 +95,7 @@ final class ArchitectureTests: XCTestCase {
         for edge in edges {
             if !isImportAllowed(from: edge.fromModule, to: edge.toModule, spec: spec) {
                 violations.append(
-                    "\(edge.fromFile):\(edge.line) - Illegal import: \(edge.fromModule) → \(edge.toModule)"
+                    "\(edge.fromFile):\(edge.line) - Illegal import: \(edge.fromModule) → \(edge.toModule)",
                 )
             }
         }
@@ -128,7 +128,7 @@ final class ArchitectureTests: XCTestCase {
             guard let enumerator = fileManager.enumerator(
                 at: dirPath,
                 includingPropertiesForKeys: nil,
-                options: [.skipsHiddenFiles]
+                options: [.skipsHiddenFiles],
             ) else { continue }
 
             for case let file as URL in enumerator {

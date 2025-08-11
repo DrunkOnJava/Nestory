@@ -54,7 +54,7 @@ public struct CloudKitAssetManager {
         do {
             let contents = try FileManager.default.contentsOfDirectory(
                 at: tempDirectory,
-                includingPropertiesForKeys: nil
+                includingPropertiesForKeys: nil,
             )
 
             for url in contents {

@@ -100,7 +100,7 @@ public final class PhotoAsset {
     /// Update photo properties
     public func update(
         caption: String? = nil,
-        sortOrder: Int? = nil
+        sortOrder: Int? = nil,
     ) {
         if let caption {
             self.caption = caption

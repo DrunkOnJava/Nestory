@@ -58,7 +58,7 @@ public struct LiveAuthService: AuthService, @unchecked Sendable {
         return try await withCheckedThrowingContinuation { continuation in
             context.evaluatePolicy(
                 .deviceOwnerAuthenticationWithBiometrics,
-                localizedReason: "Access your secure inventory"
+                localizedReason: "Access your secure inventory",
             ) { success, error in
                 if success {
                     continuation.resume(returning: true)
@@ -98,7 +98,7 @@ public struct LiveAuthService: AuthService, @unchecked Sendable {
             accessToken: generateToken(),
             refreshToken: generateToken(),
             expiresAt: Date().addingTimeInterval(3600),
-            provider: .apple
+            provider: .apple,
         )
 
         try keychain.saveCodable(newCredentials, for: "credentials")
@@ -133,7 +133,7 @@ public struct LiveAuthService: AuthService, @unchecked Sendable {
             accessToken: generateToken(),
             refreshToken: generateToken(),
             expiresAt: Date().addingTimeInterval(86400),
-            provider: .anonymous
+            provider: .anonymous,
         )
     }
 
@@ -143,7 +143,7 @@ public struct LiveAuthService: AuthService, @unchecked Sendable {
             accessToken: "demo-access-token",
             refreshToken: "demo-refresh-token",
             expiresAt: Date().addingTimeInterval(3600),
-            provider: .demo
+            provider: .demo,
         )
     }
 
@@ -159,7 +159,7 @@ private class AuthControllerDelegate: NSObject, ASAuthorizationControllerDelegat
 
     func authorizationController(
         controller _: ASAuthorizationController,
-        didCompleteWithAuthorization authorization: ASAuthorization
+        didCompleteWithAuthorization authorization: ASAuthorization,
     ) {
         guard let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential else {
             continuation?.resume(throwing: AuthError.invalidCredential)
@@ -171,7 +171,7 @@ private class AuthControllerDelegate: NSObject, ASAuthorizationControllerDelegat
             accessToken: String(data: appleIDCredential.identityToken ?? Data(), encoding: .utf8) ?? "",
             refreshToken: String(data: appleIDCredential.authorizationCode ?? Data(), encoding: .utf8) ?? "",
             expiresAt: Date().addingTimeInterval(3600),
-            provider: .apple
+            provider: .apple,
         )
 
         continuation?.resume(returning: credentials)

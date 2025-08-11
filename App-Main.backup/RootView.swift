@@ -18,25 +18,25 @@ struct RootView: View {
                     case .inventory:
                         ComingSoonView(
                             title: "Inventory",
-                            message: "Item management coming soon"
+                            message: "Item management coming soon",
                         )
 
                     case .capture:
                         ComingSoonView(
                             title: "Capture",
-                            message: "OCR and barcode scanning coming soon"
+                            message: "OCR and barcode scanning coming soon",
                         )
 
                     case .analytics:
                         ComingSoonView(
                             title: "Analytics",
-                            message: "Insights and reports coming soon"
+                            message: "Insights and reports coming soon",
                         )
 
                     case .settings:
                         ComingSoonView(
                             title: "Settings",
-                            message: "Preferences and configuration coming soon"
+                            message: "Preferences and configuration coming soon",
                         )
                     }
                 }
@@ -79,6 +79,6 @@ struct ComingSoonView: View {
     RootView(
         store: Store(initialState: RootFeature.State()) {
             RootFeature()
-        }
+        },
     )
 }

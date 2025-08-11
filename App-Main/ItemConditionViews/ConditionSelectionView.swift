@@ -25,7 +25,7 @@ struct ConditionSelectionView: View {
                             withAnimation {
                                 selectedCondition = condition
                             }
-                        }
+                        },
                     )
                 }
             }
@@ -64,11 +64,11 @@ struct ConditionButton: View {
             .padding(.vertical, 12)
             .background(
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(isSelected ? Color(hex: condition.color) ?? .accentColor : Color(.systemGray6))
+                    .fill(isSelected ? Color(hex: condition.color) ?? .accentColor : Color(.systemGray6)),
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 8)
-                    .stroke(Color(hex: condition.color) ?? .accentColor, lineWidth: isSelected ? 0 : 1)
+                    .stroke(Color(hex: condition.color) ?? .accentColor, lineWidth: isSelected ? 0 : 1),
             )
         }
         .buttonStyle(.plain)

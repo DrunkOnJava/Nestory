@@ -179,13 +179,13 @@ public struct SearchSuggestionRow: View {
             SearchSuggestionRow(
                 icon: "clock",
                 title: "MacBook Pro",
-                subtitle: "Recent search"
+                subtitle: "Recent search",
             ) {}
 
             SearchSuggestionRow(
                 icon: "sparkles",
                 title: "Items under $50",
-                subtitle: "Smart filter"
+                subtitle: "Smart filter",
             ) {}
         }
         .padding()

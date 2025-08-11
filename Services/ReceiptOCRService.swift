@@ -121,7 +121,7 @@ public final class ReceiptOCRService: ObservableObject {
             storeName: storeName,
             date: date,
             totalAmount: totalAmount,
-            items: items
+            items: items,
         )
     }
 
@@ -269,7 +269,7 @@ public final class ReceiptOCRService: ObservableObject {
                                 items.append(ReceiptData.ExtractedItem(
                                     name: cleanItemName(itemName),
                                     price: price,
-                                    quantity: quantity
+                                    quantity: quantity,
                                 ))
                             }
                         }
@@ -313,7 +313,7 @@ public final class ReceiptOCRService: ObservableObject {
                 cleaned = regex.stringByReplacingMatches(
                     in: cleaned,
                     range: NSRange(cleaned.startIndex..., in: cleaned),
-                    withTemplate: ""
+                    withTemplate: "",
                 )
             }
         }

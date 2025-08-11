@@ -13,7 +13,7 @@ struct WarrantyDocumentsView: View {
     @Bindable var item: Item
     @Environment(\.dismiss) private var dismiss
     @State private var selectedTab = 0
-    
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
@@ -25,7 +25,7 @@ struct WarrantyDocumentsView: View {
                 }
                 .pickerStyle(.segmented)
                 .padding()
-                
+
                 ScrollView {
                     VStack(spacing: 20) {
                         switch selectedTab {

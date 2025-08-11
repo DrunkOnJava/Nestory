@@ -22,7 +22,7 @@ public final class CryptoBox {
         return EncryptedData(
             ciphertext: encryptedData,
             nonce: nonce.withUnsafeBytes { Data($0) },
-            tag: sealedBox.tag
+            tag: sealedBox.tag,
         )
     }
 
@@ -34,7 +34,7 @@ public final class CryptoBox {
         let sealedBox = try AES.GCM.SealedBox(
             nonce: nonce,
             ciphertext: encryptedData.ciphertext,
-            tag: encryptedData.tag
+            tag: encryptedData.tag,
         )
 
         let decryptedData = try AES.GCM.open(sealedBox, using: key)
@@ -72,7 +72,7 @@ public final class CryptoBox {
             inputKeyMaterial: SymmetricKey(data: passwordData),
             salt: salt,
             info: Data("com.nestory.encryption".utf8),
-            outputByteCount: 32
+            outputByteCount: 32,
         )
 
         return derivedKey
@@ -123,7 +123,7 @@ public final class CryptoBox {
             using: SHA256.self,
             salt: Data(),
             sharedInfo: Data("com.nestory.keyagreement".utf8),
-            outputByteCount: 32
+            outputByteCount: 32,
         )
 
         return try encrypt(data, using: symmetricKey)
@@ -136,7 +136,7 @@ public final class CryptoBox {
             using: SHA256.self,
             salt: Data(),
             sharedInfo: Data("com.nestory.keyagreement".utf8),
-            outputByteCount: 32
+            outputByteCount: 32,
         )
 
         return try decrypt(encryptedData, using: symmetricKey)

@@ -26,7 +26,7 @@ public final class SecureEnclaveHelper {
         let privateKey = try SecureEnclave.P256.Signing.PrivateKey(
             compactRepresentable: true,
             accessControl: accessControl,
-            authenticationContext: LAContext()
+            authenticationContext: LAContext(),
         )
 
         let keyData = privateKey.dataRepresentation
@@ -46,7 +46,7 @@ public final class SecureEnclaveHelper {
 
         let privateKey = try SecureEnclave.P256.Signing.PrivateKey(
             dataRepresentation: keyData,
-            authenticationContext: context ?? LAContext()
+            authenticationContext: context ?? LAContext(),
         )
 
         logger.debug("Loaded Secure Enclave key: \(identifier)")
@@ -87,7 +87,7 @@ public final class SecureEnclaveHelper {
             using: SHA256.self,
             salt: Data("com.nestory.secureenclave".utf8),
             sharedInfo: Data(),
-            outputByteCount: 32
+            outputByteCount: 32,
         )
 
         let nonce = AES.GCM.Nonce()
@@ -101,7 +101,7 @@ public final class SecureEnclaveHelper {
 
         return EncryptedEnclaveData(
             ciphertext: combined,
-            ephemeralPublicKey: ephemeralPublicKey.rawRepresentation
+            ephemeralPublicKey: ephemeralPublicKey.rawRepresentation,
         )
     }
 
@@ -119,7 +119,7 @@ public final class SecureEnclaveHelper {
             using: SHA256.self,
             salt: Data("com.nestory.secureenclave".utf8),
             sharedInfo: Data(),
-            outputByteCount: 32
+            outputByteCount: 32,
         )
 
         let sealedBox = try AES.GCM.SealedBox(combined: encryptedData.ciphertext)
@@ -140,7 +140,7 @@ public final class SecureEnclaveHelper {
         let privateKey = try SecureEnclave.P256.KeyAgreement.PrivateKey(
             compactRepresentable: true,
             accessControl: accessControl,
-            authenticationContext: LAContext()
+            authenticationContext: LAContext(),
         )
 
         let keyData = privateKey.dataRepresentation
@@ -159,7 +159,7 @@ public final class SecureEnclaveHelper {
 
         return try SecureEnclave.P256.KeyAgreement.PrivateKey(
             dataRepresentation: keyData,
-            authenticationContext: context ?? LAContext()
+            authenticationContext: context ?? LAContext(),
         )
     }
 
@@ -180,7 +180,7 @@ public final class SecureEnclaveHelper {
             kCFAllocatorDefault,
             kSecAttrAccessibleWhenUnlockedThisDeviceOnly,
             flags,
-            &error
+            &error,
         ) else {
             if let error = error?.takeRetainedValue() {
                 throw SecureEnclaveError.accessControlCreationFailed(error as any Error)
@@ -198,7 +198,7 @@ public final class SecureEnclaveHelper {
         do {
             let success = try await context.evaluatePolicy(
                 .deviceOwnerAuthenticationWithBiometrics,
-                localizedReason: reason
+                localizedReason: reason,
             )
 
             guard success else {

@@ -138,7 +138,7 @@ public struct ExportOptionsView: View {
                     exportData = try await reportService.generateInsuranceReport(
                         items: items,
                         categories: categories,
-                        options: InsuranceReportService.ReportOptions()
+                        options: InsuranceReportService.ReportOptions(),
                     )
                     fileName = "Nestory_Report_\(Date().formatted(date: .abbreviated, time: .omitted)).pdf"
                 } catch {
@@ -156,7 +156,7 @@ public struct ExportOptionsView: View {
                     await MainActor.run {
                         let activityVC = UIActivityViewController(
                             activityItems: [tempURL],
-                            applicationActivities: nil
+                            applicationActivities: nil,
                         )
 
                         if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,

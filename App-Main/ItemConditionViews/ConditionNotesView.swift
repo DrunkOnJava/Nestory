@@ -22,7 +22,7 @@ struct ConditionNotesView: View {
                 .cornerRadius(8)
                 .overlay(
                     RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color(.systemGray4), lineWidth: 1)
+                        .stroke(Color(.systemGray4), lineWidth: 1),
                 )
 
             Text("Describe any damage, wear, or special conditions")

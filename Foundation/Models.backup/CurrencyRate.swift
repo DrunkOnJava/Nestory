@@ -141,7 +141,7 @@ public final class CurrencyRate {
             from: toCode,
             to: fromCode,
             rate: inverseRate,
-            asOf: asOf
+            asOf: asOf,
         )
     }
 }
@@ -153,7 +153,7 @@ public extension CurrencyRate {
     static func findRate(
         from: String,
         to: String,
-        in context: ModelContext
+        in context: ModelContext,
     ) -> CurrencyRate? {
         let fromCode = from.uppercased()
         let toCode = to.uppercased()

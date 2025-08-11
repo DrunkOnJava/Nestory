@@ -131,7 +131,7 @@ struct AddCategoryView: View {
                                     selectedColor == color ?
                                         Image(systemName: "checkmark")
                                         .foregroundColor(.white)
-                                        : nil
+                                        : nil,
                                 )
                                 .onTapGesture {
                                     selectedColor = color
@@ -151,7 +151,7 @@ struct AddCategoryView: View {
                         let category = Category(
                             name: name,
                             icon: selectedIcon,
-                            colorHex: selectedColor
+                            colorHex: selectedColor,
                         )
                         modelContext.insert(category)
                         dismiss()

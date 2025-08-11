@@ -1,8 +1,7 @@
 //
-//  SearchModels.swift
-//  Nestory
-//
-//  Search-related models and enums
+// Layer: App-Main
+// Module: SearchViews
+// Purpose: Search-related models and enums
 //
 
 import Foundation

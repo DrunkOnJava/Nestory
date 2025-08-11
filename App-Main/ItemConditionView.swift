@@ -38,7 +38,7 @@ struct ItemConditionView: View {
                     // Condition Photos
                     ConditionPhotoManagementView(
                         item: item,
-                        photoDescriptions: $photoDescriptions
+                        photoDescriptions: $photoDescriptions,
                     )
                     .padding(.horizontal)
 

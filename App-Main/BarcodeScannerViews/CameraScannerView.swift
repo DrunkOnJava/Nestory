@@ -27,6 +27,6 @@ struct CameraScannerView: UIViewControllerRepresentable {
 #Preview {
     CameraScannerView(
         scanner: BarcodeScannerService(),
-        onScan: { _ in }
+        onScan: { _ in },
     )
 }

@@ -130,7 +130,7 @@ public class CameraScannerViewController: UIViewController, AVCaptureMetadataOut
             let result = BarcodeResult(
                 value: stringValue,
                 type: readableObject.type.rawValue,
-                confidence: 1.0
+                confidence: 1.0,
             )
 
             onScan?(result)

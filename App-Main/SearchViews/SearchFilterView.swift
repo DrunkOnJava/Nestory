@@ -61,10 +61,10 @@ struct SearchFilterView: View {
                         RangeSlider(
                             value: Binding(
                                 get: { filters.priceRange },
-                                set: { filters.priceRange = $0 }
+                                set: { filters.priceRange = $0 },
                             ),
                             bounds: 0 ... 10000,
-                            step: 100
+                            step: 100,
                         )
                     }
                 }
@@ -153,7 +153,7 @@ struct RangeSlider: View {
                     .fill(Color.accentColor)
                     .frame(
                         width: rangeWidth(in: geometry.size.width),
-                        height: 4
+                        height: 4,
                     )
                     .offset(x: lowerOffset(in: geometry.size.width))
 
@@ -168,12 +168,12 @@ struct RangeSlider: View {
                             .onChanged { gesture in
                                 let newValue = valueForOffset(
                                     gesture.location.x,
-                                    in: geometry.size.width
+                                    in: geometry.size.width,
                                 )
                                 let stepped = round(newValue / step) * step
                                 let clamped = min(max(stepped, bounds.lowerBound), value.upperBound - step)
                                 value = clamped ... value.upperBound
-                            }
+                            },
                     )
 
                 // Upper thumb
@@ -187,12 +187,12 @@ struct RangeSlider: View {
                             .onChanged { gesture in
                                 let newValue = valueForOffset(
                                     gesture.location.x,
-                                    in: geometry.size.width
+                                    in: geometry.size.width,
                                 )
                                 let stepped = round(newValue / step) * step
                                 let clamped = max(min(stepped, bounds.upperBound), value.lowerBound + step)
                                 value = value.lowerBound ... clamped
-                            }
+                            },
                     )
             }
         }

@@ -39,7 +39,7 @@ public struct CloudKitBackupOperations {
                 matching: query,
                 inZoneWith: backupZone.zoneID,
                 desiredKeys: nil,
-                resultsLimit: CKQueryOperation.maximumResults
+                resultsLimit: CKQueryOperation.maximumResults,
             )
 
             for (recordID, _) in results.matchResults {
@@ -68,7 +68,7 @@ public struct CloudKitBackupOperations {
         recordType: String,
         predicate: NSPredicate = NSPredicate(value: true),
         sortDescriptors: [NSSortDescriptor]? = nil,
-        limit: Int = CKQueryOperation.maximumResults
+        limit: Int = CKQueryOperation.maximumResults,
     ) async throws -> [(CKRecord.ID, Result<CKRecord, Error>)] {
         let query = CKQuery(recordType: recordType, predicate: predicate)
         query.sortDescriptors = sortDescriptors
@@ -77,7 +77,7 @@ public struct CloudKitBackupOperations {
             matching: query,
             inZoneWith: backupZone.zoneID,
             desiredKeys: nil,
-            resultsLimit: limit
+            resultsLimit: limit,
         )
 
         return results.matchResults
@@ -100,7 +100,7 @@ public struct CloudKitBackupOperations {
         let results = try await fetchRecords(
             recordType: "BackupMetadata",
             sortDescriptors: sortDescriptors,
-            limit: 1
+            limit: 1,
         )
 
         guard let (_, result) = results.first,

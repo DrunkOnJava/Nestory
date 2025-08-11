@@ -137,7 +137,7 @@ public struct InsuranceReportOptionsView: View {
                 let pdfData = try await insuranceReportService.generateInsuranceReport(
                     items: items,
                     categories: categories,
-                    options: mutableOptions
+                    options: mutableOptions,
                 )
 
                 // Export and share
@@ -160,6 +160,6 @@ public struct InsuranceReportOptionsView: View {
         items: [],
         categories: [],
         insuranceReportService: InsuranceReportService(),
-        isGenerating: .constant(false)
+        isGenerating: .constant(false),
     )
 }

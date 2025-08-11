@@ -151,7 +151,7 @@ public final class ShareGroup {
     public func update(
         name: String? = nil,
         description: String? = nil,
-        scope: ShareScope? = nil
+        scope: ShareScope? = nil,
     ) {
         if let name {
             self.name = name
@@ -261,7 +261,7 @@ public enum MemberRole: String, CaseIterable, Codable {
                 canRemoveMembers: true,
                 canEditCategories: true,
                 canEditLocations: true,
-                canExport: true
+                canExport: true,
             )
         case .editor:
             Permissions(
@@ -272,7 +272,7 @@ public enum MemberRole: String, CaseIterable, Codable {
                 canRemoveMembers: false,
                 canEditCategories: true,
                 canEditLocations: true,
-                canExport: true
+                canExport: true,
             )
         case .viewer:
             Permissions(
@@ -283,7 +283,7 @@ public enum MemberRole: String, CaseIterable, Codable {
                 canRemoveMembers: false,
                 canEditCategories: false,
                 canEditLocations: false,
-                canExport: true
+                canExport: true,
             )
         }
     }

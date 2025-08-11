@@ -41,7 +41,7 @@ struct InventoryListView: View {
                         message: "Start organizing your belongings by adding your first item",
                         systemImage: "shippingbox",
                         actionTitle: "Add First Item",
-                        action: { showingAddItem = true }
+                        action: { showingAddItem = true },
                     )
                 }
             }

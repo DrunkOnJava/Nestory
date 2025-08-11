@@ -11,7 +11,7 @@ public enum StandardFormExporter {
         items: [Item],
         rooms: [Room],
         options: ExportOptions,
-        progressHandler: ((Double) -> Void)? = nil
+        progressHandler: ((Double) -> Void)? = nil,
     ) async -> String {
         var htmlContent = """
         <!DOCTYPE html>
@@ -50,7 +50,7 @@ public enum StandardFormExporter {
 
     private static func generateRoomSections(
         items: [Item],
-        progressHandler: ((Double) -> Void)?
+        progressHandler: ((Double) -> Void)?,
     ) -> String {
         var html = ""
         let itemsByRoom = Dictionary(grouping: items) { $0.room ?? "Unassigned" }
@@ -78,7 +78,7 @@ public enum StandardFormExporter {
 
     private static func generateCompleteInventory(
         items: [Item],
-        progressHandler: ((Double) -> Void)?
+        progressHandler: ((Double) -> Void)?,
     ) -> String {
         var html = "<div class=\"section\"><div class=\"section-title\">Complete Inventory</div>"
 

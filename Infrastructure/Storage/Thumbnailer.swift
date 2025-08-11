@@ -27,7 +27,7 @@ public final class Thumbnailer: @unchecked Sendable {
 
         let newSize = CGSize(
             width: imageSize.width * ratio,
-            height: imageSize.height * ratio
+            height: imageSize.height * ratio,
         )
 
         let format = UIGraphicsImageRendererFormat()
@@ -58,7 +58,7 @@ public final class Thumbnailer: @unchecked Sendable {
 
             let newSize = CGSize(
                 width: size.width * ratio,
-                height: size.height * ratio
+                height: size.height * ratio,
             )
 
             let format = UIGraphicsImageRendererFormat()
@@ -93,7 +93,7 @@ public final class Thumbnailer: @unchecked Sendable {
 
         let newSize = CGSize(
             width: size.width * ratio,
-            height: size.height * ratio
+            height: size.height * ratio,
         )
 
         let format = UIGraphicsImageRendererFormat()
@@ -140,7 +140,7 @@ public final class Thumbnailer: @unchecked Sendable {
         return try await ProcessedImages(
             original: image,
             thumbnail: thumbnail,
-            display: display
+            display: display,
         )
     }
 
@@ -153,7 +153,7 @@ public final class Thumbnailer: @unchecked Sendable {
         return try await ProcessedImages(
             original: image,
             thumbnail: thumbnail,
-            display: display
+            display: display,
         )
     }
 

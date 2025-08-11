@@ -14,12 +14,12 @@ import SwiftUI
 @MainActor
 public final class InsuranceReportService: ObservableObject {
     // MARK: - Types
-    
+
     public enum ReportError: LocalizedError {
         case noItems
         case pdfGenerationFailed
         case dataAccessError
-        
+
         public var errorDescription: String? {
             switch self {
             case .noItems:
@@ -31,7 +31,7 @@ public final class InsuranceReportService: ObservableObject {
             }
         }
     }
-    
+
     public struct ReportOptions {
         public var includePhotos: Bool = true
         public var includeReceipts: Bool = true
@@ -40,10 +40,10 @@ public final class InsuranceReportService: ObservableObject {
         public var includeSerialNumbers: Bool = true
         public var includePurchaseInfo: Bool = true
         public var includeTotalValue: Bool = true
-        
+
         public init() {}
     }
-    
+
     public struct ReportMetadata {
         public let generatedDate: Date
         public let totalItems: Int
@@ -51,63 +51,63 @@ public final class InsuranceReportService: ObservableObject {
         public let reportId: UUID
         public let propertyAddress: String?
         public let policyNumber: String?
-        
+
         public init(
             totalItems: Int,
             totalValue: Decimal,
             propertyAddress: String? = nil,
             policyNumber: String? = nil
         ) {
-            self.generatedDate = Date()
+            generatedDate = Date()
             self.totalItems = totalItems
             self.totalValue = totalValue
-            self.reportId = UUID()
+            reportId = UUID()
             self.propertyAddress = propertyAddress
             self.policyNumber = policyNumber
         }
     }
-    
+
     // MARK: - Properties
-    
+
     private let pdfGenerator: PDFReportGenerator
     private let exportManager: ReportExportManager
     private let dataFormatter: ReportDataFormatter
-    
+
     // MARK: - Initialization
-    
+
     public init() {
-        self.pdfGenerator = PDFReportGenerator()
-        self.exportManager = ReportExportManager()
-        self.dataFormatter = ReportDataFormatter()
+        pdfGenerator = PDFReportGenerator()
+        exportManager = ReportExportManager()
+        dataFormatter = ReportDataFormatter()
     }
-    
+
     // MARK: - Report Generation
-    
+
     public func generateInsuranceReport(
         items: [Item],
         categories: [Category],
-        options: ReportOptions = ReportOptions()
+        options: ReportOptions = ReportOptions(),
     ) async throws -> Data {
         guard !items.isEmpty else {
             throw ReportError.noItems
         }
-        
+
         return try await withCheckedThrowingContinuation { continuation in
             Task { @MainActor in
                 do {
                     let totalValue = dataFormatter.calculateTotalValue(items: items)
                     let metadata = ReportMetadata(
                         totalItems: items.count,
-                        totalValue: totalValue
+                        totalValue: totalValue,
                     )
-                    
+
                     let pdfData = try pdfGenerator.generatePDF(
                         items: items,
                         categories: categories,
                         options: options,
-                        metadata: metadata
+                        metadata: metadata,
                     )
-                    
+
                     continuation.resume(returning: pdfData)
                 } catch {
                     continuation.resume(throwing: error)
@@ -115,30 +115,30 @@ public final class InsuranceReportService: ObservableObject {
             }
         }
     }
-    
+
     // MARK: - Export Functions
-    
+
     public func exportReport(
         _ data: Data,
-        filename: String = "HomeInventory_Insurance_Report"
+        filename: String = "HomeInventory_Insurance_Report",
     ) async throws -> URL {
         try exportManager.exportReport(data, filename: filename)
     }
-    
+
     public func shareReport(_ url: URL) async {
         exportManager.shareReport(url)
     }
-    
+
     public func saveToDocuments(_ data: Data, filename: String) async throws -> URL {
         try exportManager.saveToDocuments(data, filename: filename)
     }
-    
+
     // MARK: - Utility Functions
-    
+
     public func cleanupOldReports(daysToKeep: Int = 30) {
         exportManager.cleanupOldReports(daysToKeep: daysToKeep)
     }
-    
+
     public func calculateTotalValue(items: [Item]) -> Decimal {
         dataFormatter.calculateTotalValue(items: items)
     }

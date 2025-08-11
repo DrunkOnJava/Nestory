@@ -86,7 +86,7 @@ final class ExchangeRateTests: XCTestCase {
             from: "USD",
             to: "EUR",
             rate: 0.92,
-            timestamp: Date()
+            timestamp: Date(),
         )
 
         let encoder = JSONEncoder()

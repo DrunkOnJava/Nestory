@@ -80,7 +80,7 @@ struct SearchView: View {
                 SearchBarView(
                     text: $searchText,
                     isSearching: $isSearching,
-                    onCommit: { performSearch() }
+                    onCommit: { performSearch() },
                 )
 
                 // Filter Pills
@@ -90,21 +90,21 @@ struct SearchView: View {
                             if !searchText.isEmpty {
                                 FilterPill(
                                     label: "Search: \(searchText)",
-                                    onRemove: { searchText = "" }
+                                    onRemove: { searchText = "" },
                                 )
                             }
 
                             if !filters.selectedCategories.isEmpty {
                                 FilterPill(
                                     label: "\(filters.selectedCategories.count) Categories",
-                                    onRemove: { filters.selectedCategories = [] }
+                                    onRemove: { filters.selectedCategories = [] },
                                 )
                             }
 
                             if filters.priceRange != 0 ... 10000 {
                                 FilterPill(
                                     label: "$\(Int(filters.priceRange.lowerBound))-$\(Int(filters.priceRange.upperBound))",
-                                    onRemove: { filters.priceRange = 0 ... 10000 }
+                                    onRemove: { filters.priceRange = 0 ... 10000 },
                                 )
                             }
 
@@ -116,14 +116,14 @@ struct SearchView: View {
                                         filters.hasReceipt = false
                                         filters.hasWarranty = false
                                         filters.hasSerialNumber = false
-                                    }
+                                    },
                                 )
                             }
 
                             if !filters.rooms.isEmpty {
                                 FilterPill(
                                     label: "\(filters.rooms.count) Rooms",
-                                    onRemove: { filters.rooms = [] }
+                                    onRemove: { filters.rooms = [] },
                                 )
                             }
                         }
@@ -142,7 +142,7 @@ struct SearchView: View {
                         onSearch: { term in
                             searchText = term
                             performSearch()
-                        }
+                        },
                     )
                 } else {
                     // Show results
@@ -150,7 +150,7 @@ struct SearchView: View {
                         items: filteredItems,
                         searchText: searchText,
                         sortOption: sortOption,
-                        selectedItem: $selectedItem
+                        selectedItem: $selectedItem,
                     )
                 }
             }

@@ -162,7 +162,7 @@ public final class FileStore: @unchecked Sendable {
                     let contents = try self.fileManager.contentsOfDirectory(
                         at: url,
                         includingPropertiesForKeys: [.isRegularFileKey],
-                        options: [.skipsHiddenFiles]
+                        options: [.skipsHiddenFiles],
                     )
 
                     let files = contents.compactMap { fileURL -> String? in
@@ -213,7 +213,7 @@ public final class FileStore: @unchecked Sendable {
         let enumerator = fileManager.enumerator(
             at: url,
             includingPropertiesForKeys: [.fileSizeKey],
-            options: [.skipsHiddenFiles]
+            options: [.skipsHiddenFiles],
         )
 
         while let fileURL = enumerator?.nextObject() as? URL {
