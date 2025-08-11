@@ -7,7 +7,7 @@
 import Foundation
 import os.log
 
-final class DiskCache<Key: Hashable & Sendable, Value>: @unchecked Sendable {
+public final class DiskCache<Key: Hashable & Sendable, Value>: @unchecked Sendable {
     private let fileManager = FileManager.default
     private let diskCacheURL: URL
     private let queue = DispatchQueue(label: "com.nestory.diskCache", attributes: .concurrent)
@@ -17,7 +17,7 @@ final class DiskCache<Key: Hashable & Sendable, Value>: @unchecked Sendable {
     private let maxDiskSize: Int
     private let ttl: TimeInterval
     
-    init(
+    public init(
         name: String,
         maxDiskSize: Int = 100_000_000,
         ttl: TimeInterval = 86400
@@ -36,7 +36,7 @@ final class DiskCache<Key: Hashable & Sendable, Value>: @unchecked Sendable {
     
     // MARK: - Public Methods
     
-    func save(_ data: Data, for key: Key) async {
+    public func save(_ data: Data, for key: Key) async {
         await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
             queue.async(flags: .barrier) { [weak self] in
                 guard let self else {
@@ -58,7 +58,7 @@ final class DiskCache<Key: Hashable & Sendable, Value>: @unchecked Sendable {
         await enforceDiskSizeLimit()
     }
     
-    func load(for key: Key) async -> Data? {
+    public func load(for key: Key) async -> Data? {
         await withCheckedContinuation { (continuation: CheckedContinuation<Data?, Never>) in
             queue.async { [weak self] in
                 guard let self else {
@@ -94,7 +94,7 @@ final class DiskCache<Key: Hashable & Sendable, Value>: @unchecked Sendable {
         }
     }
     
-    func remove(for key: Key) async {
+    public func remove(for key: Key) async {
         await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
             queue.async(flags: .barrier) { [weak self] in
                 guard let self else {
@@ -116,7 +116,7 @@ final class DiskCache<Key: Hashable & Sendable, Value>: @unchecked Sendable {
         }
     }
     
-    func removeAll() async {
+    public func removeAll() async {
         await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
             queue.async(flags: .barrier) { [weak self] in
                 guard let self else {
@@ -141,7 +141,7 @@ final class DiskCache<Key: Hashable & Sendable, Value>: @unchecked Sendable {
         }
     }
     
-    func cleanExpired() async {
+    public func cleanExpired() async {
         await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
             queue.async(flags: .barrier) { [weak self] in
                 guard let self else {
@@ -177,7 +177,7 @@ final class DiskCache<Key: Hashable & Sendable, Value>: @unchecked Sendable {
     
     // MARK: - Size Management
     
-    func calculateUsage() async -> Int {
+    public func calculateUsage() async -> Int {
         await CacheSizeManager.calculateDiskUsage(at: diskCacheURL, using: fileManager)
     }
     

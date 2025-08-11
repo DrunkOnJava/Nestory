@@ -61,13 +61,13 @@ struct ScanResultView: View {
                 GroupBox("Product Information") {
                     VStack(alignment: .leading, spacing: 8) {
                         if !product.name.isEmpty {
-                            DetailRow(label: "Name", value: product.name)
+                            ScanDetailRow(label: "Name", value: product.name)
                         }
                         if let brand = product.brand {
-                            DetailRow(label: "Brand", value: brand)
+                            ScanDetailRow(label: "Brand", value: brand)
                         }
                         if let model = product.model {
-                            DetailRow(label: "Model", value: model)
+                            ScanDetailRow(label: "Model", value: model)
                         }
                     }
                 }
@@ -94,7 +94,7 @@ struct ScanResultView: View {
 }
 
 // Supporting view for detail rows
-struct DetailRow: View {
+struct ScanDetailRow: View {
     let label: String
     let value: String
 

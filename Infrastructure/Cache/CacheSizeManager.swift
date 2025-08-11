@@ -7,10 +7,10 @@
 import Foundation
 import os.log
 
-enum CacheSizeManager {
+public enum CacheSizeManager {
     private static let logger = Logger(subsystem: "com.nestory", category: "CacheSizeManager")
     
-    static func calculateDiskUsage(at url: URL, using fileManager: FileManager) async -> Int {
+    public static func calculateDiskUsage(at url: URL, using fileManager: FileManager) async -> Int {
         await withCheckedContinuation { (continuation: CheckedContinuation<Int, Never>) in
             do {
                 let contents = try fileManager.contentsOfDirectory(
@@ -32,7 +32,7 @@ enum CacheSizeManager {
         }
     }
     
-    static func enforceSizeLimit(
+    public static func enforceSizeLimit(
         at url: URL,
         currentSize: Int,
         maxSize: Int,

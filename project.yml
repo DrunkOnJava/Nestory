@@ -43,8 +43,14 @@ targets:
       - path: Foundation/Core
       - path: Foundation/Utils
       - path: Infrastructure/Storage
+      - path: Infrastructure/Cache
+      - path: Infrastructure/Camera
       - path: Infrastructure/Security
       - path: Services
+      - path: Services/CloudBackup
+      - path: Services/InsuranceExport
+      - path: Services/InsuranceReport
+      - path: Services/ReceiptOCR
       - path: UI/UI-Core
       - path: UI/UI-Components
       - path: Config/FeatureFlags.swift

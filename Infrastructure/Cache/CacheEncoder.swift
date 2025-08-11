@@ -7,9 +7,11 @@
 import Foundation
 import UIKit
 
-struct CacheEncoder<Value> {
+public struct CacheEncoder<Value> {
     
-    func encode(_ value: Value) -> Data? {
+    public init() {}
+    
+    public func encode(_ value: Value) -> Data? {
         if let data = value as? Data {
             return data
         }
@@ -25,7 +27,7 @@ struct CacheEncoder<Value> {
         return nil
     }
     
-    func decode(_ data: Data, type: Value.Type) -> Value? {
+    public func decode(_ data: Data, type: Value.Type) -> Value? {
         if type == Data.self {
             return data as? Value
         }

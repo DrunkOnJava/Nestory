@@ -7,16 +7,16 @@
 import Foundation
 import os.log
 
-final class MemoryCache<Key: Hashable & Sendable, Value>: @unchecked Sendable {
+public final class MemoryCache<Key: Hashable & Sendable, Value>: @unchecked Sendable {
     private let cache = NSCache<WrappedKey, Entry>()
     private let queue = DispatchQueue(label: "com.nestory.memoryCache", attributes: .concurrent)
     private let logger = Logger(subsystem: "com.nestory", category: "MemoryCache")
     
-    init(countLimit: Int = 100) {
+    public init(countLimit: Int = 100) {
         cache.countLimit = countLimit
     }
     
-    func set(_ value: Value, for key: Key, ttl: TimeInterval) async {
+    public func set(_ value: Value, for key: Key, ttl: TimeInterval) async {
         let entry = Entry(value: value, expirationDate: Date().addingTimeInterval(ttl))
         let wrappedKey = WrappedKey(key)
         
@@ -28,7 +28,7 @@ final class MemoryCache<Key: Hashable & Sendable, Value>: @unchecked Sendable {
         }
     }
     
-    func get(for key: Key) async -> Value? {
+    public func get(for key: Key) async -> Value? {
         let wrappedKey = WrappedKey(key)
         
         let entry = await withCheckedContinuation { (continuation: CheckedContinuation<Entry?, Never>) in
@@ -47,7 +47,7 @@ final class MemoryCache<Key: Hashable & Sendable, Value>: @unchecked Sendable {
         }
     }
     
-    func remove(for key: Key) async {
+    public func remove(for key: Key) async {
         let wrappedKey = WrappedKey(key)
         
         await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
@@ -58,7 +58,7 @@ final class MemoryCache<Key: Hashable & Sendable, Value>: @unchecked Sendable {
         }
     }
     
-    func removeAll() async {
+    public func removeAll() async {
         await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
             queue.async(flags: .barrier) { [weak self] in
                 self?.cache.removeAllObjects()
@@ -67,7 +67,7 @@ final class MemoryCache<Key: Hashable & Sendable, Value>: @unchecked Sendable {
         }
     }
     
-    var countLimit: Int {
+    public var countLimit: Int {
         cache.countLimit
     }
 }
