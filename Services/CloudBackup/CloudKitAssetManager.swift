@@ -7,7 +7,7 @@
 import CloudKit
 import Foundation
 
-public struct CloudKitAssetManager {
+public struct CloudKitAssetManager: @unchecked Sendable {
     private let tempDirectory: URL
 
     public init() {

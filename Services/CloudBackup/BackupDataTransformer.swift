@@ -7,7 +7,7 @@
 import CloudKit
 import Foundation
 
-public struct BackupDataTransformer {
+public struct BackupDataTransformer: @unchecked Sendable {
     private let backupZone: CKRecordZone
     private let assetManager: CloudKitAssetManager
 
@@ -18,6 +18,7 @@ public struct BackupDataTransformer {
 
     // MARK: - Item Transformation
 
+    @MainActor
     public func transformItem(_ item: Item) async throws -> CKRecord {
         let recordID = CKRecord.ID(zoneID: backupZone.zoneID)
         let record = CKRecord(recordType: "BackupItem", recordID: recordID)

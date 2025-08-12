@@ -7,6 +7,7 @@
 import Foundation
 
 public enum StandardFormExporter {
+    @MainActor
     public static func generateHTMLReport(
         items: [Item],
         rooms: [Room],

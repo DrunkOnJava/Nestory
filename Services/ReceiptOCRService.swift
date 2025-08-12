@@ -57,7 +57,7 @@ public final class ReceiptOCRService: ObservableObject {
         defer { isProcessing = false }
         
         do {
-            let text = try await textExtractor.extractText(from: imageData)
+            let text = try await self.textExtractor.extractText(from: imageData)
             lastError = nil
             return text
         } catch {

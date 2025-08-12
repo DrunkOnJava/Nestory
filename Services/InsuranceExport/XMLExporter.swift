@@ -7,6 +7,7 @@
 import Foundation
 
 public enum XMLExporter {
+    @MainActor
     public static func exportToXML(items: [Item], options: ExportOptions) async -> Data {
         var xmlContent = """
         <?xml version="1.0" encoding="UTF-8"?>

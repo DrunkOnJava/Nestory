@@ -115,12 +115,13 @@ public class CameraScannerViewController: UIViewController, AVCaptureMetadataOut
     }
 
     public nonisolated func metadataOutput(_: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject], from _: AVCaptureConnection) {
+        guard let firstObject = metadataObjects.first as? AVMetadataMachineReadableCodeObject,
+              let stringValue = firstObject.stringValue else { return }
+        
+        let typeRawValue = firstObject.type.rawValue
+        
         Task { @MainActor in
-            guard !hasScanned,
-                  let metadataObject = metadataObjects.first,
-                  let readableObject = metadataObject as? AVMetadataMachineReadableCodeObject,
-                  let stringValue = readableObject.stringValue else { return }
-
+            guard !hasScanned else { return }
             hasScanned = true
 
             // Haptic feedback
@@ -129,7 +130,7 @@ public class CameraScannerViewController: UIViewController, AVCaptureMetadataOut
 
             let result = BarcodeResult(
                 value: stringValue,
-                type: readableObject.type.rawValue,
+                type: typeRawValue,
                 confidence: 1.0,
             )
 

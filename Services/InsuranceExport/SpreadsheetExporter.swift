@@ -7,6 +7,7 @@
 import Foundation
 
 public enum SpreadsheetExporter {
+    @MainActor
     public static func exportToCSV(items: [Item]) async -> Data {
         var csvContent = "Item ID,Name,Description,Category,Room,Location,Quantity,Brand,Model,Serial Number,Purchase Date,Purchase Price,Currency,Warranty Expiration,Warranty Provider,Has Photo,Has Receipt,Receipt Text,Tags,Notes,Created Date,Updated Date\n"
 

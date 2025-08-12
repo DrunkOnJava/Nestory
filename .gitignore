@@ -97,3 +97,10 @@ frustratingResults.jpg
 tools/dev/InjectionIII.app/
 .build_counter
 .claude/.xcode-last-regen
+
+# Development tools
+tools/dev/XcodeBuildMCP/
+*.swp
+*.swo
+*~
+.DS_Store

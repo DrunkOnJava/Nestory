@@ -8,7 +8,7 @@ import CloudKit
 import Foundation
 import SwiftData
 
-public struct RestoreDataTransformer {
+public struct RestoreDataTransformer: @unchecked Sendable {
     private let assetManager: CloudKitAssetManager
 
     public init(assetManager: CloudKitAssetManager) {
@@ -42,6 +42,7 @@ public struct RestoreDataTransformer {
 
     // MARK: - Item Restoration
 
+    @MainActor
     public func restoreItem(from record: CKRecord) async throws -> Item {
         let item = Item(
             name: record["name"] as? String ?? "Unknown",
@@ -124,6 +125,7 @@ public struct RestoreDataTransformer {
         return rooms
     }
 
+    @MainActor
     public func restoreItems(
         from records: [(CKRecord.ID, Result<CKRecord, Error>)],
         modelContext: ModelContext,

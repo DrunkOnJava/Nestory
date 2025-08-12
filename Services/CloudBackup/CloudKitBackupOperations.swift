@@ -7,7 +7,7 @@
 import CloudKit
 import Foundation
 
-public struct CloudKitBackupOperations {
+public struct CloudKitBackupOperations: @unchecked Sendable {
     private let privateDatabase: CKDatabase
     private let backupZone: CKRecordZone
 
