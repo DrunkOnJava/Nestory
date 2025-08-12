@@ -5,12 +5,19 @@
 
 import SwiftData
 import SwiftUI
+#if DEBUG
+import Inject
+#endif
 
 struct InventoryListView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var items: [Item]
     @State private var showingAddItem = false
     @State private var searchText = ""
+    #if DEBUG
+    @ObserveInjection var inject
+    @State private var injectionTrigger = UUID()
+    #endif
 
     var body: some View {
         NavigationStack {
@@ -22,8 +29,9 @@ struct InventoryListView: View {
                 }
                 .onDelete(perform: deleteItems)
             }
-            .navigationTitle("Inventory")
-            .searchable(text: $searchText, prompt: "Search items")
+            .navigationTitle("MyAssets")
+            .navigationBarTitleDisplayMode(.large)
+            .searchable(text: $searchText, prompt: "Search your stuff...")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: { showingAddItem = true }) {
@@ -37,8 +45,8 @@ struct InventoryListView: View {
             .overlay {
                 if items.isEmpty {
                     EmptyStateView(
-                        title: "No Items Yet",
-                        message: "Start organizing your belongings by adding your first item",
+                        title: "📦 Empty Inventory",
+                        message: "Add your first item to get started!",
                         systemImage: "shippingbox",
                         actionTitle: "Add First Item",
                         action: { showingAddItem = true },
@@ -46,6 +54,13 @@ struct InventoryListView: View {
                 }
             }
         }
+        #if DEBUG
+        .enableInjection()
+        .onReceive(NotificationCenter.default.publisher(for: Notification.Name("INJECTION_BUNDLE_NOTIFICATION"))) { _ in
+            injectionTrigger = UUID()
+        }
+        .id(injectionTrigger)
+        #endif
     }
 
     private var filteredItems: [Item] {
@@ -72,10 +87,11 @@ struct ItemRowView: View {
 
     var body: some View {
         HStack(spacing: 12) {
+            Text("🆕")
             // Category color indicator
             if let category = item.category {
                 RoundedRectangle(cornerRadius: 4)
-                    .fill(Color(category.colorHex) ?? .gray)
+                    .fill(Color(hex: category.colorHex) ?? .gray)
                     .frame(width: 4)
             }
 

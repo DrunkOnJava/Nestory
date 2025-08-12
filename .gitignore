@@ -92,3 +92,8 @@ local/
 private/
 secrets/.build_counter
 frustratingResults.jpg
+
+# Hot Reload
+tools/dev/InjectionIII.app/
+.build_counter
+.claude/.xcode-last-regen
