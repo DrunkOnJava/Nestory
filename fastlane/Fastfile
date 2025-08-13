@@ -1,0 +1,42 @@
+# Fastfile for Nestory Screenshots
+
+default_platform(:ios)
+
+platform :ios do
+  desc "Generate screenshots for iPhone 16 Pro Max"
+  lane :screenshots do
+    # Clear previous screenshots
+    clear_derived_data
+    
+    # Run snapshot
+    capture_screenshots(
+      project: "Nestory.xcodeproj",
+      scheme: "Nestory-Dev",
+      clear_previous_screenshots: true,
+      reinstall_app: true,
+      app_identifier: "com.nestory.app",
+      stop_after_first_error: false,
+      skip_open_summary: false,
+      number_of_retries: 1
+    )
+    
+    # Optional: Upload to App Store Connect (for future use)
+    # upload_to_app_store(
+    #   skip_binary_upload: true,
+    #   skip_metadata: true,
+    #   skip_screenshots: false
+    # )
+  end
+  
+  desc "Clear all screenshot data"
+  lane :clear_screenshots do
+    clear_derived_data
+    sh "rm -rf screenshots/*"
+    UI.success "Cleared all screenshot data"
+  end
+  
+  desc "Open screenshots in Finder"
+  lane :open_screenshots do
+    sh "open screenshots/"
+  end
+end
