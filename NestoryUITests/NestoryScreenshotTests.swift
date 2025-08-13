@@ -11,6 +11,7 @@ import XCTest
 final class NestoryScreenshotTests: XCTestCase {
     var app: XCUIApplication!
 
+    @MainActor
     override func setUpWithError() throws {
         continueAfterFailure = false
 
@@ -20,6 +21,7 @@ final class NestoryScreenshotTests: XCTestCase {
         app.launch()
     }
 
+    @MainActor
     override func tearDownWithError() throws {
         app = nil
     }

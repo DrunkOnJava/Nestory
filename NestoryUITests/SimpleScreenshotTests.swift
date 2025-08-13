@@ -12,12 +12,14 @@ final class SimpleScreenshotTests: XCTestCase {
     var app: XCUIApplication!
     var screenshotCount = 0
 
+    @MainActor
     override func setUpWithError() throws {
         continueAfterFailure = false
         app = XCUIApplication()
         app.launch()
     }
 
+    @MainActor
     override func tearDownWithError() throws {
         app = nil
     }

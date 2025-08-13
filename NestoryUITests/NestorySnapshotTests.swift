@@ -12,6 +12,7 @@ final class NestorySnapshotTests: XCTestCase {
     
     var app: XCUIApplication!
     
+    @MainActor
     override func setUpWithError() throws {
         try super.setUpWithError()
         
@@ -32,6 +33,7 @@ final class NestorySnapshotTests: XCTestCase {
         NavigationHelpers.handlePermissionAlerts()
     }
     
+    @MainActor
     override func tearDownWithError() throws {
         app = nil
         try super.tearDownWithError()
@@ -72,7 +74,7 @@ final class NestorySnapshotTests: XCTestCase {
     func captureInventoryScreenshots() {
         XCTContext.runActivity(named: "Capture Inventory Screenshots") { _ in
             NavigationHelpers.navigateToTab(named: "Inventory", in: app)
-            NavigationHelpers.waitForLoadingToComplete()
+            NavigationHelpers.waitForLoadingToComplete(in: app)
             
             // Capture empty state if no items
             if app.staticTexts["No items yet"].exists {
@@ -133,7 +135,7 @@ final class NestorySnapshotTests: XCTestCase {
                 snapshot("05_AddItem_Saved")
             } else {
                 // Cancel if save not available
-                NavigationHelpers.dismissSheet()
+                NavigationHelpers.dismissSheet(in: app)
             }
         }
     }
@@ -141,7 +143,7 @@ final class NestorySnapshotTests: XCTestCase {
     func captureItemDetailScreenshots() {
         XCTContext.runActivity(named: "Capture Item Detail Screenshots") { _ in
             NavigationHelpers.navigateToTab(named: "Inventory", in: app)
-            NavigationHelpers.waitForLoadingToComplete()
+            NavigationHelpers.waitForLoadingToComplete(in: app)
             
             // Tap on first item if exists
             let firstItem = app.cells.firstMatch
@@ -161,10 +163,10 @@ final class NestorySnapshotTests: XCTestCase {
                     app.buttons["Edit"].tap()
                     Thread.sleep(forTimeInterval: 1)
                     snapshot("08_ItemDetail_Edit")
-                    NavigationHelpers.dismissSheet()
+                    NavigationHelpers.dismissSheet(in: app)
                 }
                 
-                NavigationHelpers.navigateBack()
+                NavigationHelpers.navigateBack(in: app)
             }
         }
     }
@@ -208,7 +210,7 @@ final class NestorySnapshotTests: XCTestCase {
                 firstCategory.tap()
                 Thread.sleep(forTimeInterval: 1)
                 snapshot("12_Category_Items")
-                NavigationHelpers.navigateBack()
+                NavigationHelpers.navigateBack(in: app)
             }
             
             // Try to add new category
@@ -216,7 +218,7 @@ final class NestorySnapshotTests: XCTestCase {
                 app.buttons["plus"].tap()
                 Thread.sleep(forTimeInterval: 1)
                 snapshot("13_Category_Add")
-                NavigationHelpers.dismissSheet()
+                NavigationHelpers.dismissSheet(in: app)
             }
         }
     }
@@ -263,7 +265,7 @@ final class NestorySnapshotTests: XCTestCase {
                     Thread.sleep(forTimeInterval: 0.5)
                 }
                 
-                NavigationHelpers.navigateBack()
+                NavigationHelpers.navigateBack(in: app)
             }
             
             // Scroll to show more settings
@@ -277,7 +279,7 @@ final class NestorySnapshotTests: XCTestCase {
                 aboutCell.tap()
                 Thread.sleep(forTimeInterval: 0.5)
                 snapshot("20_Settings_About")
-                NavigationHelpers.navigateBack()
+                NavigationHelpers.navigateBack(in: app)
             }
         }
     }
@@ -330,7 +332,7 @@ final class NestorySnapshotTests: XCTestCase {
             if firstCategory.exists {
                 firstCategory.tap()
             } else {
-                NavigationHelpers.dismissSheet()
+                NavigationHelpers.dismissSheet(in: app)
             }
         }
         
@@ -362,7 +364,7 @@ final class NestorySnapshotTests: XCTestCase {
             snapshot("21_Photo_Options")
             
             // Dismiss sheet
-            NavigationHelpers.dismissSheet()
+            NavigationHelpers.dismissSheet(in: app)
         }
     }
     
@@ -378,13 +380,13 @@ final class NestorySnapshotTests: XCTestCase {
                 altScanButton.tap()
                 Thread.sleep(forTimeInterval: 1)
                 snapshot("22_Barcode_Scanner")
-                NavigationHelpers.dismissSheet()
+                NavigationHelpers.dismissSheet(in: app)
             }
         } else {
             scanButton.tap()
             Thread.sleep(forTimeInterval: 1)
             snapshot("22_Barcode_Scanner")
-            NavigationHelpers.dismissSheet()
+            NavigationHelpers.dismissSheet(in: app)
         }
     }
     
@@ -397,7 +399,7 @@ final class NestorySnapshotTests: XCTestCase {
             exportCell.tap()
             Thread.sleep(forTimeInterval: 1)
             snapshot("23_Export_Options")
-            NavigationHelpers.navigateBack()
+            NavigationHelpers.navigateBack(in: app)
         }
     }
     
@@ -410,7 +412,7 @@ final class NestorySnapshotTests: XCTestCase {
             insuranceCell.tap()
             Thread.sleep(forTimeInterval: 1)
             snapshot("24_Insurance_Report")
-            NavigationHelpers.navigateBack()
+            NavigationHelpers.navigateBack(in: app)
         }
     }
 }

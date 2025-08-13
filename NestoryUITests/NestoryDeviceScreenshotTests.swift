@@ -12,6 +12,7 @@ final class NestoryDeviceScreenshotTests: XCTestCase {
     var app: XCUIApplication!
     let helper = ScreenshotHelper.shared
 
+    @MainActor
     override func setUpWithError() throws {
         continueAfterFailure = false
 
@@ -27,6 +28,7 @@ final class NestoryDeviceScreenshotTests: XCTestCase {
         app.launch()
     }
 
+    @MainActor
     override func tearDownWithError() throws {
         app = nil
     }
