@@ -269,7 +269,8 @@ final class NestoryUIScreenshotFlow: XCTestCase {
 
 // MARK: - Screenshot Counter
 
-class ScreenshotCounter {
+@MainActor
+final class ScreenshotCounter {
     private var counter = 0
 
     func next() -> String {

@@ -7,7 +7,8 @@
 
 import XCTest
 
-class NavigationHelpers {
+@MainActor
+final class NavigationHelpers {
     
     static let app = XCUIApplication()
     
