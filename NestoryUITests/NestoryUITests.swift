@@ -11,7 +11,6 @@ import XCTest
 final class NestoryUITests: XCTestCase {
     private var app: XCUIApplication!
     
-    @MainActor
     override func setUpWithError() throws {
         try super.setUpWithError()
         continueAfterFailure = false
@@ -20,7 +19,6 @@ final class NestoryUITests: XCTestCase {
         app.launch()
     }
 
-    @MainActor
     override func tearDownWithError() throws {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
     }

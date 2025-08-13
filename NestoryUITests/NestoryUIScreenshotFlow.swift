@@ -12,7 +12,6 @@ final class NestoryUIScreenshotFlow: XCTestCase {
     private var app: XCUIApplication!
     private let screenshotCounter = ScreenshotCounter()
 
-    @MainActor
     override func setUpWithError() throws {
         try super.setUpWithError()
         continueAfterFailure = false
@@ -26,7 +25,6 @@ final class NestoryUIScreenshotFlow: XCTestCase {
         app.launch()
     }
 
-    @MainActor
     override func tearDownWithError() throws {
         // Clean up
     }

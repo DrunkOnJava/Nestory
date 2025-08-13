@@ -12,12 +12,12 @@ final class NestorySnapshotTests: XCTestCase {
     
     var app: XCUIApplication!
     
-    @MainActor
     override func setUpWithError() throws {
         try super.setUpWithError()
         
         continueAfterFailure = true
         
+        // Create and configure app on MainActor
         app = XCUIApplication()
         
         // Set up Snapshot
@@ -33,7 +33,6 @@ final class NestorySnapshotTests: XCTestCase {
         NavigationHelpers.handlePermissionAlerts()
     }
     
-    @MainActor
     override func tearDownWithError() throws {
         app = nil
         try super.tearDownWithError()
