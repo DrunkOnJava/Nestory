@@ -29,7 +29,7 @@ struct InventoryListView: View {
                 }
                 .onDelete(perform: deleteItems)
             }
-            .navigationTitle("Your Items")
+            .navigationTitle("Assets List")
             .navigationBarTitleDisplayMode(.large)
             .searchable(text: $searchText, prompt: "Search your stuff...")
             .toolbar {
