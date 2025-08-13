@@ -7,7 +7,6 @@
 
 import XCTest
 
-@MainActor
 final class SimpleScreenshotTests: XCTestCase {
     var app: XCUIApplication!
     var screenshotCount = 0

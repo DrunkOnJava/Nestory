@@ -107,7 +107,7 @@ targets:
         TEST_TARGET_NAME: Nestory
         GENERATE_INFOPLIST_FILE: YES
         SWIFT_VERSION: 6.0
-        SWIFT_STRICT_CONCURRENCY: complete
+        SWIFT_STRICT_CONCURRENCY: minimal
         SWIFT_TREAT_WARNINGS_AS_ERRORS: NO
 
 schemes:

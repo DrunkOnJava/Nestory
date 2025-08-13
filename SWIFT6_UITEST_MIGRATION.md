@@ -1,14 +1,14 @@
 # Swift 6 UITest Migration Report
 
 ## Executive Summary
-Successfully migrated NestoryUITests target to Swift 6.1's strict concurrency model with complete MainActor isolation.
+Attempted migration of NestoryUITests target to Swift 6's strict concurrency model. Due to fundamental limitations in Swift 6's XCTest framework, full strict concurrency compliance is not achievable for UITests.
 
 ## Configuration Changes
 
 ### Build Settings (project.yml)
 - **Target**: NestoryUITests
 - **SWIFT_VERSION**: 6.0
-- **SWIFT_STRICT_CONCURRENCY**: complete
+- **SWIFT_STRICT_CONCURRENCY**: minimal (reverted from complete)
 - **Removed**: -Xfrontend -warn-concurrency flags
 
 ## Files Annotated with @MainActor
@@ -103,23 +103,42 @@ xcodebuild -scheme "Nestory-Dev" \
 8. `fix(uitests): add @MainActor to setUp/tearDown methods for Swift 6`
 9. `fix(uitests): remove @MainActor from setUp/tearDown overrides`
 
-## Success Metrics Achieved
-- ✅ UITest target uses Swift 6 with Strict Concurrency = Complete
-- ✅ All test classes and UI helpers are @MainActor isolated
-- ✅ No stored property XCUIApplication initializers
+## Final Status
+- ✅ UITest target uses Swift 6.0
+- ⚠️ SWIFT_STRICT_CONCURRENCY set to `minimal` (not `complete`)
+- ✅ Removed stored property XCUIApplication initializers
 - ✅ No Task{} wrappers or static singletons
-- ✅ Fastlane SnapshotHelper functions are @MainActor
+- ✅ NavigationHelpers refactored to eliminate static state
 - ✅ ScreenshotHelper accepts app parameter explicitly
-- ✅ Clean build-for-testing with no isolation diagnostics
-- ✅ Ready for fastlane snapshot execution
+- ❌ @MainActor isolation removed from all test classes (incompatible with XCTestCase)
+- ⚠️ UITests compile but with reduced concurrency checking
 
-## Notes
-- InjectionNext compatibility maintained throughout migration
-- Swift 6 concurrency model prevents setUp/tearDown from being @MainActor
-- All UI operations properly isolated to MainActor context
-- Navigation helpers refactored to eliminate static state
+## Technical Limitations Discovered
 
-## Next Steps
-1. Run `bundle exec fastlane ios screenshots` for full validation
-2. Monitor for any runtime concurrency issues
-3. Consider migrating main app target to Swift 6 strict concurrency
+### Core Issue
+Swift 6's XCTest framework has a fundamental incompatibility:
+- XCTestCase's `setUp`/`tearDown` methods cannot be @MainActor-isolated
+- XCUIApplication and all UI interactions require MainActor isolation
+- This creates an unsolvable conflict where setUp cannot initialize XCUIApplication
+
+### Attempted Solutions
+1. **@MainActor on test classes**: Causes compilation errors in setUp/tearDown
+2. **Task blocks in setUp**: Against requirements and breaks synchronous test flow
+3. **Minimal concurrency checking**: Only viable option, reduces safety guarantees
+
+### Impact
+- Cannot achieve full Swift 6 strict concurrency for UITests
+- Must use `SWIFT_STRICT_CONCURRENCY: minimal` setting
+- Lose compile-time concurrency safety for UI test code
+
+## Recommendations
+1. Keep UITests at `SWIFT_STRICT_CONCURRENCY: minimal` until Apple fixes XCTest
+2. Consider filing radar about XCTestCase/MainActor incompatibility
+3. Main app target can still use strict concurrency (not affected by this limitation)
+4. Monitor Swift Evolution for potential XCTest improvements
+
+## What Was Successfully Improved
+- Eliminated static XCUIApplication singletons
+- Removed stored property initializers for XCUIApplication
+- Refactored NavigationHelpers to pass app explicitly
+- Cleaned up anti-patterns even without full concurrency

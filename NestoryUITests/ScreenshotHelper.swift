@@ -7,7 +7,6 @@
 
 import XCTest
 
-@MainActor
 final class ScreenshotHelper {
     static let shared = ScreenshotHelper()
 
@@ -102,7 +101,6 @@ final class ScreenshotHelper {
 
 // MARK: - Test Configuration
 
-@MainActor
 enum TestConfiguration {
     static var isUITesting: Bool {
         ProcessInfo.processInfo.arguments.contains("UI_TESTING_MODE")

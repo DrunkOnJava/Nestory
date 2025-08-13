@@ -7,7 +7,6 @@
 
 import XCTest
 
-@MainActor
 final class NestoryUITestsLaunchTests: XCTestCase {
     override class var runsForEachTargetApplicationUIConfiguration: Bool {
         true

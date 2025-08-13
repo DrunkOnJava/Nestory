@@ -7,14 +7,13 @@
 
 import XCTest
 
-@MainActor
 final class NestoryUITests: XCTestCase {
     private var app: XCUIApplication!
-    
+
     override func setUpWithError() throws {
         try super.setUpWithError()
         continueAfterFailure = false
-        
+
         app = XCUIApplication()
         app.launch()
     }

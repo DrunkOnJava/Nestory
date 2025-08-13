@@ -7,7 +7,6 @@
 
 import XCTest
 
-@MainActor
 final class NestoryDeviceScreenshotTests: XCTestCase {
     var app: XCUIApplication!
     let helper = ScreenshotHelper.shared

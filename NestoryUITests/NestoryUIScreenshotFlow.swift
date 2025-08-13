@@ -7,7 +7,6 @@
 
 import XCTest
 
-@MainActor
 final class NestoryUIScreenshotFlow: XCTestCase {
     private var app: XCUIApplication!
     private let screenshotCounter = ScreenshotCounter()
@@ -20,7 +19,7 @@ final class NestoryUIScreenshotFlow: XCTestCase {
         app = XCUIApplication()
         app.launchArguments = ["UI_TESTING_MODE", "CLEAR_DATA"]
         app.launchEnvironment = ["SCREENSHOTS": "YES"]
-        
+
         // Launch the app
         app.launch()
     }
@@ -271,7 +270,6 @@ final class NestoryUIScreenshotFlow: XCTestCase {
 
 // MARK: - Screenshot Counter
 
-@MainActor
 final class ScreenshotCounter {
     private var counter = 0
 
