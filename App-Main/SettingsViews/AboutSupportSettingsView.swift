@@ -7,11 +7,14 @@
 import SwiftUI
 
 struct AboutSupportSettingsView: View {
+    @State private var showingPrivacyPolicy = false
+    @State private var showingTermsOfService = false
+    
     var body: some View {
         Group {
             // Support Section
             Section("Support") {
-                Link(destination: URL(string: "https://github.com/yourusername/Nestory")!) {
+                Link(destination: URL(string: "https://github.com/DrunkOnJava/Nestory")!) {
                     Label("GitHub Repository", systemImage: "link")
                 }
 
@@ -40,8 +43,13 @@ struct AboutSupportSettingsView: View {
                         .foregroundColor(.secondary)
                 }
 
-                Link("Privacy Policy", destination: URL(string: "https://nestory.app/privacy")!)
-                Link("Terms of Service", destination: URL(string: "https://nestory.app/terms")!)
+                Button("Privacy Policy") {
+                    showingPrivacyPolicy = true
+                }
+                
+                Button("Terms of Service") {
+                    showingTermsOfService = true
+                }
 
                 HStack {
                     Text("Made with")
@@ -55,6 +63,12 @@ struct AboutSupportSettingsView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 8)
             }
+        }
+        .sheet(isPresented: $showingPrivacyPolicy) {
+            PrivacyPolicyView()
+        }
+        .sheet(isPresented: $showingTermsOfService) {
+            TermsOfServiceView()
         }
     }
 }
