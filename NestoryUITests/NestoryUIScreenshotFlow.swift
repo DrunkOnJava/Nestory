@@ -7,6 +7,7 @@
 
 import XCTest
 
+@MainActor
 final class NestoryUIScreenshotFlow: XCTestCase {
     let app = XCUIApplication()
     let screenshotCounter = ScreenshotCounter()

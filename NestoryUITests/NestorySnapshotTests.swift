@@ -7,7 +7,8 @@
 
 import XCTest
 
-class NestorySnapshotTests: XCTestCase {
+@MainActor
+final class NestorySnapshotTests: XCTestCase {
     
     var app: XCUIApplication!
     

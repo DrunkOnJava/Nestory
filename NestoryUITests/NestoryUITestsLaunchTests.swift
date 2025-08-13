@@ -7,6 +7,7 @@
 
 import XCTest
 
+@MainActor
 final class NestoryUITestsLaunchTests: XCTestCase {
     override class var runsForEachTargetApplicationUIConfiguration: Bool {
         true
@@ -16,7 +17,6 @@ final class NestoryUITestsLaunchTests: XCTestCase {
         continueAfterFailure = false
     }
 
-    @MainActor
     func testLaunch() throws {
         let app = XCUIApplication()
         app.launch()
