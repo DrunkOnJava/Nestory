@@ -93,6 +93,22 @@ targets:
       - package: InjectionNext
         product: InjectionNext
 
+  NestoryUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    deploymentTarget: 17.0
+    sources:
+      - NestoryUITests
+    dependencies:
+      - target: Nestory
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.nestory.UITests
+        TEST_TARGET_NAME: Nestory
+        GENERATE_INFOPLIST_FILE: YES
+        SWIFT_STRICT_CONCURRENCY: minimal
+        SWIFT_TREAT_WARNINGS_AS_ERRORS: NO
+
 schemes:
   Nestory-Dev:
     build:
@@ -105,6 +121,8 @@ schemes:
         INJECTION_DIRECTORIES: /Users/griffin/Projects/Nestory
     test:
       config: Debug
+      targets:
+        - NestoryUITests
     profile:
       config: Debug
     analyze:

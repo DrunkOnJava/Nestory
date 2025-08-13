@@ -104,3 +104,13 @@ tools/dev/XcodeBuildMCP/
 *.swo
 *~
 .DS_Store
+
+# Fastlane
+fastlane/screenshots/
+fastlane/screenshots_archive/
+fastlane/test_output/
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/*.cer
+fastlane/*.mobileprovision
+fastlane/*.p12
