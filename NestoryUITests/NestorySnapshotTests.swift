@@ -71,7 +71,7 @@ final class NestorySnapshotTests: XCTestCase {
     
     func captureInventoryScreenshots() {
         XCTContext.runActivity(named: "Capture Inventory Screenshots") { _ in
-            NavigationHelpers.navigateToTab(named: "Inventory")
+            NavigationHelpers.navigateToTab(named: "Inventory", in: app)
             NavigationHelpers.waitForLoadingToComplete()
             
             // Capture empty state if no items
@@ -93,7 +93,7 @@ final class NestorySnapshotTests: XCTestCase {
     
     func captureAddItemFlow() {
         XCTContext.runActivity(named: "Capture Add Item Flow") { _ in
-            NavigationHelpers.navigateToTab(named: "Inventory")
+            NavigationHelpers.navigateToTab(named: "Inventory", in: app)
             
             // Tap Add button
             let addButton = app.buttons["plus"].firstMatch
@@ -140,7 +140,7 @@ final class NestorySnapshotTests: XCTestCase {
     
     func captureItemDetailScreenshots() {
         XCTContext.runActivity(named: "Capture Item Detail Screenshots") { _ in
-            NavigationHelpers.navigateToTab(named: "Inventory")
+            NavigationHelpers.navigateToTab(named: "Inventory", in: app)
             NavigationHelpers.waitForLoadingToComplete()
             
             // Tap on first item if exists
@@ -171,7 +171,7 @@ final class NestorySnapshotTests: XCTestCase {
     
     func captureSearchScreenshots() {
         XCTContext.runActivity(named: "Capture Search Screenshots") { _ in
-            NavigationHelpers.navigateToTab(named: "Search")
+            NavigationHelpers.navigateToTab(named: "Search", in: app)
             Thread.sleep(forTimeInterval: 1)
             
             // Capture empty search
@@ -197,7 +197,7 @@ final class NestorySnapshotTests: XCTestCase {
     
     func captureCategoriesScreenshots() {
         XCTContext.runActivity(named: "Capture Categories Screenshots") { _ in
-            NavigationHelpers.navigateToTab(named: "Categories")
+            NavigationHelpers.navigateToTab(named: "Categories", in: app)
             Thread.sleep(forTimeInterval: 1)
             
             snapshot("11_Categories_List")
@@ -223,7 +223,7 @@ final class NestorySnapshotTests: XCTestCase {
     
     func captureAnalyticsScreenshots() {
         XCTContext.runActivity(named: "Capture Analytics Screenshots") { _ in
-            NavigationHelpers.navigateToTab(named: "Analytics")
+            NavigationHelpers.navigateToTab(named: "Analytics", in: app)
             Thread.sleep(forTimeInterval: 1)
             
             snapshot("14_Analytics_Dashboard")
@@ -239,7 +239,7 @@ final class NestorySnapshotTests: XCTestCase {
     
     func captureSettingsScreenshots() {
         XCTContext.runActivity(named: "Capture Settings Screenshots") { _ in
-            NavigationHelpers.navigateToTab(named: "Settings")
+            NavigationHelpers.navigateToTab(named: "Settings", in: app)
             Thread.sleep(forTimeInterval: 1)
             
             // Capture main settings
@@ -367,7 +367,7 @@ final class NestorySnapshotTests: XCTestCase {
     }
     
     func captureBarcodeScanner() {
-        NavigationHelpers.navigateToTab(named: "Inventory")
+        NavigationHelpers.navigateToTab(named: "Inventory", in: app)
         
         // Look for barcode scanner button
         let scanButton = app.buttons["barcode.viewfinder"].firstMatch
@@ -389,7 +389,7 @@ final class NestorySnapshotTests: XCTestCase {
     }
     
     func captureExportImport() {
-        NavigationHelpers.navigateToTab(named: "Settings")
+        NavigationHelpers.navigateToTab(named: "Settings", in: app)
         
         // Look for Import/Export section
         let exportCell = app.cells.containing(.staticText, identifier: "Export").firstMatch
@@ -402,7 +402,7 @@ final class NestorySnapshotTests: XCTestCase {
     }
     
     func captureInsuranceReport() {
-        NavigationHelpers.navigateToTab(named: "Settings")
+        NavigationHelpers.navigateToTab(named: "Settings", in: app)
         
         // Look for Insurance Report
         let insuranceCell = app.cells.containing(.staticText, identifier: "Insurance").firstMatch

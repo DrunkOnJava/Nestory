@@ -10,10 +10,8 @@ import XCTest
 @MainActor
 final class NavigationHelpers {
     
-    static let app = XCUIApplication()
-    
     /// Navigate to a specific tab
-    static func navigateToTab(named tabName: String) {
+    static func navigateToTab(named tabName: String, in app: XCUIApplication) {
         let tabBar = app.tabBars.firstMatch
         guard tabBar.waitForExistence(timeout: 5) else {
             XCTFail("Tab bar not found")
@@ -29,7 +27,7 @@ final class NavigationHelpers {
     }
     
     /// Navigate back using navigation bar
-    static func navigateBack() {
+    static func navigateBack(in app: XCUIApplication) {
         let navBar = app.navigationBars.firstMatch
         if navBar.exists {
             // Try back button with various possible labels
@@ -42,7 +40,7 @@ final class NavigationHelpers {
     }
     
     /// Dismiss sheet or modal
-    static func dismissSheet() {
+    static func dismissSheet(in app: XCUIApplication) {
         // Try Cancel button first
         if app.buttons["Cancel"].exists {
             app.buttons["Cancel"].tap()
@@ -63,7 +61,7 @@ final class NavigationHelpers {
     }
     
     /// Swipe to delete in a list
-    static func swipeToDelete(element: XCUIElement) {
+    static func swipeToDelete(element: XCUIElement, in app: XCUIApplication) {
         element.swipeLeft()
         let deleteButton = app.buttons["Delete"]
         if deleteButton.waitForExistence(timeout: 2) {
@@ -72,7 +70,7 @@ final class NavigationHelpers {
     }
     
     /// Pull to refresh
-    static func pullToRefresh() {
+    static func pullToRefresh(in app: XCUIApplication) {
         let firstCell = app.cells.firstMatch
         if firstCell.exists {
             firstCell.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.0))
@@ -81,13 +79,13 @@ final class NavigationHelpers {
     }
     
     /// Check if we're on a specific screen by looking for navigation title
-    static func isOnScreen(titled title: String) -> Bool {
+    static func isOnScreen(titled title: String, in app: XCUIApplication) -> Bool {
         return app.navigationBars[title].exists || 
                app.staticTexts[title].exists
     }
     
     /// Wait for loading to complete
-    static func waitForLoadingToComplete(timeout: TimeInterval = 10) {
+    static func waitForLoadingToComplete(in app: XCUIApplication, timeout: TimeInterval = 10) {
         let progressIndicators = app.progressIndicators
         if progressIndicators.count > 0 {
             let predicate = NSPredicate(format: "exists == false")
@@ -97,8 +95,8 @@ final class NavigationHelpers {
     }
     
     /// Switch app theme
-    static func switchTheme(to theme: String) {
-        navigateToTab(named: "Settings")
+    static func switchTheme(to theme: String, in app: XCUIApplication) {
+        navigateToTab(named: "Settings", in: app)
         
         // Look for Appearance section
         let appearanceCell = app.cells.containing(.staticText, identifier: "Appearance").firstMatch
@@ -111,7 +109,7 @@ final class NavigationHelpers {
                 themeOption.tap()
             }
             
-            navigateBack()
+            navigateBack(in: app)
         }
     }
     

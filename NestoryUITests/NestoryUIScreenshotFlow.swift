@@ -9,16 +9,18 @@ import XCTest
 
 @MainActor
 final class NestoryUIScreenshotFlow: XCTestCase {
-    let app = XCUIApplication()
-    let screenshotCounter = ScreenshotCounter()
+    private var app: XCUIApplication!
+    private let screenshotCounter = ScreenshotCounter()
 
     override func setUpWithError() throws {
+        try super.setUpWithError()
         continueAfterFailure = false
 
-        // Setup app for UI testing
+        // Create and configure app
+        app = XCUIApplication()
         app.launchArguments = ["UI_TESTING_MODE", "CLEAR_DATA"]
         app.launchEnvironment = ["SCREENSHOTS": "YES"]
-
+        
         // Launch the app
         app.launch()
     }
