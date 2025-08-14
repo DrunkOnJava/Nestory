@@ -8,38 +8,37 @@ import Foundation
 import UIKit
 
 public struct CacheEncoder<Value> {
-    
     public init() {}
-    
+
     public func encode(_ value: Value) -> Data? {
         if let data = value as? Data {
             return data
         }
-        
+
         if let codable = value as? any Codable {
             return try? JSONEncoder().encode(AnyEncodable(codable))
         }
-        
+
         if let image = value as? UIImage {
             return image.jpegData(compressionQuality: 0.8)
         }
-        
+
         return nil
     }
-    
+
     public func decode(_ data: Data, type: Value.Type) -> Value? {
         if type == Data.self {
             return data as? Value
         }
-        
+
         if let decodableType = type as? any Decodable.Type {
             return (try? JSONDecoder().decode(decodableType, from: data)) as? Value
         }
-        
+
         if type == UIImage.self {
             return UIImage(data: data) as? Value
         }
-        
+
         return nil
     }
 }
@@ -48,11 +47,11 @@ public struct CacheEncoder<Value> {
 
 private struct AnyEncodable: Encodable {
     private let _encode: (any Encoder) throws -> Void
-    
+
     init(_ wrapped: any Encodable) {
         _encode = wrapped.encode
     }
-    
+
     func encode(to encoder: any Encoder) throws {
         try _encode(encoder)
     }
@@ -61,27 +60,26 @@ private struct AnyEncodable: Encodable {
 // MARK: - Specialized Encoders
 
 extension CacheEncoder {
-    
     static func encodeImage(_ image: UIImage, compressionQuality: CGFloat = 0.8) -> Data? {
         // Try JPEG first for photos
         if let jpegData = image.jpegData(compressionQuality: compressionQuality) {
             return jpegData
         }
-        
+
         // Fall back to PNG for images with transparency
         return image.pngData()
     }
-    
+
     static func decodeImage(from data: Data) -> UIImage? {
         UIImage(data: data)
     }
-    
-    static func encodeCodable<T: Codable>(_ value: T) throws -> Data {
+
+    static func encodeCodable(_ value: some Codable) throws -> Data {
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
         return try encoder.encode(value)
     }
-    
+
     static func decodeCodable<T: Codable>(_ type: T.Type, from data: Data) throws -> T {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601

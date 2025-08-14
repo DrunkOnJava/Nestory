@@ -1,27 +1,34 @@
 //
 // Layer: App
 // Module: Main
-// Purpose: Hot reload bootstrap for InjectionNext
+// Purpose: Hot reload bootstrap for Claude's custom solution
 //
 
 #if DEBUG
-import Foundation
+    import Foundation
 
-@MainActor enum HotReloadBootstrap {
-    static func start() {
-        // InjectionNext handles everything automatically when added as a Swift Package
-        // The app will connect to InjectionNext when it's running
-        // No manual bundle loading required!
+    @MainActor enum HotReloadBootstrap {
+        static func start() {
+            // Custom hot reload via Claude hooks
+            // When Claude modifies any Swift file, the hooks system will:
+            // 1. Compile the changed file to a dynamic library
+            // 2. Inject it into the running simulator process via LLDB
+            // 3. Force UI refresh to show changes immediately
+            // No Xcode or InjectionNext needed!
 
-        NSLog("💉 [HotReload] InjectionNext package integrated - waiting for connection")
+            NSLog("🔥 [HotReload] Claude custom hot reload ready - modify any Swift file to see changes")
+            NSLog("🔧 [HotReload] Config: .claude/hot-reload.config")
+            NSLog("📱 [HotReload] Mode: Direct compilation (no Xcode needed)")
 
-        // Optional: Add observer for injection events if you want logging
-        NotificationCenter.default.addObserver(
-            forName: NSNotification.Name("INJECTION_BUNDLE_NOTIFICATION"),
-            object: nil, queue: .main
-        ) { _ in
-            NSLog("💉 [HotReload] Code injected successfully!")
+            // Monitor for custom reload events if needed
+            NotificationCenter.default.addObserver(
+                forName: NSNotification.Name("CLAUDE_HOT_RELOAD"),
+                object: nil, queue: .main,
+            ) { notification in
+                if let file = notification.userInfo?["file"] as? String {
+                    NSLog("🔥 [HotReload] Reloaded: \(file)")
+                }
+            }
         }
     }
-}
 #endif

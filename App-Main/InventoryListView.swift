@@ -6,7 +6,7 @@
 import SwiftData
 import SwiftUI
 #if DEBUG
-import Inject
+    import Inject
 #endif
 
 struct InventoryListView: View {
@@ -15,8 +15,8 @@ struct InventoryListView: View {
     @State private var showingAddItem = false
     @State private var searchText = ""
     #if DEBUG
-    @ObserveInjection var inject
-    @State private var injectionTrigger = UUID()
+        @ObserveInjection var inject
+        @State private var injectionTrigger = UUID()
     #endif
 
     var body: some View {
@@ -56,10 +56,10 @@ struct InventoryListView: View {
         }
         #if DEBUG
         .enableInjection()
-        .onReceive(NotificationCenter.default.publisher(for: Notification.Name("INJECTION_BUNDLE_NOTIFICATION"))) { _ in
-            injectionTrigger = UUID()
-        }
-        .id(injectionTrigger)
+            .onReceive(NotificationCenter.default.publisher(for: Notification.Name("INJECTION_BUNDLE_NOTIFICATION"))) { _ in
+                injectionTrigger = UUID()
+            }
+            .id(injectionTrigger)
         #endif
     }
 

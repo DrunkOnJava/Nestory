@@ -138,7 +138,7 @@ struct InsuranceReportOptionsView: View {
                     items: items,
                     categories: categories,
                     options: mutableOptions,
-                    )
+                )
 
                 // Export and share
                 let url = try await insuranceReportService.exportReport(pdfData)
@@ -161,5 +161,5 @@ struct InsuranceReportOptionsView: View {
         categories: [],
         insuranceReportService: InsuranceReportService(),
         isGenerating: .constant(false),
-        )
+    )
 }

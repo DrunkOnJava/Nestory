@@ -34,12 +34,12 @@ struct SettingsView: View {
 
                 // iCloud Backup
                 #if !DEBUG
-                CloudBackupSettingsView()
+                    CloudBackupSettingsView()
                 #else
-                Section("iCloud Backup") {
-                    Text("iCloud backup is disabled in Debug builds")
-                        .foregroundColor(.secondary)
-                }
+                    Section("iCloud Backup") {
+                        Text("iCloud backup is disabled in Debug builds")
+                            .foregroundColor(.secondary)
+                    }
                 #endif
 
                 // Import & Export

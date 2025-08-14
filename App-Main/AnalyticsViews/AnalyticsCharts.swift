@@ -187,7 +187,7 @@ struct ItemStatusChart: View {
                                         .fill(data.color)
                                         .frame(
                                             height: geometry.size.height * CGFloat(data.count) /
-                                                CGFloat(max(items.count, 1))
+                                                CGFloat(max(items.count, 1)),
                                         )
                                 }
                             },

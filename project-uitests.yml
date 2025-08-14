@@ -39,8 +39,10 @@ packages:
   Inject:
     url: https://github.com/krzysztofzablocki/Inject
     from: 1.5.2
-  # InjectionNext removed in favor of custom hot reload solution
-  # See .claude/hot-reload.config and SIMULATOR-HOT-RELOAD.md
+  # InjectionNext disabled for UI testing
+  # InjectionNext:
+  #   url: https://github.com/johnno1962/InjectionNext
+  #   from: 1.0.0
 
 targets:
   Nestory:
@@ -89,7 +91,9 @@ targets:
       - sdk: CloudKit.framework
       - package: Inject
         product: Inject
-      # InjectionNext removed - using custom hot reload via hooks
+      # InjectionNext disabled for UI testing
+      # - package: InjectionNext
+      #   product: InjectionNext
 
   NestoryUITests:
     type: bundle.ui-testing
@@ -117,7 +121,7 @@ schemes:
       config: Debug
       environmentVariables:
         CLOUDKIT_CONTAINER: iCloud.com.nestory.app.dev
-        # Custom hot reload via Claude hooks - no InjectionNext needed
+        INJECTION_DIRECTORIES: /Users/griffin/Projects/Nestory
     test:
       config: Debug
       targets:

@@ -97,7 +97,7 @@ public final class KeychainStore: @unchecked Sendable {
             throw KeychainError.deleteAllFailed(status)
         }
 
-        logger.debug("Deleted all keychain items for service: \(self.service)")
+        logger.debug("Deleted all keychain items for service: \(service)")
     }
 
     public func exists(for key: String) -> Bool {

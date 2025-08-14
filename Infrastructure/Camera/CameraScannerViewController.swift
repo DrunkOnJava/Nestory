@@ -117,9 +117,9 @@ public class CameraScannerViewController: UIViewController, AVCaptureMetadataOut
     public nonisolated func metadataOutput(_: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject], from _: AVCaptureConnection) {
         guard let firstObject = metadataObjects.first as? AVMetadataMachineReadableCodeObject,
               let stringValue = firstObject.stringValue else { return }
-        
+
         let typeRawValue = firstObject.type.rawValue
-        
+
         Task { @MainActor in
             guard !hasScanned else { return }
             hasScanned = true

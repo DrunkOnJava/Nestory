@@ -43,7 +43,8 @@ struct PhotoPicker: UIViewControllerRepresentable {
 
             provider.loadObject(ofClass: UIImage.self) { image, _ in
                 if let uiImage = image as? UIImage,
-                   let data = uiImage.jpegData(compressionQuality: 0.8) {
+                   let data = uiImage.jpegData(compressionQuality: 0.8)
+                {
                     DispatchQueue.main.async {
                         self.parent.imageData = data
                     }

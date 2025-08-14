@@ -139,7 +139,7 @@ struct ExportOptionsView: View {
                         items: items,
                         categories: categories,
                         options: InsuranceReportService.ReportOptions(),
-                        )
+                    )
                     fileName = "Nestory_Report_\(Date().formatted(date: .abbreviated, time: .omitted)).pdf"
                 } catch {
                     print("PDF generation error: \(error)")
@@ -157,11 +157,12 @@ struct ExportOptionsView: View {
                         let activityVC = UIActivityViewController(
                             activityItems: [tempURL],
                             applicationActivities: nil,
-                            )
+                        )
 
                         if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
                            let window = windowScene.windows.first,
-                           let rootVC = window.rootViewController {
+                           let rootVC = window.rootViewController
+                        {
                             if let popover = activityVC.popoverPresentationController {
                                 popover.sourceView = rootVC.view
                                 popover.sourceRect = CGRect(x: rootVC.view.bounds.midX, y: rootVC.view.bounds.midY, width: 0, height: 0)

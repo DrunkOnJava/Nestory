@@ -13,10 +13,10 @@ public final class DiskCache<Key: Hashable & Sendable, Value>: @unchecked Sendab
     private let queue = DispatchQueue(label: "com.nestory.diskCache", attributes: .concurrent)
     private let logger = Logger(subsystem: "com.nestory", category: "DiskCache")
     private let encoder: CacheEncoder<Value>
-    
+
     private let maxDiskSize: Int
     private let ttl: TimeInterval
-    
+
     public init(
         name: String,
         maxDiskSize: Int = 100_000_000,
@@ -24,18 +24,18 @@ public final class DiskCache<Key: Hashable & Sendable, Value>: @unchecked Sendab
     ) throws {
         self.maxDiskSize = maxDiskSize
         self.ttl = ttl
-        self.encoder = CacheEncoder()
-        
+        encoder = CacheEncoder()
+
         let cacheDirectory = fileManager.urls(for: .cachesDirectory, in: .userDomainMask).first!
         diskCacheURL = cacheDirectory.appendingPathComponent("com.nestory.cache.\(name)")
-        
+
         if !fileManager.fileExists(atPath: diskCacheURL.path) {
             try fileManager.createDirectory(at: diskCacheURL, withIntermediateDirectories: true)
         }
     }
-    
+
     // MARK: - Public Methods
-    
+
     public func save(_ data: Data, for key: Key) async {
         await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
             queue.async(flags: .barrier) { [weak self] in
@@ -43,7 +43,7 @@ public final class DiskCache<Key: Hashable & Sendable, Value>: @unchecked Sendab
                     continuation.resume()
                     return
                 }
-                
+
                 let url = fileURL(for: key)
                 do {
                     try data.write(to: url, options: .atomic)
@@ -54,10 +54,10 @@ public final class DiskCache<Key: Hashable & Sendable, Value>: @unchecked Sendab
                 continuation.resume()
             }
         }
-        
+
         await enforceDiskSizeLimit()
     }
-    
+
     public func load(for key: Key) async -> Data? {
         await withCheckedContinuation { (continuation: CheckedContinuation<Data?, Never>) in
             queue.async { [weak self] in
@@ -65,14 +65,14 @@ public final class DiskCache<Key: Hashable & Sendable, Value>: @unchecked Sendab
                     continuation.resume(returning: nil)
                     return
                 }
-                
+
                 let url = fileURL(for: key)
-                
+
                 guard fileManager.fileExists(atPath: url.path) else {
                     continuation.resume(returning: nil)
                     return
                 }
-                
+
                 do {
                     let attributes = try fileManager.attributesOfItem(atPath: url.path)
                     if let modificationDate = attributes[.modificationDate] as? Date {
@@ -82,7 +82,7 @@ public final class DiskCache<Key: Hashable & Sendable, Value>: @unchecked Sendab
                             return
                         }
                     }
-                    
+
                     let data = try Data(contentsOf: url)
                     logger.debug("Loaded from disk cache: \(String(describing: key))")
                     continuation.resume(returning: data)
@@ -93,7 +93,7 @@ public final class DiskCache<Key: Hashable & Sendable, Value>: @unchecked Sendab
             }
         }
     }
-    
+
     public func remove(for key: Key) async {
         await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
             queue.async(flags: .barrier) { [weak self] in
@@ -101,7 +101,7 @@ public final class DiskCache<Key: Hashable & Sendable, Value>: @unchecked Sendab
                     continuation.resume()
                     return
                 }
-                
+
                 let url = fileURL(for: key)
                 do {
                     if fileManager.fileExists(atPath: url.path) {
@@ -115,7 +115,7 @@ public final class DiskCache<Key: Hashable & Sendable, Value>: @unchecked Sendab
             }
         }
     }
-    
+
     public func removeAll() async {
         await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
             queue.async(flags: .barrier) { [weak self] in
@@ -123,11 +123,11 @@ public final class DiskCache<Key: Hashable & Sendable, Value>: @unchecked Sendab
                     continuation.resume()
                     return
                 }
-                
+
                 do {
                     let contents = try fileManager.contentsOfDirectory(
                         at: diskCacheURL,
-                        includingPropertiesForKeys: nil
+                        includingPropertiesForKeys: nil,
                     )
                     for url in contents {
                         try fileManager.removeItem(at: url)
@@ -140,7 +140,7 @@ public final class DiskCache<Key: Hashable & Sendable, Value>: @unchecked Sendab
             }
         }
     }
-    
+
     public func cleanExpired() async {
         await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
             queue.async(flags: .barrier) { [weak self] in
@@ -148,24 +148,25 @@ public final class DiskCache<Key: Hashable & Sendable, Value>: @unchecked Sendab
                     continuation.resume()
                     return
                 }
-                
+
                 do {
                     let contents = try fileManager.contentsOfDirectory(
                         at: diskCacheURL,
                         includingPropertiesForKeys: [.contentModificationDateKey],
-                        options: [.skipsHiddenFiles]
+                        options: [.skipsHiddenFiles],
                     )
-                    
+
                     let now = Date()
                     for url in contents {
                         if let attributes = try? fileManager.attributesOfItem(atPath: url.path),
-                           let modificationDate = attributes[.modificationDate] as? Date {
+                           let modificationDate = attributes[.modificationDate] as? Date
+                        {
                             if now.timeIntervalSince(modificationDate) > ttl {
                                 try fileManager.removeItem(at: url)
                             }
                         }
                     }
-                    
+
                     logger.debug("Cleaned expired disk cache entries")
                 } catch {
                     logger.error("Failed to clean expired cache: \(error.localizedDescription)")
@@ -174,27 +175,27 @@ public final class DiskCache<Key: Hashable & Sendable, Value>: @unchecked Sendab
             }
         }
     }
-    
+
     // MARK: - Size Management
-    
+
     public func calculateUsage() async -> Int {
         await CacheSizeManager.calculateDiskUsage(at: diskCacheURL, using: fileManager)
     }
-    
+
     private func enforceDiskSizeLimit() async {
         let currentSize = await calculateUsage()
         guard currentSize > maxDiskSize else { return }
-        
+
         await CacheSizeManager.enforceSizeLimit(
             at: diskCacheURL,
             currentSize: currentSize,
             maxSize: maxDiskSize,
-            using: fileManager
+            using: fileManager,
         )
     }
-    
+
     // MARK: - Private Methods
-    
+
     private func fileURL(for key: Key) -> URL {
         let filename = "\(key.hashValue)"
         return diskCacheURL.appendingPathComponent(filename)

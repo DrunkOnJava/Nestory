@@ -9,20 +9,20 @@
 import SwiftData
 import SwiftUI
 #if DEBUG
-import Inject
+    import Inject
 #endif
 
 struct ContentView: View {
     @EnvironmentObject var themeManager: ThemeManager
     #if DEBUG
-    @ObserveInjection var inject
+        @ObserveInjection var inject
     #endif
 
     var body: some View {
         TabView {
             InventoryListView()
                 .tabItem {
-                    Label("Inventory", systemImage: "shippingbox.fill")
+                    Label("🚀 Inventory", systemImage: "house.fill")
                 }
 
             SearchView()
@@ -47,7 +47,7 @@ struct ContentView: View {
         }
         .preferredColorScheme(themeManager.currentColorScheme)
         #if DEBUG
-        .enableInjection()
+            .enableInjection()
         #endif
     }
 }

@@ -9,7 +9,7 @@ import SwiftUI
 struct AboutSupportSettingsView: View {
     @State private var showingPrivacyPolicy = false
     @State private var showingTermsOfService = false
-    
+
     var body: some View {
         Group {
             // Support Section
@@ -46,7 +46,7 @@ struct AboutSupportSettingsView: View {
                 Button("Privacy Policy") {
                     showingPrivacyPolicy = true
                 }
-                
+
                 Button("Terms of Service") {
                     showingTermsOfService = true
                 }

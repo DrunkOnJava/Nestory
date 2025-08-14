@@ -8,7 +8,11 @@
       "Bash(git add:*)",
       "Bash(swiftformat:*)",
       "Bash(xcodebuild:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(grep:*)",
+      "Bash(xcodegen generate:*)",
+      "Bash(xcrun simctl boot:*)",
+      "Bash(true)"
     ],
     "deny": []
   }
