@@ -22,7 +22,7 @@ struct ContentView: View {
         TabView {
             InventoryListView()
                 .tabItem {
-                    Label("🚀 Inventory", systemImage: "house.fill")
+                    Label("Inventory", systemImage: "shippingbox.fill")
                 }
 
             SearchView()
