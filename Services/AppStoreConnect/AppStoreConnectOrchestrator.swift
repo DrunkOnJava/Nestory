@@ -164,7 +164,7 @@ public final class AppStoreConnectOrchestrator: ObservableObject {
             // 7. Submit for review
             updateProgress(.submittingForReview, percent: 90, task: "Submitting for review")
             try await versionService.submitForReview(
-                AppVersionService.ReviewSubmission(
+                submission: AppVersionService.ReviewSubmission(
                     versionId: version.id,
                     buildId: submission.buildNumber,
                     notes: submission.reviewInfo.notes,
@@ -175,7 +175,7 @@ public final class AppStoreConnectOrchestrator: ObservableObject {
                     contactLastName: submission.reviewInfo.contactLastName,
                     contactEmail: submission.reviewInfo.contactEmail,
                     contactPhone: submission.reviewInfo.contactPhone,
-                ),
+                )
             )
 
             updateProgress(.completed, percent: 100, task: "Submission complete")
