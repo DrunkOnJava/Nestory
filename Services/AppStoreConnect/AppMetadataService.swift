@@ -236,9 +236,11 @@ public final class AppMetadataService: ObservableObject {
                     type: "apps",
                     id: appId,
                     attributes: AppUpdateRequest.Attributes(
+                        primaryCategory: nil,
+                        secondaryCategory: nil,
                         contentRightsDeclaration: AppUpdateRequest.ContentRights(
-                            usesThirdPartyContent: usesThirdPartyContent,
-                        ),
+                            usesThirdPartyContent: usesThirdPartyContent
+                        )
                     ),
                 ),
             ),

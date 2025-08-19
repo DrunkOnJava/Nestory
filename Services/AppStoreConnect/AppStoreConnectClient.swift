@@ -105,7 +105,7 @@ public final class AppStoreConnectClient: ObservableObject {
         // Create JWT payload
         let now = Date()
         let expiration = now.addingTimeInterval(20 * 60) // 20 minutes (max allowed)
-        let payload = [
+        let payload: [String: Any] = [
             "iss": configuration.issuerID,
             "iat": Int(now.timeIntervalSince1970),
             "exp": Int(expiration.timeIntervalSince1970),
