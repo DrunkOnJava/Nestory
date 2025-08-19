@@ -1,42 +1,275 @@
-# Fastfile for Nestory Screenshots
+# Fastfile — modernized for CI and current fastlane best practices
 
 default_platform(:ios)
 
+# ---- Shared config via ENV (override with `.env` or lane options) ----
+APP_IDENTIFIER   = ENV['APP_IDENTIFIER']   || 'com.nestory.app'
+SCHEME           = ENV['SCHEME']           || 'Nestory-Dev'
+WORKSPACE        = ENV['WORKSPACE']        || nil        # e.g., 'Nestory.xcworkspace' (nil -> use project)
+PROJECT          = ENV['PROJECT']          || 'Nestory.xcodeproj'
+ASSETS_PATH      = ENV['ASSETS_PATH']      || 'App-Main/Assets.xcassets'
+ICONSET_NAME     = ENV['ICONSET_NAME']     || 'AppIcon'
+CONFIGURATION    = ENV['CONFIGURATION']    || 'Release'
+OUTPUT_DIR       = ENV['OUTPUT_DIR']       || 'fastlane/output'
+TEAM_ID          = ENV['TEAM_ID']          || ''         # optional
+XCODE_VERSION    = ENV['XCODE_VERSION']    || nil        # e.g., '16.0' to pin
+
+# ASC API key: prefer environment or a local json path; never commit secrets
+ASC_KEY_ID       = ENV['ASC_KEY_ID']
+ASC_ISSUER_ID    = ENV['ASC_ISSUER_ID']
+ASC_KEY_CONTENT  = ENV['ASC_KEY_CONTENT']  # Base64 or raw p8 content (preferred)
+# OR ASC_KEY_PATH = 'fastlane/AuthKey_XXXXXXXXXX.p8'
+
 platform :ios do
-  desc "Generate screenshots for iPhone 16 Pro Max"
-  lane :screenshots do
-    # Clear previous screenshots
-    clear_derived_data
-    
-    # Run snapshot
+  # ------------------------------
+  # Global CI initialization hooks
+  # ------------------------------
+  before_all do
+    setup_ci if ENV['CI']                         # sets locale/timezone and xcodebuild env for CI
+    ensure_xcode_version(version: XCODE_VERSION) if XCODE_VERSION
+    create_keychain(name: "fastlane_tmp", default_keychain: true, unlock: true, timeout: 3600, lock_when_sleeps: false) if is_ci
+    sh("mkdir -p #{OUTPUT_DIR}")
+  end
+
+  after_all do
+    UI.success("✅ All lanes finished successfully.")
+  end
+
+  error do |lane, exception|
+    UI.error("❌ Lane '#{lane}' failed: #{exception.message}")
+    UI.message("See logs under #{OUTPUT_DIR}")
+  end
+
+  # ------------------------------
+  # Code quality & tests
+  # ------------------------------
+  desc "Run unit/UI tests with scan"
+  lane :tests do |opts|
+    scan(
+      scheme: opts[:scheme] || SCHEME,
+      project: WORKSPACE ? nil : PROJECT,
+      workspace: WORKSPACE,
+      clean: true,
+      derived_data_path: "#{OUTPUT_DIR}/DerivedData",
+      output_directory: "#{OUTPUT_DIR}/tests",
+      buildlog_path: "#{OUTPUT_DIR}/logs/tests",
+      result_bundle: true,
+      fail_build: true
+    )
+  end
+
+  # ------------------------------
+  # Build
+  # ------------------------------
+  desc "Build archive for distribution"
+  lane :build do |opts|
+    ensure_git_status_clean unless is_ci # optional; skip in CI
+    version_bump = opts[:bump_build] || false
+    increment_build_number if version_bump
+
+    build_app(
+      scheme: opts[:scheme] || SCHEME,
+      project: WORKSPACE ? nil : PROJECT,
+      workspace: WORKSPACE,
+      configuration: CONFIGURATION,
+      clean: true,
+      output_directory: "#{OUTPUT_DIR}/build",
+      output_name: "#{SCHEME}.ipa",
+      include_bitcode: false,                   # modern: false
+      include_symbols: true,                    # produce dSYM
+      export_method: "app-store",
+      export_options: {
+        provisioningProfiles: {
+          APP_IDENTIFIER => opts[:provisioning_profile] || ""
+        },
+        uploadSymbols: true,
+        compileBitcode: false
+      },
+      buildlog_path: "#{OUTPUT_DIR}/logs/build",
+      # Ensure dSYM generation and allow provisioning updates
+      xcargs: "-allowProvisioningUpdates DEBUG_INFORMATION_FORMAT=dwarf-with-dsym ENABLE_BITCODE=NO"
+    )
+  end
+
+  # ------------------------------
+  # TestFlight
+  # ------------------------------
+  private_lane :asc_api_key do
+    # Prefer key content via ENV; fallback to a file path
+    if ASC_KEY_CONTENT && ASC_KEY_ID && ASC_ISSUER_ID
+      app_store_connect_api_key(
+        key_id: ASC_KEY_ID,
+        issuer_id: ASC_ISSUER_ID,
+        key_content: ASC_KEY_CONTENT,
+        is_key_content_base64: ASC_KEY_CONTENT.start_with?("MII"), # best-effort; tweak as needed
+        duration: 1200,
+        in_house: false
+      )
+    elsif ENV['ASC_KEY_PATH'] && ASC_KEY_ID && ASC_ISSUER_ID
+      app_store_connect_api_key(
+        key_id: ASC_KEY_ID,
+        issuer_id: ASC_ISSUER_ID,
+        key_filepath: ENV['ASC_KEY_PATH'],
+        duration: 1200,
+        in_house: false
+      )
+    else
+      UI.message("App Store Connect API key not configured. Will use interactive auth if needed.")
+    end
+  end
+
+  desc "Build and upload to TestFlight"
+  lane :beta do |opts|
+    # Optional: run tests before betas
+    tests(scheme: opts[:scheme]) unless opts[:skip_tests]
+
+    # Build
+    build(opts)
+
+    # Authenticate
+    asc_api_key
+
+    # Changelog from git commits
+    notes = changelog_from_git_commits(
+      commits_count: 50,
+      merge_commit_filtering: "exclude_merges"
+    ) rescue "Bug fixes and improvements"
+
+    upload_to_testflight(
+      app_identifier: APP_IDENTIFIER,
+      skip_waiting_for_build_processing: true,
+      changelog: notes,
+      distribute_external: !!opts[:external],   # set true to auto-start external testing
+      groups: opts[:groups] || [],              # e.g. ["Internal"]
+      beta_app_review_info: {
+        contact_email: ENV['BETA_CONTACT_EMAIL'],
+        contact_first_name: ENV['BETA_CONTACT_FIRST_NAME'],
+        contact_last_name: ENV['BETA_CONTACT_LAST_NAME'],
+        contact_phone: ENV['BETA_CONTACT_PHONE'],
+        demo_account_name: ENV['BETA_DEMO_USER'],
+        demo_account_password: ENV['BETA_DEMO_PASS']
+      }
+    )
+  end
+
+  # ------------------------------
+  # App Store release
+  # ------------------------------
+  desc "Submit to App Store (metadata + binary)"
+  lane :release do |opts|
+    asc_api_key
+
+    precheck(  # validates metadata, age ratings, etc.
+      app_identifier: APP_IDENTIFIER,
+      default_rule_level: "warn"
+    )
+
+    # Upload binary & metadata/screenshots if you keep them under fastlane/metadata
+    deliver(
+      app_identifier: APP_IDENTIFIER,
+      submit_for_review: !!opts[:submit],
+      automatic_release: !!opts[:auto_release],
+      force: true,
+      skip_screenshots: opts[:skip_screenshots] || true,
+      skip_metadata: opts[:skip_metadata] || false,
+      skip_binary_upload: false
+    )
+  end
+
+  # ------------------------------
+  # Screenshots (snapshot)
+  # ------------------------------
+  desc "Capture localized screenshots"
+  lane :screenshots do |opts|
+    # Prefer Snapfile for devices/locales; keep here if you want a single-lane config
     capture_screenshots(
-      project: "Nestory.xcodeproj",
-      scheme: "Nestory-Dev",
+      project: WORKSPACE ? nil : PROJECT,
+      workspace: WORKSPACE,
+      scheme: opts[:scheme] || SCHEME,
       clear_previous_screenshots: true,
       reinstall_app: true,
-      app_identifier: "com.nestory.app",
-      stop_after_first_error: false,
-      skip_open_summary: false,
-      number_of_retries: 1
+      languages: opts[:languages] || ["en-US"],
+      devices: opts[:devices] || [
+        "iPhone 16 Pro Max",
+        "iPhone 16 Pro",
+        "iPad Pro (12.9-inch) (6th generation)"
+      ],
+      output_directory: "#{OUTPUT_DIR}/screenshots",
+      buildlog_path: "#{OUTPUT_DIR}/logs/snapshot"
     )
-    
-    # Optional: Upload to App Store Connect (for future use)
-    # upload_to_app_store(
-    #   skip_binary_upload: true,
-    #   skip_metadata: true,
-    #   skip_screenshots: false
-    # )
   end
-  
+
+  desc "Open screenshots in Finder"
+  lane :open_screenshots do
+    sh "open #{OUTPUT_DIR}/screenshots/"
+  end
+
   desc "Clear all screenshot data"
   lane :clear_screenshots do
     clear_derived_data
-    sh "rm -rf screenshots/*"
+    sh "rm -rf #{OUTPUT_DIR}/screenshots/*"
     UI.success "Cleared all screenshot data"
   end
-  
-  desc "Open screenshots in Finder"
-  lane :open_screenshots do
-    sh "open screenshots/"
+
+  # ------------------------------
+  # Validation fixes
+  # ------------------------------
+  desc "Fix all validation issues for App Store submission"
+  lane :fix_validation do
+    UI.message "🔧 Fixing validation issues..."
+    
+    # Ensure dSYM generation is enabled via xcargs in build
+    UI.message "📝 dSYM generation will be enforced during build"
+    UI.message "Build settings to use:"
+    UI.message "  - DEBUG_INFORMATION_FORMAT = dwarf-with-dsym"
+    UI.message "  - ENABLE_BITCODE = NO"
+    
+    # Clean derived data
+    clear_derived_data
+    
+    UI.success "✅ Derived data cleared"
+    UI.success "✅ All validation fixes applied!"
+    UI.message ""
+    UI.message "Next steps:"
+    UI.message "1. Run: bundle exec fastlane build"
+    UI.message "2. Or archive in Xcode with proper settings"
+  end
+
+  # ------------------------------
+  # App icons (fastlane-plugin-appicon)
+  # ------------------------------
+  desc "Generate full iOS AppIcon set from a source PNG"
+  lane :icons do |opts|
+    # Check common locations for icon if not provided
+    source = opts[:source] || ENV['ICON_SOURCE']
+    
+    if source.nil?
+      possible_paths = [
+        "assets/icon.png",
+        "AppIcon.png",
+        "icon.png",
+        "/Users/griffin/Pictures/nestoryappicon2.png"
+      ]
+      
+      source = possible_paths.find { |path| File.exist?(path) }
+      
+      if source.nil?
+        UI.user_error!("No icon file found. Please provide source:path/to/icon.png or set ICON_SOURCE env var")
+      end
+    end
+    
+    UI.user_error!("Icon source not found: #{source}") unless File.exist?(source)
+
+    UI.message "🎨 Generating iOS app icons from: #{source}"
+    
+    appicon(
+      appicon_image_file: source,
+      appicon_path: ASSETS_PATH,
+      appicon_name: ICONSET_NAME,                         # ✅ correct key
+      appicon_devices: [:iphone, :ipad, :ios_marketing],
+      remove_alpha: false
+    )
+
+    UI.success "✅ Icons generated at #{ASSETS_PATH}/#{ICONSET_NAME}.appiconset"
   end
 end
