@@ -114,3 +114,7 @@ fastlane/Preview.html
 fastlane/*.cer
 fastlane/*.mobileprovision
 fastlane/*.p12
+
+# Temporary documentation
+ARCHAEOLOGICAL_LAYERS.md
+RESONANCE.txt
