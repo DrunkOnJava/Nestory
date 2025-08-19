@@ -8,15 +8,9 @@
 
 import SwiftData
 import SwiftUI
-#if DEBUG
-    import Inject
-#endif
 
 struct ContentView: View {
     @EnvironmentObject var themeManager: ThemeManager
-    #if DEBUG
-        @ObserveInjection var inject
-    #endif
 
     var body: some View {
         TabView {
@@ -46,9 +40,6 @@ struct ContentView: View {
                 }
         }
         .preferredColorScheme(themeManager.currentColorScheme)
-        #if DEBUG
-            .enableInjection()
-        #endif
     }
 }
 

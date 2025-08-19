@@ -31,16 +31,10 @@ settings:
       SWIFT_STRICT_CONCURRENCY: minimal
       SWIFT_TREAT_WARNINGS_AS_ERRORS: NO
       OTHER_SWIFT_FLAGS: "-Xfrontend -disable-availability-checking -suppress-warnings"
-      EMIT_FRONTEND_COMMAND_LINES: YES
     Release:
       SWIFT_STRICT_CONCURRENCY: complete
 
-packages:
-  Inject:
-    url: https://github.com/krzysztofzablocki/Inject
-    from: 1.5.2
-  # InjectionNext removed in favor of custom hot reload solution
-  # See .claude/hot-reload.config and SIMULATOR-HOT-RELOAD.md
+packages: {}
 
 targets:
   Nestory:
@@ -82,14 +76,10 @@ targets:
         ENABLE_PREVIEWS: YES
         SWIFT_UPCOMING_FEATURE_CONCURRENCY: YES
         SWIFT_UPCOMING_FEATURE_EXISTENTIAL_ANY: YES
-        OTHER_LDFLAGS: -Xlinker -interposable
         
     dependencies:
       - sdk: SwiftData.framework
       - sdk: CloudKit.framework
-      - package: Inject
-        product: Inject
-      # InjectionNext removed - using custom hot reload via hooks
 
   NestoryUITests:
     type: bundle.ui-testing
@@ -117,7 +107,6 @@ schemes:
       config: Debug
       environmentVariables:
         CLOUDKIT_CONTAINER: iCloud.com.nestory.app.dev
-        # Custom hot reload via Claude hooks - no InjectionNext needed
     test:
       config: Debug
       targets:

@@ -5,19 +5,12 @@
 
 import SwiftData
 import SwiftUI
-#if DEBUG
-    import Inject
-#endif
 
 struct InventoryListView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var items: [Item]
     @State private var showingAddItem = false
     @State private var searchText = ""
-    #if DEBUG
-        @ObserveInjection var inject
-        @State private var injectionTrigger = UUID()
-    #endif
 
     var body: some View {
         NavigationStack {
@@ -29,7 +22,7 @@ struct InventoryListView: View {
                 }
                 .onDelete(perform: deleteItems)
             }
-            .navigationTitle("Assets List")
+            .navigationTitle("My Items")
             .navigationBarTitleDisplayMode(.large)
             .searchable(text: $searchText, prompt: "Search your stuff...")
             .toolbar {
@@ -54,13 +47,6 @@ struct InventoryListView: View {
                 }
             }
         }
-        #if DEBUG
-        .enableInjection()
-            .onReceive(NotificationCenter.default.publisher(for: Notification.Name("INJECTION_BUNDLE_NOTIFICATION"))) { _ in
-                injectionTrigger = UUID()
-            }
-            .id(injectionTrigger)
-        #endif
     }
 
     private var filteredItems: [Item] {

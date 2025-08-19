@@ -7,8 +7,6 @@
 import SwiftData
 import SwiftUI
 
-// Hot reload is handled via Inject package in ContentView and other views
-
 @main
 struct NestoryApp: App {
     @StateObject private var themeManager = ThemeManager.shared
@@ -20,13 +18,6 @@ struct NestoryApp: App {
             fatalError("Could not create ModelContainer: \(error)")
         }
     }()
-
-    init() {
-        #if DEBUG
-            // Bootstrap HotReloading at startup
-            HotReloadBootstrap.start()
-        #endif
-    }
 
     var body: some Scene {
         WindowGroup {
