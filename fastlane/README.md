@@ -15,13 +15,53 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 
 ## iOS
 
+### ios tests
+
+```sh
+[bundle exec] fastlane ios tests
+```
+
+Run unit/UI tests with scan
+
+### ios build
+
+```sh
+[bundle exec] fastlane ios build
+```
+
+Build archive for distribution
+
+### ios beta
+
+```sh
+[bundle exec] fastlane ios beta
+```
+
+Build and upload to TestFlight
+
+### ios release
+
+```sh
+[bundle exec] fastlane ios release
+```
+
+Submit to App Store (metadata + binary)
+
 ### ios screenshots
 
 ```sh
 [bundle exec] fastlane ios screenshots
 ```
 
-Generate screenshots for iPhone 16 Pro Max
+Capture localized screenshots
+
+### ios open_screenshots
+
+```sh
+[bundle exec] fastlane ios open_screenshots
+```
+
+Open screenshots in Finder
 
 ### ios clear_screenshots
 
@@ -31,13 +71,21 @@ Generate screenshots for iPhone 16 Pro Max
 
 Clear all screenshot data
 
-### ios open_screenshots
+### ios fix_validation
 
 ```sh
-[bundle exec] fastlane ios open_screenshots
+[bundle exec] fastlane ios fix_validation
 ```
 
-Open screenshots in Finder
+Fix all validation issues for App Store submission
+
+### ios icons
+
+```sh
+[bundle exec] fastlane ios icons
+```
+
+Generate full iOS AppIcon set from a source PNG
 
 ----
 
