@@ -143,6 +143,14 @@ Submit export compliance declaration
 
 Complete App Store submission workflow
 
+### ios upload_direct
+
+```sh
+[bundle exec] fastlane ios upload_direct
+```
+
+Direct upload to TestFlight with existing IPA
+
 ----
 
 This README.md is auto-generated and will be re-generated every time [_fastlane_](https://fastlane.tools) is run.
