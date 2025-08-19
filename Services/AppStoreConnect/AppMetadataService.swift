@@ -181,6 +181,7 @@ public final class AppMetadataService: ObservableObject {
                     attributes: AppUpdateRequest.Attributes(
                         primaryCategory: categories.primaryCategory.rawValue,
                         secondaryCategory: categories.secondaryCategory?.rawValue,
+                        contentRightsDeclaration: nil
                     ),
                 ),
             ),
