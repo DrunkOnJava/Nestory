@@ -20,46 +20,65 @@ struct CloudBackupSettingsView: View {
 
     var body: some View {
         Section("iCloud Backup") {
-            // Backup status
-            if let lastBackup = cloudBackup.lastBackupDate {
+            // Check if CloudKit is available
+            if !cloudBackup.isCloudKitAvailable {
                 HStack {
-                    Label("Last Backup", systemImage: "clock")
-                    Spacer()
-                    Text(lastBackup.formatted(.relative(presentation: .named)))
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundColor(.yellow)
+                    Text("iCloud backup not available")
                         .foregroundColor(.secondary)
+                }
+                
+                if let errorMessage = cloudBackup.errorMessage {
+                    Text(errorMessage)
                         .font(.caption)
+                        .foregroundColor(.secondary)
                 }
+            } else {
+                // Backup status
+                if let lastBackup = cloudBackup.lastBackupDate {
+                    HStack {
+                        Label("Last Backup", systemImage: "clock")
+                        Spacer()
+                        Text(lastBackup.formatted(.relative(presentation: .named)))
+                            .foregroundColor(.secondary)
+                            .font(.caption)
+                    }
+                }
+
+                // Backup button
+                Button(action: { performBackup() }) {
+                    if cloudBackup.isBackingUp {
+                        HStack {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle())
+                                .scaleEffect(0.8)
+                            Text("Backing up... \(Int(cloudBackup.progress * 100))%")
+                        }
+                    } else {
+                        Label("Backup Now", systemImage: "icloud.and.arrow.up")
+                    }
+                }
+                .disabled(cloudBackup.isBackingUp || cloudBackup.isRestoring || !cloudBackup.isCloudKitAvailable)
             }
 
-            // Backup button
-            Button(action: { performBackup() }) {
-                if cloudBackup.isBackingUp {
-                    HStack {
-                        ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle())
-                            .scaleEffect(0.8)
-                        Text("Backing up... \(Int(cloudBackup.progress * 100))%")
+            // Only show restore button if CloudKit is available
+            if cloudBackup.isCloudKitAvailable {
+                // Restore button
+                Button(action: { showingRestoreConfirmation = true }) {
+                    if cloudBackup.isRestoring {
+                        HStack {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle())
+                                .scaleEffect(0.8)
+                            Text("Restoring... \(Int(cloudBackup.progress * 100))%")
+                        }
+                    } else {
+                        Label("Restore from iCloud", systemImage: "icloud.and.arrow.down")
                     }
-                } else {
-                    Label("Backup Now", systemImage: "icloud.and.arrow.up")
                 }
+                .disabled(cloudBackup.isBackingUp || cloudBackup.isRestoring)
             }
-            .disabled(cloudBackup.isBackingUp || cloudBackup.isRestoring)
-
-            // Restore button
-            Button(action: { showingRestoreConfirmation = true }) {
-                if cloudBackup.isRestoring {
-                    HStack {
-                        ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle())
-                            .scaleEffect(0.8)
-                        Text("Restoring... \(Int(cloudBackup.progress * 100))%")
-                    }
-                } else {
-                    Label("Restore from iCloud", systemImage: "icloud.and.arrow.down")
-                }
-            }
-            .disabled(cloudBackup.isBackingUp || cloudBackup.isRestoring)
 
             // REMINDER: CloudKit backup is wired here for disaster recovery!
             if cloudBackup.errorMessage != nil {

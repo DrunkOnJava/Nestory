@@ -71,6 +71,7 @@ public struct RestoreResult {
 
 public enum BackupError: LocalizedError {
     case iCloudUnavailable
+    case notInitialized
     case noBackupFound
     case backupFailed(String)
     case restoreFailed(String)
@@ -79,6 +80,8 @@ public enum BackupError: LocalizedError {
         switch self {
         case .iCloudUnavailable:
             "iCloud is not available. Please check your iCloud settings."
+        case .notInitialized:
+            "CloudKit backup service is not initialized. This may be due to missing entitlements."
         case .noBackupFound:
             "No backup found in iCloud."
         case let .backupFailed(reason):

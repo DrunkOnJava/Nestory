@@ -18,6 +18,13 @@ struct NestoryApp: App {
             fatalError("Could not create ModelContainer: \(error)")
         }
     }()
+    
+    init() {
+        #if DEBUG
+        // Load InjectionNext bundle for hot reload support
+        Bundle(path: "/Applications/InjectionIII.app/Contents/Resources/iOSInjection.bundle")?.load()
+        #endif
+    }
 
     var body: some Scene {
         WindowGroup {

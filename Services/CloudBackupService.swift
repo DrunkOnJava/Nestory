@@ -18,29 +18,59 @@ public final class CloudBackupService: ObservableObject {
     @Published public var backupStatus: BackupStatus = .idle
     @Published public var errorMessage: String?
     @Published public var progress: Double = 0.0
+    @Published public var isCloudKitAvailable = false
 
-    private let container: CKContainer
-    private let privateDatabase: CKDatabase
+    private var container: CKContainer?
+    private var privateDatabase: CKDatabase?
     private let backupZone = CKRecordZone(zoneName: "NestoryBackup")
 
-    private let operations: CloudKitBackupOperations
-    private let backupTransformer: BackupDataTransformer
-    private let restoreTransformer: RestoreDataTransformer
-    private let assetManager: CloudKitAssetManager
+    private var operations: CloudKitBackupOperations?
+    private var backupTransformer: BackupDataTransformer?
+    private var restoreTransformer: RestoreDataTransformer?
+    private var assetManager: CloudKitAssetManager?
 
     public init() {
-        container = CKContainer.default()
-        privateDatabase = container.privateCloudDatabase
-
-        assetManager = CloudKitAssetManager()
-        operations = CloudKitBackupOperations(database: privateDatabase, zone: backupZone)
-        backupTransformer = BackupDataTransformer(zone: backupZone, assetManager: assetManager)
-        restoreTransformer = RestoreDataTransformer(assetManager: assetManager)
+        // Defer CloudKit initialization to avoid crash when not configured
+        Task { @MainActor in
+            await initializeCloudKitIfAvailable()
+        }
+    }
+    
+    @MainActor
+    private func initializeCloudKitIfAvailable() async {
+        do {
+            // Use specific container identifier to avoid crash
+            let testContainer = CKContainer(identifier: "iCloud.com.nestory.app")
+            let status = try await testContainer.accountStatus()
+            
+            if status == .available {
+                self.container = testContainer
+                self.privateDatabase = testContainer.privateCloudDatabase
+                
+                self.assetManager = CloudKitAssetManager()
+                self.operations = CloudKitBackupOperations(database: privateDatabase!, zone: backupZone)
+                self.backupTransformer = BackupDataTransformer(zone: backupZone, assetManager: assetManager!)
+                self.restoreTransformer = RestoreDataTransformer(assetManager: assetManager!)
+                self.isCloudKitAvailable = true
+            } else {
+                self.isCloudKitAvailable = false
+                self.errorMessage = "iCloud not available: \(status)"
+            }
+        } catch {
+            self.isCloudKitAvailable = false
+            self.errorMessage = "CloudKit not configured for this build"
+            // This is expected in development/TestFlight builds without CloudKit entitlements
+        }
     }
 
     // MARK: - Account Status
 
     public func checkCloudKitAvailability() async -> Bool {
+        guard let container = container else {
+            errorMessage = "CloudKit not initialized"
+            return false
+        }
+        
         do {
             let status = try await container.accountStatus()
             switch status {
@@ -72,6 +102,12 @@ public final class CloudBackupService: ObservableObject {
     public func performBackup(items: [Item], categories: [Category], rooms: [Room]) async throws {
         guard await checkCloudKitAvailability() else {
             throw BackupError.iCloudUnavailable
+        }
+        
+        guard let operations = operations,
+              let backupTransformer = backupTransformer,
+              let assetManager = assetManager else {
+            throw BackupError.notInitialized
         }
 
         isBackingUp = true
@@ -134,6 +170,12 @@ public final class CloudBackupService: ObservableObject {
     public func performRestore(modelContext: ModelContext) async throws -> RestoreResult {
         guard await checkCloudKitAvailability() else {
             throw BackupError.iCloudUnavailable
+        }
+        
+        guard let operations = operations,
+              let restoreTransformer = restoreTransformer,
+              let assetManager = assetManager else {
+            throw BackupError.notInitialized
         }
 
         isRestoring = true

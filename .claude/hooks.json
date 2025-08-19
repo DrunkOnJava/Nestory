@@ -1,0 +1,82 @@
+{
+  "hooks": {
+    "PostWrite": {
+      "enabled": true,
+      "commands": [
+        {
+          "name": "hot-reload-swift",
+          "description": "Trigger hot reload for Swift file changes",
+          "pattern": ".*\\.swift$",
+          "command": "${PROJECT_ROOT}/tools/dev/injection_coordinator.sh ${FILE_PATH}",
+          "runInBackground": true,
+          "continueOnError": true,
+          "conditions": {
+            "filePatterns": [
+              "App-Main/**/*.swift",
+              "UI/**/*.swift",
+              "Services/**/*.swift",
+              "Infrastructure/**/*.swift",
+              "Foundation/**/*.swift"
+            ],
+            "excludePatterns": [
+              "**/Tests/**",
+              "**/UITests/**",
+              "**/*.generated.swift"
+            ]
+          }
+        }
+      ]
+    },
+    "PostEdit": {
+      "enabled": true,
+      "commands": [
+        {
+          "name": "hot-reload-swift-edit",
+          "description": "Trigger hot reload for Swift file edits",
+          "pattern": ".*\\.swift$",
+          "command": "${PROJECT_ROOT}/tools/dev/injection_coordinator.sh ${FILE_PATH}",
+          "runInBackground": true,
+          "continueOnError": true,
+          "conditions": {
+            "filePatterns": [
+              "App-Main/**/*.swift",
+              "UI/**/*.swift",
+              "Services/**/*.swift",
+              "Infrastructure/**/*.swift",
+              "Foundation/**/*.swift"
+            ]
+          }
+        }
+      ]
+    },
+    "PostMultiEdit": {
+      "enabled": true,
+      "commands": [
+        {
+          "name": "hot-reload-swift-multi",
+          "description": "Trigger hot reload for multiple Swift file edits",
+          "pattern": ".*\\.swift$",
+          "command": "${PROJECT_ROOT}/tools/dev/injection_coordinator.sh ${FILE_PATHS}",
+          "runInBackground": true,
+          "continueOnError": true
+        }
+      ]
+    },
+    "PreRun": {
+      "enabled": true,
+      "commands": [
+        {
+          "name": "prepare-injection",
+          "description": "Prepare InjectionNext environment before running",
+          "command": "${PROJECT_ROOT}/tools/dev/prepare_injection.sh",
+          "continueOnError": true
+        }
+      ]
+    }
+  },
+  "environment": {
+    "PROJECT_ROOT": "/Users/griffin/Projects/Nestory",
+    "INJECTION_ENABLED": "true",
+    "INJECTION_AUTO_TRIGGER": "true"
+  }
+}
