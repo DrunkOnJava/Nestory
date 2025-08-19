@@ -1,0 +1,38 @@
+Nestory is your comprehensive home inventory solution designed specifically for insurance documentation and disaster preparedness. Protect your most valuable assets with detailed cataloging that gives you peace of mind.
+
+KEY FEATURES:
+
+● Smart Inventory Management
+Organize your belongings by room and category with our intuitive SwiftData-powered system. Add photos, receipts, serial numbers, and purchase details to create comprehensive documentation for every item you own.
+
+● Receipt Scanner with OCR
+Simply photograph your receipts and let our advanced OCR technology automatically extract vendor names, dates, amounts, and item details. Never lose important purchase documentation again.
+
+● Insurance Reports
+Generate professional PDF reports instantly for insurance claims. Our detailed reports include photos, values, purchase dates, and all documentation you need to expedite claims after disasters.
+
+● Warranty Tracking
+Never miss a warranty expiration again. Track warranty periods, get notifications before they expire, and keep all warranty documentation in one secure place.
+
+● Secure Cloud Backup
+Your inventory data is automatically backed up to iCloud, ensuring your documentation survives even if disaster strikes. Access your inventory from any of your devices.
+
+● Advanced Search
+Quickly find any item with powerful search and filtering. Search by name, category, location, purchase date, or any other detail you've recorded.
+
+● Analytics Dashboard
+Understand your assets with visual insights. See total values by category, warranty expiration timelines, and documentation completeness at a glance.
+
+● Privacy First
+Your data stays yours. We use on-device processing for OCR and store everything securely in your personal iCloud account. No third-party access to your information.
+
+PERFECT FOR:
+• Homeowners documenting possessions for insurance
+• Renters protecting their belongings
+• Estate planning and organization
+• Warranty and receipt management
+• Moving and relocation planning
+
+Whether you're preparing for the unexpected or simply organizing your life, Nestory provides the tools you need to catalog, document, and protect what matters most.
+
+Start your free trial today and experience peace of mind knowing your belongings are properly documented.

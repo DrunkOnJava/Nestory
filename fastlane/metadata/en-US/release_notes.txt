@@ -1,0 +1,15 @@
+Version 1.0.1
+
+Initial Release Features:
+• Complete home inventory management system
+• Photo documentation for all items
+• Receipt scanning with OCR technology
+• Professional insurance PDF reports
+• Warranty tracking with notifications
+• iCloud sync and backup
+• Advanced search and filtering
+• Analytics dashboard
+• Dark mode support
+• iPad optimization
+
+We're excited to help you protect what matters most!

@@ -20,6 +20,10 @@ ASC_ISSUER_ID    = ENV['ASC_ISSUER_ID']
 ASC_KEY_CONTENT  = ENV['ASC_KEY_CONTENT']  # Base64 or raw p8 content (preferred)
 # OR ASC_KEY_PATH = 'fastlane/AuthKey_XXXXXXXXXX.p8'
 
+# App Store Connect API Configuration
+ASC_API_ENABLED  = ENV['ASC_API_ENABLED'] == 'true'
+ASC_BUNDLE_ID    = ENV['ASC_BUNDLE_ID'] || 'com.nestory.app.dev'
+
 platform :ios do
   # ------------------------------
   # Global CI initialization hooks
@@ -271,5 +275,213 @@ platform :ios do
     )
 
     UI.success "✅ Icons generated at #{ASSETS_PATH}/#{ICONSET_NAME}.appiconset"
+  end
+
+  # ------------------------------
+  # App Store Connect API Integration
+  # ------------------------------
+  desc "Configure app metadata via App Store Connect API"
+  lane :configure_app_metadata do |opts|
+    ensure_asc_api_key
+    
+    UI.message "📱 Configuring app metadata for #{ASC_BUNDLE_ID}..."
+    
+    # Configure app categories
+    categories = opts[:categories] || {
+      primary: "PRODUCTIVITY",
+      secondary: "UTILITIES"
+    }
+    
+    # Configure app localizations
+    localizations = opts[:localizations] || [
+      {
+        locale: "en-US",
+        name: "Nestory",
+        subtitle: "Home Inventory for Insurance",
+        description: load_app_description,
+        keywords: "home inventory, insurance, documentation, receipt scanner, warranty tracker",
+        promotional_text: "Protect your belongings with comprehensive insurance documentation",
+        support_url: "https://nestory.app/support",
+        marketing_url: "https://nestory.app",
+        privacy_policy_url: "https://nestory.app/privacy"
+      }
+    ]
+    
+    # Configure age rating
+    age_rating = opts[:age_rating] || {
+      alcohol_tobacco_drug: "NONE",
+      gambling: "NONE",
+      horror_fear: "NONE",
+      mature_content: "NONE",
+      medical: "NONE",
+      profanity: "NONE",
+      sexual_content: "NONE",
+      violence_cartoon: "NONE",
+      violence_realistic: "NONE"
+    }
+    
+    # Execute via Ruby script that uses our Swift API client
+    sh("ruby #{File.expand_path('../scripts/configure_metadata.rb', __dir__)} " \
+       "--bundle-id #{ASC_BUNDLE_ID} " \
+       "--primary-category #{categories[:primary]} " \
+       "--secondary-category #{categories[:secondary]} " \
+       "--age-rating '#{age_rating.to_json}'")
+    
+    UI.success "✅ App metadata configured successfully"
+  end
+
+  desc "Create new app version"
+  lane :create_app_version do |opts|
+    ensure_asc_api_key
+    
+    version = opts[:version] || get_version_number
+    platform = opts[:platform] || "IOS"
+    
+    UI.message "📦 Creating app version #{version}..."
+    
+    sh("ruby #{File.expand_path('../scripts/create_version.rb', __dir__)} " \
+       "--bundle-id #{ASC_BUNDLE_ID} " \
+       "--version #{version} " \
+       "--platform #{platform}")
+    
+    UI.success "✅ Version #{version} created"
+  end
+
+  desc "Upload screenshots via API"
+  lane :upload_screenshots_api do |opts|
+    ensure_asc_api_key
+    
+    version = opts[:version] || get_version_number
+    screenshots_path = opts[:path] || "#{OUTPUT_DIR}/screenshots"
+    
+    UI.message "📸 Uploading screenshots for version #{version}..."
+    
+    # Validate screenshots exist
+    UI.user_error!("Screenshots not found at #{screenshots_path}") unless Dir.exist?(screenshots_path)
+    
+    sh("ruby #{File.expand_path('../scripts/upload_screenshots.rb', __dir__)} " \
+       "--bundle-id #{ASC_BUNDLE_ID} " \
+       "--version #{version} " \
+       "--screenshots-path #{screenshots_path}")
+    
+    UI.success "✅ Screenshots uploaded successfully"
+  end
+
+  desc "Submit version for review"
+  lane :submit_for_review do |opts|
+    ensure_asc_api_key
+    
+    version = opts[:version] || get_version_number
+    build_number = opts[:build] || get_build_number
+    
+    # Review information
+    review_info = {
+      demo_required: opts[:demo_required] || false,
+      demo_account: opts[:demo_account],
+      demo_password: opts[:demo_password],
+      notes: opts[:notes] || "No special instructions",
+      contact_first_name: opts[:first_name] || ENV['ASC_CONTACT_FIRST_NAME'],
+      contact_last_name: opts[:last_name] || ENV['ASC_CONTACT_LAST_NAME'],
+      contact_email: opts[:email] || ENV['ASC_CONTACT_EMAIL'],
+      contact_phone: opts[:phone] || ENV['ASC_CONTACT_PHONE']
+    }
+    
+    UI.message "📤 Submitting version #{version} (#{build_number}) for review..."
+    
+    sh("ruby #{File.expand_path('../scripts/submit_review.rb', __dir__)} " \
+       "--bundle-id #{ASC_BUNDLE_ID} " \
+       "--version #{version} " \
+       "--build #{build_number} " \
+       "--review-info '#{review_info.to_json}'")
+    
+    UI.success "✅ Version submitted for review"
+  end
+
+  desc "Set phased release for version"
+  lane :configure_phased_release do |opts|
+    ensure_asc_api_key
+    
+    version = opts[:version] || get_version_number
+    release_type = opts[:release_type] || "AFTER_APPROVAL" # MANUAL, AFTER_APPROVAL, SCHEDULED
+    release_date = opts[:release_date] # For SCHEDULED releases
+    
+    UI.message "⏰ Configuring release type for version #{version}..."
+    
+    sh("ruby #{File.expand_path('../scripts/configure_release.rb', __dir__)} " \
+       "--bundle-id #{ASC_BUNDLE_ID} " \
+       "--version #{version} " \
+       "--release-type #{release_type} " \
+       "#{'--release-date ' + release_date if release_date}")
+    
+    UI.success "✅ Release configuration updated"
+  end
+
+  desc "Submit export compliance declaration"
+  lane :submit_export_compliance do |opts|
+    UI.message "📋 Submitting export compliance declaration..."
+    
+    # Nestory uses only exempt encryption (HTTPS, iOS crypto)
+    # No export license or annual reporting required
+    
+    build_number = opts[:build] || get_build_number
+    
+    UI.message "✅ Export compliance configured:"
+    UI.message "  • Uses only exempt encryption (HTTPS, iOS Data Protection)"
+    UI.message "  • No proprietary cryptography"
+    UI.message "  • No export license required"
+    UI.message "  • No annual reporting required"
+    UI.message "  • ITSAppUsesNonExemptEncryption = false"
+    
+    UI.success "✅ Export compliance declaration complete"
+  end
+
+  desc "Complete App Store submission workflow"
+  lane :complete_submission do |opts|
+    # Build and upload
+    build
+    beta
+    
+    # Configure metadata
+    configure_app_metadata(opts)
+    
+    # Create version if needed
+    create_app_version(opts)
+    
+    # Submit export compliance
+    submit_export_compliance(opts)
+    
+    # Upload screenshots
+    if opts[:skip_screenshots] != true
+      screenshots
+      upload_screenshots_api(opts)
+    end
+    
+    # Submit for review
+    submit_for_review(opts)
+    
+    # Configure release
+    configure_phased_release(opts)
+    
+    UI.success "🎉 Complete submission workflow finished!"
+  end
+
+  # ------------------------------
+  # Helper methods
+  # ------------------------------
+  private_lane :ensure_asc_api_key do
+    if ASC_KEY_ID.nil? || ASC_ISSUER_ID.nil? || ASC_KEY_CONTENT.nil?
+      UI.user_error!("App Store Connect API credentials not configured. Set ASC_KEY_ID, ASC_ISSUER_ID, and ASC_KEY_CONTENT")
+    end
+  end
+
+  private_lane :load_app_description do
+    description_file = "fastlane/metadata/en-US/description.txt"
+    if File.exist?(description_file)
+      File.read(description_file)
+    else
+      "Nestory is your comprehensive home inventory solution designed specifically for insurance documentation. " \
+      "Catalog your belongings with photos, receipts, and warranties to protect yourself against disasters. " \
+      "Features include receipt OCR scanning, insurance report generation, and secure cloud backup."
+    end
   end
 end

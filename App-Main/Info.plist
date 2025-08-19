@@ -59,5 +59,9 @@
         <string>com.nestory.sync</string>
         <string>com.nestory.cleanup</string>
     </array>
+    <key>ITSAppUsesNonExemptEncryption</key>
+    <false/>
+    <key>ITSEncryptionExportComplianceCode</key>
+    <string>3c7f3f8e-b5e6-4f8a-9d7c-8e5d4c3b2a1f</string>
 </dict>
 </plist>

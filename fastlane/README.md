@@ -87,6 +87,62 @@ Fix all validation issues for App Store submission
 
 Generate full iOS AppIcon set from a source PNG
 
+### ios configure_app_metadata
+
+```sh
+[bundle exec] fastlane ios configure_app_metadata
+```
+
+Configure app metadata via App Store Connect API
+
+### ios create_app_version
+
+```sh
+[bundle exec] fastlane ios create_app_version
+```
+
+Create new app version
+
+### ios upload_screenshots_api
+
+```sh
+[bundle exec] fastlane ios upload_screenshots_api
+```
+
+Upload screenshots via API
+
+### ios submit_for_review
+
+```sh
+[bundle exec] fastlane ios submit_for_review
+```
+
+Submit version for review
+
+### ios configure_phased_release
+
+```sh
+[bundle exec] fastlane ios configure_phased_release
+```
+
+Set phased release for version
+
+### ios submit_export_compliance
+
+```sh
+[bundle exec] fastlane ios submit_export_compliance
+```
+
+Submit export compliance declaration
+
+### ios complete_submission
+
+```sh
+[bundle exec] fastlane ios complete_submission
+```
+
+Complete App Store submission workflow
+
 ----
 
 This README.md is auto-generated and will be re-generated every time [_fastlane_](https://fastlane.tools) is run.

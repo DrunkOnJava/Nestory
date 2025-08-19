@@ -1,47 +1,42 @@
-# Snapfile Configuration for Nestory
+# Snapfile - Configuration for automated screenshot capture
 
-# Device to use for screenshots - iPhone 16 Pro Max only
+# A list of devices you want to take the screenshots from
 devices([
-  "iPhone 16 Pro Max"
+  "iPhone 16 Pro Max",      # 6.9" Display
+  "iPhone 16 Pro",          # 6.3" Display  
+  "iPhone 15",              # 6.1" Display
+  "iPad Pro (13-inch) (M4)", # 13" Display
+  "iPad Pro (11-inch) (M4)"  # 11" Display
 ])
 
-# Languages to use (English only for now)
+# Languages to capture
 languages([
   "en-US"
 ])
 
-# Project configuration (using xcodeproj instead of workspace)
-project "./Nestory.xcodeproj"
+# The name of the scheme which contains the UI Tests
+scheme("Nestory-Dev")
 
-# Scheme to use for UI Tests
-scheme "Nestory-Dev"
-
-# Output directory for screenshots
-output_directory "./fastlane/screenshots"
+# Where should the resulting screenshots be stored?
+output_directory("./fastlane/screenshots")
 
 # Clear previous screenshots
-clear_previous_screenshots true
+clear_previous_screenshots(true)
+
+# Reinstall app before running tests
+reinstall_app(true)
 
 # Stop after first error
-stop_after_first_error false
+stop_after_first_error(false)
 
-# Reinstall app between runs
-reinstall_app true
+# Dark mode
+# override_status_bar(true)
 
-# Number of retries for failing tests
-number_of_retries 1
+# Arguments to pass to the app on launch
+launch_arguments([
+  "-UITestMode YES",
+  "-SeedDataForScreenshots YES"
+])
 
-# Skip opening the HTML summary after generating screenshots
-skip_open_summary false
-
-# Override status bar (optional - for consistent screenshots)
-override_status_bar true
-
-# Status bar overrides for clean screenshots
-override_status_bar_arguments "--time 9:41 --dataNetwork wifi --wifiMode active --wifiBars 3 --cellularMode active --cellularBars 4 --batteryState charged --batteryLevel 100"
-
-# Test without building (faster iteration during development)
-test_without_building false
-
-# Concurrent simulators (set to 1 for stability)
-concurrent_simulators 1
+# For more information about all available options run
+# fastlane action snapshot
