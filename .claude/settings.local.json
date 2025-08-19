@@ -1,19 +1,14 @@
 {
   "permissions": {
     "allow": [
-      "Bash(touch:*)",
-      "Bash(shasum:*)",
-      "Bash(mkdir:*)",
-      "Bash(xcodebuild test:*)",
-      "Bash(git add:*)",
-      "Bash(swiftformat:*)",
-      "Bash(xcodebuild:*)",
-      "Bash(git commit:*)",
-      "Bash(grep:*)",
-      "Bash(xcodegen generate:*)",
-      "Bash(xcrun simctl boot:*)",
-      "Bash(true)"
+      "Bash(git log:*)",
+      "Bash(for dir in Foundation Infrastructure Services UI Features App-Main)",
+      "Bash(done)",
+      "Bash(chmod:*)",
+      "WebSearch"
     ],
-    "deny": []
-  }
+    "deny": [],
+    "ask": []
+  },
+  "outputStyle": "Explanatory"
 }
