@@ -4,31 +4,31 @@
 // Purpose: Advanced search and filtering interface
 //
 
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 struct AdvancedSearchView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @State private var viewModel: AdvancedSearchViewModel
     @State private var showingFilters = false
-    
+
     init() {
         // Initialize with placeholder, will be updated in onAppear
-        self._viewModel = State(initialValue: AdvancedSearchViewModel(inventoryService: MockInventoryService()))
+        _viewModel = State(initialValue: AdvancedSearchViewModel(inventoryService: MockInventoryService()))
     }
-    
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
                 // Search header
                 searchHeader
-                
+
                 // Filter summary
                 if viewModel.hasActiveFilters {
                     filterSummaryView
                 }
-                
+
                 // Results
                 searchResultsList
             }
@@ -40,7 +40,7 @@ struct AdvancedSearchView: View {
                         dismiss()
                     }
                 }
-                
+
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Filters") {
                         showingFilters = true
@@ -51,7 +51,7 @@ struct AdvancedSearchView: View {
                             .fill(Color.red)
                             .frame(width: 8, height: 8)
                             .offset(x: 8, y: -8)
-                            .opacity(viewModel.hasActiveFilters ? 1 : 0)
+                            .opacity(viewModel.hasActiveFilters ? 1 : 0),
                     )
                 }
             }
@@ -63,9 +63,9 @@ struct AdvancedSearchView: View {
             }
         }
     }
-    
+
     // MARK: - Views
-    
+
     private var searchHeader: some View {
         VStack(spacing: 12) {
             HStack {
@@ -76,7 +76,7 @@ struct AdvancedSearchView: View {
                             await viewModel.performAdvancedSearch()
                         }
                     }
-                
+
                 Button("Search") {
                     Task {
                         await viewModel.performAdvancedSearch()
@@ -85,7 +85,7 @@ struct AdvancedSearchView: View {
                 .buttonStyle(.borderedProminent)
                 .disabled(viewModel.isSearching)
             }
-            
+
             // Sort picker
             Picker("Sort by", selection: $viewModel.sortOption) {
                 ForEach(SortOption.allCases, id: \.self) { option in
@@ -97,19 +97,19 @@ struct AdvancedSearchView: View {
         .padding()
         .background(Color(UIColor.systemBackground))
     }
-    
+
     private var filterSummaryView: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack {
                 Label("Active Filters:", systemImage: "line.3.horizontal.decrease.circle")
                     .font(.caption)
                     .foregroundColor(.secondary)
-                
+
                 Text(viewModel.filterSummary)
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .lineLimit(1)
-                
+
                 Button("Clear") {
                     viewModel.clearFilters()
                 }
@@ -121,18 +121,18 @@ struct AdvancedSearchView: View {
         .padding(.vertical, 8)
         .background(Color(UIColor.secondarySystemBackground))
     }
-    
+
     private var searchResultsList: some View {
         Group {
             if viewModel.isSearching {
                 ProgressView("Searching...")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else if viewModel.searchResults.isEmpty && viewModel.hasActiveFilters {
+            } else if viewModel.searchResults.isEmpty, viewModel.hasActiveFilters {
                 EmptyStateView(
                     title: "🔍 No Results",
                     message: "No items match your search criteria. Try adjusting your filters.",
                     systemImage: "magnifyingglass",
-                    actionTitle: "Clear Filters"
+                    actionTitle: "Clear Filters",
                 ) {
                     viewModel.clearFilters()
                 }
@@ -141,8 +141,8 @@ struct AdvancedSearchView: View {
                     title: "🔍 Start Searching",
                     message: "Enter search terms or apply filters to find your items.",
                     systemImage: "magnifyingglass",
-                    actionTitle: nil
-                ) { }
+                    actionTitle: nil,
+                ) {}
             } else {
                 List {
                     Section {
@@ -168,14 +168,14 @@ struct AdvancedSearchView: View {
             Text(viewModel.searchError ?? "")
         }
     }
-    
+
     // MARK: - Helpers
-    
+
     private func setupViewModel() {
         do {
             let service = try LiveInventoryService(modelContext: modelContext)
             viewModel = AdvancedSearchViewModel(inventoryService: service)
-            
+
             Task {
                 await viewModel.loadCategories()
             }
@@ -190,7 +190,7 @@ struct AdvancedSearchView: View {
 
 struct SearchResultRow: View {
     let item: Item
-    
+
     var body: some View {
         HStack(spacing: 12) {
             // Item image or placeholder
@@ -206,21 +206,21 @@ struct SearchResultRow: View {
             }
             .frame(width: 50, height: 50)
             .clipShape(RoundedRectangle(cornerRadius: 8))
-            
+
             VStack(alignment: .leading, spacing: 4) {
                 Text(item.name)
                     .font(.headline)
                     .lineLimit(1)
-                
+
                 HStack {
                     if let category = item.category {
                         Label(category.name, systemImage: category.icon)
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
-                    
+
                     Spacer()
-                    
+
                     if let price = item.purchasePrice {
                         Text(NumberFormatter.currency.string(from: NSDecimalNumber(decimal: price)) ?? "")
                             .font(.caption)
@@ -229,9 +229,9 @@ struct SearchResultRow: View {
                     }
                 }
             }
-            
+
             Spacer()
-            
+
             // Documentation indicators
             VStack(spacing: 2) {
                 if item.imageData != nil {
@@ -239,13 +239,13 @@ struct SearchResultRow: View {
                         .font(.caption2)
                         .foregroundColor(.blue)
                 }
-                
+
                 if item.receiptImageData != nil {
                     Image(systemName: "receipt.fill")
                         .font(.caption2)
                         .foregroundColor(.green)
                 }
-                
+
                 if item.warrantyExpirationDate != nil {
                     Image(systemName: "shield.fill")
                         .font(.caption2)
@@ -262,7 +262,7 @@ struct SearchResultRow: View {
 struct AdvancedFilterSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Bindable var viewModel: AdvancedSearchViewModel
-    
+
     var body: some View {
         NavigationStack {
             Form {
@@ -275,7 +275,7 @@ struct AdvancedFilterSheet: View {
                         }
                     }
                 }
-                
+
                 Section("Price Range") {
                     HStack {
                         TextField("Min Price", text: $viewModel.minPrice)
@@ -285,7 +285,7 @@ struct AdvancedFilterSheet: View {
                             .keyboardType(.decimalPad)
                     }
                 }
-                
+
                 Section("Condition") {
                     Picker("Condition", selection: $viewModel.condition) {
                         Text("Any Condition").tag("")
@@ -295,7 +295,7 @@ struct AdvancedFilterSheet: View {
                         Text("Poor").tag("poor")
                     }
                 }
-                
+
                 Section("Documentation") {
                     HStack {
                         Text("Has Warranty")
@@ -308,7 +308,7 @@ struct AdvancedFilterSheet: View {
                         .pickerStyle(SegmentedPickerStyle())
                         .frame(width: 120)
                     }
-                    
+
                     HStack {
                         Text("Has Receipt")
                         Spacer()
@@ -320,7 +320,7 @@ struct AdvancedFilterSheet: View {
                         .pickerStyle(SegmentedPickerStyle())
                         .frame(width: 120)
                     }
-                    
+
                     HStack {
                         Text("Has Photo")
                         Spacer()
@@ -333,7 +333,7 @@ struct AdvancedFilterSheet: View {
                         .frame(width: 120)
                     }
                 }
-                
+
                 Section("Location") {
                     TextField("Room or Location", text: $viewModel.location)
                 }
@@ -346,7 +346,7 @@ struct AdvancedFilterSheet: View {
                         viewModel.clearFilters()
                     }
                 }
-                
+
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Apply") {
                         Task {
@@ -364,25 +364,25 @@ struct AdvancedFilterSheet: View {
 // MARK: - Mock Service
 
 private struct MockInventoryService: InventoryService {
-    nonisolated func fetchItems() async throws -> [Item] { [] }
-    nonisolated func fetchItem(id: UUID) async throws -> Item? { nil }
-    nonisolated func saveItem(_ item: Item) async throws {}
-    nonisolated func updateItem(_ item: Item) async throws {}
-    nonisolated func deleteItem(id: UUID) async throws {}
-    nonisolated func searchItems(query: String) async throws -> [Item] { [] }
-    nonisolated func fetchCategories() async throws -> [Category] { [] }
-    nonisolated func saveCategory(_ category: Category) async throws {}
-    nonisolated func assignItemToCategory(itemId: UUID, categoryId: UUID) async throws {}
-    nonisolated func fetchItemsByCategory(categoryId: UUID) async throws -> [Item] { [] }
-    
+    func fetchItems() async throws -> [Item] { [] }
+    func fetchItem(id _: UUID) async throws -> Item? { nil }
+    func saveItem(_: Item) async throws {}
+    func updateItem(_: Item) async throws {}
+    func deleteItem(id _: UUID) async throws {}
+    func searchItems(query _: String) async throws -> [Item] { [] }
+    func fetchCategories() async throws -> [Category] { [] }
+    func saveCategory(_: Category) async throws {}
+    func assignItemToCategory(itemId _: UUID, categoryId _: UUID) async throws {}
+    func fetchItemsByCategory(categoryId _: UUID) async throws -> [Item] { [] }
+
     // Batch Operations
-    nonisolated func bulkImport(items: [Item]) async throws {}
-    nonisolated func bulkUpdate(items: [Item]) async throws {}
-    nonisolated func bulkDelete(itemIds: [UUID]) async throws {}
-    nonisolated func bulkSave(items: [Item]) async throws {}
-    nonisolated func bulkAssignCategory(itemIds: [UUID], categoryId: UUID) async throws {}
-    
-    nonisolated func exportInventory(format: ExportFormat) async throws -> Data { Data() }
+    func bulkImport(items _: [Item]) async throws {}
+    func bulkUpdate(items _: [Item]) async throws {}
+    func bulkDelete(itemIds _: [UUID]) async throws {}
+    func bulkSave(items _: [Item]) async throws {}
+    func bulkAssignCategory(itemIds _: [UUID], categoryId _: UUID) async throws {}
+
+    func exportInventory(format _: ExportFormat) async throws -> Data { Data() }
 }
 
 // MARK: - Extensions
