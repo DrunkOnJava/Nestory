@@ -1,0 +1,20 @@
+# SwiftFormat configuration for Nestory
+# Configured to work with Swift 6 strict concurrency
+
+# Allow explicit self in closures for Swift 6 concurrency compliance
+--self closures-only
+
+# Standard formatting rules
+--indent 4
+--wraparguments preserve
+--wrapcollections preserve
+--funcattributes preserve
+--typeattributes preserve
+--varattributes preserve
+--extensionacl on-declarations
+--redundanttype inferred
+--swiftversion 6.0
+
+# Disable problematic rules for Swift 6
+--disable blankLinesBetweenScopes
+--disable sortImports
