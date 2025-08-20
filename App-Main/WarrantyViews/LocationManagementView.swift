@@ -28,11 +28,10 @@ struct LocationManagementView: View {
                         RoomChip(
                             room: room,
                             isSelected: selectedRoom == room.name,
-                            action: {
-                                selectedRoom = room.name
-                                saveChanges()
-                            },
-                        )
+                        ) {
+                            selectedRoom = room.name
+                            saveChanges()
+                        }
                     }
 
                     // Add new room button

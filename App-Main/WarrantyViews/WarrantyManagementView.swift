@@ -4,16 +4,20 @@
 // Purpose: Manage item warranty information
 //
 
+import os.log
 import SwiftUI
 
 struct WarrantyManagementView: View {
     @Bindable var item: Item
+    @StateObject private var notificationService = LiveNotificationService()
+    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory.dev", category: "WarrantyManagement")
 
     @State private var warrantyEnabled = false
     @State private var warrantyExpiration = Date()
     @State private var warrantyProvider = ""
     @State private var warrantyNotes = ""
     @State private var showingWarrantyAlert = false
+    @State private var notificationsScheduled = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -62,6 +66,18 @@ struct WarrantyManagementView: View {
                     .background(statusInfo.color.opacity(0.1))
                     .cornerRadius(8)
                 }
+
+                // Show notification status
+                if warrantyEnabled, notificationsScheduled {
+                    HStack {
+                        Image(systemName: "bell.badge.fill")
+                            .foregroundColor(.blue)
+                        Text("Expiration reminders scheduled")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.horizontal)
+                }
             }
         }
         .alert("Warranty Expiring Soon", isPresented: $showingWarrantyAlert) {
@@ -71,6 +87,7 @@ struct WarrantyManagementView: View {
         }
         .onAppear {
             loadExistingData()
+            checkNotificationAuthorization()
         }
         .onChange(of: warrantyEnabled) { _, _ in saveChanges() }
         .onChange(of: warrantyExpiration) { _, _ in saveChanges() }
@@ -85,6 +102,12 @@ struct WarrantyManagementView: View {
         warrantyNotes = item.warrantyNotes ?? ""
     }
 
+    private func checkNotificationAuthorization() {
+        Task {
+            await notificationService.checkAuthorizationStatus()
+        }
+    }
+
     private func saveChanges() {
         if warrantyEnabled {
             item.warrantyExpirationDate = warrantyExpiration
@@ -97,12 +120,58 @@ struct WarrantyManagementView: View {
             {
                 showingWarrantyAlert = true
             }
+
+            // Schedule notifications for warranty expiration
+            scheduleWarrantyNotifications()
         } else {
             item.warrantyExpirationDate = nil
             item.warrantyProvider = nil
             item.warrantyNotes = nil
+
+            // Cancel any existing warranty notifications
+            cancelWarrantyNotifications()
         }
 
         item.updatedAt = Date()
+    }
+
+    private func scheduleWarrantyNotifications() {
+        Task {
+            // Check if notifications are authorized
+            await notificationService.checkAuthorizationStatus()
+
+            if notificationService.isAuthorized {
+                do {
+                    try await notificationService.scheduleWarrantyExpirationNotifications(for: item)
+                    notificationsScheduled = true
+                    logger.info("Warranty notifications scheduled for \(item.name)")
+                } catch {
+                    logger.error("Failed to schedule warranty notifications: \(error)")
+                    notificationsScheduled = false
+                }
+            } else if notificationService.authorizationStatus == .notDetermined {
+                // Request authorization if not determined
+                do {
+                    let authorized = try await notificationService.requestAuthorization()
+                    if authorized {
+                        await notificationService.setupNotificationCategories()
+                        try await notificationService.scheduleWarrantyExpirationNotifications(for: item)
+                        notificationsScheduled = true
+                        logger.info("Warranty notifications scheduled for \(item.name)")
+                    }
+                } catch {
+                    logger.error("Failed to request authorization or schedule notifications: \(error)")
+                    notificationsScheduled = false
+                }
+            }
+        }
+    }
+
+    private func cancelWarrantyNotifications() {
+        Task { @MainActor in
+            await notificationService.cancelWarrantyNotifications(for: item.id)
+            notificationsScheduled = false
+            logger.info("Warranty notifications cancelled for \(item.name)")
+        }
     }
 }

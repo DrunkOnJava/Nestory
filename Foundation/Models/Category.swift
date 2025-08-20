@@ -8,7 +8,7 @@ import Foundation
 import SwiftData
 
 @Model
-public final class Category {
+public final class Category: @unchecked Sendable {
     @Attribute(.unique)
     public var id: UUID
 
@@ -39,8 +39,8 @@ public final class Category {
     }
 }
 
-public extension Category {
-    static func createDefaultCategories() -> [Category] {
+extension Category {
+    public static func createDefaultCategories() -> [Category] {
         [
             Category(name: "Electronics", icon: "tv.fill", colorHex: "#FF6B6B"),
             Category(name: "Furniture", icon: "sofa.fill", colorHex: "#4ECDC4"),

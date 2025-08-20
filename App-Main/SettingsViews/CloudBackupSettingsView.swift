@@ -8,7 +8,8 @@ import SwiftData
 import SwiftUI
 
 struct CloudBackupSettingsView: View {
-    @StateObject private var cloudBackup = CloudBackupService()
+    @StateObject private var cloudBackup = LiveCloudBackupService()
+    // REMINDER: CloudBackupService is properly wired here for disaster recovery backup!
     @Query private var items: [Item]
     @Query private var categories: [Category]
     @Query private var rooms: [Room]
@@ -28,7 +29,7 @@ struct CloudBackupSettingsView: View {
                     Text("iCloud backup not available")
                         .foregroundColor(.secondary)
                 }
-                
+
                 if let errorMessage = cloudBackup.errorMessage {
                     Text(errorMessage)
                         .font(.caption)

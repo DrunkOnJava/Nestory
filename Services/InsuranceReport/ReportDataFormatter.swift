@@ -28,10 +28,10 @@ public struct ReportDataFormatter {
             "Total Items: \(items.count)",
             "Total Categories: \(categories.count)",
             "Total Declared Value: \(formatCurrency(totalValue))",
-            "Items with Photos: \(items.count(where: { $0.imageData != nil }))",
-            "Items with Serial Numbers: \(items.count(where: { $0.serialNumber != nil }))",
-            "Items with Receipts: \(items.count(where: { $0.receiptImageData != nil }))",
-            "Items with Warranty: \(items.count(where: { $0.warrantyExpirationDate != nil }))",
+            "Items with Photos: \(items.count { $0.imageData != nil })",
+            "Items with Serial Numbers: \(items.count { $0.serialNumber != nil })",
+            "Items with Receipts: \(items.count { $0.receiptImageData != nil })",
+            "Items with Warranty: \(items.count { $0.warrantyExpirationDate != nil })",
         ]
     }
 

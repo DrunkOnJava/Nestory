@@ -56,8 +56,8 @@
     <string>Nestory uses Face ID to secure your inventory data</string>
     <key>BGTaskSchedulerPermittedIdentifiers</key>
     <array>
-        <string>com.nestory.sync</string>
-        <string>com.nestory.cleanup</string>
+        <string>$(PRODUCT_BUNDLE_IDENTIFIER).sync</string>
+        <string>$(PRODUCT_BUNDLE_IDENTIFIER).cleanup</string>
     </array>
     <key>ITSAppUsesNonExemptEncryption</key>
     <false/>

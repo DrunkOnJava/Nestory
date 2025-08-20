@@ -9,10 +9,10 @@ import os.log
 
 public final class MemoryCache<Key: Hashable & Sendable, Value>: @unchecked Sendable {
     private let cache = NSCache<WrappedKey, Entry>()
-    private let queue = DispatchQueue(label: "com.nestory.memoryCache", attributes: .concurrent)
-    private let logger = Logger(subsystem: "com.nestory", category: "MemoryCache")
+    private let queue = DispatchQueue(label: "\(Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory.dev").memoryCache", attributes: .concurrent)
+    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory", category: "MemoryCache")
 
-    public init(countLimit: Int = 100) {
+    public init(countLimit: Int = CacheConstants.Memory.defaultCountLimit) {
         cache.countLimit = countLimit
     }
 

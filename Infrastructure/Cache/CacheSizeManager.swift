@@ -8,7 +8,7 @@ import Foundation
 import os.log
 
 public enum CacheSizeManager {
-    private static let logger = Logger(subsystem: "com.nestory", category: "CacheSizeManager")
+    private static let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory", category: "CacheSizeManager")
 
     public static func calculateDiskUsage(at url: URL, using fileManager: FileManager) async -> Int {
         await withCheckedContinuation { (continuation: CheckedContinuation<Int, Never>) in

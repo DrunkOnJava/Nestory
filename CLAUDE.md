@@ -1,4 +1,7 @@
 # CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 ### Strategic Context for Claude Code CLI - Nestory Project
 
 ## 📱 PROJECT OVERVIEW
@@ -39,25 +42,30 @@ The app helps homeowners and renters catalog their belongings for:
 
 ## 📐 ARCHITECTURE (IMMUTABLE)
 ```
-App → Features → UI/Services → Infrastructure → Foundation
+App → Services → Infrastructure → Foundation
+     ↘ UI ↗
 ```
-- **App**: Entry points only. Wires dependencies.
-- **Features**: Own screens/reducers. Import UI+Services+Foundation ONLY.
+**Current Implementation Note**: The project currently uses a **4-layer architecture** without a separate Features layer. Services are accessed directly from App-Main views using `@StateObject` patterns.
+
+- **App-Main**: Main views and entry points. Imports UI+Services+Foundation.
+- **Services**: Domain APIs with @MainActor and ObservableObject. Import Infrastructure+Foundation ONLY.
 - **UI**: Shared components. Import Foundation ONLY. NO business logic.
-- **Services**: Domain APIs. Import Infrastructure+Foundation ONLY.
-- **Infrastructure**: Technical adapters. Import Foundation ONLY.
-- **Foundation**: Pure types/models. NO imports except Swift stdlib.
+- **Infrastructure**: Technical adapters (Cache, Network, Security). Import Foundation ONLY.
+- **Foundation**: Pure types/models (Item, Category, Money). NO imports except Swift stdlib.
 
 ### Instant Violation Check
 ```swift
-// ILLEGAL: Feature → Feature
-import Capture // ❌ Inside Inventory feature
+// ILLEGAL: App-Main → Infrastructure
+import NetworkClient // ❌ Must go through Services
 
-// ILLEGAL: Feature → Infrastructure  
-import Network // ❌ Must go through Services
+// ILLEGAL: UI → Services  
+import InventoryService // ❌ UI components must be pure
 
-// LEGAL: Feature → Services
-import InventoryService // ✅
+// LEGAL: App-Main → Services
+@StateObject private var inventoryService = InventoryService() // ✅
+
+// LEGAL: Services → Infrastructure
+import NetworkClient // ✅ Services can use infrastructure
 ```
 
 ## 🏗️ CODE GENERATION RULES
@@ -92,61 +100,58 @@ final class Item {
 }
 ```
 
-### TCA Reducer Pattern
+### Current Service Pattern (No TCA)
 ```swift
-@Reducer
-struct InventoryFeature {
-    struct State: Equatable {
-        var items: IdentifiedArrayOf<Item.State> = []
-        @PresentationState var destination: Destination.State?
+// Services use @MainActor and ObservableObject patterns
+@MainActor
+public final class InventoryService: ObservableObject {
+    @Published public var items: [Item] = []
+    @Published public var isLoading = false
+    
+    private let modelContext: ModelContext
+    private let cache: Cache<UUID, Item>
+    
+    public init(modelContext: ModelContext) throws {
+        self.modelContext = modelContext
+        self.cache = try Cache(name: "inventory")
     }
     
-    enum Action: Equatable {
-        case onAppear
-        case itemsResponse(TaskResult<[Item]>)
-        case destination(PresentationAction<Destination.Action>)
-    }
-    
-    @Dependency(\.inventoryService) var inventory
-    
-    var body: some ReducerOf<Self> {
-        Reduce { state, action in
-            switch action {
-            case .onAppear:
-                return .run { send in
-                    await send(.itemsResponse(
-                        TaskResult { try await inventory.fetch() }
-                    ))
-                }
-            }
-        }
-        .ifLet(\.$destination, action: /Action.destination) {
-            Destination()
-        }
+    public func fetchItems() async throws -> [Item] {
+        isLoading = true
+        defer { isLoading = false }
+        
+        let descriptor = FetchDescriptor<Item>(
+            sortBy: [SortDescriptor(\.updatedAt, order: .reverse)]
+        )
+        let items = try modelContext.fetch(descriptor)
+        self.items = items
+        return items
     }
 }
 ```
 
-### Service Pattern
+### Protocol-First Service Design
 ```swift
-protocol InventoryService {
-    func fetch() async throws -> [Item]
-    func save(_ item: Item) async throws
+// Define protocol for testability
+public protocol InventoryServiceProtocol: Sendable {
+    func fetchItems() async throws -> [Item]
+    func saveItem(_ item: Item) async throws
+    func searchItems(query: String) async throws -> [Item]
 }
 
-struct LiveInventoryService: InventoryService {
-    @Dependency(\.database) var database
+// Live implementation with SwiftData
+public struct LiveInventoryService: InventoryServiceProtocol {
+    private let modelContext: ModelContext
+    private let cache: Cache<UUID, Item>
     
-    func fetch() async throws -> [Item] {
-        try await database.fetch(Item.self)
+    public init(modelContext: ModelContext) throws {
+        self.modelContext = modelContext
+        self.cache = try Cache(name: "inventory")
     }
-}
-
-// TCA Dependency
-extension DependencyValues {
-    var inventoryService: InventoryService {
-        get { self[InventoryServiceKey.self] }
-        set { self[InventoryServiceKey.self] = newValue }
+    
+    public func fetchItems() async throws -> [Item] {
+        let descriptor = FetchDescriptor<Item>()
+        return try modelContext.fetch(descriptor)
     }
 }
 ```
@@ -191,29 +196,69 @@ guard let validated = NonEmptyString(rawValue: input) else {
 ### Unit Test Pattern
 ```swift
 @MainActor
-final class InventoryTests: XCTestCase {
-    func testFetch() async {
-        let store = TestStore(
-            initialState: InventoryFeature.State(),
-            reducer: { InventoryFeature() }
-        )
+final class InventoryServiceTests: XCTestCase {
+    var liveService: LiveInventoryService!
+    var modelContainer: ModelContainer!
+    var modelContext: ModelContext!
+
+    override func setUp() async throws {
+        super.setUp()
         
-        await store.send(.onAppear)
-        await store.receive(.itemsResponse(.success(mockItems))) {
-            $0.items = IdentifiedArray(uniqueElements: mockItems)
-        }
+        // Create in-memory model container for testing
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        modelContainer = try ModelContainer(
+            for: Item.self, Category.self,
+            configurations: config
+        )
+        modelContext = ModelContext(modelContainer)
+        liveService = try LiveInventoryService(modelContext: modelContext)
+    }
+
+    func testFetchItems() async throws {
+        let item = Item(name: "Test Item")
+        modelContext.insert(item)
+        try modelContext.save()
+        
+        let items = try await liveService.fetchItems()
+        XCTAssertEqual(items.count, 1)
+        XCTAssertEqual(items.first?.name, "Test Item")
     }
 }
 ```
 
-### Snapshot Test Pattern
+### UI Test Pattern
 ```swift
-func testInventoryView() {
-    let view = InventoryView(store: .mock)
+// Run single UI test with:
+// xcodebuild test -scheme Nestory-Dev -destination 'platform=iOS Simulator,name=iPhone 16 Plus' -only-testing:NestoryUITests/testInventoryFlow
+
+@MainActor
+final class InventoryUITests: XCTestCase {
+    var app: XCUIApplication!
     
-    assertSnapshot(matching: view, as: .image(on: .iPhone15))
-    assertSnapshot(matching: view, as: .image(on: .iPadAir))
-    assertSnapshot(matching: view, as: .image(traits: .init(userInterfaceStyle: .dark)))
+    override func setUp() {
+        continueAfterFailure = false
+        app = XCUIApplication()
+        app.launch()
+    }
+    
+    func testInventoryFlow() {
+        // Navigate to inventory tab
+        app.tabBars.buttons["Inventory"].tap()
+        
+        // Test add item button
+        app.navigationBars.buttons["Add Item"].tap()
+        
+        // Fill out form
+        let nameField = app.textFields["Item Name"]
+        nameField.tap()
+        nameField.typeText("Test Item")
+        
+        // Save item
+        app.buttons["Save"].tap()
+        
+        // Verify item appears
+        XCTAssertTrue(app.staticTexts["Test Item"].exists)
+    }
 }
 ```
 
@@ -256,10 +301,20 @@ make run         # ALWAYS builds and runs on iPhone 16 Plus
 make build       # Build with consistent settings
 make check       # Run ALL verification checks
 
+# Testing (critical)
+make test        # Run Swift Package Manager tests
+make test-xcode  # Run Xcode tests (includes UI tests)
+make test-ui     # Run UI tests only on iPhone 16 Plus
+swift test --filter InventoryServiceTests  # Run single test suite
+
 # Verify compliance
 make verify-wiring      # Ensure all services are wired to UI
 make verify-no-stock    # Check for inappropriate inventory references
 make verify-arch        # Verify architecture compliance
+
+# Code quality
+make lint        # Run SwiftLint
+make format      # Run SwiftFormat
 
 # Quick shortcuts
 make r           # Shortcut for run
@@ -306,6 +361,38 @@ This generates `CURRENT_CONTEXT.md` containing:
 - Recent TODOs
 
 Share this file when starting new chat sessions to maintain continuity!
+
+## 🚀 DEPLOYMENT & CI/CD
+
+### Current Status
+- **Production Ready**: TestFlight build 3 successfully deployed
+- **App Store Connect**: Full API integration with automated workflows
+- **FastLane**: Complete CI/CD pipeline configured
+
+### Deployment Commands
+```bash
+# Fastlane deployment (requires credentials)
+bundle exec fastlane beta              # Build and upload to TestFlight
+bundle exec fastlane release           # Submit to App Store
+bundle exec fastlane screenshots       # Generate App Store screenshots
+
+# Local testing
+make archive                           # Create .xcarchive for distribution
+make screenshot                        # Capture UI test screenshots
+```
+
+### App Store Connect Integration
+The project includes sophisticated App Store Connect automation:
+- **AppStoreConnectOrchestrator**: High-level workflow management
+- **AppMetadataService**: Metadata and version management  
+- **MediaUploadService**: Screenshot and asset upload
+- **EncryptionDeclarationService**: Export compliance automation
+
+### Build Configuration
+- **Project Generation**: Uses XcodeGen with project.yml
+- **Swift 6**: Strict concurrency in Release, minimal in Debug  
+- **Simulator Target**: iPhone 16 Plus (enforced by Makefile)
+- **Deployment Target**: iOS 17.0+
 
 ## 📋 SESSION BEHAVIOR
 
@@ -360,23 +447,42 @@ GroupBox("Receipt Documentation") {
 // Feature A → Service → Feature B
 ```
 
-### Need Side Effects?
+### Need Service Integration?
 ```swift
-// Use TCA dependencies
-@Dependency(\.service) var service
-return .run { send in
-    await send(.response(TaskResult { 
-        try await service.perform() 
-    }))
+// Use @StateObject in views
+struct InventoryListView: View {
+    @StateObject private var inventoryService = InventoryService()
+    
+    var body: some View {
+        List(inventoryService.items) { item in
+            ItemRow(item: item)
+        }
+        .task {
+            try? await inventoryService.fetchItems()
+        }
+    }
 }
 ```
 
 ### Need Navigation?
 ```swift
-// Use TCA presentation
-@PresentationState var destination: Destination.State?
-case .itemTapped(let id):
-    state.destination = .detail(ItemDetail.State(id: id))
+// Use @State for sheet/navigation presentation
+struct ContentView: View {
+    @State private var showingAddItem = false
+    @State private var selectedItem: Item?
+    
+    var body: some View {
+        NavigationStack {
+            // Content here
+        }
+        .sheet(isPresented: $showingAddItem) {
+            AddItemView()
+        }
+        .sheet(item: $selectedItem) { item in
+            ItemDetailView(item: item)
+        }
+    }
+}
 ```
 
 ### Need Async Image Loading?

@@ -43,9 +43,11 @@ struct InsuranceExportOptionsView: View {
                             if selectedFormat == format {
                                 Image(systemName: "checkmark.circle.fill")
                                     .foregroundColor(.accentColor)
+                                    .accessibilityLabel("Selected")
                             }
                         }
                         .contentShape(Rectangle())
+                        .accessibilityAddTraits(.isButton)
                         .onTapGesture {
                             selectedFormat = format
                         }
@@ -181,11 +183,11 @@ struct InsuranceExportOptionsView: View {
     }
 
     private var itemsWithPhotos: Int {
-        items.count(where: { $0.imageData != nil })
+        items.count { $0.imageData != nil }
     }
 
     private var itemsWithReceipts: Int {
-        items.count(where: { $0.receiptImageData != nil })
+        items.count { $0.receiptImageData != nil }
     }
 
     private func formatCurrency(_ value: Decimal) -> String {

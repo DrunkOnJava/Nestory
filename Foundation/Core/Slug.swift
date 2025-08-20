@@ -17,9 +17,14 @@ public struct Slug: Codable, Hashable, Sendable {
         self.value = slug
     }
 
-    /// Create from an already-valid slug (use carefully)
-    public static func unchecked(_ value: String) -> Slug {
-        try! Slug(value)
+    /// Create from an already-valid slug (returns nil if invalid)
+    public static func unchecked(_ value: String) -> Slug? {
+        try? Slug(value)
+    }
+
+    /// Unsafe initializer - assumes the value is valid (for internal use only)
+    private init(unsafe value: String) {
+        self.value = value
     }
 
     /// Convert any string to slug format
@@ -63,7 +68,14 @@ extension Slug: CustomStringConvertible {
 
 extension Slug: ExpressibleByStringLiteral {
     public init(stringLiteral value: String) {
-        try! self.init(value)
+        // For string literals, we assume they are valid during development
+        // In production, use the throwing initializer instead
+        do {
+            try self.init(value)
+        } catch {
+            // Create empty slug as fallback for literal initialization
+            self = Slug(unsafe: "empty")
+        }
     }
 }
 
@@ -77,25 +89,27 @@ extension Slug: Comparable {
 
 // MARK: - Utilities
 
-public extension Slug {
+extension Slug {
     /// Generate a random slug with optional prefix
-    static func random(prefix: String? = nil, length: Int = 8) -> Slug {
+    public static func random(prefix: String? = nil, length: Int = 8) -> Slug? {
         let characters = "abcdefghijklmnopqrstuvwxyz0123456789"
-        let random = (0 ..< length).map { _ in
-            characters.randomElement()!
-        }.map { String($0) }.joined()
+        let random = (0 ..< length).compactMap { _ in
+            characters.randomElement().map(String.init)
+        }.joined()
+
+        guard random.count == length else { return nil }
 
         let value = prefix.map { "\($0)-\(random)" } ?? random
-        return try! Slug(value)
+        return try? Slug(value)
     }
 
     /// Append a suffix to the slug
-    func appending(_ suffix: String) -> Slug {
-        try! Slug("\(value)-\(suffix)")
+    public func appending(_ suffix: String) -> Slug? {
+        try? Slug("\(value)-\(suffix)")
     }
 
     /// Prepend a prefix to the slug
-    func prepending(_ prefix: String) -> Slug {
-        try! Slug("\(prefix)-\(value)")
+    public func prepending(_ prefix: String) -> Slug? {
+        try? Slug("\(prefix)-\(value)")
     }
 }

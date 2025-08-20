@@ -40,7 +40,7 @@ public final class AdvancedSearchViewModel {
 
     // Dependencies
     private let inventoryService: InventoryService
-    private let logger = Logger(subsystem: "com.drunkonjava.nestory", category: "AdvancedSearchViewModel")
+    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory.dev", category: "AdvancedSearchViewModel")
 
     public init(inventoryService: InventoryService) {
         self.inventoryService = inventoryService
@@ -51,7 +51,7 @@ public final class AdvancedSearchViewModel {
     public func loadCategories() async {
         do {
             availableCategories = try await inventoryService.fetchCategories()
-            logger.info("Loaded \(availableCategories.count) categories for filtering")
+            logger.info("Loaded \(self.availableCategories.count) categories for filtering")
         } catch {
             logger.error("Failed to load categories: \(error)")
             searchError = "Failed to load categories: \(error.localizedDescription)"

@@ -8,7 +8,7 @@ import Foundation
 import SwiftData
 
 @Model
-public final class Room {
+public final class Room: @unchecked Sendable {
     @Attribute(.unique)
     public var id: UUID
 

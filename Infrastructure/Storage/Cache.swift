@@ -11,7 +11,7 @@ public final class Cache<Key: Hashable & Sendable, Value>: @unchecked Sendable {
     private let memoryCache: MemoryCache<Key, Value>
     private let diskCache: DiskCache<Key, Value>
     private let encoder: CacheEncoder<Value>
-    private let logger = Logger(subsystem: "com.nestory", category: "Cache")
+    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory", category: "Cache")
 
     private let ttl: TimeInterval
 
@@ -118,22 +118,22 @@ public final class Cache<Key: Hashable & Sendable, Value>: @unchecked Sendable {
 
 // MARK: - Convenience Extensions
 
-public extension Cache where Value: Codable {
-    func setCodable(_ value: Value, for key: Key) async {
+extension Cache where Value: Codable {
+    public func setCodable(_ value: Value, for key: Key) async {
         await set(value, for: key)
     }
 
-    func getCodable(for key: Key) async -> Value? {
+    public func getCodable(for key: Key) async -> Value? {
         await get(for: key)
     }
 }
 
-public extension Cache where Value == Data {
-    func setData(_ data: Data, for key: Key) async {
+extension Cache where Value == Data {
+    public func setData(_ data: Data, for key: Key) async {
         await set(data, for: key)
     }
 
-    func getData(for key: Key) async -> Data? {
+    public func getData(for key: Key) async -> Data? {
         await get(for: key)
     }
 }

@@ -8,8 +8,8 @@ import SwiftUI
 
 // MARK: - Color Extensions
 
-public extension Color {
-    init?(hex: String) {
+extension Color {
+    public init?(hex: String) {
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
         var int: UInt64 = 0
         Scanner(string: hex).scanHexInt64(&int)
@@ -37,8 +37,8 @@ public extension Color {
 
 // MARK: - Array Extensions
 
-public extension Array {
-    subscript(safe index: Index) -> Element? {
+extension Array {
+    public subscript(safe index: Index) -> Element? {
         indices.contains(index) ? self[index] : nil
     }
 }

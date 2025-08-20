@@ -1,7 +1,6 @@
-//
-//  AddItemView.swift
-//  Nestory
-//
+// Layer: App
+// Module: AddItemView
+// Purpose: Add new item to inventory
 
 import SwiftData
 import SwiftUI

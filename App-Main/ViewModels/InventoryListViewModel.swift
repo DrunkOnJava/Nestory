@@ -37,7 +37,7 @@ public final class InventoryListViewModel {
 
     // Dependencies
     private let inventoryService: InventoryService
-    private let logger = Logger(subsystem: "com.drunkonjava.nestory", category: "InventoryListViewModel")
+    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory.dev", category: "InventoryListViewModel")
 
     public init(inventoryService: InventoryService) {
         self.inventoryService = inventoryService
@@ -176,7 +176,7 @@ public final class InventoryListViewModel {
         do {
             let searchResults = try await inventoryService.searchItems(query: searchText)
             items = searchResults
-            logger.info("Search found \(searchResults.count) items for query: '\(searchText)'")
+            logger.info("Search found \(searchResults.count) items for query: '\(self.searchText)'")
         } catch {
             logger.error("Search failed: \(error)")
             errorMessage = "Search failed: \(error.localizedDescription)"
@@ -228,9 +228,9 @@ public final class InventoryListViewModel {
 
 // MARK: - InventoryService Factory
 
-public extension InventoryListViewModel {
+extension InventoryListViewModel {
     @MainActor
-    static func create(from modelContext: ModelContext) -> InventoryListViewModel {
+    public static func create(from modelContext: ModelContext) -> InventoryListViewModel {
         do {
             let service = try LiveInventoryService(modelContext: modelContext)
             return InventoryListViewModel(inventoryService: service)

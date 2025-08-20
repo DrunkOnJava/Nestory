@@ -6,8 +6,8 @@ import os.log
 public final class FileStore: @unchecked Sendable {
     private let baseDirectory: URL
     private let fileManager = FileManager.default
-    private let queue = DispatchQueue(label: "com.nestory.filestore", attributes: .concurrent)
-    private let logger = Logger(subsystem: "com.nestory", category: "FileStore")
+    private let queue = DispatchQueue(label: "\(Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory.dev").filestore", attributes: .concurrent)
+    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory", category: "FileStore")
 
     public enum Directory {
         case documents

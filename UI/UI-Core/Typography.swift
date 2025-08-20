@@ -80,16 +80,16 @@ public struct SubheadlineStyle: ViewModifier {
     }
 }
 
-public extension View {
-    func bodyStyle() -> some View {
+extension View {
+    public func bodyStyle() -> some View {
         modifier(BodyStyle())
     }
 
-    func headlineStyle() -> some View {
+    public func headlineStyle() -> some View {
         modifier(HeadlineStyle())
     }
 
-    func subheadlineStyle() -> some View {
+    public func subheadlineStyle() -> some View {
         modifier(SubheadlineStyle())
     }
 }

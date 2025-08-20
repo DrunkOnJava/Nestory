@@ -8,7 +8,7 @@
     {
       "displayPrice" : "2.99",
       "familyShareable" : false,
-      "id" : "com.nestory.premium.monthly",
+      "id" : "com.drunkonjava.nestory.premium.monthly",
       "internalID" : "6678154215",
       "localizations" : [
         {
@@ -17,14 +17,14 @@
           "locale" : "en_US"
         }
       ],
-      "productID" : "com.nestory.premium.monthly",
+      "productID" : "com.drunkonjava.nestory.premium.monthly",
       "referenceName" : "Premium Monthly",
       "type" : "AutoRenewable"
     },
     {
       "displayPrice" : "19.99",
       "familyShareable" : false,
-      "id" : "com.nestory.premium.yearly",
+      "id" : "com.drunkonjava.nestory.premium.yearly",
       "internalID" : "6678154216",
       "localizations" : [
         {
@@ -33,14 +33,14 @@
           "locale" : "en_US"
         }
       ],
-      "productID" : "com.nestory.premium.yearly",
+      "productID" : "com.drunkonjava.nestory.premium.yearly",
       "referenceName" : "Premium Yearly",
       "type" : "AutoRenewable"
     },
     {
       "displayPrice" : "4.99",
       "familyShareable" : false,
-      "id" : "com.nestory.export.pdf",
+      "id" : "com.drunkonjava.nestory.export.pdf",
       "internalID" : "6678154217",
       "localizations" : [
         {
@@ -49,7 +49,7 @@
           "locale" : "en_US"
         }
       ],
-      "productID" : "com.nestory.export.pdf",
+      "productID" : "com.drunkonjava.nestory.export.pdf",
       "referenceName" : "PDF Export",
       "type" : "NonConsumable"
     }
@@ -128,13 +128,13 @@
           "displayPrice" : "2.99",
           "familyShareable" : false,
           "groupNumber" : 1,
-          "id" : "com.nestory.premium.monthly",
+          "id" : "com.drunkonjava.nestory.premium.monthly",
           "internalID" : "6678154219",
           "introductoryOffer" : null,
           "localizations" : [
 
           ],
-          "productID" : "com.nestory.premium.monthly",
+          "productID" : "com.drunkonjava.nestory.premium.monthly",
           "recurringSubscriptionPeriod" : "P1M",
           "referenceName" : "Premium Monthly",
           "subscriptionGroupID" : "21435743",
@@ -150,13 +150,13 @@
           "displayPrice" : "19.99",
           "familyShareable" : false,
           "groupNumber" : 2,
-          "id" : "com.nestory.premium.yearly",
+          "id" : "com.drunkonjava.nestory.premium.yearly",
           "internalID" : "6678154220",
           "introductoryOffer" : null,
           "localizations" : [
 
           ],
-          "productID" : "com.nestory.premium.yearly",
+          "productID" : "com.drunkonjava.nestory.premium.yearly",
           "recurringSubscriptionPeriod" : "P1Y",
           "referenceName" : "Premium Yearly",
           "subscriptionGroupID" : "21435743",

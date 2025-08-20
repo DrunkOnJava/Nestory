@@ -67,15 +67,15 @@ final class IdentifierTests: XCTestCase {
     }
 
     func testAllIdentifierTypes() {
-        let _ = ItemID()
-        let _ = CategoryID()
-        let _ = LocationID()
-        let _ = PhotoAssetID()
-        let _ = ReceiptID()
-        let _ = WarrantyID()
-        let _ = MaintenanceTaskID()
-        let _ = ShareGroupID()
-        let _ = UserID()
+        _ = ItemID()
+        _ = CategoryID()
+        _ = LocationID()
+        _ = PhotoAssetID()
+        _ = ReceiptID()
+        _ = WarrantyID()
+        _ = MaintenanceTaskID()
+        _ = ShareGroupID()
+        _ = UserID()
     }
 
     func testIdentifierDescription() {

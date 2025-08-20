@@ -32,9 +32,9 @@ public enum Theme {
     // MARK: - Animation
 
     public enum Animation {
-        public static let fast: Double = 0.2
-        public static let normal: Double = 0.3
-        public static let slow: Double = 0.5
+        public static let fast = 0.2
+        public static let normal = 0.3
+        public static let slow = 0.5
         public static let spring = SwiftUI.Animation.spring(response: 0.3, dampingFraction: 0.7)
     }
 
@@ -63,17 +63,17 @@ public enum Theme {
 
 // MARK: - Semantic Colors
 
-public extension Color {
-    static let primaryBackground = Color(.systemBackground)
-    static let secondaryBackground = Color(.secondarySystemBackground)
-    static let tertiaryBackground = Color(.tertiarySystemBackground)
+extension Color {
+    public static let primaryBackground = Color(.systemBackground)
+    public static let secondaryBackground = Color(.secondarySystemBackground)
+    public static let tertiaryBackground = Color(.tertiarySystemBackground)
 
-    static let primaryText = Color(.label)
-    static let secondaryText = Color(.secondaryLabel)
-    static let tertiaryText = Color(.tertiaryLabel)
+    public static let primaryText = Color(.label)
+    public static let secondaryText = Color(.secondaryLabel)
+    public static let tertiaryText = Color(.tertiaryLabel)
 
-    static let destructive = Color(.systemRed)
-    static let success = Color(.systemGreen)
-    static let warning = Color(.systemOrange)
-    static let info = Color(.systemBlue)
+    public static let destructive = Color(.systemRed)
+    public static let success = Color(.systemGreen)
+    public static let warning = Color(.systemOrange)
+    public static let info = Color(.systemBlue)
 }

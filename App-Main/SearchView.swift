@@ -80,8 +80,7 @@ struct SearchView: View {
                 SearchBarView(
                     text: $searchText,
                     isSearching: $isSearching,
-                    onCommit: { performSearch() },
-                )
+                ) { performSearch() }
 
                 // Filter Pills
                 if filters.isActive || !searchText.isEmpty {
@@ -90,41 +89,36 @@ struct SearchView: View {
                             if !searchText.isEmpty {
                                 FilterPill(
                                     label: "Search: \(searchText)",
-                                    onRemove: { searchText = "" },
-                                )
+                                ) { searchText = "" }
                             }
 
                             if !filters.selectedCategories.isEmpty {
                                 FilterPill(
                                     label: "\(filters.selectedCategories.count) Categories",
-                                    onRemove: { filters.selectedCategories = [] },
-                                )
+                                ) { filters.selectedCategories = [] }
                             }
 
                             if filters.priceRange != 0 ... 10000 {
                                 FilterPill(
                                     label: "$\(Int(filters.priceRange.lowerBound))-$\(Int(filters.priceRange.upperBound))",
-                                    onRemove: { filters.priceRange = 0 ... 10000 },
-                                )
+                                ) { filters.priceRange = 0 ... 10000 }
                             }
 
                             if filters.hasPhoto || filters.hasReceipt || filters.hasWarranty || filters.hasSerialNumber {
                                 FilterPill(
                                     label: "Documentation",
-                                    onRemove: {
-                                        filters.hasPhoto = false
-                                        filters.hasReceipt = false
-                                        filters.hasWarranty = false
-                                        filters.hasSerialNumber = false
-                                    },
-                                )
+                                ) {
+                                    filters.hasPhoto = false
+                                    filters.hasReceipt = false
+                                    filters.hasWarranty = false
+                                    filters.hasSerialNumber = false
+                                }
                             }
 
                             if !filters.rooms.isEmpty {
                                 FilterPill(
                                     label: "\(filters.rooms.count) Rooms",
-                                    onRemove: { filters.rooms = [] },
-                                )
+                                ) { filters.rooms = [] }
                             }
                         }
                         .padding(.horizontal)
@@ -139,11 +133,10 @@ struct SearchView: View {
                     SearchHistoryView(
                         searchHistory: $searchHistory,
                         searchText: $searchText,
-                        onSearch: { term in
-                            searchText = term
-                            performSearch()
-                        },
-                    )
+                    ) { term in
+                        searchText = term
+                        performSearch()
+                    }
                 } else {
                     // Show results
                     SearchResultsView(
@@ -166,6 +159,7 @@ struct SearchView: View {
                                     Label(option.rawValue, systemImage: option.icon)
                                     if sortOption == option {
                                         Image(systemName: "checkmark")
+                                            .accessibilityLabel("Selected")
                                     }
                                 }
                             }
@@ -180,8 +174,14 @@ struct SearchView: View {
                                 Text("Active")
                             }
                         }
+
+                        // Advanced Search button
+                        NavigationLink(destination: AdvancedSearchView()) {
+                            Label("Advanced Search", systemImage: "magnifyingglass.circle")
+                        }
                     } label: {
                         Image(systemName: "ellipsis.circle")
+                            .accessibilityLabel("More options")
                     }
                 }
             }
@@ -237,6 +237,7 @@ struct SearchBarView: View {
             HStack {
                 Image(systemName: "magnifyingglass")
                     .foregroundColor(.secondary)
+                    .accessibilityLabel("Search")
 
                 TextField("Search items, categories, notes...", text: $text, onEditingChanged: { editing in
                     isSearching = editing
@@ -247,6 +248,7 @@ struct SearchBarView: View {
                     Button(action: { text = "" }) {
                         Image(systemName: "xmark.circle.fill")
                             .foregroundColor(.secondary)
+                            .accessibilityLabel("Clear search")
                     }
                 }
             }
@@ -283,6 +285,7 @@ struct FilterPill: View {
             Button(action: onRemove) {
                 Image(systemName: "xmark.circle.fill")
                     .font(.caption)
+                    .accessibilityLabel("Remove filter")
             }
         }
         .padding(.horizontal, 10)

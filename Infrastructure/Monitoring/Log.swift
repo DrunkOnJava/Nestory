@@ -1,12 +1,20 @@
 // Layer: Infrastructure
+// Module: Monitoring
+// Purpose: Core centralized logging service with structured logging and categories
 
 import Foundation
 import os.log
 
+// Bundle-based configuration access
+
+/// A centralized logging service that provides structured logging with categories and metadata
+/// support. This service uses os.log for performance and integrates with the system logging
+/// infrastructure.
 public final class Log {
     private let subsystem: String
     private let loggers: [LogCategory: Logger]
 
+    /// Categories for organizing log messages by system component
     public enum LogCategory: String, CaseIterable {
         case app = "App"
         case network = "Network"
@@ -20,9 +28,12 @@ public final class Log {
         case analytics = "Analytics"
     }
 
+    /// Shared instance of the logger for the main application subsystem
     @MainActor
-    public static let shared = Log(subsystem: "com.nestory")
+    public static let shared = Log(subsystem: Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory")
 
+    /// Initialize a new logger for the given subsystem
+    /// - Parameter subsystem: The subsystem identifier (usually bundle identifier)
     public init(subsystem: String) {
         self.subsystem = subsystem
 
@@ -33,255 +44,160 @@ public final class Log {
         self.loggers = loggers
     }
 
+    /// Get the system logger for a specific category
+    /// - Parameter category: The log category to get the logger for
+    /// - Returns: The configured Logger instance for the category
     public func logger(for category: LogCategory) -> Logger {
         loggers[category] ?? Logger(subsystem: subsystem, category: "General")
     }
 
+    /// Log a debug message
+    /// - Parameters:
+    ///   - message: The message to log
+    ///   - category: The log category (defaults to .app)
+    ///   - metadata: Optional metadata dictionary
     public func debug(_ message: String, category: LogCategory = .app, metadata: [String: Any]? = nil) {
         let logger = logger(for: category)
 
         if let metadata {
-            logger.debug("\(message) | \(formatMetadata(metadata))")
+            logger.debug("\(message) | \(self.formatMetadata(metadata))")
         } else {
             logger.debug("\(message)")
         }
     }
 
+    /// Log an informational message
+    /// - Parameters:
+    ///   - message: The message to log
+    ///   - category: The log category (defaults to .app)
+    ///   - metadata: Optional metadata dictionary
     public func info(_ message: String, category: LogCategory = .app, metadata: [String: Any]? = nil) {
         let logger = logger(for: category)
 
         if let metadata {
-            logger.info("\(message) | \(formatMetadata(metadata))")
+            logger.info("\(message) | \(self.formatMetadata(metadata))")
         } else {
             logger.info("\(message)")
         }
     }
 
+    /// Log a notice message
+    /// - Parameters:
+    ///   - message: The message to log
+    ///   - category: The log category (defaults to .app)
+    ///   - metadata: Optional metadata dictionary
     public func notice(_ message: String, category: LogCategory = .app, metadata: [String: Any]? = nil) {
         let logger = logger(for: category)
 
         if let metadata {
-            logger.notice("\(message) | \(formatMetadata(metadata))")
+            logger.notice("\(message) | \(self.formatMetadata(metadata))")
         } else {
             logger.notice("\(message)")
         }
     }
 
+    /// Log a warning message
+    /// - Parameters:
+    ///   - message: The message to log
+    ///   - category: The log category (defaults to .app)
+    ///   - metadata: Optional metadata dictionary
     public func warning(_ message: String, category: LogCategory = .app, metadata: [String: Any]? = nil) {
         let logger = logger(for: category)
 
         if let metadata {
-            logger.warning("\(message) | \(formatMetadata(metadata))")
+            logger.warning("\(message) | \(self.formatMetadata(metadata))")
         } else {
             logger.warning("\(message)")
         }
     }
 
-    public func error(_ message: String, category: LogCategory = .app, error: (any Error)? = nil, metadata: [String: Any]? = nil) {
+    /// Log an error message
+    /// - Parameters:
+    ///   - message: The error message to log
+    ///   - category: The log category (defaults to .app)
+    ///   - error: Optional associated Error object
+    ///   - metadata: Optional metadata dictionary
+    public func error(
+        _ message: String,
+        category: LogCategory = .app,
+        error: Error? = nil,
+        metadata: [String: Any]? = nil,
+    ) {
         let logger = logger(for: category)
 
-        var fullMessage = message
-
+        var logMessage = message
         if let error {
-            fullMessage += " | Error: \(error.localizedDescription)"
+            logMessage += " | Error: \(error.localizedDescription)"
         }
 
         if let metadata {
-            fullMessage += " | \(formatMetadata(metadata))"
+            logMessage += " | \(formatMetadata(metadata))"
         }
 
-        logger.error("\(fullMessage)")
+        logger.error("\(logMessage)")
     }
 
-    public func critical(_ message: String, category: LogCategory = .app, error: (any Error)? = nil, metadata: [String: Any]? = nil) {
+    /// Log a critical error message
+    /// - Parameters:
+    ///   - message: The critical error message to log
+    ///   - category: The log category (defaults to .app)
+    ///   - error: Optional associated Error object
+    ///   - metadata: Optional metadata dictionary
+    public func critical(
+        _ message: String,
+        category: LogCategory = .app,
+        error: Error? = nil,
+        metadata: [String: Any]? = nil,
+    ) {
         let logger = logger(for: category)
 
-        var fullMessage = "CRITICAL: \(message)"
-
+        var logMessage = message
         if let error {
-            fullMessage += " | Error: \(error.localizedDescription)"
+            logMessage += " | Error: \(error.localizedDescription)"
         }
 
         if let metadata {
-            fullMessage += " | \(formatMetadata(metadata))"
+            logMessage += " | \(formatMetadata(metadata))"
         }
 
-        logger.critical("\(fullMessage)")
+        logger.critical("\(logMessage)")
     }
 
-    public func fault(_ message: String, category: LogCategory = .app, error: (any Error)? = nil, metadata: [String: Any]? = nil) {
+    /// Log a fault message
+    /// - Parameters:
+    ///   - message: The fault message to log
+    ///   - category: The log category (defaults to .app)
+    ///   - error: Optional associated Error object
+    ///   - metadata: Optional metadata dictionary
+    public func fault(
+        _ message: String,
+        category: LogCategory = .app,
+        error: Error? = nil,
+        metadata: [String: Any]? = nil,
+    ) {
         let logger = logger(for: category)
 
-        var fullMessage = "FAULT: \(message)"
-
+        var logMessage = message
         if let error {
-            fullMessage += " | Error: \(error.localizedDescription)"
+            logMessage += " | Error: \(error.localizedDescription)"
         }
 
         if let metadata {
-            fullMessage += " | \(formatMetadata(metadata))"
+            logMessage += " | \(formatMetadata(metadata))"
         }
 
-        logger.fault("\(fullMessage)")
+        logger.fault("\(logMessage)")
     }
 
-    public func performance(_ operation: String, category: LogCategory = .performance, block: () throws -> Void) rethrows {
-        let startTime = CFAbsoluteTimeGetCurrent()
-        defer {
-            let duration = CFAbsoluteTimeGetCurrent() - startTime
-            let logger = self.logger(for: category)
-            logger.info("Performance: \(operation) completed in \(String(format: "%.3f", duration))s")
-        }
+    // MARK: - Helper Methods
 
-        try block()
-    }
-
-    public func performanceAsync<T>(_ operation: String, category: LogCategory = .performance, block: () async throws -> T) async rethrows -> T {
-        let startTime = CFAbsoluteTimeGetCurrent()
-        defer {
-            let duration = CFAbsoluteTimeGetCurrent() - startTime
-            let logger = self.logger(for: category)
-            logger.info("Performance: \(operation) completed in \(String(format: "%.3f", duration))s")
-        }
-
-        return try await block()
-    }
-
-    public func breadcrumb(_ message: String, category: LogCategory = .app, level: OSLogType = .debug) {
-        let logger = logger(for: category)
-        logger.log(level: level, "Breadcrumb: \(message)")
-    }
-
-    public func networkRequest(url: String, method: String, statusCode: Int?, duration: TimeInterval, error: (any Error)? = nil) {
-        let logger = logger(for: .network)
-
-        var message = "Network: \(method) \(url)"
-
-        if let statusCode {
-            message += " | Status: \(statusCode)"
-        }
-
-        message += " | Duration: \(String(format: "%.3f", duration))s"
-
-        if let error {
-            message += " | Error: \(error.localizedDescription)"
-            logger.error("\(message)")
-        } else {
-            logger.info("\(message)")
-        }
-    }
-
-    public func databaseOperation(_ operation: String, table: String? = nil, duration: TimeInterval, recordCount: Int? = nil, error: (any Error)? = nil) {
-        let logger = logger(for: .database)
-
-        var message = "Database: \(operation)"
-
-        if let table {
-            message += " on \(table)"
-        }
-
-        if let recordCount {
-            message += " | Records: \(recordCount)"
-        }
-
-        message += " | Duration: \(String(format: "%.3f", duration))s"
-
-        if let error {
-            message += " | Error: \(error.localizedDescription)"
-            logger.error("\(message)")
-        } else {
-            logger.debug("\(message)")
-        }
-    }
-
-    public func userAction(_ action: String, category: LogCategory = .ui, metadata: [String: Any]? = nil) {
-        let logger = logger(for: category)
-
-        var message = "User Action: \(action)"
-
-        if let metadata {
-            message += " | \(formatMetadata(metadata))"
-        }
-
-        logger.info("\(message)")
-    }
-
-    private func formatMetadata(_ metadata: [String: Any]) -> String {
+    func formatMetadata(_ metadata: [String: Any]) -> String {
         metadata
             .map { "\($0.key): \($0.value)" }
             .joined(separator: ", ")
     }
-}
 
-public extension Log {
-    struct Context {
-        public let userId: String?
-        public let sessionId: String?
-        public let deviceId: String?
-        public let appVersion: String?
-        public let buildNumber: String?
-
-        public init(
-            userId: String? = nil,
-            sessionId: String? = nil,
-            deviceId: String? = nil,
-            appVersion: String? = nil,
-            buildNumber: String? = nil
-        ) {
-            self.userId = userId
-            self.sessionId = sessionId
-            self.deviceId = deviceId
-            self.appVersion = appVersion
-            self.buildNumber = buildNumber
-        }
-
-        public var metadata: [String: Any] {
-            var dict: [String: Any] = [:]
-
-            if let userId {
-                dict["userId"] = userId
-            }
-            if let sessionId {
-                dict["sessionId"] = sessionId
-            }
-            if let deviceId {
-                dict["deviceId"] = deviceId
-            }
-            if let appVersion {
-                dict["appVersion"] = appVersion
-            }
-            if let buildNumber {
-                dict["buildNumber"] = buildNumber
-            }
-
-            return dict
-        }
-    }
-
-    private nonisolated(unsafe) static var currentContext: Context?
-
-    static func setContext(_ context: Context) {
-        currentContext = context
-    }
-
-    func logWithContext(_ message: String, category: LogCategory = .app, level: OSLogType = .info, additionalMetadata: [String: Any]? = nil) {
-        var metadata = Log.currentContext?.metadata ?? [:]
-
-        if let additionalMetadata {
-            metadata.merge(additionalMetadata) { _, new in new }
-        }
-
-        switch level {
-        case .debug:
-            debug(message, category: category, metadata: metadata)
-        case .info:
-            info(message, category: category, metadata: metadata)
-        case .error:
-            error(message, category: category, metadata: metadata)
-        case .fault:
-            fault(message, category: category, metadata: metadata)
-        default:
-            info(message, category: category, metadata: metadata)
-        }
-    }
+    // Specialized operations have been moved to extension files:
+    // - LogSpecializedOperations.swift - performance, network, database, user actions
+    // - LogContext.swift - context management and contextual logging
 }

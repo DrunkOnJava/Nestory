@@ -53,7 +53,8 @@ xcrun simctl install "$DEVICE_ID" "$APP_PATH"
 
 # Launch the app
 echo "🚀 Launching Nestory..."
-BUNDLE_ID="com.nestory.app.dev"
+# Use environment variable or default for development
+BUNDLE_ID="${PRODUCT_BUNDLE_IDENTIFIER:-com.drunkonjava.nestory.dev}"
 xcrun simctl launch --console "$DEVICE_ID" "$BUNDLE_ID"
 
 echo "✅ Nestory is running with hot reload enabled!"

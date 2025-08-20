@@ -30,7 +30,7 @@ public struct EmptyStateView: View {
     public var body: some View {
         VStack(spacing: Theme.Spacing.lg) {
             Image(systemName: systemImage)
-                .font(.system(size: 60))
+                .font(.system(size: UIConstants.FontSize.iconLarge))
                 .foregroundColor(.secondaryText)
 
             VStack(spacing: Theme.Spacing.sm) {
@@ -47,7 +47,7 @@ public struct EmptyStateView: View {
 
             if let actionTitle, let action {
                 PrimaryButton(title: actionTitle, action: action)
-                    .frame(maxWidth: 200)
+                    .frame(maxWidth: UIConstants.Size.buttonMaxWidth)
             }
         }
         .padding(Theme.Spacing.xl)
@@ -102,7 +102,7 @@ public struct ErrorView: View {
     public var body: some View {
         VStack(spacing: Theme.Spacing.lg) {
             Image(systemName: "exclamationmark.triangle")
-                .font(.system(size: 60))
+                .font(.system(size: UIConstants.FontSize.iconLarge))
                 .foregroundColor(.destructive)
 
             VStack(spacing: Theme.Spacing.sm) {
@@ -118,7 +118,7 @@ public struct ErrorView: View {
 
             if let retryAction {
                 PrimaryButton(title: "Try Again", action: retryAction)
-                    .frame(maxWidth: 200)
+                    .frame(maxWidth: UIConstants.Size.buttonMaxWidth)
             }
         }
         .padding(Theme.Spacing.xl)
@@ -134,7 +134,6 @@ public struct ErrorView: View {
             message: "Start by adding your first item to the inventory",
             systemImage: "archivebox",
             actionTitle: "Add Item",
-            action: {},
-        )
+        ) {}
     }
 }

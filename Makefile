@@ -6,23 +6,22 @@
 # CONFIGURATION
 # ============================================================================
 
-# Project Settings
-PROJECT_NAME = Nestory
-SCHEME_DEV = $(PROJECT_NAME)-Dev
+# Include auto-generated configuration from master source
+include Config/MakefileConfig.mk
+
+# Fallback legacy values (will be removed once migration is complete)
 SCHEME = $(PROJECT_NAME)
-WORKSPACE = $(PROJECT_NAME).xcworkspace
-PROJECT_FILE = $(PROJECT_NAME).xcodeproj
 
-# CRITICAL: Always use iPhone 16 Plus for consistency (per CLAUDE.md)
-SIMULATOR_NAME = iPhone 16 Plus
-SIMULATOR_OS = iOS Simulator
-DESTINATION = platform=$(SIMULATOR_OS),name=$(SIMULATOR_NAME)
-
-# Build Settings
+# Build Settings (not auto-generated)
 CONFIGURATION = Debug
 SDK = iphonesimulator
 DERIVED_DATA_PATH = .build
 BUILD_LOG = build.log
+ARCH_VERIFY_TIMEOUT = 60
+
+# Build optimization
+PARALLEL_JOBS = $(shell sysctl -n hw.ncpu)
+BUILD_FLAGS = -jobs $(PARALLEL_JOBS) -quiet
 
 # Colors for output
 RED = \033[0;31m
@@ -51,8 +50,16 @@ help: ## Show this help message
 	@echo "$(YELLOW)Primary Commands:$(NC)"
 	@echo "  $(GREEN)make run$(NC)              - Build and run app in iPhone 16 Plus simulator"
 	@echo "  $(GREEN)make build$(NC)            - Build the app (Debug configuration)"
+	@echo "  $(GREEN)make fast-build$(NC)       - Parallel build with maximum speed ($(PARALLEL_JOBS) jobs)"
 	@echo "  $(GREEN)make test$(NC)             - Run all tests"
 	@echo "  $(GREEN)make check$(NC)            - Run all checks (build, test, lint, arch)"
+	@echo ""
+	@echo "$(YELLOW)Quick Shortcuts:$(NC)"
+	@echo "  $(GREEN)make r$(NC)                - Shortcut for 'make run'"
+	@echo "  $(GREEN)make b$(NC)                - Shortcut for 'make build'"
+	@echo "  $(GREEN)make f$(NC)                - Shortcut for 'make fast-build'"
+	@echo "  $(GREEN)make c$(NC)                - Shortcut for 'make check'"
+	@echo "  $(GREEN)make d$(NC)                - Shortcut for 'make doctor'"
 	@echo ""
 	@echo "$(YELLOW)Development Workflow:$(NC)"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-20s$(NC) %s\n", $$1, $$2}'
@@ -70,22 +77,28 @@ help: ## Show this help message
 # ============================================================================
 
 .PHONY: run
-run: gen check-tools check-file-sizes ## Build and run app in iPhone 16 Plus simulator
-	@echo "$(YELLOW)🚀 Launching Nestory on iPhone 16 Plus...$(NC)"
+run: build-for-simulator ## Build and run app in iPhone 16 Plus simulator
+	@echo "$(YELLOW)🚀 Installing and launching Nestory on iPhone 16 Plus...$(NC)"
+	@echo "Booting simulator..."
 	@xcrun simctl boot "$(SIMULATOR_NAME)" 2>/dev/null || true
-	@xcodebuild -scheme $(SCHEME_DEV) \
-		-destination '$(DESTINATION)' \
-		-configuration $(CONFIGURATION) \
-		run 2>&1 | tee $(BUILD_LOG)
+	@echo "Installing app..."
+	@timeout $(BUILD_TIMEOUT) xcrun simctl install "$(SIMULATOR_NAME)" "$(DERIVED_DATA_PATH)/Build/Products/$(CONFIGURATION)-iphonesimulator/Nestory.app" || \
+		{ echo "$(RED)❌ App installation failed or timed out!$(NC)"; exit 1; }
+	@echo "Launching app..."
+	@timeout 30 xcrun simctl launch "$(SIMULATOR_NAME)" com.drunkonjava.nestory || \
+		{ echo "$(RED)❌ App launch failed or timed out!$(NC)"; exit 1; }
 	@echo "$(GREEN)✅ App launched successfully!$(NC)"
 
 .PHONY: build
 build: gen check-tools clean-logs check-file-sizes ## Build the app (Debug configuration)
 	@echo "$(YELLOW)🔨 Building Nestory for iPhone 16 Plus...$(NC)"
-	@xcodebuild -scheme $(SCHEME_DEV) \
+	@timeout $(BUILD_TIMEOUT) xcodebuild -scheme $(ACTIVE_SCHEME) \
 		-destination '$(DESTINATION)' \
 		-configuration $(CONFIGURATION) \
-		build 2>&1 | tee $(BUILD_LOG)
+		$(BUILD_FLAGS) \
+		build 2>&1 | tee $(BUILD_LOG) || \
+		{ echo "$(RED)❌ Build failed or timed out after $(BUILD_TIMEOUT)s!$(NC)"; \
+		  echo "$(YELLOW)Check $(BUILD_LOG) for details$(NC)"; exit 1; }
 	@echo "$(GREEN)✅ Build completed successfully!$(NC)"
 	@# Increment build counter and show tree every 3rd build
 	@if [ ! -f .build_counter ]; then echo "0" > .build_counter; fi
@@ -101,13 +114,29 @@ build: gen check-tools clean-logs check-file-sizes ## Build the app (Debug confi
 		$(MAKE) tree; \
 	fi
 
+.PHONY: build-for-simulator
+build-for-simulator: gen check-tools clean-logs check-file-sizes ## Build specifically for simulator usage
+	@echo "$(YELLOW)🔨 Building Nestory for Simulator...$(NC)"
+	@timeout $(BUILD_TIMEOUT) xcodebuild -scheme $(ACTIVE_SCHEME) \
+		-destination '$(DESTINATION)' \
+		-configuration $(CONFIGURATION) \
+		-derivedDataPath $(DERIVED_DATA_PATH) \
+		$(BUILD_FLAGS) \
+		build 2>&1 | tee $(BUILD_LOG) || \
+		{ echo "$(RED)❌ Simulator build failed or timed out after $(BUILD_TIMEOUT)s!$(NC)"; \
+		  echo "$(YELLOW)Check $(BUILD_LOG) for details$(NC)"; exit 1; }
+	@echo "$(GREEN)✅ Simulator build completed successfully!$(NC)"
+
 .PHONY: build-release
 build-release: gen check-tools check-file-sizes ## Build the app (Release configuration)
 	@echo "$(YELLOW)🔨 Building Nestory (Release)...$(NC)"
-	@xcodebuild -scheme $(SCHEME_DEV) \
+	@timeout $(BUILD_TIMEOUT) xcodebuild -scheme $(ACTIVE_SCHEME) \
 		-configuration Release \
 		-destination '$(DESTINATION)' \
-		build 2>&1
+		$(BUILD_FLAGS) \
+		build 2>&1 | tee release-$(BUILD_LOG) || \
+		{ echo "$(RED)❌ Release build failed or timed out after $(BUILD_TIMEOUT)s!$(NC)"; \
+		  echo "$(YELLOW)Check release-$(BUILD_LOG) for details$(NC)"; exit 1; }
 	@echo "$(GREEN)✅ Release build completed!$(NC)"
 
 # ============================================================================
@@ -137,30 +166,41 @@ clean-build: clean gen build ## Clean, regenerate project, and build
 .PHONY: test
 test: check-tools ## Run all tests
 	@echo "$(YELLOW)🧪 Running tests...$(NC)"
-	@swift test
+	@timeout $(TEST_TIMEOUT) swift test || \
+		{ echo "$(RED)❌ Tests failed or timed out after $(TEST_TIMEOUT)s!$(NC)"; exit 1; }
 	@echo "$(GREEN)✅ Tests completed!$(NC)"
 
 .PHONY: test-xcode
 test-xcode: gen ## Run tests via Xcode
 	@echo "$(YELLOW)🧪 Running Xcode tests...$(NC)"
-	@xcodebuild test \
+	@timeout $(TEST_TIMEOUT) xcodebuild test \
 		-scheme $(SCHEME_DEV) \
 		-destination '$(DESTINATION)' \
-		2>&1
+		$(BUILD_FLAGS) \
+		2>&1 | tee test-$(BUILD_LOG) || \
+		{ echo "$(RED)❌ Xcode tests failed or timed out after $(TEST_TIMEOUT)s!$(NC)"; \
+		  echo "$(YELLOW)Check test-$(BUILD_LOG) for details$(NC)"; exit 1; }
+	@echo "$(GREEN)✅ Xcode tests completed!$(NC)"
 
 .PHONY: test-unit
 test-unit: ## Run unit tests only
 	@echo "$(YELLOW)🧪 Running unit tests...$(NC)"
-	@swift test --filter NestoryTests
+	@timeout $(TEST_TIMEOUT) swift test --filter NestoryTests || \
+		{ echo "$(RED)❌ Unit tests failed or timed out after $(TEST_TIMEOUT)s!$(NC)"; exit 1; }
+	@echo "$(GREEN)✅ Unit tests completed!$(NC)"
 
 .PHONY: test-ui
 test-ui: gen ## Run UI tests only
 	@echo "$(YELLOW)🧪 Running UI tests...$(NC)"
-	@xcodebuild test \
+	@timeout $(TEST_TIMEOUT) xcodebuild test \
 		-scheme $(SCHEME_DEV) \
 		-destination '$(DESTINATION)' \
 		-only-testing:NestoryUITests \
-		2>&1
+		$(BUILD_FLAGS) \
+		2>&1 | tee ui-test-$(BUILD_LOG) || \
+		{ echo "$(RED)❌ UI tests failed or timed out after $(TEST_TIMEOUT)s!$(NC)"; \
+		  echo "$(YELLOW)Check ui-test-$(BUILD_LOG) for details$(NC)"; exit 1; }
+	@echo "$(GREEN)✅ UI tests completed!$(NC)"
 
 # ============================================================================
 # CODE QUALITY & VERIFICATION
@@ -173,13 +213,17 @@ check: build test guard verify-wiring verify-no-stock tree ## Run all checks
 .PHONY: guard
 guard: ## Run guard suite (architecture checks)
 	@echo "$(YELLOW)🛡️ Running guard suite...$(NC)"
-	@swift test
+	@timeout $(TEST_TIMEOUT) swift test || \
+		{ echo "$(RED)❌ Swift tests in guard suite failed!$(NC)"; exit 1; }
 	@if [ -f "./DevTools/nestoryctl/.build/release/nestoryctl" ]; then \
-		./DevTools/nestoryctl/.build/release/nestoryctl check; \
+		timeout $(ARCH_VERIFY_TIMEOUT) ./DevTools/nestoryctl/.build/release/nestoryctl check || \
+			{ echo "$(RED)❌ nestoryctl check failed or timed out!$(NC)"; exit 1; }; \
 	else \
 		echo "$(YELLOW)Building nestoryctl...$(NC)"; \
-		cd DevTools/nestoryctl && swift build -c release && cd ../..; \
-		./DevTools/nestoryctl/.build/release/nestoryctl check; \
+		(cd DevTools/nestoryctl && timeout $(BUILD_TIMEOUT) swift build -c release) || \
+			{ echo "$(RED)❌ nestoryctl build failed!$(NC)"; exit 1; }; \
+		timeout $(ARCH_VERIFY_TIMEOUT) ./DevTools/nestoryctl/.build/release/nestoryctl check || \
+			{ echo "$(RED)❌ nestoryctl check failed or timed out!$(NC)"; exit 1; }; \
 	fi
 	@echo "$(GREEN)✅ Guard checks passed!$(NC)"
 
@@ -187,16 +231,19 @@ guard: ## Run guard suite (architecture checks)
 lint: ## Run SwiftLint
 	@echo "$(YELLOW)🔍 Running SwiftLint...$(NC)"
 	@if command -v swiftlint >/dev/null 2>&1; then \
-		swiftlint lint --strict; \
+		timeout 120 swiftlint lint --strict || \
+			{ echo "$(RED)❌ SwiftLint failed or timed out!$(NC)"; exit 1; }; \
 	else \
 		echo "$(YELLOW)⚠️  SwiftLint not installed. Install with: brew install swiftlint$(NC)"; \
 	fi
+	@echo "$(GREEN)✅ Lint completed!$(NC)"
 
 .PHONY: format
 format: ## Format code with SwiftFormat
 	@echo "$(YELLOW)📐 Formatting code...$(NC)"
 	@if command -v swiftformat >/dev/null 2>&1; then \
-		swiftformat . --swiftversion 6.0; \
+		timeout 120 swiftformat . --swiftversion 6.0 || \
+			{ echo "$(RED)❌ SwiftFormat failed or timed out!$(NC)"; exit 1; }; \
 		echo "$(GREEN)✅ Code formatted!$(NC)"; \
 	else \
 		echo "$(YELLOW)⚠️  SwiftFormat not installed. Install with: brew install swiftformat$(NC)"; \
@@ -207,10 +254,14 @@ verify-arch: ## Verify architecture compliance
 	@echo "$(YELLOW)🏗️  Verifying architecture...$(NC)"
 	@echo "Checking layer dependencies..."
 	@if [ -f "./DevTools/nestoryctl/.build/release/nestoryctl" ]; then \
-		./DevTools/nestoryctl/.build/release/nestoryctl arch-verify; \
+		timeout $(ARCH_VERIFY_TIMEOUT) ./DevTools/nestoryctl/.build/release/nestoryctl arch-verify || \
+			{ echo "$(RED)❌ Architecture verification failed or timed out!$(NC)"; exit 1; }; \
 	else \
-		cd DevTools/nestoryctl && swift build -c release && cd ../..; \
-		./DevTools/nestoryctl/.build/release/nestoryctl arch-verify; \
+		echo "$(YELLOW)Building nestoryctl...$(NC)"; \
+		(cd DevTools/nestoryctl && timeout $(BUILD_TIMEOUT) swift build -c release) || \
+			{ echo "$(RED)❌ nestoryctl build failed!$(NC)"; exit 1; }; \
+		timeout $(ARCH_VERIFY_TIMEOUT) ./DevTools/nestoryctl/.build/release/nestoryctl arch-verify || \
+			{ echo "$(RED)❌ Architecture verification failed or timed out!$(NC)"; exit 1; }; \
 	fi
 	@echo "$(GREEN)✅ Architecture verified!$(NC)"
 
@@ -221,7 +272,7 @@ verify-wiring: ## Verify all features are wired to UI
 	@for service in Services/*.swift; do \
 		if [ -f "$$service" ]; then \
 			basename=$$(basename $$service .swift); \
-			if ! grep -r "$$basename" App-Main/*.swift > /dev/null 2>&1; then \
+			if ! grep -r "$$basename" App-Main/ > /dev/null 2>&1; then \
 				echo "$(RED)❌ $$basename not wired in UI!$(NC)"; \
 				exit 1; \
 			else \
@@ -244,10 +295,45 @@ verify-no-stock: ## Verify no business inventory references
 .PHONY: check-file-sizes
 check-file-sizes: ## Check Swift file sizes and enforce limits (400/500/600 lines)
 	@echo "$(YELLOW)📏 Checking file sizes...$(NC)"
-	@./scripts/check-file-sizes.sh || \
+	@timeout 30 ./scripts/check-file-sizes.sh || \
 		(echo "$(RED)❌ Build blocked: Files exceeding 600 lines detected!$(NC)"; \
 		 echo "$(YELLOW)Run 'make file-report' for details or 'make approve-large-file FILE=path/to/file.swift' to override$(NC)"; \
 		 exit 1)
+
+.PHONY: test-coverage
+test-coverage: ## Run tests with coverage report
+	@echo "$(YELLOW)🧪 Running tests with coverage...$(NC)"
+	@timeout $(TEST_TIMEOUT) swift test --enable-code-coverage || \
+		{ echo "$(RED)❌ Coverage tests failed or timed out!$(NC)"; exit 1; }
+	@echo "$(YELLOW)📊 Generating coverage report...$(NC)"
+	@if command -v xcov >/dev/null 2>&1; then \
+		xcov --scheme $(SCHEME_DEV) --output_directory coverage_reports; \
+		echo "$(GREEN)✅ Coverage report generated in coverage_reports/$(NC)"; \
+	else \
+		echo "$(YELLOW)⚠️  xcov not installed. Install with: gem install xcov$(NC)"; \
+		echo "$(BLUE)Coverage data available at: .build/debug/codecov/$(NC)"; \
+	fi
+
+.PHONY: clean-derived-data
+clean-derived-data: ## Clean all Xcode derived data
+	@echo "$(YELLOW)🧹 Cleaning all Xcode derived data...$(NC)"
+	@rm -rf ~/Library/Developer/Xcode/DerivedData/*
+	@rm -rf $(DERIVED_DATA_PATH)
+	@rm -rf DerivedData
+	@echo "$(GREEN)✅ Derived data cleaned!$(NC)"
+
+.PHONY: fast-build
+fast-build: clean-derived-data ## Fast parallel build with maximum optimization
+	@echo "$(YELLOW)⚡ Fast parallel build ($(PARALLEL_JOBS) jobs)...$(NC)"
+	@timeout $(BUILD_TIMEOUT) xcodebuild -scheme $(ACTIVE_SCHEME) \
+		-destination '$(DESTINATION)' \
+		-configuration $(CONFIGURATION) \
+		-jobs $(PARALLEL_JOBS) \
+		-quiet -hideShellScriptEnvironment \
+		build 2>&1 | tee fast-$(BUILD_LOG) || \
+		{ echo "$(RED)❌ Fast build failed or timed out!$(NC)"; \
+		  echo "$(YELLOW)Check fast-$(BUILD_LOG) for details$(NC)"; exit 1; }
+	@echo "$(GREEN)✅ Fast build completed in parallel!$(NC)"
 
 .PHONY: file-report
 file-report: ## Generate detailed report of file sizes
@@ -335,11 +421,14 @@ new-service: ## Create a new service (usage: make new-service NAME=MyService)
 .PHONY: screenshot
 screenshot: gen ## Capture app screenshots
 	@echo "$(YELLOW)📸 Capturing screenshots...$(NC)"
-	@xcodebuild test \
+	@timeout $(TEST_TIMEOUT) xcodebuild test \
 		-scheme $(SCHEME_DEV) \
 		-destination '$(DESTINATION)' \
 		-only-testing:NestoryUITests/NestoryScreenshotTests \
-		2>&1
+		$(BUILD_FLAGS) \
+		2>&1 | tee screenshot-$(BUILD_LOG) || \
+		{ echo "$(RED)❌ Screenshot capture failed or timed out!$(NC)"; \
+		  echo "$(YELLOW)Check screenshot-$(BUILD_LOG) for details$(NC)"; exit 1; }
 	@echo "$(GREEN)✅ Screenshots captured!$(NC)"
 
 # ============================================================================
@@ -362,6 +451,11 @@ clean: ## Clean build artifacts
 clean-logs: ## Clean build logs
 	@rm -f $(BUILD_LOG)
 	@rm -f *.log
+	@rm -f *-$(BUILD_LOG)
+	@rm -f test-*.log
+	@rm -f ui-test-*.log
+	@rm -f release-*.log
+	@rm -f fast-*.log
 
 .PHONY: reset-simulator
 reset-simulator: ## Reset iPhone 16 Plus simulator
@@ -462,7 +556,7 @@ doctor: ## Diagnose project setup issues
 	@for service in Services/*.swift; do \
 		if [ -f "$$service" ]; then \
 			basename=$$(basename $$service .swift); \
-			if grep -r "$$basename" App-Main/*.swift > /dev/null 2>&1; then \
+			if grep -r "$$basename" App-Main/ > /dev/null 2>&1; then \
 				echo "$(GREEN)✓$(NC) $$basename"; \
 			else \
 				echo "$(RED)✗$(NC) $$basename (not wired!)"; \
@@ -610,10 +704,14 @@ ci: clean check ## Run CI pipeline
 .PHONY: archive
 archive: gen ## Create app archive
 	@echo "$(YELLOW)📦 Creating archive...$(NC)"
-	@xcodebuild archive \
+	@timeout 600 xcodebuild archive \
 		-scheme $(SCHEME_DEV) \
-		-archivePath $(DERIVED_DATA_PATH)/$(PROJECT_NAME).xcarchive
-	@echo "$(GREEN)✅ Archive created!$(NC)"
+		-archivePath $(DERIVED_DATA_PATH)/$(PROJECT_NAME).xcarchive \
+		$(BUILD_FLAGS) \
+		2>&1 | tee archive-$(BUILD_LOG) || \
+		{ echo "$(RED)❌ Archive creation failed or timed out!$(NC)"; \
+		  echo "$(YELLOW)Check archive-$(BUILD_LOG) for details$(NC)"; exit 1; }
+	@echo "$(GREEN)✅ Archive created at $(DERIVED_DATA_PATH)/$(PROJECT_NAME).xcarchive$(NC)"
 
 # ============================================================================
 # EMERGENCY COMMANDS
@@ -635,6 +733,56 @@ nuke: ## Nuclear option - clean EVERYTHING (requires confirmation)
 	@echo "$(GREEN)✅ Everything has been reset!$(NC)"
 
 # ============================================================================
+# SCHEME-SPECIFIC COMMANDS
+# ============================================================================
+
+.PHONY: run-dev run-staging run-prod
+run-dev: ## Run with Development scheme (default)
+	@$(MAKE) run SCHEME_TARGET=dev
+
+run-staging: ## Run with Staging scheme
+	@$(MAKE) run SCHEME_TARGET=staging
+
+run-prod: ## Run with Production scheme
+	@$(MAKE) run SCHEME_TARGET=prod
+
+.PHONY: build-dev build-staging build-prod
+build-dev: ## Build with Development scheme
+	@$(MAKE) build SCHEME_TARGET=dev
+
+build-staging: ## Build with Staging scheme
+	@$(MAKE) build SCHEME_TARGET=staging
+
+build-prod: ## Build with Production scheme
+	@$(MAKE) build SCHEME_TARGET=prod
+
+.PHONY: test-dev test-staging test-prod
+test-dev: ## Test with Development scheme
+	@$(MAKE) test SCHEME_TARGET=dev
+
+test-staging: ## Test with Staging scheme
+	@$(MAKE) test SCHEME_TARGET=staging
+
+test-prod: ## Test with Production scheme
+	@$(MAKE) test SCHEME_TARGET=prod
+
+# ============================================================================
+# CONFIGURATION MANAGEMENT
+# ============================================================================
+
+.PHONY: generate-config
+generate-config: ## Regenerate all configurations from master ProjectConfiguration.json
+	@echo "$(BLUE)🔧 Regenerating all project configurations...$(NC)"
+	@swift Scripts/generate-project-config.swift
+	@echo "$(GREEN)✅ All configurations updated from master source!$(NC)"
+	@echo "$(YELLOW)📝 Run 'make gen' to apply changes to Xcode project$(NC)"
+
+.PHONY: validate-config
+validate-config: ## Validate master configuration file
+	@echo "$(BLUE)🔍 Validating ProjectConfiguration.json...$(NC)"
+	@swift -c "import Foundation; let data = try Data(contentsOf: URL(fileURLWithPath: \"Config/ProjectConfiguration.json\")); let _ = try JSONSerialization.jsonObject(with: data)" 2>/dev/null && echo "$(GREEN)✅ Configuration file is valid JSON$(NC)" || echo "$(RED)❌ Configuration file has JSON errors$(NC)"
+
+# ============================================================================
 # QUICK ACCESS COMMANDS
 # ============================================================================
 
@@ -649,6 +797,9 @@ c: check ## Shortcut for 'make check'
 
 .PHONY: d
 d: doctor ## Shortcut for 'make doctor'
+
+.PHONY: f
+f: fast-build ## Shortcut for 'make fast-build'
 
 # ============================================================================
 # END OF MAKEFILE

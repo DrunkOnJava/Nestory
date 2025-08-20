@@ -80,6 +80,51 @@ final class CurrencyErrorTests: XCTestCase {
     }
 }
 
+// MARK: - Performance Tests
+
+@MainActor
+final class CurrencyServicePerformanceTests: XCTestCase {
+    func testMultipleCurrencyConversionsPerformance() async throws {
+        let service = try LiveCurrencyService(httpClient: nil) // Offline only
+
+        let conversions: [(amount: Decimal, from: String, to: String)] = [
+            (100, "USD", "EUR"),
+            (200, "EUR", "GBP"),
+            (300, "GBP", "JPY"),
+            (400, "JPY", "CAD"),
+            (500, "CAD", "AUD"),
+        ]
+
+        measure {
+            Task { @MainActor in
+                for conversion in conversions {
+                    do {
+                        _ = try await service.convert(
+                            amount: conversion.amount,
+                            from: conversion.from,
+                            to: conversion.to,
+                        )
+                    } catch {
+                        // Ignore conversion errors in performance test
+                    }
+                }
+            }
+        }
+    }
+
+    func testGetSupportedCurrenciesPerformance() async throws {
+        let service = try LiveCurrencyService(httpClient: nil)
+
+        measure {
+            Task { @MainActor in
+                _ = await service.getSupportedCurrencies()
+            }
+        }
+    }
+}
+
+// MARK: - Model Tests
+
 final class ExchangeRateTests: XCTestCase {
     func testCodable() throws {
         let rate = ExchangeRate(
@@ -98,5 +143,85 @@ final class ExchangeRateTests: XCTestCase {
         XCTAssertEqual(decoded.from, rate.from)
         XCTAssertEqual(decoded.to, rate.to)
         XCTAssertEqual(decoded.rate, rate.rate)
+    }
+}
+
+final class ExchangeRateResponseTests: XCTestCase {
+    func testCodable() throws {
+        let response = ExchangeRateResponse(
+            base: "USD",
+            rates: ["EUR": 0.85, "GBP": 0.75],
+            timestamp: Date(),
+        )
+
+        let encoder = JSONEncoder()
+        let data = try encoder.encode(response)
+
+        let decoder = JSONDecoder()
+        let decoded = try decoder.decode(ExchangeRateResponse.self, from: data)
+
+        XCTAssertEqual(decoded.base, response.base)
+        XCTAssertEqual(decoded.rates.count, response.rates.count)
+        XCTAssertEqual(decoded.rates["EUR"], 0.85)
+        XCTAssertEqual(decoded.rates["GBP"], 0.75)
+    }
+}
+
+final class CurrencyTests: XCTestCase {
+    func testCurrencyInit() {
+        let currency = Currency(
+            code: "USD",
+            name: "US Dollar",
+            symbol: "$",
+            decimals: 2,
+        )
+
+        XCTAssertEqual(currency.id, "USD") // Uses code as ID
+        XCTAssertEqual(currency.code, "USD")
+        XCTAssertEqual(currency.name, "US Dollar")
+        XCTAssertEqual(currency.symbol, "$")
+        XCTAssertEqual(currency.decimals, 2)
+    }
+
+    func testCurrencyCodable() throws {
+        let currency = Currency(
+            code: "EUR",
+            name: "Euro",
+            symbol: "€",
+            decimals: 2,
+        )
+
+        let encoder = JSONEncoder()
+        let data = try encoder.encode(currency)
+
+        let decoder = JSONDecoder()
+        let decoded = try decoder.decode(Currency.self, from: data)
+
+        XCTAssertEqual(decoded.code, currency.code)
+        XCTAssertEqual(decoded.name, currency.name)
+        XCTAssertEqual(decoded.symbol, currency.symbol)
+        XCTAssertEqual(decoded.decimals, currency.decimals)
+    }
+}
+
+// MARK: - Mock HTTP Client for Testing
+
+class MockHTTPClient: HTTPClient {
+    var requestCalled = false
+    var mockResponse: ExchangeRateResponse?
+    var shouldFail = false
+
+    func request<T: Codable>(_: Endpoint, responseType _: T.Type) async throws -> T {
+        requestCalled = true
+
+        if shouldFail {
+            throw URLError(.notConnectedToInternet)
+        }
+
+        if let response = mockResponse as? T {
+            return response
+        }
+
+        throw URLError(.badServerResponse)
     }
 }

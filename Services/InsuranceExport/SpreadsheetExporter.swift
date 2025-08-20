@@ -24,7 +24,7 @@ public enum SpreadsheetExporter {
                 DataFormatHelpers.escapeCSV(item.modelNumber ?? ""),
                 DataFormatHelpers.escapeCSV(item.serialNumber ?? ""),
                 item.purchaseDate?.formatted(date: .numeric, time: .omitted) ?? "",
-                item.purchasePrice != nil ? String(describing: item.purchasePrice!) : "",
+                item.purchasePrice?.description ?? "",
                 item.currency,
                 item.warrantyExpirationDate?.formatted(date: .numeric, time: .omitted) ?? "",
                 DataFormatHelpers.escapeCSV(item.warrantyProvider ?? ""),
@@ -44,12 +44,20 @@ public enum SpreadsheetExporter {
         csvContent += "\n\nSUMMARY\n"
         csvContent += "Total Items,\(items.count)\n"
         csvContent += "Total Value,\(items.compactMap(\.purchasePrice).reduce(0, +))\n"
-        csvContent += "Items with Photos,\(items.count(where: { $0.imageData != nil }))\n"
-        csvContent += "Items with Receipts,\(items.count(where: { $0.receiptImageData != nil }))\n"
-        csvContent += "Items with Serial Numbers,\(items.count(where: { $0.serialNumber != nil }))\n"
-        csvContent += "Items under Warranty,\(items.count(where: { $0.warrantyExpirationDate != nil && $0.warrantyExpirationDate! > Date() }))\n"
+        csvContent += "Items with Photos,\(items.count { $0.imageData != nil })\n"
+        csvContent += "Items with Receipts,\(items.count { $0.receiptImageData != nil })\n"
+        csvContent += "Items with Serial Numbers,\(items.count { $0.serialNumber != nil })\n"
+        let warrantyCount = items.count { item in
+            guard let warrantyDate = item.warrantyExpirationDate else { return false }
+            return warrantyDate > Date()
+        }
+        csvContent += "Items under Warranty,\(warrantyCount)\n"
 
-        return csvContent.data(using: .utf8)!
+        guard let csvData = csvContent.data(using: .utf8) else {
+            // This should never fail as we're using valid UTF-8 strings
+            return Data()
+        }
+        return csvData
     }
 
     public static func generateFileName() -> String {

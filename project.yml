@@ -77,6 +77,7 @@ targets:
       - path: UI/UI-Core
       - path: UI/UI-Components
       - path: Config/FeatureFlags.swift
+      - path: Config/EnvironmentConfiguration.swift
       
     resources:
       - path: App-Main/Assets.xcassets
@@ -126,8 +127,8 @@ schemes:
       environmentVariables:
         CLOUDKIT_CONTAINER: iCloud.com.drunkonjava.nestory.dev
         NESTORY_ENVIRONMENT: development
-        PRODUCT_NAME: Nestory Dev
-        PRODUCT_BUNDLE_IDENTIFIER: com.drunkonjava.nestory.dev
+        API_BASE_URL: https://api-dev.nestory.app
+        FX_API_ENDPOINT: https://fx-dev.nestory.app
     test:
       config: Debug
       targets:
@@ -138,7 +139,29 @@ schemes:
       config: Debug
     archive:
       config: Release
-      
+
+  Nestory-Prod:
+    build:
+      targets:
+        Nestory: all
+    run:
+      config: Release
+      environmentVariables:
+        CLOUDKIT_CONTAINER: iCloud.com.drunkonjava.nestory
+        NESTORY_ENVIRONMENT: production
+        API_BASE_URL: https://api.nestory.app
+        FX_API_ENDPOINT: https://fx.nestory.app
+    test:
+      config: Release
+      targets:
+        - NestoryUITests
+    profile:
+      config: Release
+    analyze:
+      config: Release
+    archive:
+      config: Release
+
   Nestory-Staging:
     build:
       targets:
@@ -148,8 +171,6 @@ schemes:
       environmentVariables:
         CLOUDKIT_CONTAINER: iCloud.com.drunkonjava.nestory.staging
         NESTORY_ENVIRONMENT: staging
-        PRODUCT_NAME: Nestory Staging
-        PRODUCT_BUNDLE_IDENTIFIER: com.drunkonjava.nestory.staging
         API_BASE_URL: https://api-staging.nestory.app
         FX_API_ENDPOINT: https://fx-staging.nestory.app
     test:
@@ -163,26 +184,3 @@ schemes:
     archive:
       config: Release
       
-  Nestory-Prod:
-    build:
-      targets:
-        Nestory: all
-    run:
-      config: Release
-      environmentVariables:
-        CLOUDKIT_CONTAINER: iCloud.com.drunkonjava.nestory
-        NESTORY_ENVIRONMENT: production
-        PRODUCT_NAME: Nestory
-        PRODUCT_BUNDLE_IDENTIFIER: com.drunkonjava.nestory
-        API_BASE_URL: https://api.nestory.app
-        FX_API_ENDPOINT: https://fx.nestory.app
-    test:
-      config: Release
-      targets:
-        - NestoryUITests
-    profile:
-      config: Release
-    analyze:
-      config: Release
-    archive:
-      config: Release

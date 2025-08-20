@@ -4,6 +4,7 @@
 // Purpose: Export options view for data export functionality
 //
 
+import os.log
 import SwiftUI
 
 public struct ExportOptionsView: View {
@@ -13,6 +14,7 @@ public struct ExportOptionsView: View {
     @State private var exportFormat: ExportFormat = .json
     @State private var includeImages = false
     @State private var isExporting = false
+    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory.dev", category: "ExportUI")
 
     public enum ExportFormat: String, CaseIterable {
         case json = "JSON"
@@ -142,7 +144,7 @@ public struct ExportOptionsView: View {
                     )
                     fileName = "Nestory_Report_\(Date().formatted(date: .abbreviated, time: .omitted)).pdf"
                 } catch {
-                    print("PDF generation error: \(error)")
+                    logger.error("PDF generation failed: \(error)")
                     isExporting = false
                     return
                 }
@@ -176,7 +178,7 @@ public struct ExportOptionsView: View {
                         }
                     }
                 } catch {
-                    print("Export error: \(error)")
+                    logger.error("Export operation failed: \(error)")
                     isExporting = false
                 }
             } else {

@@ -14,8 +14,8 @@ struct SearchFilterView: View {
     @Query private var rooms: [Room]
     @Environment(\.dismiss) private var dismiss
 
-    @State private var minPrice: String = "0"
-    @State private var maxPrice: String = "10000"
+    @State private var minPrice = "0"
+    @State private var maxPrice = "10000"
 
     var body: some View {
         NavigationStack {
@@ -35,9 +35,11 @@ struct SearchFilterView: View {
                             if isSelected {
                                 Image(systemName: "checkmark")
                                     .foregroundColor(.accentColor)
+                                    .accessibilityLabel("Selected")
                             }
                         }
                         .contentShape(Rectangle())
+                        .accessibilityAddTraits(.isButton)
                         .onTapGesture {
                             if isSelected {
                                 filters.selectedCategories.remove(category.id)
@@ -79,8 +81,16 @@ struct SearchFilterView: View {
 
                 // Quantity Section
                 Section("Quantity Range") {
-                    Stepper("Min: \(filters.minQuantity)", value: $filters.minQuantity, in: 0 ... filters.maxQuantity)
-                    Stepper("Max: \(filters.maxQuantity)", value: $filters.maxQuantity, in: filters.minQuantity ... 100)
+                    Stepper(
+                        "Min: \(filters.minQuantity)",
+                        value: $filters.minQuantity,
+                        in: 0 ... filters.maxQuantity,
+                    )
+                    Stepper(
+                        "Max: \(filters.maxQuantity)",
+                        value: $filters.maxQuantity,
+                        in: filters.minQuantity ... 100,
+                    )
                 }
 
                 // Rooms Section
@@ -97,9 +107,11 @@ struct SearchFilterView: View {
                                 if isSelected {
                                     Image(systemName: "checkmark")
                                         .foregroundColor(.accentColor)
+                                        .accessibilityLabel("Selected")
                                 }
                             }
                             .contentShape(Rectangle())
+                            .accessibilityAddTraits(.isButton)
                             .onTapGesture {
                                 if isSelected {
                                     filters.rooms.remove(room.name)
@@ -116,6 +128,7 @@ struct SearchFilterView: View {
                     Button(action: { filters.reset() }) {
                         HStack {
                             Image(systemName: "arrow.counterclockwise")
+                                .accessibilityLabel("Reset")
                             Text("Reset All Filters")
                         }
                         .foregroundColor(.red)
@@ -124,11 +137,11 @@ struct SearchFilterView: View {
             }
             .navigationTitle("Filters")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Done") { dismiss() }
                 }
-            })
+            }
         }
     }
 }

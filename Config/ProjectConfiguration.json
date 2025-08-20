@@ -1,0 +1,148 @@
+{
+  "project": {
+    "name": "Nestory",
+    "displayName": "Nestory - Home Inventory",
+    "version": "1.0.1",
+    "buildNumber": "4",
+    "teamId": "2VXBQV4XC9",
+    "organizationName": "Nestory",
+    "minIOSVersion": "17.0",
+    "swiftVersion": "6.0"
+  },
+  "environments": {
+    "development": {
+      "name": "development",
+      "displayName": "Development",
+      "bundleIdSuffix": ".dev",
+      "productNameSuffix": " Dev",
+      "cloudKitContainer": "iCloud.com.drunkonjava.nestory.dev",
+      "apiBaseURL": "https://api-dev.nestory.app",
+      "fxAPIEndpoint": "https://fx-dev.nestory.app",
+      "buildConfiguration": "Debug",
+      "archiveConfiguration": "Release",
+      "featureFlags": {
+        "debugMenu": true,
+        "analytics": false,
+        "crashReporting": false,
+        "remoteConfig": false,
+        "allFeatures": true,
+        "performanceLogging": true,
+        "memoryDebugging": true
+      },
+      "codeSign": {
+        "style": "Automatic",
+        "identity": "Apple Development"
+      }
+    },
+    "staging": {
+      "name": "staging",
+      "displayName": "Staging",
+      "bundleIdSuffix": ".staging",
+      "productNameSuffix": " Staging",
+      "cloudKitContainer": "iCloud.com.drunkonjava.nestory.staging",
+      "apiBaseURL": "https://api-staging.nestory.app",
+      "fxAPIEndpoint": "https://fx-staging.nestory.app",
+      "buildConfiguration": "Release",
+      "archiveConfiguration": "Release",
+      "featureFlags": {
+        "debugMenu": true,
+        "analytics": true,
+        "crashReporting": true,
+        "remoteConfig": true,
+        "allFeatures": true,
+        "performanceLogging": true,
+        "memoryDebugging": true
+      },
+      "codeSign": {
+        "style": "Manual",
+        "identity": "Apple Distribution",
+        "provisioningProfile": "Nestory Staging"
+      }
+    },
+    "production": {
+      "name": "production",
+      "displayName": "Production",
+      "bundleIdSuffix": "",
+      "productNameSuffix": "",
+      "cloudKitContainer": "iCloud.com.drunkonjava.nestory",
+      "apiBaseURL": "https://api.nestory.app",
+      "fxAPIEndpoint": "https://fx.nestory.app",
+      "buildConfiguration": "Release",
+      "archiveConfiguration": "Release",
+      "featureFlags": {
+        "debugMenu": false,
+        "analytics": true,
+        "crashReporting": true,
+        "remoteConfig": true,
+        "allFeatures": false,
+        "performanceLogging": false,
+        "memoryDebugging": false
+      },
+      "codeSign": {
+        "style": "Manual",
+        "identity": "Apple Distribution",
+        "provisioningProfile": "Nestory App Store"
+      }
+    }
+  },
+  "derivedValues": {
+    "baseBundleId": "com.drunkonjava.nestory",
+    "baseProductName": "Nestory",
+    "simulator": {
+      "name": "iPhone 16 Plus",
+      "os": "iOS Simulator"
+    },
+    "schemes": {
+      "development": "Nestory-Dev",
+      "staging": "Nestory-Staging",
+      "production": "Nestory-Prod"
+    },
+    "buildTimeouts": {
+      "build": 300,
+      "test": 180,
+      "archive": 600
+    }
+  },
+  "deploymentRings": {
+    "ring0": {
+      "name": "Internal Testing",
+      "environment": "development",
+      "audience": "Development team",
+      "size": 10,
+      "duration": "Continuous",
+      "rollbackTime": "Immediate"
+    },
+    "ring1": {
+      "name": "Alpha Testing", 
+      "environment": "staging",
+      "audience": "Internal stakeholders",
+      "size": 50,
+      "duration": "3-5 days",
+      "rollbackTime": "1 hour"
+    },
+    "ring2": {
+      "name": "Beta Testing",
+      "environment": "staging", 
+      "audience": "Beta testers via TestFlight",
+      "size": 500,
+      "duration": "1 week",
+      "rollbackTime": "4 hours"
+    },
+    "ring3": {
+      "name": "Early Access",
+      "environment": "production",
+      "audience": "5% of production users",
+      "size": 1000,
+      "duration": "3 days", 
+      "rollbackTime": "1 hour"
+    },
+    "ring4": {
+      "name": "General Availability",
+      "environment": "production",
+      "audience": "All users",
+      "size": "unlimited",
+      "duration": "Permanent",
+      "rollbackTime": "Via hotfix"
+    }
+  }
+}

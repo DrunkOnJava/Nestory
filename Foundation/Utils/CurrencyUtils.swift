@@ -201,9 +201,9 @@ public enum SymbolPosition {
 
 // MARK: - Locale Extensions
 
-private extension Locale {
+extension Locale {
     /// Get currency symbol for a currency code
-    func currencySymbol(forCurrencyCode code: String) -> String? {
+    fileprivate func currencySymbol(forCurrencyCode code: String) -> String? {
         let localeIdentifier = Locale.availableIdentifiers.first { identifier in
             let locale = Locale(identifier: identifier)
             return locale.currency?.identifier == code

@@ -9,7 +9,7 @@ public final class Thumbnailer: @unchecked Sendable {
     private let thumbnailSize: CGFloat = 150
     private let displaySize: CGFloat = 800
     private let imageIO: ImageIO
-    private let logger = Logger(subsystem: "com.nestory", category: "Thumbnailer")
+    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory", category: "Thumbnailer")
 
     public init(imageIO: ImageIO? = nil) {
         self.imageIO = imageIO ?? ImageIO()

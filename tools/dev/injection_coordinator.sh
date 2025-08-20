@@ -1,6 +1,6 @@
 #!/bin/bash
 # Injection Coordinator for Claude Code Hot Reload
-# This script bridges Claude's file writes to InjectionNext runtime injection
+# This script bridges Claude's file writes to our custom InjectionNext implementation
 
 set -euo pipefail
 
@@ -8,8 +8,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 LOG_FILE="$PROJECT_ROOT/.build/injection.log"
-INJECTION_BUNDLE_PATH="/Applications/InjectionIII.app/Contents/Resources/iOSInjection.bundle"
 INJECTION_SERVER_PORT=8899
+INJECTION_SERVER_HOST="localhost"
 
 # Colors for output
 RED='\033[0;31m'
@@ -70,33 +70,27 @@ check_injection_server() {
     fi
 }
 
-# Function to start InjectionNext server if needed
+# Function to send command to injection server
+send_injection_command() {
+    local command="$1"
+    
+    # Use netcat to send command to our custom injection server
+    echo "$command" | nc -w 1 $INJECTION_SERVER_HOST $INJECTION_SERVER_PORT 2>/dev/null
+    
+    if [ $? -eq 0 ]; then
+        return 0
+    else
+        log ERROR "Failed to send command to injection server"
+        return 1
+    fi
+}
+
+# Function to ensure injection server is running
 ensure_injection_server() {
     if ! check_injection_server; then
         log WARNING "InjectionNext server not running on port $INJECTION_SERVER_PORT"
-        
-        # Check if InjectionIII.app is installed
-        if [ -d "/Applications/InjectionIII.app" ]; then
-            log INFO "Starting InjectionIII..."
-            open -g "/Applications/InjectionIII.app"
-            
-            # Wait for server to start
-            local count=0
-            while ! check_injection_server && [ $count -lt 10 ]; do
-                sleep 1
-                count=$((count + 1))
-            done
-            
-            if check_injection_server; then
-                log SUCCESS "InjectionIII server started"
-            else
-                log ERROR "Failed to start InjectionIII server"
-                return 1
-            fi
-        else
-            log ERROR "InjectionIII.app not found. Please install from App Store."
-            return 1
-        fi
+        log INFO "The app should start the injection server automatically when running in DEBUG mode"
+        return 1
     fi
     return 0
 }
@@ -142,17 +136,15 @@ trigger_injection() {
         return 1
     fi
     
-    # Send injection signal via InjectionNext
-    # This triggers recompilation and injection of the modified file
+    # Send injection command to our server
     log INFO "Sending injection signal..."
     
-    # Touch the file to trigger file watcher in InjectionIII
-    touch "$file_path"
-    
-    # Give injection time to process
-    sleep 0.5
-    
-    log SUCCESS "Injection triggered for $relative_path"
+    if send_injection_command "INJECT:$file_path"; then
+        log SUCCESS "Injection triggered for $relative_path"
+    else
+        log ERROR "Failed to trigger injection for $relative_path"
+        return 1
+    fi
     
     # Send system notification (optional)
     if command -v osascript &> /dev/null; then

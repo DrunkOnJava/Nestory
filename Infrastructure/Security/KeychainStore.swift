@@ -8,7 +8,7 @@ import Security
 public final class KeychainStore: @unchecked Sendable {
     private let service: String
     private let accessGroup: String?
-    private let logger = Logger(subsystem: "com.nestory", category: "KeychainStore")
+    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory", category: "KeychainStore")
 
     public init(service: String = "com.nestory", accessGroup: String? = nil) {
         self.service = service

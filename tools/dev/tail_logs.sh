@@ -18,7 +18,7 @@ fi
 
 # Stream logs with color coding
 xcrun simctl spawn "$DEVICE_ID" log stream \
-    --predicate 'processImagePath CONTAINS "Nestory" OR subsystem CONTAINS "com.nestory"' \
+    --predicate "processImagePath CONTAINS \"Nestory\" OR subsystem CONTAINS \"${BUNDLE_IDENTIFIER:-com.drunkonjava.nestory}\"" \
     --info \
     --debug \
     --color always \

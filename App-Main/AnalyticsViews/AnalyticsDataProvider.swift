@@ -28,10 +28,14 @@ class AnalyticsDataProvider: ObservableObject {
 
         var days: Int {
             switch self {
-            case .week: 7
-            case .month: 30
-            case .year: 365
-            case .all: 9999
+            case .week:
+                7
+            case .month:
+                30
+            case .year:
+                365
+            case .all:
+                9999
             }
         }
     }
@@ -44,8 +48,8 @@ class AnalyticsDataProvider: ObservableObject {
 
     var averageValue: Decimal {
         let total = totalValue
-        let count = items.count(where: { $0.purchasePrice != nil })
-        return count > 0 ? total / Decimal(count) : 0
+        let itemsWithPrices = items.filter { $0.purchasePrice != nil }
+        return !itemsWithPrices.isEmpty ? total / Decimal(itemsWithPrices.count) : 0
     }
 
     var categoriesWithItems: [Category] {
@@ -69,28 +73,32 @@ class AnalyticsDataProvider: ObservableObject {
             }
         }
 
-        return categoryValues.max(by: { $0.value < $1.value })?.key
+        return categoryValues.max { $0.value < $1.value }?.key
     }
 
     var recentItems: [Item] {
-        let cutoffDate = Calendar.current.date(byAdding: .day, value: -selectedTimeRange.days, to: Date()) ?? Date()
+        let cutoffDate = Calendar.current.date(
+            byAdding: .day,
+            value: -selectedTimeRange.days,
+            to: Date(),
+        ) ?? Date()
         return items.filter { $0.createdAt > cutoffDate }
     }
 
     var recentlyAddedCount: Int {
         let cutoffDate = Calendar.current.date(byAdding: .month, value: -1, to: Date()) ?? Date()
-        return items.count(where: { $0.createdAt > cutoffDate })
+        return items.count { $0.createdAt > cutoffDate }
     }
 
     var uncategorizedCount: Int {
-        items.count(where: { $0.category == nil })
+        items.count { $0.category == nil }
     }
 
     // MARK: - Chart Data
 
     func categoryDistributionData() -> [(category: Category, count: Int)] {
         categoriesWithItems.map { category in
-            let count = items.count(where: { $0.category?.id == category.id })
+            let count = items.count { $0.category?.id == category.id }
             return (category, count)
         }
     }
@@ -107,16 +115,16 @@ class AnalyticsDataProvider: ObservableObject {
     }
 
     func statusData() -> [(label: String, count: Int, color: String)] {
-        let fullyDocumented = items.count(where: { item in
+        let fullyDocumented = items.count { item in
             item.imageData != nil && item.purchasePrice != nil && item.serialNumber != nil
-        })
-        let partiallyDocumented = items.count(where: { item in
+        }
+        let partiallyDocumented = items.count { item in
             (item.imageData != nil || item.purchasePrice != nil || item.serialNumber != nil) &&
                 !(item.imageData != nil && item.purchasePrice != nil && item.serialNumber != nil)
-        })
-        let needsDocumentation = items.count(where: { item in
+        }
+        let needsDocumentation = items.count { item in
             item.imageData == nil && item.purchasePrice == nil && item.serialNumber == nil
-        })
+        }
 
         return [
             ("Complete", fullyDocumented, "green"),

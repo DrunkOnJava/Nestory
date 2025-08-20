@@ -4,12 +4,14 @@
 // Purpose: Manage document attachments for items
 //
 
+import os.log
 import SwiftUI
 import UniformTypeIdentifiers
 
 struct DocumentManagementView: View {
     @Bindable var item: Item
     @State private var showingDocumentPicker = false
+    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory.dev", category: "DocumentManagement")
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -68,8 +70,7 @@ struct DocumentManagementView: View {
             DocumentRow(
                 name: name,
                 size: (index < item.documentAttachments.count) ? item.documentAttachments[index].count : 0,
-                onDelete: { removeDocument(at: index) },
-            )
+            ) { removeDocument(at: index) }
         }
     }
 
@@ -87,7 +88,7 @@ struct DocumentManagementView: View {
             }
             item.updatedAt = Date()
         case let .failure(error):
-            print("Document import error: \(error)")
+            logger.error("Document import failed: \(error)")
         }
     }
 

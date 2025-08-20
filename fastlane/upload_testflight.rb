@@ -29,7 +29,7 @@ ipa_path = build_app(
     uploadSymbols: true,
     compileBitcode: false,
     provisioningProfiles: {
-      "com.nestory.app.dev" => "match AppStore com.nestory.app.dev"
+      ENV.fetch('PRODUCT_BUNDLE_IDENTIFIER', 'com.drunkonjava.nestory.dev') => "match AppStore #{ENV.fetch('PRODUCT_BUNDLE_IDENTIFIER', 'com.drunkonjava.nestory.dev')}"
     }
   },
   skip_build_archive: true,

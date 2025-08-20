@@ -335,7 +335,7 @@ if xcodebuild \
     xcrun simctl install booted build/DerivedData/Build/Products/Debug-iphonesimulator/Nestory.app
     
     print_status "info" "Launching Nestory..."
-    xcrun simctl launch booted com.nestory.app.dev
+    xcrun simctl launch booted "${PRODUCT_BUNDLE_IDENTIFIER:-com.drunkonjava.nestory.dev}"
     
     echo ""
     echo -e "${GREEN}════════════════════════════════════════════════════════════════${NC}"

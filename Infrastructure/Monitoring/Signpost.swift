@@ -3,6 +3,8 @@
 import Foundation
 import os.signpost
 
+// Bundle-based configuration access
+
 public final class Signpost: @unchecked Sendable {
     private let subsystem: String
     private let signpostLogs: [SignpostCategory: OSLog]
@@ -21,7 +23,7 @@ public final class Signpost: @unchecked Sendable {
     }
 
     @MainActor
-    public static let shared = Signpost(subsystem: "com.nestory")
+    public static let shared = Signpost(subsystem: Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory")
 
     public init(subsystem: String) {
         self.subsystem = subsystem
@@ -188,8 +190,8 @@ public final class SignpostInterval: @unchecked Sendable {
     }
 }
 
-public extension Signpost {
-    struct Metrics: @unchecked Sendable {
+extension Signpost {
+    public struct Metrics: @unchecked Sendable {
         public let name: String
         public let category: SignpostCategory
         public let startTime: CFAbsoluteTime
@@ -213,9 +215,9 @@ public extension Signpost {
         }
     }
 
-    final class MetricsCollector: @unchecked Sendable {
+    public final class MetricsCollector: @unchecked Sendable {
         private var metrics: [Metrics] = []
-        private let queue = DispatchQueue(label: "com.nestory.signpost.metrics", attributes: .concurrent)
+        private let queue = DispatchQueue(label: "\(Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory").signpost.metrics", attributes: .concurrent)
 
         public func record(_ metric: Metrics) {
             queue.async(flags: .barrier) {

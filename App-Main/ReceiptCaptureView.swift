@@ -301,10 +301,14 @@ struct ReceiptCaptureView: View {
 }
 
 #Preview {
-    let container = try! ModelContainer(for: Item.self, configurations: .init(isStoredInMemoryOnly: true))
-    let item = Item(name: "Sample Item")
-    container.mainContext.insert(item)
+    do {
+        let container = try ModelContainer(for: Item.self, configurations: .init(isStoredInMemoryOnly: true))
+        let item = Item(name: "Sample Item")
+        container.mainContext.insert(item)
 
-    return ReceiptCaptureView(item: item)
-        .modelContainer(container)
+        return ReceiptCaptureView(item: item)
+            .modelContainer(container)
+    } catch {
+        return Text("Preview Error: \(error.localizedDescription)")
+    }
 }

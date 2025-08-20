@@ -53,7 +53,7 @@ echo "6️⃣ Creating minimal project configuration..."
 cat > project.yml << 'EOF'
 name: Nestory
 options:
-  bundleIdPrefix: com.nestory
+  bundleIdPrefix: ${BUNDLE_ID_PREFIX:-com.drunkonjava.nestory}
   deploymentTarget:
     iOS: 17.0
   developmentLanguage: en
@@ -100,7 +100,7 @@ targets:
     settings:
       base:
         PRODUCT_NAME: Nestory
-        PRODUCT_BUNDLE_IDENTIFIER: com.nestory.app.dev
+        PRODUCT_BUNDLE_IDENTIFIER: ${PRODUCT_BUNDLE_IDENTIFIER:-com.drunkonjava.nestory}
         INFOPLIST_FILE: App-Main/Info.plist
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ENABLE_PREVIEWS: YES
@@ -117,7 +117,7 @@ schemes:
     run:
       config: Debug
       environmentVariables:
-        CLOUDKIT_CONTAINER: iCloud.com.nestory.app.dev
+        CLOUDKIT_CONTAINER: ${CLOUDKIT_CONTAINER:-iCloud.com.drunkonjava.nestory}
     test:
       config: Debug
     profile:

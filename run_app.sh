@@ -108,11 +108,11 @@ xcrun simctl install "$DEVICE_ID" "$APP_PATH"
 
 # Launch the app
 log_info "Launching Nestory..."
-xcrun simctl launch "$DEVICE_ID" com.nestory.app.dev
+xcrun simctl launch "$DEVICE_ID" "${PRODUCT_BUNDLE_IDENTIFIER:-com.drunkonjava.nestory}"
 
 log_success "Nestory is now running on $DEVICE!"
 log_info "Simulator should be visible. If not, check the Simulator app."
 
 # Keep script running to see logs
 log_info "Streaming device logs (Ctrl+C to stop)..."
-xcrun simctl spawn "$DEVICE_ID" log stream --predicate 'subsystem == "com.nestory.app.dev"' --level debug
+xcrun simctl spawn "$DEVICE_ID" log stream --predicate "subsystem == \"${BUNDLE_IDENTIFIER:-com.drunkonjava.nestory}\"" --level debug

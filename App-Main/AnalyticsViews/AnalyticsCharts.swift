@@ -42,7 +42,7 @@ struct CategoryDistributionChart: View {
     var body: some View {
         Chart {
             ForEach(categories) { category in
-                let count = items.count(where: { $0.category?.id == category.id })
+                let count = items.count { $0.category?.id == category.id }
                 SectorMark(
                     angle: .value("Count", count),
                     innerRadius: .ratio(0.5),
@@ -145,16 +145,16 @@ struct ItemStatusChart: View {
     let items: [Item]
 
     var statusData: [(label: String, count: Int, color: Color)] {
-        let fullyDocumented = items.count(where: { item in
+        let fullyDocumented = items.count { item in
             item.imageData != nil && item.purchasePrice != nil && item.serialNumber != nil
-        })
-        let partiallyDocumented = items.count(where: { item in
+        }
+        let partiallyDocumented = items.count { item in
             (item.imageData != nil || item.purchasePrice != nil || item.serialNumber != nil) &&
                 !(item.imageData != nil && item.purchasePrice != nil && item.serialNumber != nil)
-        })
-        let needsDocumentation = items.count(where: { item in
+        }
+        let needsDocumentation = items.count { item in
             item.imageData == nil && item.purchasePrice == nil && item.serialNumber == nil
-        })
+        }
 
         return [
             ("Complete", fullyDocumented, .green),

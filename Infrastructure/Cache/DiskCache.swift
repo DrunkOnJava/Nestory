@@ -10,8 +10,8 @@ import os.log
 public final class DiskCache<Key: Hashable & Sendable, Value>: @unchecked Sendable {
     private let fileManager = FileManager.default
     private let diskCacheURL: URL
-    private let queue = DispatchQueue(label: "com.nestory.diskCache", attributes: .concurrent)
-    private let logger = Logger(subsystem: "com.nestory", category: "DiskCache")
+    private let queue = DispatchQueue(label: "\(Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory.dev").diskCache", attributes: .concurrent)
+    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory", category: "DiskCache")
     private let encoder: CacheEncoder<Value>
 
     private let maxDiskSize: Int
@@ -27,7 +27,7 @@ public final class DiskCache<Key: Hashable & Sendable, Value>: @unchecked Sendab
         encoder = CacheEncoder()
 
         let cacheDirectory = fileManager.urls(for: .cachesDirectory, in: .userDomainMask).first!
-        diskCacheURL = cacheDirectory.appendingPathComponent("com.nestory.cache.\(name)")
+        diskCacheURL = cacheDirectory.appendingPathComponent("\(Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory.dev").cache.\(name)")
 
         if !fileManager.fileExists(atPath: diskCacheURL.path) {
             try fileManager.createDirectory(at: diskCacheURL, withIntermediateDirectories: true)

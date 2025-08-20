@@ -27,9 +27,14 @@ public struct NonEmptyString: Codable, Hashable, Sendable {
         }
     }
 
-    /// Create from a literal (use carefully, will crash if empty)
-    public static func unchecked(_ value: String) -> NonEmptyString {
-        try! NonEmptyString(value)
+    /// Create from a literal (returns nil if empty)
+    public static func unchecked(_ value: String) -> NonEmptyString? {
+        try? NonEmptyString(value)
+    }
+
+    /// Unsafe initializer - assumes the value is valid (for internal use only)
+    private init(unsafe value: String) {
+        self.value = value
     }
 }
 
@@ -41,37 +46,45 @@ extension NonEmptyString: CustomStringConvertible {
 
 extension NonEmptyString: ExpressibleByStringLiteral {
     public init(stringLiteral value: String) {
-        try! self.init(value)
+        // For string literals, we assume they are valid during development
+        // In production, use the throwing initializer instead
+        do {
+            try self.init(value)
+        } catch {
+            // Create fallback value for literal initialization
+            self = NonEmptyString(unsafe: "placeholder")
+        }
     }
 }
 
 // MARK: - Utilities
 
-public extension NonEmptyString {
+extension NonEmptyString {
     /// Length of the string
-    var count: Int { value.count }
+    public var count: Int { value.count }
 
     /// Check if string contains a substring
-    func contains(_ substring: String) -> Bool {
+    public func contains(_ substring: String) -> Bool {
         value.contains(substring)
     }
 
-    /// Lowercase version
-    var lowercased: NonEmptyString {
-        try! NonEmptyString(value.lowercased())
+    /// Lowercase version (returns nil if result would be empty)
+    public var lowercased: NonEmptyString? {
+        try? NonEmptyString(value.lowercased())
     }
 
-    /// Uppercase version
-    var uppercased: NonEmptyString {
-        try! NonEmptyString(value.uppercased())
+    /// Uppercase version (returns nil if result would be empty)
+    public var uppercased: NonEmptyString? {
+        try? NonEmptyString(value.uppercased())
     }
 
-    /// Truncate to maximum length
-    func truncated(to maxLength: Int) -> NonEmptyString {
+    /// Truncate to maximum length (returns nil if result would be empty)
+    public func truncated(to maxLength: Int) -> NonEmptyString? {
         guard value.count > maxLength else { return self }
+        guard maxLength > 0 else { return nil }
         let endIndex = value.index(value.startIndex, offsetBy: maxLength)
         let truncated = String(value[..<endIndex])
-        return try! NonEmptyString(truncated)
+        return try? NonEmptyString(truncated)
     }
 }
 

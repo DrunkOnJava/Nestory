@@ -2,7 +2,7 @@
 #include "Base.xcconfig"
 
 // Production-Specific Overrides
-PRODUCT_BUNDLE_IDENTIFIER = com.nestory.app
+PRODUCT_BUNDLE_IDENTIFIER = com.drunkonjava.nestory
 PRODUCT_NAME = Nestory
 
 // Code Signing (Production)
@@ -28,7 +28,7 @@ MTL_ENABLE_DEBUG_INFO = NO
 
 // CloudKit
 CLOUDKIT_ENVIRONMENT = Production
-CLOUDKIT_CONTAINER = iCloud.com.nestory.app
+CLOUDKIT_CONTAINER = iCloud.com.drunkonjava.nestory
 
 // API Configuration
 API_BASE_URL = https://api.nestory.app

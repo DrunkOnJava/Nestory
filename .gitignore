@@ -118,3 +118,4 @@ fastlane/*.p12
 # Temporary documentation
 ARCHAEOLOGICAL_LAYERS.md
 RESONANCE.txt
+build/

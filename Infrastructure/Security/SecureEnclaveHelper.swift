@@ -7,7 +7,7 @@ import os.log
 import Security
 
 public final class SecureEnclaveHelper {
-    private let logger = Logger(subsystem: "com.nestory", category: "SecureEnclaveHelper")
+    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory", category: "SecureEnclaveHelper")
     private let keychain = KeychainStore()
 
     public var isAvailable: Bool {
@@ -85,7 +85,7 @@ public final class SecureEnclaveHelper {
 
         let symmetricKey = sharedSecret.hkdfDerivedSymmetricKey(
             using: SHA256.self,
-            salt: Data("com.nestory.secureenclave".utf8),
+            salt: Data("\(Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory").secureenclave".utf8),
             sharedInfo: Data(),
             outputByteCount: 32,
         )
@@ -117,7 +117,7 @@ public final class SecureEnclaveHelper {
 
         let symmetricKey = sharedSecret.hkdfDerivedSymmetricKey(
             using: SHA256.self,
-            salt: Data("com.nestory.secureenclave".utf8),
+            salt: Data("\(Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory").secureenclave".utf8),
             sharedInfo: Data(),
             outputByteCount: 32,
         )

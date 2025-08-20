@@ -1,10 +1,6 @@
-//
-//  ContentView.swift
-//  Nestory
-//
-//  REMINDER: This is the main navigation hub - ALL major features should be
-//  accessible from here via tabs or navigation. When adding new features,
-//  ALWAYS add a way to access them from ContentView or its child views!
+// Layer: App
+// Module: ContentView
+// Purpose: Main navigation hub and entry point
 
 import SwiftData
 import SwiftUI

@@ -2,9 +2,9 @@
   "app": "Nestory",
   "teamId": "2VXBQV4XC9",
   "bundleIds": {
-    "dev": "com.nestory.app.dev",
-    "staging": "com.nestory.app.staging",
-    "prod": "com.nestory.app"
+    "dev": "com.drunkonjava.nestory.dev",
+    "staging": "com.drunkonjava.nestory.staging",
+    "prod": "com.drunkonjava.nestory"
   },
   "minOS": "17.0",
   "language": "Swift 6",

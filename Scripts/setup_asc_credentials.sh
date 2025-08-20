@@ -5,7 +5,7 @@
 
 set -e
 
-KEYCHAIN_SERVICE="com.nestory.app.appstoreconnect"
+KEYCHAIN_SERVICE="com.drunkonjava.nestory.appstoreconnect"
 
 echo "🔐 App Store Connect API Credential Setup"
 echo "========================================"

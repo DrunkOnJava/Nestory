@@ -8,7 +8,7 @@ final class LogTests: XCTestCase {
 
     override func setUp() {
         super.setUp()
-        log = Log(subsystem: "com.nestory.test")
+        log = Log(subsystem: "\(Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory.dev").test")
     }
 
     func testLogCategories() {
@@ -138,7 +138,7 @@ final class SignpostTests: XCTestCase {
 
     override func setUp() {
         super.setUp()
-        signpost = Signpost(subsystem: "com.nestory.test")
+        signpost = Signpost(subsystem: "\(Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory.dev").test")
     }
 
     func testSignpostCategories() {
@@ -315,8 +315,8 @@ final class MonitoringPerformanceTests: XCTestCase {
 
     override func setUp() {
         super.setUp()
-        log = Log(subsystem: "com.nestory.test.perf")
-        signpost = Signpost(subsystem: "com.nestory.test.perf")
+        log = Log(subsystem: "\(Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory.dev").test.perf")
+        signpost = Signpost(subsystem: "\(Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory.dev").test.perf")
     }
 
     func testLogPerformance() {

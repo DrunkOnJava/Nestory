@@ -51,7 +51,7 @@ if [ $? -eq 0 ]; then
         DEVICE_ID=$(xcrun simctl list devices | grep "iPhone 15" | grep -E -o "[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}" | head -1)
         
         xcrun simctl install "$DEVICE_ID" "$APP_PATH"
-        xcrun simctl launch "$DEVICE_ID" com.nestory.app.dev
+        xcrun simctl launch "$DEVICE_ID" "${PRODUCT_BUNDLE_IDENTIFIER:-com.drunkonjava.nestory}"
         
         echo ""
         echo "🎉 Nestory is now running!"

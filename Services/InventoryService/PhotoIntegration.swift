@@ -23,7 +23,7 @@ public struct LivePhotoIntegrationService: PhotoIntegrationService, Sendable {
     private let imageIO: ImageIO
     private let thumbnailer: Thumbnailer
     private let perceptualHash: PerceptualHash
-    private let logger = Logger(subsystem: "com.drunkonjava.nestory", category: "PhotoIntegration")
+    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory", category: "PhotoIntegration")
 
     public init() {
         imageIO = ImageIO()

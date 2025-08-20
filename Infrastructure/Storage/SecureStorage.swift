@@ -27,13 +27,13 @@ public actor SecureStorage {
         documentsDirectory = documentsPath
 
         // Get or create encryption key
-        if let keyData = keychain.getData(for: "com.nestory.encryptionKey") {
+        if let keyData = keychain.getData(for: "\(Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory.dev").encryptionKey") {
             encryptionKey = SymmetricKey(data: keyData)
         } else {
             // Generate new key
             let key = SymmetricKey(size: .bits256)
             let keyData = key.withUnsafeBytes { Data($0) }
-            try keychain.setData(keyData, for: "com.nestory.encryptionKey")
+            try keychain.setData(keyData, for: "\(Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory.dev").encryptionKey")
             encryptionKey = key
         }
     }
@@ -110,7 +110,7 @@ public actor SecureStorage {
 
         // Clear keychain items (except encryption key)
         let allKeys = keychain.getAllKeys()
-        for key in allKeys where key != "com.nestory.encryptionKey" {
+        for key in allKeys where key != "\(Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory.dev").encryptionKey" {
             try keychain.delete(for: key)
         }
     }
@@ -135,7 +135,7 @@ public actor SecureStorage {
 
 /// Wrapper for keychain operations
 public struct KeychainWrapper {
-    private let service = "com.nestory.app"
+    private let service = Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory.dev"
 
     public init() {}
 

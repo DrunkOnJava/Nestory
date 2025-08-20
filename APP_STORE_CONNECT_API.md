@@ -137,7 +137,7 @@ if issues.isEmpty {
 ```swift
 // Fetch app information
 let appInfo = try await metadataService.fetchApp(
-    bundleId: "com.nestory.app"
+    bundleId: "com.drunkonjava.nestory"
 )
 
 // Create new version
@@ -201,7 +201,7 @@ ASC_KEY_ID=XXXXXXXXXX
 ASC_ISSUER_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 ASC_KEY_CONTENT=<base64-encoded-p8-key>
 ASC_API_ENABLED=true
-ASC_BUNDLE_ID=com.nestory.app
+ASC_BUNDLE_ID=com.drunkonjava.nestory
 
 # Review Contact
 ASC_CONTACT_FIRST_NAME=John

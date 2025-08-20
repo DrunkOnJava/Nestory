@@ -35,7 +35,8 @@ declare -a error_files
 is_overridden() {
     local file=$1
     if [ -f "$OVERRIDE_FILE" ]; then
-        grep -q "^$file$" "$OVERRIDE_FILE" 2>/dev/null && return 0
+        # Check for exact match or match at beginning of line (before comments)
+        grep -q "^$file\(\$\|[[:space:]]*#\)" "$OVERRIDE_FILE" 2>/dev/null && return 0
     fi
     return 1
 }

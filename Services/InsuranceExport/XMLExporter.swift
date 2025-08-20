@@ -30,13 +30,17 @@ public enum XMLExporter {
             <Summary>
                 <TotalItems>\(items.count)</TotalItems>
                 <TotalValue>\(items.compactMap(\.purchasePrice).reduce(0, +))</TotalValue>
-                <ItemsWithPhotos>\(items.count(where: { $0.imageData != nil }))</ItemsWithPhotos>
-                <ItemsWithReceipts>\(items.count(where: { $0.receiptImageData != nil }))</ItemsWithReceipts>
+                <ItemsWithPhotos>\(items.count { $0.imageData != nil })</ItemsWithPhotos>
+                <ItemsWithReceipts>\(items.count { $0.receiptImageData != nil })</ItemsWithReceipts>
             </Summary>
         </HomeInventory>
         """
 
-        return xmlContent.data(using: .utf8)!
+        guard let xmlData = xmlContent.data(using: .utf8) else {
+            // This should never fail as we're using valid UTF-8 strings
+            return Data()
+        }
+        return xmlData
     }
 
     private static func generateItemXML(_ item: Item) -> String {

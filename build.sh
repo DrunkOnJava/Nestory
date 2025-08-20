@@ -60,7 +60,7 @@ if xcodebuild -scheme Nestory-Dev -destination "platform=iOS Simulator,name=iPho
     if [ -n "$APP_PATH" ]; then
         DEVICE_ID=$(xcrun simctl list devices | grep "iPhone 15" | grep -E -o "[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}" | head -1)
         xcrun simctl install "$DEVICE_ID" "$APP_PATH" 2>/dev/null || true
-        xcrun simctl launch "$DEVICE_ID" com.nestory.app.dev 2>/dev/null || true
+        xcrun simctl launch "$DEVICE_ID" "${PRODUCT_BUNDLE_IDENTIFIER:-com.drunkonjava.nestory}" 2>/dev/null || true
         echo -e "${GREEN}✓${NC} App launched"
     fi
     

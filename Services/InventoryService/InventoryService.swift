@@ -7,38 +7,38 @@ import os.log
 import SwiftData
 
 public protocol InventoryService: Sendable {
-    nonisolated func fetchItems() async throws -> [Item]
-    nonisolated func fetchItem(id: UUID) async throws -> Item?
-    nonisolated func saveItem(_ item: Item) async throws
-    nonisolated func updateItem(_ item: Item) async throws
-    nonisolated func deleteItem(id: UUID) async throws
-    nonisolated func searchItems(query: String) async throws -> [Item]
-    nonisolated func fetchCategories() async throws -> [Category]
-    nonisolated func saveCategory(_ category: Category) async throws
-    nonisolated func assignItemToCategory(itemId: UUID, categoryId: UUID) async throws
-    nonisolated func fetchItemsByCategory(categoryId: UUID) async throws -> [Item]
+    func fetchItems() async throws -> [Item]
+    func fetchItem(id: UUID) async throws -> Item?
+    func saveItem(_ item: Item) async throws
+    func updateItem(_ item: Item) async throws
+    func deleteItem(id: UUID) async throws
+    func searchItems(query: String) async throws -> [Item]
+    func fetchCategories() async throws -> [Category]
+    func saveCategory(_ category: Category) async throws
+    func assignItemToCategory(itemId: UUID, categoryId: UUID) async throws
+    func fetchItemsByCategory(categoryId: UUID) async throws -> [Item]
 
     // Batch Operations for Performance
-    nonisolated func bulkImport(items: [Item]) async throws
-    nonisolated func bulkUpdate(items: [Item]) async throws
-    nonisolated func bulkDelete(itemIds: [UUID]) async throws
-    nonisolated func bulkSave(items: [Item]) async throws
-    nonisolated func bulkAssignCategory(itemIds: [UUID], categoryId: UUID) async throws
+    func bulkImport(items: [Item]) async throws
+    func bulkUpdate(items: [Item]) async throws
+    func bulkDelete(itemIds: [UUID]) async throws
+    func bulkSave(items: [Item]) async throws
+    func bulkAssignCategory(itemIds: [UUID], categoryId: UUID) async throws
 
-    nonisolated func exportInventory(format: ExportFormat) async throws -> Data
+    func exportInventory(format: ExportFormat) async throws -> Data
 }
 
 public struct LiveInventoryService: InventoryService, @unchecked Sendable {
     private let modelContext: ModelContext
     private let cache: Cache<UUID, Item>
-    private let logger = Logger(subsystem: "com.drunkonjava.nestory", category: "InventoryService")
+    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory", category: "InventoryService")
 
     public init(modelContext: ModelContext) throws {
         self.modelContext = modelContext
         cache = try Cache(name: "inventory", maxMemoryCount: CacheConstants.Memory.defaultCountLimit)
     }
 
-    public nonisolated func fetchItems() async throws -> [Item] {
+    public func fetchItems() async throws -> [Item] {
         let descriptor = FetchDescriptor<Item>(
             sortBy: [SortDescriptor(\.updatedAt, order: .reverse)]
         )
@@ -58,7 +58,7 @@ public struct LiveInventoryService: InventoryService, @unchecked Sendable {
         }
     }
 
-    public nonisolated func fetchItem(id: UUID) async throws -> Item? {
+    public func fetchItem(id: UUID) async throws -> Item? {
         if let cached = await cache.get(for: id) {
             logger.debug("Retrieved item from cache: \(id)")
             return cached
@@ -81,7 +81,7 @@ public struct LiveInventoryService: InventoryService, @unchecked Sendable {
         }
     }
 
-    public nonisolated func saveItem(_ item: Item) async throws {
+    public func saveItem(_ item: Item) async throws {
         modelContext.insert(item)
 
         do {
@@ -94,7 +94,7 @@ public struct LiveInventoryService: InventoryService, @unchecked Sendable {
         }
     }
 
-    public nonisolated func updateItem(_ item: Item) async throws {
+    public func updateItem(_ item: Item) async throws {
         item.updatedAt = Date()
 
         do {
@@ -107,7 +107,7 @@ public struct LiveInventoryService: InventoryService, @unchecked Sendable {
         }
     }
 
-    public nonisolated func deleteItem(id: UUID) async throws {
+    public func deleteItem(id: UUID) async throws {
         let descriptor = FetchDescriptor<Item>(
             predicate: #Predicate { $0.id == id }
         )
@@ -126,7 +126,7 @@ public struct LiveInventoryService: InventoryService, @unchecked Sendable {
         }
     }
 
-    public nonisolated func searchItems(query: String) async throws -> [Item] {
+    public func searchItems(query: String) async throws -> [Item] {
         let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
 
         guard !trimmedQuery.isEmpty else {
@@ -153,7 +153,7 @@ public struct LiveInventoryService: InventoryService, @unchecked Sendable {
         }
     }
 
-    public nonisolated func fetchCategories() async throws -> [Category] {
+    public func fetchCategories() async throws -> [Category] {
         let descriptor = FetchDescriptor<Category>(
             sortBy: [SortDescriptor(\.name)]
         )
@@ -168,7 +168,7 @@ public struct LiveInventoryService: InventoryService, @unchecked Sendable {
         }
     }
 
-    public nonisolated func saveCategory(_ category: Category) async throws {
+    public func saveCategory(_ category: Category) async throws {
         modelContext.insert(category)
 
         do {
@@ -180,7 +180,7 @@ public struct LiveInventoryService: InventoryService, @unchecked Sendable {
         }
     }
 
-    public nonisolated func assignItemToCategory(itemId: UUID, categoryId: UUID) async throws {
+    public func assignItemToCategory(itemId: UUID, categoryId: UUID) async throws {
         let itemDescriptor = FetchDescriptor<Item>(
             predicate: #Predicate { $0.id == itemId }
         )
@@ -212,7 +212,7 @@ public struct LiveInventoryService: InventoryService, @unchecked Sendable {
         }
     }
 
-    public nonisolated func fetchItemsByCategory(categoryId: UUID) async throws -> [Item] {
+    public func fetchItemsByCategory(categoryId: UUID) async throws -> [Item] {
         let descriptor = FetchDescriptor<Item>(
             predicate: #Predicate { $0.category?.id == categoryId },
             sortBy: [SortDescriptor(\.name)]
@@ -228,7 +228,7 @@ public struct LiveInventoryService: InventoryService, @unchecked Sendable {
         }
     }
 
-    public nonisolated func bulkImport(items: [Item]) async throws {
+    public func bulkImport(items: [Item]) async throws {
         let signpost = OSSignposter()
         let state = signpost.beginInterval("bulk_import", id: signpost.makeSignpostID())
         defer { signpost.endInterval("bulk_import", state) }
@@ -250,7 +250,7 @@ public struct LiveInventoryService: InventoryService, @unchecked Sendable {
         }
     }
 
-    public nonisolated func bulkUpdate(items: [Item]) async throws {
+    public func bulkUpdate(items: [Item]) async throws {
         let signpost = OSSignposter()
         let state = signpost.beginInterval("bulk_update", id: signpost.makeSignpostID())
         defer { signpost.endInterval("bulk_update", state) }
@@ -274,7 +274,7 @@ public struct LiveInventoryService: InventoryService, @unchecked Sendable {
         }
     }
 
-    public nonisolated func bulkDelete(itemIds: [UUID]) async throws {
+    public func bulkDelete(itemIds: [UUID]) async throws {
         let signpost = OSSignposter()
         let state = signpost.beginInterval("bulk_delete", id: signpost.makeSignpostID())
         defer { signpost.endInterval("bulk_delete", state) }
@@ -303,7 +303,7 @@ public struct LiveInventoryService: InventoryService, @unchecked Sendable {
         }
     }
 
-    public nonisolated func bulkSave(items: [Item]) async throws {
+    public func bulkSave(items: [Item]) async throws {
         let signpost = OSSignposter()
         let state = signpost.beginInterval("bulk_save", id: signpost.makeSignpostID())
         defer { signpost.endInterval("bulk_save", state) }
@@ -326,7 +326,7 @@ public struct LiveInventoryService: InventoryService, @unchecked Sendable {
         }
     }
 
-    public nonisolated func bulkAssignCategory(itemIds: [UUID], categoryId: UUID) async throws {
+    public func bulkAssignCategory(itemIds: [UUID], categoryId: UUID) async throws {
         let signpost = OSSignposter()
         let state = signpost.beginInterval("bulk_assign_category", id: signpost.makeSignpostID())
         defer { signpost.endInterval("bulk_assign_category", state) }
@@ -366,7 +366,7 @@ public struct LiveInventoryService: InventoryService, @unchecked Sendable {
         }
     }
 
-    public nonisolated func exportInventory(format: ExportFormat) async throws -> Data {
+    public func exportInventory(format: ExportFormat) async throws -> Data {
         let items = try await fetchItems()
 
         switch format {

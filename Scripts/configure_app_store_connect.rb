@@ -11,7 +11,7 @@ require 'jwt'
 KEY_ID = ENV['ASC_KEY_ID'] || '1Q3C9RIHO6XC'
 ISSUER_ID = ENV['ASC_ISSUER_ID'] || 'f144f0a6-1aff-44f3-974e-183c4c07bc46'
 PRIVATE_KEY_PATH = ENV['ASC_KEY_PATH'] || '/Users/griffin/Projects/Nestory/AuthKey_NWV654RNK3.p8'
-BUNDLE_ID = ENV['ASC_BUNDLE_ID'] || 'com.nestory.app.dev'
+BUNDLE_ID = ENV['ASC_BUNDLE_ID'] || 'com.drunkonjava.nestory.dev'
 
 # App metadata configuration
 APP_CONFIG = {

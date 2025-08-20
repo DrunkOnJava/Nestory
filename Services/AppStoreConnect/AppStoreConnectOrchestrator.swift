@@ -155,14 +155,14 @@ public final class AppStoreConnectOrchestrator: ObservableObject {
             )
 
             // 6. Configure release strategy
-            updateProgress(.submittingForReview, percent: 80, task: "Configuring release strategy")
+            updateProgress(.submittingForReview, percent: BusinessConstants.AppStoreConnect.configurationProgress, task: "Configuring release strategy")
             try await configureReleaseStrategy(
                 versionId: version.id,
                 strategy: submission.releaseStrategy,
             )
 
             // 7. Submit for review
-            updateProgress(.submittingForReview, percent: 90, task: "Submitting for review")
+            updateProgress(.submittingForReview, percent: BusinessConstants.AppStoreConnect.submissionProgress, task: "Submitting for review")
             try await versionService.submitForReview(
                 submission: AppVersionService.ReviewSubmission(
                     versionId: version.id,
@@ -175,11 +175,10 @@ public final class AppStoreConnectOrchestrator: ObservableObject {
                     contactLastName: submission.reviewInfo.contactLastName,
                     contactEmail: submission.reviewInfo.contactEmail,
                     contactPhone: submission.reviewInfo.contactPhone,
-                )
+                ),
             )
 
-            updateProgress(.completed, percent: 100, task: "Submission complete")
-
+            updateProgress(.completed, percent: BusinessConstants.AppStoreConnect.completionProgress, task: "Submission complete")
         } catch {
             lastError = error
             updateProgress(.failed(error), percent: 0, task: "Submission failed")
@@ -214,10 +213,10 @@ public final class AppStoreConnectOrchestrator: ObservableObject {
             ))
         }
 
-        if submission.metadata.keywords.split(separator: ",").count > 100 {
+        if submission.metadata.keywords.split(separator: ",").count > BusinessConstants.AppStoreConnect.maxKeywordCharacters {
             issues.append(ValidationIssue(
                 severity: .warning,
-                message: "Too many keywords (maximum 100 characters total)",
+                message: "Too many keywords (maximum \(BusinessConstants.AppStoreConnect.maxKeywordCharacters) characters total)",
             ))
         }
 
@@ -225,7 +224,7 @@ public final class AppStoreConnectOrchestrator: ObservableObject {
         if let screenshots = submission.screenshots {
             for set in screenshots {
                 for screenshot in set.screenshots {
-                    if screenshot.fileSize > 10 * 1024 * 1024 { // 10MB
+                    if screenshot.fileSize > BusinessConstants.AppStoreConnect.maxScreenshotFileSize {
                         issues.append(ValidationIssue(
                             severity: .warning,
                             message: "Screenshot \(screenshot.fileName) is larger than 10MB",

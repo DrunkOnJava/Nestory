@@ -1,30 +1,61 @@
-//
-//  InventoryListView.swift
-//  Nestory
-//
+// Layer: App
+// Module: InventoryListView
+// Purpose: Main inventory list and item browsing
 
 import SwiftData
 import SwiftUI
 
+// MARK: - Mock Service for Initialization
+
+private struct MockInventoryService: InventoryService {
+    nonisolated func fetchItems() async throws -> [Item] { [] }
+    nonisolated func fetchItem(id _: UUID) async throws -> Item? { nil }
+    nonisolated func saveItem(_: Item) async throws {}
+    nonisolated func updateItem(_: Item) async throws {}
+    nonisolated func deleteItem(id _: UUID) async throws {}
+    nonisolated func searchItems(query _: String) async throws -> [Item] { [] }
+    nonisolated func fetchCategories() async throws -> [Category] { [] }
+    nonisolated func saveCategory(_: Category) async throws {}
+    nonisolated func assignItemToCategory(itemId _: UUID, categoryId _: UUID) async throws {}
+    nonisolated func fetchItemsByCategory(categoryId _: UUID) async throws -> [Item] { [] }
+
+    // Batch Operations
+    nonisolated func bulkImport(items _: [Item]) async throws {}
+    nonisolated func bulkUpdate(items _: [Item]) async throws {}
+    nonisolated func bulkDelete(itemIds _: [UUID]) async throws {}
+    nonisolated func bulkSave(items _: [Item]) async throws {}
+    nonisolated func bulkAssignCategory(itemIds _: [UUID], categoryId _: UUID) async throws {}
+
+    nonisolated func exportInventory(format _: ExportFormat) async throws -> Data { Data() }
+}
+
 struct InventoryListView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Item]
+    @State private var viewModel: InventoryListViewModel
     @State private var showingAddItem = false
-    @State private var searchText = ""
+
+    init() {
+        // Initialize with placeholder, will be updated in onAppear
+        _viewModel = State(initialValue: InventoryListViewModel(inventoryService: MockInventoryService()))
+    }
 
     var body: some View {
         NavigationStack {
             List {
-                ForEach(filteredItems) { item in
+                ForEach(viewModel.filteredItems) { item in
                     NavigationLink(destination: ItemDetailView(item: item)) {
                         ItemRowView(item: item)
                     }
                 }
-                .onDelete(perform: deleteItems)
+                .onDelete { indexSet in
+                    Task {
+                        await viewModel.deleteItems(at: indexSet)
+                    }
+                }
             }
             .navigationTitle("My Items")
             .navigationBarTitleDisplayMode(.large)
-            .searchable(text: $searchText, prompt: "Search your stuff...")
+            .searchable(text: $viewModel.searchText, prompt: "Search your stuff...")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: { showingAddItem = true }) {
@@ -36,36 +67,40 @@ struct InventoryListView: View {
                 AddItemView()
             }
             .overlay {
-                if items.isEmpty {
+                if viewModel.isEmpty {
                     EmptyStateView(
                         title: "📦 Empty Inventory",
                         message: "Add your first item to get started!",
                         systemImage: "shippingbox",
                         actionTitle: "Add First Item",
-                        action: { showingAddItem = true },
-                    )
+                    ) { showingAddItem = true }
+                } else if viewModel.isLoading {
+                    ProgressView("Loading items...")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(Color(UIColor.systemBackground))
+                }
+            }
+            .alert("Error", isPresented: .constant(viewModel.showingError)) {
+                Button("OK") {
+                    viewModel.clearError()
+                }
+            } message: {
+                Text(viewModel.errorMessage ?? "An unknown error occurred")
+            }
+            .refreshable {
+                await viewModel.refreshData()
+            }
+            .onAppear {
+                // Initialize viewModel with proper ModelContext
+                viewModel = InventoryListViewModel.create(from: modelContext)
+                Task {
+                    await viewModel.refreshData()
                 }
             }
         }
     }
 
-    private var filteredItems: [Item] {
-        if searchText.isEmpty {
-            items
-        } else {
-            items.filter { item in
-                item.name.localizedCaseInsensitiveContains(searchText)
-            }
-        }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            for index in offsets {
-                modelContext.delete(items[index])
-            }
-        }
-    }
+    // Removed filteredItems and deleteItems - now handled by ViewModel
 }
 
 struct ItemRowView: View {

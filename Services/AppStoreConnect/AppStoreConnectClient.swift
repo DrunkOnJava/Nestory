@@ -18,16 +18,24 @@ public final class AppStoreConnectClient: ObservableObject {
         let privateKey: String
         let baseURL: URL
 
+        private static let defaultBaseURL: URL = {
+            // Apple's official App Store Connect API endpoint (external service - OK to hardcode)
+            guard let url = URL(string: "https://api.appstoreconnect.apple.com") else {
+                fatalError("Failed to create default App Store Connect URL")
+            }
+            return url
+        }()
+
         public init(
             keyID: String,
             issuerID: String,
             privateKey: String,
-            baseURL: URL = URL(string: "https://api.appstoreconnect.apple.com")!
+            baseURL: URL? = nil
         ) {
             self.keyID = keyID
             self.issuerID = issuerID
             self.privateKey = privateKey
-            self.baseURL = baseURL
+            self.baseURL = baseURL ?? Self.defaultBaseURL
         }
     }
 
@@ -76,8 +84,8 @@ public final class AppStoreConnectClient: ObservableObject {
         self.configuration = configuration
 
         let sessionConfig = URLSessionConfiguration.default
-        sessionConfig.timeoutIntervalForRequest = 30
-        sessionConfig.timeoutIntervalForResource = 60
+        sessionConfig.timeoutIntervalForRequest = NetworkConstants.Timeout.request
+        sessionConfig.timeoutIntervalForResource = NetworkConstants.Timeout.resource
         sessionConfig.requestCachePolicy = .reloadIgnoringLocalCacheData
 
         session = URLSession(configuration: sessionConfig)
@@ -90,8 +98,8 @@ public final class AppStoreConnectClient: ObservableObject {
         // Check if current token is still valid
         if let token = currentToken,
            let expiration = tokenExpiration,
-           expiration > Date().addingTimeInterval(60)
-        { // 1 minute buffer
+           expiration > Date().addingTimeInterval(NetworkConstants.Timeout.tokenBuffer)
+        {
             return token
         }
 
@@ -104,7 +112,7 @@ public final class AppStoreConnectClient: ObservableObject {
 
         // Create JWT payload
         let now = Date()
-        let expiration = now.addingTimeInterval(20 * 60) // 20 minutes (max allowed)
+        let expiration = now.addingTimeInterval(NetworkConstants.Timeout.jwtExpiration)
         let payload: [String: Any] = [
             "iss": configuration.issuerID,
             "iat": Int(now.timeIntervalSince1970),
@@ -166,7 +174,11 @@ public final class AppStoreConnectClient: ObservableObject {
 
         // Add query parameters
         if !request.queryParameters.isEmpty {
-            var components = URLComponents(url: urlRequest.url!, resolvingAgainstBaseURL: false)!
+            guard let url = urlRequest.url,
+                  var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+            else {
+                throw APIError.invalidResponse
+            }
             components.queryItems = request.queryParameters.map {
                 URLQueryItem(name: $0.key, value: $0.value)
             }
@@ -191,14 +203,14 @@ public final class AppStoreConnectClient: ObservableObject {
                 }
 
                 // Handle rate limiting
-                if httpResponse.statusCode == 429 {
+                if httpResponse.statusCode == NetworkConstants.StatusCode.tooManyRequests {
                     let retryAfter = httpResponse.value(forHTTPHeaderField: "Retry-After")
                         .flatMap { TimeInterval($0) }
                     throw APIError.rateLimitExceeded(retryAfter: retryAfter)
                 }
 
                 // Handle errors
-                if httpResponse.statusCode >= 400 {
+                if httpResponse.statusCode >= NetworkConstants.StatusCode.badRequest {
                     if let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data) {
                         let message = errorResponse.errors.first?.detail ?? "Unknown error"
                         throw APIError.apiError(statusCode: httpResponse.statusCode, message: message)
@@ -213,7 +225,6 @@ public final class AppStoreConnectClient: ObservableObject {
                 } catch {
                     throw APIError.decodingError(error)
                 }
-
             } catch let error as APIError {
                 // Don't retry for certain errors
                 if case .invalidConfiguration = error { throw error }

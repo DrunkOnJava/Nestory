@@ -7,8 +7,8 @@ import SwiftUI
 
 @MainActor
 class ThemeManager: ObservableObject {
-    @AppStorage("darkModeEnabled") var darkModeEnabled: Bool = false
-    @AppStorage("useSystemTheme") var useSystemTheme: Bool = true
+    @AppStorage("darkModeEnabled") var darkModeEnabled = false
+    @AppStorage("useSystemTheme") var useSystemTheme = true
 
     static let shared = ThemeManager()
 

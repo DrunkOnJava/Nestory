@@ -8,7 +8,7 @@ import Foundation
 import SwiftData
 
 @Model
-public final class Item {
+public final class Item: @unchecked Sendable {
     @Attribute(.unique)
     public var id: UUID
 
@@ -22,7 +22,7 @@ public final class Item {
     public var quantity: Int
     public var purchasePrice: Decimal?
     public var purchaseDate: Date?
-    public var currency: String = "USD"
+    public var currency = "USD"
 
     public var tags: [String] = []
     public var imageData: Data?
@@ -44,7 +44,7 @@ public final class Item {
     public var documentNames: [String] = []
 
     // Condition documentation
-    public var condition: String = "excellent" // SwiftData doesn't support enum defaults
+    public var condition = "excellent" // SwiftData doesn't support enum defaults
     public var conditionNotes: String?
     public var conditionPhotos: [Data] = []
     public var conditionPhotoDescriptions: [String] = []
@@ -61,6 +61,8 @@ public final class Item {
 
     // Relationships
     public var category: Category?
+    public var warranty: Warranty?
+    public var receipts: [Receipt] = []
 
     public init(
         name: String,

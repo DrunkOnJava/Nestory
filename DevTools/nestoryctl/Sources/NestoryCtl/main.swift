@@ -509,7 +509,7 @@ func main() {
     let arguments = CommandLine.arguments
 
     guard arguments.count >= 2 else {
-        print("nestoryctl - Nestory Development Tools")
+        print("nestoryctl - Development Tools")
         print("\nUsage: nestoryctl <command>")
         print("\nAvailable commands:")
         for command in Command.allCases {

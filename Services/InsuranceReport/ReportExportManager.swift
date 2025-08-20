@@ -81,7 +81,7 @@ public struct ReportExportManager {
 
     // MARK: - Clean Up Old Reports
 
-    public func cleanupOldReports(daysToKeep: Int = 30) {
+    public func cleanupOldReports(daysToKeep: Int = BusinessConstants.Insurance.reportRetentionDays) {
         let documentsPath = FileManager.default.urls(
             for: .documentDirectory,
             in: .userDomainMask,
@@ -94,7 +94,7 @@ public struct ReportExportManager {
             includingPropertiesForKeys: [.creationDateKey],
         ) else { return }
 
-        let cutoffDate = Date().addingTimeInterval(-Double(daysToKeep * 24 * 60 * 60))
+        let cutoffDate = Date().addingTimeInterval(-Double(daysToKeep * BusinessConstants.Notifications.dayCalculationMultiplier))
 
         for file in files {
             if let attributes = try? FileManager.default.attributesOfItem(atPath: file.path),

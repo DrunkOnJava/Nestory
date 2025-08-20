@@ -1,0 +1,142 @@
+// Layer: Foundation
+// Module: Foundation/Models
+// Purpose: Receipt model for purchase documentation
+
+import Foundation
+import SwiftData
+
+/// Receipt for item purchases
+@Model
+public final class Receipt: @unchecked Sendable {
+    // MARK: - Properties
+
+    @Attribute(.unique)
+    public var id: UUID
+
+    public var vendor: String
+    public var total: Data? // Encoded Money
+    public var tax: Data? // Encoded Money
+    public var purchaseDate: Date
+    public var receiptNumber: String?
+    public var paymentMethod: String?
+    public var rawText: String? // OCR extracted text
+    public var fileName: String? // Scanned receipt image
+
+    // Timestamps
+    public var createdAt: Date
+    public var updatedAt: Date
+
+    // MARK: - Relationships
+
+    @Relationship(inverse: \Item.receipts)
+    public var item: Item?
+
+    // MARK: - Initialization
+
+    public init(
+        vendor: String,
+        total: Money,
+        purchaseDate: Date,
+        item: Item? = nil
+    ) {
+        id = UUID()
+        self.vendor = vendor
+        self.total = try? JSONEncoder().encode(total)
+        self.purchaseDate = purchaseDate
+        self.item = item
+        createdAt = Date()
+        updatedAt = Date()
+    }
+
+    // MARK: - Computed Properties
+
+    /// Get total as Money object
+    public var totalMoney: Money? {
+        get {
+            guard let data = total else { return nil }
+            return try? JSONDecoder().decode(Money.self, from: data)
+        }
+        set {
+            total = try? JSONEncoder().encode(newValue)
+            updatedAt = Date()
+        }
+    }
+
+    /// Get tax as Money object
+    public var taxMoney: Money? {
+        get {
+            guard let data = tax else { return nil }
+            return try? JSONDecoder().decode(Money.self, from: data)
+        }
+        set {
+            tax = try? JSONEncoder().encode(newValue)
+            updatedAt = Date()
+        }
+    }
+
+    /// Subtotal (total minus tax)
+    public var subtotal: Money? {
+        guard let total = totalMoney,
+              let tax = taxMoney
+        else {
+            return totalMoney
+        }
+        return try? total - tax
+    }
+
+    /// Check if receipt has been OCR processed
+    public var hasOCRData: Bool {
+        guard let rawText else { return false }
+        return !rawText.isEmpty
+    }
+
+    /// Check if receipt has image attached
+    public var hasImage: Bool {
+        guard let fileName else { return false }
+        return !fileName.isEmpty
+    }
+
+    // MARK: - Methods
+
+    /// Update receipt properties
+    public func update(
+        vendor: String? = nil,
+        total: Money? = nil,
+        tax: Money? = nil,
+        purchaseDate: Date? = nil,
+        receiptNumber: String? = nil,
+        paymentMethod: String? = nil,
+    ) {
+        if let vendor {
+            self.vendor = vendor
+        }
+        if let total {
+            totalMoney = total
+        }
+        if let tax {
+            taxMoney = tax
+        }
+        if let purchaseDate {
+            self.purchaseDate = purchaseDate
+        }
+        if let receiptNumber {
+            self.receiptNumber = receiptNumber
+        }
+        if let paymentMethod {
+            self.paymentMethod = paymentMethod
+        }
+        updatedAt = Date()
+    }
+
+    /// Set OCR extracted text
+    public func setOCRText(_ text: String) {
+        rawText = text
+        updatedAt = Date()
+    }
+
+    /// Attach scanned image
+    public func attachImage(fileName: String) {
+        self.fileName = fileName
+        updatedAt = Date()
+    }
+}

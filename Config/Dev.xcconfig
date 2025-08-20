@@ -2,7 +2,7 @@
 #include "Base.xcconfig"
 
 // Development-Specific Overrides
-PRODUCT_BUNDLE_IDENTIFIER = com.nestory.app.dev
+PRODUCT_BUNDLE_IDENTIFIER = com.drunkonjava.nestory.dev
 PRODUCT_NAME = Nestory Dev
 
 // Swift Compilation
@@ -22,7 +22,7 @@ GCC_OPTIMIZATION_LEVEL = 0
 
 // CloudKit
 CLOUDKIT_ENVIRONMENT = Development
-CLOUDKIT_CONTAINER = iCloud.com.nestory.app.dev
+CLOUDKIT_CONTAINER = iCloud.com.drunkonjava.nestory.dev
 
 // API Configuration
 API_BASE_URL = https://api-dev.nestory.app

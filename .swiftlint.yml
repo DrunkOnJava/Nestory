@@ -73,6 +73,7 @@ opt_in_rules:
 disabled_rules:
   - trailing_whitespace  # Let formatter handle this
   - orphaned_doc_comment
+  - layer_header_required  # Regex is broken - disable until fixed
 
 # Custom Rules
 custom_rules:

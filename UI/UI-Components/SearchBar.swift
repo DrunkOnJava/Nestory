@@ -9,8 +9,8 @@ import SwiftUI
 public struct SearchBar: View {
     @Binding var text: String
     @Binding var isSearching: Bool
-    var placeholder: String = "Search..."
-    var showCancelButton: Bool = true
+    var placeholder = "Search..."
+    var showCancelButton = true
     var onCommit: (() -> Void)?
 
     @FocusState private var isFocused: Bool

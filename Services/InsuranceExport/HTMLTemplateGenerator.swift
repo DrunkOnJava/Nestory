@@ -57,9 +57,9 @@ public enum HTMLTemplateGenerator {
 
     public static func generateSummarySection(items: [Item], rooms: [Room]) -> String {
         let totalValue = items.compactMap(\.purchasePrice).reduce(0, +)
-        let itemsWithReceipts = items.count(where: { $0.receiptImageData != nil })
-        let itemsWithSerialNumbers = items.count(where: { $0.serialNumber != nil })
-        let itemsWithWarranty = items.count(where: { $0.warrantyExpirationDate != nil })
+        let itemsWithReceipts = items.count { $0.receiptImageData != nil }
+        let itemsWithSerialNumbers = items.count { $0.serialNumber != nil }
+        let itemsWithWarranty = items.count { $0.warrantyExpirationDate != nil }
 
         return """
         <div class="summary-box">

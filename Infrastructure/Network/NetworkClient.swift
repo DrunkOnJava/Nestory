@@ -246,7 +246,10 @@ public actor NetworkClient {
 
                 // Decode response
                 if T.self == EmptyResponse.self {
-                    return EmptyResponse() as! T
+                    guard let emptyResponse = EmptyResponse() as? T else {
+                        throw NetworkError.decodingError("Failed to cast EmptyResponse")
+                    }
+                    return emptyResponse
                 }
 
                 do {
@@ -254,7 +257,6 @@ public actor NetworkClient {
                 } catch {
                     throw NetworkError.decodingError(error.localizedDescription)
                 }
-
             } catch {
                 lastError = error
 

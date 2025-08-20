@@ -11,7 +11,7 @@ public actor PerformanceMonitor {
 
     private var metrics: [MetricKey: [MetricValue]] = [:]
     private var activeTransactions: [String: Transaction] = [:]
-    private let logger = Logger(subsystem: "com.nestory.app", category: "Performance")
+    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory", category: "Performance")
     private let maxMetricsPerKey = 1000
 
     // MARK: - Singleton

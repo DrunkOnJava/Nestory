@@ -33,13 +33,13 @@ public final class InsuranceReportService: ObservableObject {
     }
 
     public struct ReportOptions {
-        public var includePhotos: Bool = true
-        public var includeReceipts: Bool = true
-        public var includeDepreciation: Bool = false
-        public var groupByRoom: Bool = true
-        public var includeSerialNumbers: Bool = true
-        public var includePurchaseInfo: Bool = true
-        public var includeTotalValue: Bool = true
+        public var includePhotos = true
+        public var includeReceipts = true
+        public var includeDepreciation = false
+        public var groupByRoom = true
+        public var includeSerialNumbers = true
+        public var includePurchaseInfo = true
+        public var includeTotalValue = true
 
         public init() {}
     }
@@ -135,7 +135,9 @@ public final class InsuranceReportService: ObservableObject {
 
     // MARK: - Utility Functions
 
-    public func cleanupOldReports(daysToKeep: Int = 30) {
+    public func cleanupOldReports(
+        daysToKeep: Int = BusinessConstants.Insurance.reportRetentionDays,
+    ) {
         exportManager.cleanupOldReports(daysToKeep: daysToKeep)
     }
 

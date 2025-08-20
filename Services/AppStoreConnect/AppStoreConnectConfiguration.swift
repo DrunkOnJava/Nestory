@@ -17,6 +17,7 @@ public final class AppStoreConnectConfiguration: ObservableObject {
         case keychainError(OSStatus)
         case invalidPrivateKey
         case environmentNotConfigured
+        case invalidConfiguration
 
         public var errorDescription: String? {
             switch self {
@@ -28,6 +29,8 @@ public final class AppStoreConnectConfiguration: ObservableObject {
                 "Invalid private key format"
             case .environmentNotConfigured:
                 "Environment not properly configured for App Store Connect API"
+            case .invalidConfiguration:
+                "Invalid configuration data provided"
             }
         }
     }
@@ -46,7 +49,7 @@ public final class AppStoreConnectConfiguration: ObservableObject {
 
     // MARK: - Properties
 
-    private static let keychainService = "com.nestory.app.appstoreconnect"
+    private static let keychainService = "\(Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory").appstoreconnect"
     private static let keyIDKey = "ASC_KEY_ID"
     private static let issuerIDKey = "ASC_ISSUER_ID"
     private static let privateKeyKey = "ASC_PRIVATE_KEY"
@@ -60,14 +63,8 @@ public final class AppStoreConnectConfiguration: ObservableObject {
         case production = "Production"
 
         var bundleID: String {
-            switch self {
-            case .development:
-                "com.nestory.app.dev"
-            case .staging:
-                "com.nestory.app.staging"
-            case .production:
-                "com.nestory.app"
-            }
+            // Get bundle ID from environment configuration
+            Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory"
         }
     }
 
@@ -141,7 +138,9 @@ public final class AppStoreConnectConfiguration: ObservableObject {
     // MARK: - Keychain Operations
 
     private func saveToKeychain(key: String, value: String) throws {
-        let data = value.data(using: .utf8)!
+        guard let data = value.data(using: .utf8) else {
+            throw ConfigurationError.invalidConfiguration
+        }
 
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
@@ -242,9 +241,9 @@ public final class AppStoreConnectConfiguration: ObservableObject {
 
 // MARK: - Environment Detection
 
-public extension AppStoreConnectConfiguration {
+extension AppStoreConnectConfiguration {
     /// Detect environment from bundle identifier
-    static func detectEnvironment() -> Environment {
+    public static func detectEnvironment() -> Environment {
         guard let bundleID = Bundle.main.bundleIdentifier else {
             return .development
         }

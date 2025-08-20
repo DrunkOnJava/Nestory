@@ -181,7 +181,7 @@ public final class AppMetadataService: ObservableObject {
                     attributes: AppUpdateRequest.Attributes(
                         primaryCategory: categories.primaryCategory.rawValue,
                         secondaryCategory: categories.secondaryCategory?.rawValue,
-                        contentRightsDeclaration: nil
+                        contentRightsDeclaration: nil,
                     ),
                 ),
             ),
@@ -239,8 +239,8 @@ public final class AppMetadataService: ObservableObject {
                         primaryCategory: nil,
                         secondaryCategory: nil,
                         contentRightsDeclaration: AppUpdateRequest.ContentRights(
-                            usesThirdPartyContent: usesThirdPartyContent
-                        )
+                            usesThirdPartyContent: usesThirdPartyContent,
+                        ),
                     ),
                 ),
             ),
@@ -331,4 +331,4 @@ private struct AgeRatingDeclarationCreateRequest: Encodable {
     }
 }
 
-private struct EmptyResponse: Decodable {}
+// EmptyResponse moved to AppStoreConnectTypes.swift

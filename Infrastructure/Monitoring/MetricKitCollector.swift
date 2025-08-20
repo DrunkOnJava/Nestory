@@ -6,7 +6,7 @@ import os.log
 
 @available(iOS 13.0, *)
 public final class MetricKitCollector: NSObject {
-    private let logger = Logger(subsystem: "com.nestory", category: "MetricKit")
+    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory", category: "MetricKit")
     private var payloadHandlers: [(MXMetricPayload) -> Void] = []
     private var diagnosticHandlers: [(MXDiagnosticPayload) -> Void] = []
 

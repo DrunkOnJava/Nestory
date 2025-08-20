@@ -32,12 +32,12 @@ public enum SearchSortOption: String, CaseIterable {
 public struct SearchFilters {
     var selectedCategories: Set<UUID> = []
     var priceRange: ClosedRange<Double> = 0 ... 10000
-    var hasPhoto: Bool = false
-    var hasReceipt: Bool = false
-    var hasWarranty: Bool = false
-    var hasSerialNumber: Bool = false
-    var minQuantity: Int = 0
-    var maxQuantity: Int = 100
+    var hasPhoto = false
+    var hasReceipt = false
+    var hasWarranty = false
+    var hasSerialNumber = false
+    var minQuantity = 0
+    var maxQuantity = 100
     var rooms: Set<String> = []
 
     var isActive: Bool {

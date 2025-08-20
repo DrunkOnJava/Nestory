@@ -1,38 +1,43 @@
-// Staging.xcconfig
+// Staging.xcconfig - Generated from ProjectConfiguration.json
 #include "Base.xcconfig"
 
 // Staging-Specific Overrides
-PRODUCT_BUNDLE_IDENTIFIER = com.nestory.app.staging
+PRODUCT_BUNDLE_IDENTIFIER = com.drunkonjava.nestory.staging
 PRODUCT_NAME = Nestory Staging
 
 // Swift Compilation
-SWIFT_ACTIVE_COMPILATION_CONDITIONS = STAGING_ENVIRONMENT
-GCC_PREPROCESSOR_DEFINITIONS = STAGING_ENVIRONMENT=1
-SWIFT_OPTIMIZATION_LEVEL = -O
+SWIFT_ACTIVE_COMPILATION_CONDITIONS = RELEASE STAGING_ENVIRONMENT
+GCC_PREPROCESSOR_DEFINITIONS = RELEASE=1 STAGING_ENVIRONMENT=1 NDEBUG=1
 
 // Build Configuration
 ENABLE_TESTABILITY = NO
 ONLY_ACTIVE_ARCH = NO
 DEBUG_INFORMATION_FORMAT = dwarf-with-dsym
-COPY_PHASE_STRIP = NO
+COPY_PHASE_STRIP = YES
 ENABLE_NS_ASSERTIONS = NO
 VALIDATE_PRODUCT = YES
+GCC_OPTIMIZATION_LEVEL = s
+MTL_ENABLE_DEBUG_INFO = NO
+SWIFT_OPTIMIZATION_LEVEL = -O
 
 // CloudKit
 CLOUDKIT_ENVIRONMENT = Development
-CLOUDKIT_CONTAINER = iCloud.com.nestory.app.staging
+CLOUDKIT_CONTAINER = iCloud.com.drunkonjava.nestory.staging
 
 // API Configuration
 API_BASE_URL = https://api-staging.nestory.app
 FX_API_ENDPOINT = https://fx-staging.nestory.app
 
-// Feature Flags (Staging-specific)
+// Feature Flags
 ENABLE_ANALYTICS = YES
 ENABLE_CRASH_REPORTING = YES
 ENABLE_DEBUG_MENU = YES
 ENABLE_REMOTE_CONFIG = YES
 FF_ALL_FEATURES = YES
-
-// Performance Testing
 ENABLE_PERFORMANCE_LOGGING = YES
 ENABLE_MEMORY_DEBUGGING = YES
+
+// Code Signing
+CODE_SIGN_STYLE = Manual
+CODE_SIGN_IDENTITY = Apple Distribution
+PROVISIONING_PROFILE_SPECIFIER = Nestory Staging

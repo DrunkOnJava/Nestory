@@ -4,6 +4,7 @@
 // Purpose: Insurance report options view for configuring report generation
 //
 
+import os.log
 import SwiftUI
 
 struct InsuranceReportOptionsView: View {
@@ -12,6 +13,7 @@ struct InsuranceReportOptionsView: View {
     let insuranceReportService: InsuranceReportService
     @Binding var isGenerating: Bool
     @Environment(\.dismiss) private var dismiss
+    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory.dev", category: "InsuranceReportSettings")
 
     @State private var includePhotos = true
     @State private var includeReceipts = true
@@ -69,14 +71,14 @@ struct InsuranceReportOptionsView: View {
                     HStack {
                         Text("Items with Photos")
                         Spacer()
-                        Text("\(items.count(where: { $0.imageData != nil }))")
+                        Text("\(items.count { $0.imageData != nil })")
                             .foregroundColor(.secondary)
                     }
 
                     HStack {
                         Text("Items with Serial Numbers")
                         Spacer()
-                        Text("\(items.count(where: { $0.serialNumber != nil }))")
+                        Text("\(items.count { $0.serialNumber != nil })")
                             .foregroundColor(.secondary)
                     }
                 }
@@ -149,7 +151,7 @@ struct InsuranceReportOptionsView: View {
             } catch {
                 isGenerating = false
                 // Handle error - in production would show alert
-                print("Error generating report: \(error)")
+                logger.error("Report generation failed: \(error)")
             }
         }
     }

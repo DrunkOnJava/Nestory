@@ -7,10 +7,10 @@ import os.log
 import UIKit
 
 public final class PerceptualHash: @unchecked Sendable {
-    private let hashSize: Int = 8
-    private let resizeSize: Int = 32
+    private let hashSize = 8
+    private let resizeSize = 32
     private let context: CIContext
-    private let logger = Logger(subsystem: "com.nestory", category: "PerceptualHash")
+    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory", category: "PerceptualHash")
 
     public init() {
         context = CIContext(options: [
@@ -178,7 +178,7 @@ public final class PerceptualHash: @unchecked Sendable {
         let sorted = values.sorted()
         let count = sorted.count
 
-        if count == 0 {
+        if sorted.isEmpty {
             return 0
         } else if count % 2 == 0 {
             return (sorted[count / 2 - 1] + sorted[count / 2]) / 2.0

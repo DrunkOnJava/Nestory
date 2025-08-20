@@ -12,14 +12,14 @@ public protocol Identifier: Codable, Hashable, Sendable {
 }
 
 /// Default implementations for Identifier protocol
-public extension Identifier {
-    init(from decoder: any Decoder) throws {
+extension Identifier {
+    public init(from decoder: any Decoder) throws {
         let container = try decoder.singleValueContainer()
         let value = try container.decode(Value.self)
         self.init(value: value)
     }
 
-    func encode(to encoder: any Encoder) throws {
+    public func encode(to encoder: any Encoder) throws {
         var container = encoder.singleValueContainer()
         try container.encode(value)
     }
@@ -30,19 +30,19 @@ public protocol UUIDIdentifier: Identifier where Value == UUID {
     init()
 }
 
-public extension UUIDIdentifier {
-    init() {
+extension UUIDIdentifier {
+    public init() {
         self.init(value: UUID())
     }
 
-    init(_ string: String) throws {
+    public init(_ string: String) throws {
         guard let uuid = UUID(uuidString: string) else {
             throw AppError.invalidFormat(field: "ID", expectedFormat: "UUID")
         }
         self.init(value: uuid)
     }
 
-    var uuidString: String {
+    public var uuidString: String {
         value.uuidString
     }
 }

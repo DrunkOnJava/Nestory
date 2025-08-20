@@ -11,7 +11,7 @@ enum SecretsTemplate {
     // MARK: - CloudKit
 
     /// CloudKit container identifier
-    static let cloudKitContainer = "iCloud.com.nestory.REPLACE_ME"
+    static let cloudKitContainer = "iCloud.com.drunkonjava.nestory.REPLACE_ME"
 
     // MARK: - API Keys
 
@@ -35,7 +35,7 @@ enum SecretsTemplate {
     static let googleClientID = "REPLACE_WITH_GOOGLE_CLIENT_ID"
 
     /// Apple Sign-In service ID
-    static let appleServiceID = "com.nestory.signin"
+    static let appleServiceID = "com.drunkonjava.nestory.signin"
 
     // MARK: - App Store
 
@@ -49,10 +49,11 @@ enum SecretsTemplate {
 
     // MARK: - Environment URLs
 
-    /// Backend API base URL
-    static let apiBaseURL = URL(string: "https://api.nestory.com")!
+    /// Backend API base URL (Use EnvironmentConfiguration.shared.apiBaseURL instead)
+    /// This is kept for backward compatibility only - prefer EnvironmentConfiguration
+    static let apiBaseURL = URL(string: "REPLACE_WITH_ENVIRONMENT_CONFIGURATION")!
 
-    /// Currency API base URL
+    /// Currency API base URL (External service - OK to hardcode, but consider configuration)
     static let currencyAPIBaseURL = URL(string: "https://api.exchangerate-api.com/v4")!
 
     // MARK: - Feature Flags
@@ -81,9 +82,9 @@ enum SecretsTemplate {
 
         var bundleID: String {
             switch self {
-            case .development: "com.nestory.app.dev"
-            case .staging: "com.nestory.app.staging"
-            case .production: "com.nestory.app"
+            case .development: "com.drunkonjava.nestory.dev"
+            case .staging: "com.drunkonjava.nestory.staging"
+            case .production: "com.drunkonjava.nestory"
             }
         }
 

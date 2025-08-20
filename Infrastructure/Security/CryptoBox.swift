@@ -5,7 +5,7 @@ import Foundation
 import os.log
 
 public final class CryptoBox {
-    private let logger = Logger(subsystem: "com.nestory", category: "CryptoBox")
+    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory", category: "CryptoBox")
 
     public init() {}
 
@@ -71,7 +71,7 @@ public final class CryptoBox {
         let derivedKey = HKDF<SHA256>.deriveKey(
             inputKeyMaterial: SymmetricKey(data: passwordData),
             salt: salt,
-            info: Data("com.nestory.encryption".utf8),
+            info: Data("\(Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory").encryption".utf8),
             outputByteCount: 32,
         )
 
@@ -122,7 +122,7 @@ public final class CryptoBox {
         let symmetricKey = sharedSecret.hkdfDerivedSymmetricKey(
             using: SHA256.self,
             salt: Data(),
-            sharedInfo: Data("com.nestory.keyagreement".utf8),
+            sharedInfo: Data("\(Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory").keyagreement".utf8),
             outputByteCount: 32,
         )
 
@@ -135,7 +135,7 @@ public final class CryptoBox {
         let symmetricKey = sharedSecret.hkdfDerivedSymmetricKey(
             using: SHA256.self,
             salt: Data(),
-            sharedInfo: Data("com.nestory.keyagreement".utf8),
+            sharedInfo: Data("\(Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory").keyagreement".utf8),
             outputByteCount: 32,
         )
 

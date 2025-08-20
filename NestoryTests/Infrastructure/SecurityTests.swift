@@ -113,7 +113,7 @@ final class KeychainStoreTests: XCTestCase {
 
     override func setUp() {
         super.setUp()
-        keychain = KeychainStore(service: "com.nestory.test")
+        keychain = KeychainStore(service: "\(Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory.dev").test")
     }
 
     override func tearDown() {

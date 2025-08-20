@@ -64,24 +64,24 @@ public enum HTTPMethod: String {
     case options = "OPTIONS"
 }
 
-public extension Endpoint {
-    static func get(_ path: String, query: [String: String] = [:]) -> Endpoint {
+extension Endpoint {
+    public static func get(_ path: String, query: [String: String] = [:]) -> Endpoint {
         Endpoint(method: .get, path: path, query: query)
     }
 
-    static func post(_ path: String, body: Data? = nil) -> Endpoint {
+    public static func post(_ path: String, body: Data? = nil) -> Endpoint {
         Endpoint(method: .post, path: path, body: body)
     }
 
-    static func put(_ path: String, body: Data? = nil) -> Endpoint {
+    public static func put(_ path: String, body: Data? = nil) -> Endpoint {
         Endpoint(method: .put, path: path, body: body)
     }
 
-    static func patch(_ path: String, body: Data? = nil) -> Endpoint {
+    public static func patch(_ path: String, body: Data? = nil) -> Endpoint {
         Endpoint(method: .patch, path: path, body: body)
     }
 
-    static func delete(_ path: String) -> Endpoint {
+    public static func delete(_ path: String) -> Endpoint {
         Endpoint(method: .delete, path: path)
     }
 }

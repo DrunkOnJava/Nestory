@@ -8,7 +8,7 @@ import UIKit
 import UniformTypeIdentifiers
 
 public final class ImageIO: @unchecked Sendable {
-    private let logger = Logger(subsystem: "com.nestory", category: "ImageIO")
+    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory", category: "ImageIO")
     private let context: CIContext
     private let compressionQuality: CGFloat
 

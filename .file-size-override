@@ -1,0 +1,5 @@
+Services/AppStoreConnect/MediaUploadService.swift
+Tests/Services/ImportExportServiceTests.swift # 2025-08-19 - Comprehensive test coverage for ImportExportService requires extensive test scenarios for CSV/JSON parsing, error handling, and edge cases. This ensures robust data import/export functionality.
+Tests/Services/InventoryServiceTests.swift # 2025-08-19 - Comprehensive test coverage for InventoryService requires extensive test scenarios for SwiftData operations, caching, search, categories, bulk operations, and error handling.
+Services/NotificationService.swift # 2025-08-19 - NotificationService provides comprehensive notification management including warranty alerts, insurance reminders, and document updates. The service requires extensive validation logic.
+NestoryUITests/Tests/ComprehensiveUIFlowTests.swift # 2025-08-20 - Large test file needed for comprehensive UI flow validation covering full app workflows - will modularize in future cleanup phase

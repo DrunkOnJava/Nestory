@@ -1,9 +1,6 @@
 # SwiftFormat configuration for Nestory
 # Configured to work with Swift 6 strict concurrency
 
-# Allow explicit self in closures for Swift 6 concurrency compliance
---self closures-only
-
 # Standard formatting rules
 --indent 4
 --wraparguments preserve
@@ -18,3 +15,4 @@
 # Disable problematic rules for Swift 6
 --disable blankLinesBetweenScopes
 --disable sortImports
+--disable redundantSelf

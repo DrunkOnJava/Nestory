@@ -23,7 +23,7 @@
 			<key>entitlements</key>
 			<dict>
 				<key>application-identifier</key>
-				<string>2VXBQV4XC9.com.nestory.app.dev</string>
+				<string>2VXBQV4XC9.com.drunkonjava.nestory.dev</string>
 				<key>beta-reports-active</key>
 				<true/>
 				<key>com.apple.developer.team-identifier</key>
@@ -40,7 +40,7 @@
 				<key>dateExpires</key>
 				<string>4/6/26</string>
 				<key>name</key>
-				<string>iOS Team Store Provisioning Profile: com.nestory.app.dev</string>
+				<string>iOS Team Store Provisioning Profile: com.drunkonjava.nestory.dev</string>
 			</dict>
 			<key>symbols</key>
 			<true/>

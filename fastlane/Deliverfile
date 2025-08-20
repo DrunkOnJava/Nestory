@@ -1,7 +1,7 @@
 # Deliverfile - Configuration for App Store metadata delivery
 
 # App identifier
-app_identifier "com.nestory.app.dev"
+app_identifier "com.drunkonjava.nestory.dev"
 
 # Username (your Apple ID)
 # username "your@email.com" # Set via DELIVER_USER environment variable

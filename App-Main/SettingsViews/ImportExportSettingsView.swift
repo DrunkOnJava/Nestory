@@ -14,16 +14,19 @@ struct ImportExportSettingsView: View {
     @Environment(\.modelContext) private var modelContext
 
     @StateObject private var insuranceReportService = InsuranceReportService()
-    @StateObject private var importExportService = ImportExportService()
+    @StateObject private var importExportService = LiveImportExportService()
     @StateObject private var insuranceExportService = InsuranceExportService()
+
+    // REMINDER: InsuranceReportService, ImportExportService, and InsuranceExportService are all wired here!
 
     @State private var showingExportOptions = false
     @State private var showingInsuranceReportOptions = false
     @State private var isGeneratingReport = false
     @State private var reportError: Error?
     @State private var showingImportPicker = false
-    @State private var importResult: ImportExportService.ImportResult?
+    @State private var importSuccessCount: Int?
     @State private var showingImportResult = false
+    @State private var importResult: ImportResult?
     @State private var showingInsuranceExportOptions = false
 
     var body: some View {
@@ -96,10 +99,13 @@ struct ImportExportSettingsView: View {
                         await handleImport(url: url)
                     }
                 case let .failure(error):
-                    importResult = ImportExportService.ImportResult(
+                    importResult = ImportResult(
                         itemsImported: 0,
                         itemsSkipped: 0,
                         errors: [error.localizedDescription],
+                        warnings: [],
+                        fileSize: 0,
+                        processingTime: 0,
                     )
                     showingImportResult = true
                 }
@@ -124,7 +130,7 @@ struct ImportExportSettingsView: View {
         do {
             // Start accessing the security-scoped resource
             guard url.startAccessingSecurityScopedResource() else {
-                throw ImportExportService.ImportError.dataConversionError
+                throw ImportError.dataConversionError("Invalid file format")
             }
             defer { url.stopAccessingSecurityScopedResource() }
 
@@ -134,15 +140,18 @@ struct ImportExportSettingsView: View {
             } else if url.pathExtension.lowercased() == "json" {
                 importResult = try await importExportService.importJSON(from: url, modelContext: modelContext)
             } else {
-                throw ImportExportService.ImportError.invalidFormat
+                throw ImportError.invalidFormat("Unsupported file format")
             }
 
             showingImportResult = true
         } catch {
-            importResult = ImportExportService.ImportResult(
+            importResult = ImportResult(
                 itemsImported: 0,
                 itemsSkipped: 0,
                 errors: [error.localizedDescription],
+                warnings: [],
+                fileSize: 0,
+                processingTime: 0,
             )
             showingImportResult = true
         }

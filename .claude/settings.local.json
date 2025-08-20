@@ -5,10 +5,42 @@
       "Bash(for dir in Foundation Infrastructure Services UI Features App-Main)",
       "Bash(done)",
       "Bash(chmod:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(xcodebuild:*)",
+      "Bash(make verify-arch:*)",
+      "Bash(make:*)",
+      "Bash(make:*)",
+      "Bash(find:*)",
+      "Bash(swiftlint:*)",
+      "Bash(grep:*)",
+      "Bash(swift build:*)",
+      "Bash(swift build:*)",
+      "Bash(swift package:*)",
+      "Bash(mkdir:*)",
+      "Bash(cat:*)",
+      "Bash(mv:*)",
+      "Bash(timeout 60 make build)",
+      "Bash(xcodegen generate:*)",
+      "Bash(osascript:*)",
+      "Bash(xcrun simctl io:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(swiftformat:*)",
+      "Bash(swift:*)",
+      "Bash(python3:*)",
+      "Bash(rg:*)",
+      "Bash(if:*)",
+      "Bash(then)",
+      "Bash(else)",
+      "Bash(fi)",
+      "Bash(timeout 60 make build-staging)",
+      "Bash(timeout 60 make build-prod)"
     ],
     "deny": [],
-    "ask": []
+    "ask": [],
+    "additionalDirectories": [
+      "/Users/griffin/Library/Application Support/Claude/Logs"
+    ]
   },
   "outputStyle": "Explanatory"
 }

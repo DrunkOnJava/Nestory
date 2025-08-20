@@ -12,7 +12,7 @@ import Vision
 
 struct BarcodeScannerView: View {
     @Bindable var item: Item
-    @StateObject private var scanner = BarcodeScannerService()
+    @StateObject private var scanner = LiveBarcodeScannerService()
     @Environment(\.dismiss) private var dismiss
 
     @State private var showingCamera = false

@@ -7,7 +7,7 @@ All App Store Connect configuration has been successfully completed. Your app is
 ## Current Status
 
 - **Version**: 1.0.1 (Build 2)
-- **Bundle ID**: com.nestory.app.dev
+- **Bundle ID**: com.drunkonjava.nestory.dev
 - **Categories**: Productivity (Primary), Utilities (Secondary)
 - **Age Rating**: 4+ (No objectionable content)
 - **App Icon**: ✅ Configured with all required sizes

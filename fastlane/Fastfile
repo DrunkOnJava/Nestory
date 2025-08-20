@@ -3,7 +3,7 @@
 default_platform(:ios)
 
 # ---- Shared config via ENV (override with `.env` or lane options) ----
-APP_IDENTIFIER   = ENV['APP_IDENTIFIER']   || 'com.nestory.app'
+APP_IDENTIFIER   = ENV['APP_IDENTIFIER']   || 'com.drunkonjava.nestory'
 SCHEME           = ENV['SCHEME']           || 'Nestory-Dev'
 WORKSPACE        = ENV['WORKSPACE']        || nil        # e.g., 'Nestory.xcworkspace' (nil -> use project)
 PROJECT          = ENV['PROJECT']          || 'Nestory.xcodeproj'
@@ -22,7 +22,7 @@ ASC_KEY_CONTENT  = ENV['ASC_KEY_CONTENT']  # Base64 or raw p8 content (preferred
 
 # App Store Connect API Configuration
 ASC_API_ENABLED  = ENV['ASC_API_ENABLED'] == 'true'
-ASC_BUNDLE_ID    = ENV['ASC_BUNDLE_ID'] || 'com.nestory.app.dev'
+ASC_BUNDLE_ID    = ENV['ASC_BUNDLE_ID'] || 'com.drunkonjava.nestory.dev'
 
 platform :ios do
   # ------------------------------

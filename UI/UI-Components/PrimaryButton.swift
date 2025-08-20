@@ -100,11 +100,11 @@ public struct DestructiveButton: View {
 
 #Preview {
     VStack(spacing: Theme.Spacing.md) {
-        PrimaryButton(title: "Save", action: {})
-        PrimaryButton(title: "Loading...", isLoading: true, action: {})
-        PrimaryButton(title: "Disabled", isDisabled: true, action: {})
-        SecondaryButton(title: "Cancel", action: {})
-        DestructiveButton(title: "Delete", action: {})
+        PrimaryButton(title: "Save") {}
+        PrimaryButton(title: "Loading...", isLoading: true) {}
+        PrimaryButton(title: "Disabled", isDisabled: true) {}
+        SecondaryButton(title: "Cancel") {}
+        DestructiveButton(title: "Delete") {}
     }
     .padding()
 }

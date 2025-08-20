@@ -1,8 +1,6 @@
-//
-//  ItemDetailView.swift
-//  Nestory
-//
-//  REMINDER: This view is where item-specific features get wired up:
+// Layer: App
+// Module: ItemDetailView
+// Purpose: Individual item details and management
 //  - Edit Item (✓ Wired)
 //  - Receipt OCR (✓ Wired)
 //  - Photo Management
@@ -19,6 +17,9 @@ struct ItemDetailView: View {
     @State private var showingReceiptCapture = false
     @State private var showingWarrantyDocuments = false
     @State private var showingConditionDocumentation = false
+    @State private var showingInsuranceReport = false
+
+    @StateObject private var insuranceReportService = InsuranceReportService()
 
     var body: some View {
         ScrollView {
@@ -253,6 +254,31 @@ struct ItemDetailView: View {
                         .padding(.vertical, 4)
                     }
 
+                    // Insurance Report Section
+                    GroupBox("Insurance Documentation") {
+                        VStack(spacing: 12) {
+                            HStack {
+                                Image(systemName: "doc.text.fill")
+                                    .foregroundColor(.blue)
+                                VStack(alignment: .leading) {
+                                    Text("Generate Insurance Report")
+                                        .font(.headline)
+                                    Text("Create a detailed report for this item for insurance claims")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                Spacer()
+                            }
+
+                            Button(action: { showingInsuranceReport = true }) {
+                                Label("Generate Item Report", systemImage: "doc.text")
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(.borderedProminent)
+                        }
+                        .padding(.vertical, 4)
+                    }
+
                     // Notes
                     if let notes = item.notes {
                         GroupBox("Notes") {
@@ -293,6 +319,9 @@ struct ItemDetailView: View {
         }
         .sheet(isPresented: $showingConditionDocumentation) {
             ItemConditionView(item: item)
+        }
+        .sheet(isPresented: $showingInsuranceReport) {
+            SingleItemInsuranceReportView(item: item, insuranceReportService: insuranceReportService)
         }
     }
 }

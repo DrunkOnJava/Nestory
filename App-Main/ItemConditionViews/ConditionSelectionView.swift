@@ -21,12 +21,11 @@ struct ConditionSelectionView: View {
                     ConditionButton(
                         condition: condition,
                         isSelected: selectedCondition == condition,
-                        action: {
-                            withAnimation {
-                                selectedCondition = condition
-                            }
-                        },
-                    )
+                    ) {
+                        withAnimation {
+                            selectedCondition = condition
+                        }
+                    }
                 }
             }
 
