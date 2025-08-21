@@ -7,11 +7,13 @@
 // App layer - no direct logging imports
 import SwiftUI
 import UniformTypeIdentifiers
+import os.log
 
 struct DocumentManagementView: View {
     @Bindable var item: Item
     @State private var showingDocumentPicker = false
     // Logging handled by service layer
+    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.nestory.app", category: "DocumentManagement")
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {

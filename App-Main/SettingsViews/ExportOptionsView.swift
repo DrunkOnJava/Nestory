@@ -4,8 +4,8 @@
 // Purpose: Export options view for data export functionality
 //
 
-// App layer - no direct logging imports
 import SwiftUI
+import os.log
 
 struct ExportOptionsView: View {
     let items: [Item]

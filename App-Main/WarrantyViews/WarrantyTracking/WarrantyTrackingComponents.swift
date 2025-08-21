@@ -410,9 +410,9 @@ public struct SmartDetectionCard: View {
 // MARK: - Statistics Component
 
 public struct WarrantyStatisticsCard: View {
-    let statistics: WarrantyStatistics
+    let statistics: WarrantyProgressStatistics
     
-    public init(statistics: WarrantyStatistics) {
+    public init(statistics: WarrantyProgressStatistics) {
         self.statistics = statistics
     }
     

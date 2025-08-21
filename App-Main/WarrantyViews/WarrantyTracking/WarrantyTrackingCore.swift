@@ -215,18 +215,18 @@ public final class WarrantyTrackingCore: ObservableObject {
     
     // MARK: - Statistics
     
-    public func getWarrantyStatistics() -> WarrantyStatistics {
+    public func getWarrantyStatistics() -> WarrantyProgressStatistics {
         guard let warranty = item.warranty,
               let startDate = warranty.startDate,
               let endDate = warranty.endDate else {
-            return WarrantyStatistics()
+            return WarrantyProgressStatistics()
         }
         
         let totalDays = Calendar.current.dateComponents([.day], from: startDate, to: endDate).day ?? 0
         let remainingDays = max(0, Calendar.current.dateComponents([.day], from: Date(), to: endDate).day ?? 0)
         let elapsedDays = totalDays - remainingDays
         
-        return WarrantyStatistics(
+        return WarrantyProgressStatistics(
             totalDays: totalDays,
             elapsedDays: elapsedDays,
             remainingDays: remainingDays,
@@ -237,7 +237,7 @@ public final class WarrantyTrackingCore: ObservableObject {
 
 // MARK: - Supporting Types
 
-public struct WarrantyStatistics {
+public struct WarrantyProgressStatistics {
     public let totalDays: Int
     public let elapsedDays: Int
     public let remainingDays: Int

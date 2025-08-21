@@ -161,7 +161,7 @@ struct InsuranceReportOptionsView: View {
     InsuranceReportOptionsView(
         items: [],
         categories: [],
-        insuranceReportService: InsuranceReportService(),
+        insuranceReportService: try! LiveInsuranceReportService(),
         isGenerating: .constant(false),
     )
 }

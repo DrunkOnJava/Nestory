@@ -19,8 +19,9 @@ import AVFoundation
 import ComposableArchitecture
 import SwiftUI
 import Vision
+import PhotosUI
 
-struct BarcodeScannerView: View {
+struct LegacyBarcodeScannerView: View {
     @Bindable var item: Item
     @Dependency(\.barcodeScannerService) var scanner
     @Environment(\.dismiss) private var dismiss
@@ -217,6 +218,6 @@ private struct ProcessingOverlay: View {
 }
 
 #Preview {
-    BarcodeScannerView(item: Item(name: "Test Item"))
+    LegacyBarcodeScannerView(item: Item(name: "Test Item"))
         .modelContainer(for: [Item.self, Category.self], inMemory: true)
 }

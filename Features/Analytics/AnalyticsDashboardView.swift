@@ -9,7 +9,7 @@ import ComposableArchitecture
 import SwiftData
 import SwiftUI
 
-struct AnalyticsDashboardView: View {
+public struct AnalyticsDashboardView: View {
     @Bindable var store: StoreOf<AnalyticsFeature>
 
     private var timeRangeMapping: [AnalyticsFeature.State.TimeRange: AnalyticsDataProvider.TimeRange] = [
@@ -27,8 +27,12 @@ struct AnalyticsDashboardView: View {
             timeRange: timeRangeMapping[store.selectedTimeRange] ?? .month
         )
     }
+    
+    public init(store: StoreOf<AnalyticsFeature>) {
+        self.store = store
+    }
 
-    var body: some View {
+    public var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {

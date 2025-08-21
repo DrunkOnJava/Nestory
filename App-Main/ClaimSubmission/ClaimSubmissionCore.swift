@@ -298,17 +298,4 @@ public final class ClaimSubmissionCore: ObservableObject {
 }
 
 // MARK: - Supporting Types
-
-public enum EmailError: LocalizedError {
-    case compositionFailed
-    case sendingFailed
-    case cancelled
-
-    public var errorDescription: String? {
-        switch self {
-        case .compositionFailed: "Failed to compose email"
-        case .sendingFailed: "Failed to send email"
-        case .cancelled: "Email sending was cancelled"
-        }
-    }
-}
+// EmailError is imported from ClaimEmailService in Services layer

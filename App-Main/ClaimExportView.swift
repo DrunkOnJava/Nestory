@@ -4,18 +4,19 @@
 // Purpose: Export and share insurance claim documents with multiple format options
 //
 
+import ComposableArchitecture
 import SwiftUI
 import SwiftData
 
 struct ClaimExportView: View {
-    let claim: InsuranceClaimService.GeneratedClaim
+    let claim: GeneratedClaim
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
 
-    @StateObject private var claimService = InsuranceClaimService()
+    @Dependency(\.insuranceClaimService) var claimService
     @State private var trackingService: ClaimTrackingService?
 
-    @State private var selectedFormats: Set<InsuranceClaimService.ClaimDocumentFormat> = []
+    @State private var selectedFormats: Set<ClaimDocumentFormat> = []
     @State private var includePhotos = true
     @State private var includeReceipts = true
     @State private var addToTracking = true
@@ -201,7 +202,7 @@ struct ClaimExportView: View {
             }
         }
         .sheet(isPresented: $showingShareSheet) {
-            ShareSheet(items: exportedURLs)
+            ShareSheet(activityItems: exportedURLs)
         }
         .alert("Export Error", isPresented: $showingError) {
             Button("OK") {}
@@ -229,7 +230,7 @@ struct ClaimExportView: View {
     // MARK: - Helper Views
 
     private func FormatToggle(
-        format: InsuranceClaimService.ClaimDocumentFormat,
+        format: ClaimDocumentFormat,
         isSelected: Bool,
         action: @escaping () -> Void
     ) -> some View {
@@ -256,8 +257,8 @@ struct ClaimExportView: View {
 
     // MARK: - Export Logic
 
-    private var availableFormats: [InsuranceClaimService.ClaimDocumentFormat] {
-        InsuranceClaimService.ClaimDocumentFormat.allCases.filter { $0 != claim.format }
+    private var availableFormats: [ClaimDocumentFormat] {
+        ClaimDocumentFormat.allCases.filter { $0 != claim.format }
     }
 
     private func exportDocuments() async {
@@ -273,7 +274,7 @@ struct ClaimExportView: View {
             do {
                 // Create new request with different format
                 var modifiedRequest = claim.request
-                let newRequest = InsuranceClaimService.ClaimRequest(
+                let newRequest = ClaimRequest(
                     claimType: modifiedRequest.claimType,
                     insuranceCompany: modifiedRequest.insuranceCompany,
                     items: modifiedRequest.items,
@@ -348,7 +349,7 @@ struct ClaimExportView: View {
 
     // MARK: - Helper Functions
 
-    private func createTemporaryURL(for claim: InsuranceClaimService.GeneratedClaim) -> URL? {
+    private func createTemporaryURL(for claim: GeneratedClaim) -> URL? {
         let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(claim.filename)
         do {
             try claim.documentData.write(to: tempURL)
@@ -358,7 +359,7 @@ struct ClaimExportView: View {
         }
     }
 
-    private func iconForFormat(_ format: InsuranceClaimService.ClaimDocumentFormat) -> String {
+    private func iconForFormat(_ format: ClaimDocumentFormat) -> String {
         switch format {
         case .pdf, .detailedPDF, .militaryFormat:
             "doc.fill"
@@ -404,41 +405,18 @@ struct ClaimExportView: View {
     }
 }
 
-// MARK: - Share Sheet
-
-private struct ShareSheet: UIViewControllerRepresentable {
-    let items: [Any]
-
-    func makeUIViewController(context _: Context) -> UIActivityViewController {
-        let controller = UIActivityViewController(activityItems: items, applicationActivities: nil)
-
-        // Exclude some activities that don't make sense for insurance documents
-        controller.excludedActivityTypes = [
-            .assignToContact,
-            .addToReadingList,
-            .postToWeibo,
-            .postToVimeo,
-            .postToTencentWeibo,
-        ]
-
-        return controller
-    }
-
-    func updateUIViewController(_: UIActivityViewController, context _: Context) {
-        // No updates needed
-    }
-}
+// ShareSheet is imported from UI/UI-Components/ShareSheet.swift
 
 // MARK: - Preview
 
 #Preview {
-    let mockRequest = InsuranceClaimService.ClaimRequest(
+    let mockRequest = ClaimRequest(
         claimType: .theft,
         insuranceCompany: .stateFarm,
         items: [],
         incidentDate: Date(),
         incidentDescription: "Items stolen from garage",
-        contactInfo: InsuranceClaimService.ClaimContactInfo(
+        contactInfo: ClaimContactInfo(
             name: "John Doe",
             phone: "555-0123",
             email: "john@example.com",
@@ -446,14 +424,14 @@ private struct ShareSheet: UIViewControllerRepresentable {
         )
     )
 
-    let mockClaim = InsuranceClaimService.GeneratedClaim(
+    let mockClaim = GeneratedClaim(
         request: mockRequest,
         documentData: "Mock PDF Data".data(using: .utf8)!,
         filename: "Insurance_Claim_Theft_StateFarm_2024-01-15.pdf",
-        format: .pdf,
+        format: .standardPDF,
         checklistItems: ["Review claim", "Submit documents"],
         submissionInstructions: "Submit online at statefarm.com"
     )
 
-    return ClaimExportView(claim: mockClaim)
+    ClaimExportView(claim: mockClaim)
 }

@@ -25,7 +25,7 @@ public final class ClaimExportFormatters {
         format: InsuranceCompanyFormat,
         claim: ClaimSubmission
     ) async throws -> ExportResult {
-        let options = ExportOptions()
+        var options = ExportOptions()
         options.policyNumber = claim.policyNumber
         options.includePhotos = true
         options.includeReceipts = true
@@ -160,7 +160,7 @@ public final class ClaimExportFormatters {
                 "category": item.category?.name ?? "",
                 "purchasePrice": item.purchasePrice ?? 0,
                 "serialNumber": item.serialNumber ?? "",
-                "hasPhotos": !item.photos.isEmpty,
+                "hasPhotos": item.imageData != nil || !item.conditionPhotos.isEmpty,
                 "hasReceipts": !item.receipts.isEmpty,
             ] },
         ]

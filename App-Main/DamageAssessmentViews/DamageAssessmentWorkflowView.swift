@@ -31,7 +31,7 @@ struct DamageAssessmentWorkflowView: View {
                 } else if let workflow = core.workflow {
                     workflowProgressView(workflow: workflow)
                 } else {
-                    LoadingView(message: "Starting assessment...")
+                    DamageLoadingView(message: "Starting assessment...")
                 }
             }
             .navigationTitle("Damage Assessment")

@@ -273,7 +273,7 @@ private class PhotoCaptureDelegate: NSObject, AVCapturePhotoCaptureDelegate {
     }
 }
 
-public struct ProcessedPhoto: @unchecked Sendable {
+public struct ProcessedPhoto: @unchecked Sendable, Equatable {
     public let original: UIImage
     public let thumbnail: UIImage
     public let perceptualHash: UInt64
@@ -282,10 +282,19 @@ public struct ProcessedPhoto: @unchecked Sendable {
     public let metadata: ImageMetadata
 }
 
-public struct DetectedObject: Sendable {
+public struct DetectedObject: Sendable, Equatable {
     public let confidence: Float
     public let boundingBox: CGRect
     public let label: String
+}
+
+extension ProcessedPhoto {
+    public static func == (lhs: ProcessedPhoto, rhs: ProcessedPhoto) -> Bool {
+        return lhs.perceptualHash == rhs.perceptualHash &&
+               lhs.extractedText == rhs.extractedText &&
+               lhs.detectedObjects == rhs.detectedObjects &&
+               lhs.metadata == rhs.metadata
+    }
 }
 
 public enum PhotoError: LocalizedError, Sendable {

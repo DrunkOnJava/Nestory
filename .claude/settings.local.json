@@ -46,7 +46,13 @@
       "Bash(xcrun simctl install:*)",
       "Bash(xcrun simctl list:*)",
       "Bash(pkill:*)",
-      "Bash(xcrun simctl launch:*)"
+      "Bash(xcrun simctl launch:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(timeout 30 xcodebuild:*)",
+      "Bash(timeout 45 xcodebuild:*)",
+      "Bash(timeout 90 make build)",
+      "Bash(timeout 30 swift build:*)",
+      "Bash(xcodegen:*)"
     ],
     "deny": [],
     "ask": [],

@@ -8,10 +8,8 @@ import SwiftUI
 import SwiftData
 import MessageUI
 
-// Re-export modular components for backward compatibility
-@_exported import ClaimSubmissionCore
-@_exported import ClaimSubmissionComponents
-@_exported import ClaimSubmissionSteps
+// Modular components are automatically available within the same target
+// ClaimSubmissionCore, ClaimSubmissionComponents, ClaimSubmissionSteps included
 
 struct ClaimSubmissionView: View {
     @Query private var items: [Item]

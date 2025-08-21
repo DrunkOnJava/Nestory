@@ -3,6 +3,7 @@
 //  Nestory
 //
 
+import ComposableArchitecture
 import PhotosUI
 import SwiftData
 import SwiftUI
@@ -12,7 +13,7 @@ struct ReceiptCaptureView: View {
     @Bindable var item: Item
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
-    @StateObject private var ocrService = ReceiptOCRService()
+    @Dependency(\.receiptOCRService) var ocrService
 
     @State private var showingScanner = false
     @State private var showingPhotoPicker = false
@@ -98,13 +99,16 @@ struct ReceiptCaptureView: View {
 
                     // ML Processing Progress
                     if showingMLProgress || isProcessing {
-                        // TODO: ARCH - Move MLProcessingProgressView to proper UI import
-                        // MLProcessingProgressView(
-                        //     stage: ocrService.processingStage,
-                        //     confidence: ocrService.confidenceScore,
-                        //     isProcessing: ocrService.isProcessing
-                        // )
-                        ProgressView("Processing receipt...")
+                        VStack(spacing: 8) {
+                            ProgressView()
+                                .scaleEffect(1.2)
+                            Text("Processing receipt...")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        .padding()
+                        .background(Color(.secondarySystemBackground))
+                        .cornerRadius(12)
                     }
 
                     // Enhanced Receipt Data Display
@@ -311,7 +315,7 @@ struct ReceiptCaptureView: View {
 
         Task {
             do {
-                // Use enhanced ML processing
+                // Use enhanced ML processing  
                 let enhancedData = try await ocrService.processReceiptImage(image)
 
                 await MainActor.run {

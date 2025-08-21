@@ -237,7 +237,7 @@ public enum ImageFormat {
     case png
 }
 
-public struct ImageMetadata: Sendable {
+public struct ImageMetadata: Sendable, Equatable {
     public let width: Int
     public let height: Int
     public let captureDate: Date?

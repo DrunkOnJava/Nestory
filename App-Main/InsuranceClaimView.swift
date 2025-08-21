@@ -4,6 +4,7 @@
 // Purpose: Insurance claim generation interface with multi-step wizard
 //
 
+import ComposableArchitecture
 import SwiftUI
 import SwiftData
 
@@ -12,12 +13,12 @@ struct InsuranceClaimView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
 
-    @StateObject private var claimService = InsuranceClaimService()
-    @EnvironmentObject private var notificationService: LiveNotificationService
+    @Dependency(\.insuranceClaimService) var claimService
+    @Dependency(\.notificationService) var notificationService
 
     @State private var currentStep = 1
-    @State private var selectedClaimType: InsuranceClaimService.ClaimType = .generalLoss
-    @State private var selectedCompany: InsuranceClaimService.InsuranceCompany = .generic
+    @State private var selectedClaimType: ClaimType = .generalLoss
+    @State private var selectedCompany: InsuranceCompany = .aaa
     @State private var incidentDate = Date()
     @State private var incidentDescription = ""
     @State private var policyNumber = ""
@@ -31,7 +32,7 @@ struct InsuranceClaimView: View {
     @State private var emergencyContact = ""
 
     // Generation state
-    @State private var generatedClaim: InsuranceClaimService.GeneratedClaim?
+    @State private var generatedClaim: GeneratedClaim?
     @State private var showingExport = false
     @State private var showingPreview = false
     @State private var errorMessage = ""
@@ -144,7 +145,7 @@ struct InsuranceClaimView: View {
                 GridItem(.flexible()),
                 GridItem(.flexible()),
             ], spacing: 16) {
-                ForEach(InsuranceClaimService.ClaimType.allCases, id: \.self) { claimType in
+                ForEach(ClaimType.allCases, id: \.self) { claimType in
                     ClaimTypeCard(
                         claimType: claimType,
                         isSelected: selectedClaimType == claimType
@@ -159,7 +160,7 @@ struct InsuranceClaimView: View {
                 .padding(.top)
 
             Picker("Insurance Company", selection: $selectedCompany) {
-                ForEach(InsuranceClaimService.InsuranceCompany.allCases, id: \.self) { company in
+                ForEach(InsuranceCompany.allCases, id: \.self) { company in
                     Text(company.rawValue).tag(company)
                 }
             }
@@ -431,7 +432,7 @@ struct InsuranceClaimView: View {
     // MARK: - Helper Views
 
     private func ClaimTypeCard(
-        claimType: InsuranceClaimService.ClaimType,
+        claimType: ClaimType,
         isSelected: Bool,
         action: @escaping () -> Void
     ) -> some View {
@@ -493,7 +494,7 @@ struct InsuranceClaimView: View {
     }
 
     private func generateClaim() async {
-        let contactInfo = InsuranceClaimService.ClaimContactInfo(
+        let contactInfo = ClaimContactInfo(
             name: contactName,
             phone: contactPhone,
             email: contactEmail,
@@ -501,7 +502,7 @@ struct InsuranceClaimView: View {
             emergencyContact: emergencyContact.isEmpty ? nil : emergencyContact
         )
 
-        let request = InsuranceClaimService.ClaimRequest(
+        let request = ClaimRequest(
             claimType: selectedClaimType,
             insuranceCompany: selectedCompany,
             items: items,

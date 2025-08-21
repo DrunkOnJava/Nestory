@@ -14,7 +14,7 @@ struct InventoryView: View {
         NavigationStackStore(store.scope(state: \.path, action: \.path)) {
             Group {
                 if store.isLoading, store.items.isEmpty {
-                    LoadingView()
+                    InventoryLoadingView()
                 } else if store.filteredItems.isEmpty {
                     if store.searchText.isEmpty, store.selectedCategory == nil {
                         EmptyInventoryView(
@@ -91,7 +91,7 @@ struct InventoryView: View {
 
 // MARK: - Supporting Views
 
-private struct LoadingView: View {
+private struct InventoryLoadingView: View {
     var body: some View {
         VStack(spacing: 16) {
             ProgressView()

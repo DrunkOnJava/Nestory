@@ -12,7 +12,7 @@ public struct ClaimSpreadsheetGenerator {
     // MARK: - Spreadsheet Generation
 
     public func generateSpreadsheet(
-        request: InsuranceClaimService.ClaimRequest,
+        request: ClaimRequest,
         template: ClaimTemplate
     ) throws -> Data {
         let csvContent = buildCSVContent(request: request, template: template)
@@ -27,7 +27,7 @@ public struct ClaimSpreadsheetGenerator {
     // MARK: - CSV Building
 
     private func buildCSVContent(
-        request: InsuranceClaimService.ClaimRequest,
+        request: ClaimRequest,
         template: ClaimTemplate
     ) -> String {
         var csvLines: [String] = []

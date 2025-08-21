@@ -6,11 +6,10 @@
 
 import SwiftUI
 import SwiftData
+import ComposableArchitecture
 
-// Re-export modular components for backward compatibility
-@_exported import ClaimPackageAssemblyCore
-@_exported import ClaimPackageAssemblySteps
-@_exported import ClaimPackageAssemblyComponents
+// Modular components are automatically available within the same target
+// ClaimPackageAssemblyCore, ClaimPackageAssemblySteps, ClaimPackageAssemblyComponents included
 
 struct ClaimPackageAssemblyView: View {
     // MARK: - Dependencies
@@ -18,15 +17,35 @@ struct ClaimPackageAssemblyView: View {
     @Query private var allItems: [Item]
     @Query private var allCategories: [Category]
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var core = ClaimPackageAssemblyCore()
+    @Dependency(\.claimPackageAssemblerService) var assemblerService
+    
+    // Local state for the UI workflow
+    @State private var currentStep: AssemblyStep = .itemSelection
+    @State private var selectedItems: Set<UUID> = []
+    @State private var claimScenario: ClaimType = .theft
+    @State private var packageOptions: ClaimPackageOptions = ClaimPackageOptions()
+    @State private var isAssembling = false
+    @State private var generatedPackage: ClaimPackage?
+    
+    private var progressValue: Double {
+        let stepCount = 6.0
+        switch currentStep {
+        case .itemSelection: return 1.0 / stepCount
+        case .scenarioSetup: return 2.0 / stepCount
+        case .packageOptions: return 3.0 / stepCount
+        case .validation: return 4.0 / stepCount
+        case .assembly: return 5.0 / stepCount
+        case .export: return 6.0 / stepCount
+        }
+    }
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
                 // Progress indicator
                 AssemblyProgressView(
-                    currentStep: core.currentStep,
-                    progress: core.progress
+                    currentStep: currentStep,
+                    progress: progressValue
                 )
 
                 // Step content

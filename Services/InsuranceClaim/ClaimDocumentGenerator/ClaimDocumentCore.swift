@@ -45,11 +45,11 @@ public struct ClaimDocumentCore {
     // MARK: - Main Generation Method
 
     public func generateDocument(
-        request: InsuranceClaimService.ClaimRequest,
+        request: ClaimRequest,
         template: ClaimTemplate
     ) async throws -> Data {
         switch request.format {
-        case .pdf, .detailedPDF, .militaryFormat:
+        case .standardPDF, .detailedPDF:
             try await pdfGenerator.generatePDF(request: request, template: template)
         case .structuredJSON:
             try jsonGenerator.generateJSON(request: request, template: template)

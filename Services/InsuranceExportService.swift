@@ -227,7 +227,7 @@ public struct ExportOptions {
 }
 
 /// Result of an insurance export operation
-public struct ExportResult {
+public struct ExportResult: Sendable {
     /// URL of the generated export file
     public let fileURL: URL
     /// Export format used

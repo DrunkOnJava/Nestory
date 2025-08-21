@@ -213,3 +213,15 @@ public enum WarrantyType: String, CaseIterable, Codable {
         }
     }
 }
+
+// MARK: - Equatable Conformance for TCA State Management
+extension Warranty: Equatable {
+    public static func == (lhs: Warranty, rhs: Warranty) -> Bool {
+        return lhs.id == rhs.id &&
+               lhs.provider == rhs.provider &&
+               lhs.warrantyType == rhs.warrantyType &&
+               lhs.startDate == rhs.startDate &&
+               lhs.expiresAt == rhs.expiresAt &&
+               lhs.updatedAt == rhs.updatedAt
+    }
+}

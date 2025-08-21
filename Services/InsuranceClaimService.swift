@@ -12,8 +12,17 @@ import SwiftUI
 // APPLE_FRAMEWORK_OPPORTUNITY: Replace with MessageUI - Direct email integration for claim submission
 // APPLE_FRAMEWORK_OPPORTUNITY: Replace with QuickLook - Preview claim documents before submission
 
+// MARK: - InsuranceClaimService Protocol
+
+public protocol InsuranceClaimService: Sendable {
+    func generateClaim(for request: ClaimRequest) async throws -> GeneratedClaim
+    func getClaim(by id: UUID) async -> GeneratedClaim?
+}
+
+// MARK: - Live Implementation
+
 @MainActor
-public final class InsuranceClaimService: ObservableObject {
+public final class LiveInsuranceClaimService: InsuranceClaimService, ObservableObject {
     // MARK: - Dependencies
 
     private let core: InsuranceClaimCore
@@ -44,7 +53,7 @@ public final class InsuranceClaimService: ObservableObject {
         try await core.generateClaim(for: request)
     }
 
-    public func getClaim(by id: UUID) -> GeneratedClaim? {
+    public func getClaim(by id: UUID) async -> GeneratedClaim? {
         core.getClaim(by: id)
     }
 
@@ -94,14 +103,7 @@ public final class InsuranceClaimService: ObservableObject {
 }
 
 // MARK: - Re-exported Types for Backward Compatibility
-
-public typealias ClaimError = InsuranceClaimValidation.ClaimError
-public typealias ClaimType = InsuranceClaimModels.ClaimType
-public typealias InsuranceCompany = InsuranceClaimModels.InsuranceCompany
-public typealias ClaimDocumentFormat = InsuranceClaimModels.ClaimDocumentFormat
-public typealias ClaimRequest = InsuranceClaimModels.ClaimRequest
-public typealias ClaimContactInfo = InsuranceClaimModels.ClaimContactInfo
-public typealias GeneratedClaim = InsuranceClaimModels.GeneratedClaim
+// Types are directly available since InsuranceClaimModels.swift is in the same Services module
 
 // MARK: - Array Extension for Chunking
 

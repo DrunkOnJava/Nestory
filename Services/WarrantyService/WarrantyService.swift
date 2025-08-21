@@ -187,7 +187,12 @@ public struct LiveWarrantyService: WarrantyService, @unchecked Sendable {
 
         for category in categories {
             let itemsDescriptor = FetchDescriptor<Item>(
-                predicate: #Predicate { $0.category?.id == category.id }
+                predicate: #Predicate { item in
+                    if let categoryId = item.category?.id {
+                        return categoryId == category.id
+                    }
+                    return false
+                }
             )
             let items = try modelContext.fetch(itemsDescriptor)
 

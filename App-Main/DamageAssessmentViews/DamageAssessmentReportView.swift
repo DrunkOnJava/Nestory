@@ -558,21 +558,7 @@ struct ReportFeature: View {
     }
 }
 
-// MARK: - Share Sheet
-
-struct ShareSheet: UIViewControllerRepresentable {
-    let activityItems: [Any]
-
-    func makeUIViewController(context _: Context) -> UIActivityViewController {
-        let controller = UIActivityViewController(
-            activityItems: activityItems,
-            applicationActivities: nil
-        )
-        return controller
-    }
-
-    func updateUIViewController(_: UIActivityViewController, context _: Context) {}
-}
+// ShareSheet is imported from UI/UI-Components/ShareSheet.swift
 
 #Preview {
     let workflow = DamageAssessmentWorkflow(

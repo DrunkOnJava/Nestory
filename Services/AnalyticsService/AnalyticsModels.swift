@@ -8,7 +8,7 @@ import Foundation
 
 // MARK: - Analytics Data Models
 
-public struct DashboardData: Codable {
+public struct DashboardData: Codable, Equatable {
     public let totalItems: Int
     public let totalValue: Decimal
     public let categoryBreakdown: [CategoryBreakdown]
@@ -27,16 +27,28 @@ public struct DashboardData: Codable {
         case topValueItemIds, recentItemIds, valueTrends
         case totalDepreciation, lastUpdated
     }
+    
+    // Custom Equatable implementation to ignore computed properties
+    public static func == (lhs: DashboardData, rhs: DashboardData) -> Bool {
+        return lhs.totalItems == rhs.totalItems &&
+               lhs.totalValue == rhs.totalValue &&
+               lhs.categoryBreakdown == rhs.categoryBreakdown &&
+               lhs.topValueItemIds == rhs.topValueItemIds &&
+               lhs.recentItemIds == rhs.recentItemIds &&
+               lhs.valueTrends == rhs.valueTrends &&
+               lhs.totalDepreciation == rhs.totalDepreciation &&
+               lhs.lastUpdated == rhs.lastUpdated
+    }
 }
 
-public struct CategoryBreakdown: Codable, Sendable {
+public struct CategoryBreakdown: Codable, Sendable, Equatable {
     public var categoryName: String
     public var itemCount: Int
     public var totalValue: Decimal
     public var percentage: Double
 }
 
-public struct TrendPoint: Codable, Sendable {
+public struct TrendPoint: Codable, Sendable, Equatable {
     public let date: Date
     public let value: Decimal
     public let itemCount: Int

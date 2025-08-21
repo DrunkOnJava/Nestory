@@ -12,7 +12,7 @@ public struct ClaimHTMLGenerator {
     // MARK: - HTML Generation
 
     public func generateHTML(
-        request: InsuranceClaimService.ClaimRequest,
+        request: ClaimRequest,
         template: ClaimTemplate
     ) throws -> Data {
         let htmlContent = buildHTMLDocument(request: request, template: template)
@@ -27,7 +27,7 @@ public struct ClaimHTMLGenerator {
     // MARK: - HTML Document Building
 
     private func buildHTMLDocument(
-        request: InsuranceClaimService.ClaimRequest,
+        request: ClaimRequest,
         template: ClaimTemplate
     ) -> String {
         return """
@@ -172,7 +172,7 @@ public struct ClaimHTMLGenerator {
     }
 
     private func generateHeader(
-        request: InsuranceClaimService.ClaimRequest,
+        request: ClaimRequest,
         template: ClaimTemplate
     ) -> String {
         return """
@@ -195,7 +195,7 @@ public struct ClaimHTMLGenerator {
         """
     }
 
-    private func generateIncidentDetails(request: InsuranceClaimService.ClaimRequest) -> String {
+    private func generateIncidentDetails(request: ClaimRequest) -> String {
         return """
         <div class="section">
             <h2 class="section-title">Incident Details</h2>
@@ -204,7 +204,7 @@ public struct ClaimHTMLGenerator {
         """
     }
 
-    private func generateContactInformation(request: InsuranceClaimService.ClaimRequest) -> String {
+    private func generateContactInformation(request: ClaimRequest) -> String {
         return """
         <div class="section">
             <h2 class="section-title">Contact Information</h2>
@@ -217,7 +217,7 @@ public struct ClaimHTMLGenerator {
         """
     }
 
-    private func generateItemsTable(request: InsuranceClaimService.ClaimRequest) -> String {
+    private func generateItemsTable(request: ClaimRequest) -> String {
         let selectedItems = request.selectedItemIds.compactMap { id in
             request.allItems.first { $0.id == id }
         }
@@ -255,7 +255,7 @@ public struct ClaimHTMLGenerator {
         """
     }
 
-    private func generateSummarySection(request: InsuranceClaimService.ClaimRequest) -> String {
+    private func generateSummarySection(request: ClaimRequest) -> String {
         let selectedItems = request.selectedItemIds.compactMap { id in
             request.allItems.first { $0.id == id }
         }

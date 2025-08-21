@@ -115,6 +115,37 @@ private enum CloudBackupServiceKey: DependencyKey {
     static let testValue: any CloudBackupService = MockCloudBackupService()
 }
 
+private enum ReceiptOCRServiceKey: @preconcurrency DependencyKey {
+    @MainActor
+    static var liveValue: any ReceiptOCRService {
+        LiveReceiptOCRService()
+    }
+    
+    static let testValue: any ReceiptOCRService = MockReceiptOCRService()
+}
+
+private enum InsuranceReportServiceKey: DependencyKey {
+    static var liveValue: any InsuranceReportService {
+        do {
+            return try LiveInsuranceReportService()
+        } catch {
+            fatalError("Failed to create InsuranceReportService: \(error)")
+        }
+    }
+    
+    static let testValue: any InsuranceReportService = MockInsuranceReportService()
+}
+
+private enum InsuranceClaimServiceKey: DependencyKey {
+    static let liveValue: any InsuranceClaimService = LiveInsuranceClaimService()
+    static let testValue: any InsuranceClaimService = MockInsuranceClaimService()
+}
+
+private enum ClaimPackageAssemblerServiceKey: DependencyKey {
+    static let liveValue: any ClaimPackageAssemblerService = LiveClaimPackageAssemblerService()
+    static let testValue: any ClaimPackageAssemblerService = MockClaimPackageAssemblerService()
+}
+
 extension DependencyValues {
     public var authService: any AuthService {
         get { self[AuthServiceKey.self] }
@@ -169,6 +200,26 @@ extension DependencyValues {
     public var cloudBackupService: any CloudBackupService {
         get { self[CloudBackupServiceKey.self] }
         set { self[CloudBackupServiceKey.self] = newValue }
+    }
+    
+    public var receiptOCRService: any ReceiptOCRService {
+        get { self[ReceiptOCRServiceKey.self] }
+        set { self[ReceiptOCRServiceKey.self] = newValue }
+    }
+    
+    public var insuranceReportService: any InsuranceReportService {
+        get { self[InsuranceReportServiceKey.self] }
+        set { self[InsuranceReportServiceKey.self] = newValue }
+    }
+    
+    public var insuranceClaimService: any InsuranceClaimService {
+        get { self[InsuranceClaimServiceKey.self] }
+        set { self[InsuranceClaimServiceKey.self] = newValue }
+    }
+    
+    public var claimPackageAssemblerService: any ClaimPackageAssemblerService {
+        get { self[ClaimPackageAssemblerServiceKey.self] }
+        set { self[ClaimPackageAssemblerServiceKey.self] = newValue }
     }
 }
 
@@ -397,9 +448,9 @@ struct MockImportExportService: ImportExportService {
     func validateImportData(_: Data, format _: ImportFormat) async throws -> ValidationResult {
         ValidationResult(
             isValid: true,
-            itemCount: 0,
+            issues: [],
             warnings: [],
-            errors: []
+            checkedAt: Date()
         )
     }
 
@@ -433,21 +484,15 @@ struct MockCloudBackupService: CloudBackupService {
 
     func restoreFromBackup(backupId: String) async throws -> RestoreResult {
         RestoreResult(
-            success: true,
-            restoredItemCount: 0,
-            timestamp: Date(),
-            backupId: backupId
+            itemsRestored: 0,
+            categoriesRestored: 0,
+            roomsRestored: 0,
+            backupDate: Date()
         )
     }
 
     func getBackupStatus() async throws -> BackupStatus {
-        BackupStatus(
-            isEnabled: false,
-            lastBackupDate: nil,
-            backupSize: 0,
-            nextScheduledBackup: nil,
-            isInProgress: false
-        )
+        .idle
     }
 
     func getAvailableBackups() async throws -> [CloudBackup] {
@@ -470,5 +515,86 @@ struct MockCloudBackupService: CloudBackupService {
 
     func updateBackupSettings(_: BackupSettings) async throws {
         // Mock implementation
+    }
+}
+
+@MainActor
+struct MockReceiptOCRService: ReceiptOCRService, Sendable {
+    func processReceiptImage(_ image: UIImage) async throws -> EnhancedReceiptData {
+        EnhancedReceiptData(
+            vendor: "Mock Store",
+            total: 29.99,
+            tax: 2.40,
+            date: Date(),
+            categories: ["electronics"],
+            items: [],
+            confidence: 0.85,
+            rawText: "Mock receipt text",
+            boundingBoxes: [],
+            processingMetadata: ReceiptProcessingMetadata(
+                processingTime: 0.5,
+                methodUsed: .mockTesting,
+                mlClassifierUsed: false,
+                appliedCorrections: []
+            )
+        )
+    }
+}
+
+struct MockInsuranceReportService: InsuranceReportService, Sendable {
+    func generateReport(for items: [Item]) async throws -> Data {
+        "Mock PDF Data".data(using: .utf8) ?? Data()
+    }
+    
+    func generateClaimPackage(items: [Item], metadata: ClaimMetadata) async throws -> ClaimPackage {
+        // Create a mock ClaimPackage with minimum required fields
+        let tempURL = URL(fileURLWithPath: "/tmp/mock-package")
+        return ClaimPackage(
+            id: UUID(),
+            scenario: .generalLoss,
+            items: items,
+            coverLetter: ClaimCoverLetter(content: "Mock cover letter", template: .basic),
+            documentation: [],
+            forms: [],
+            attestations: [],
+            validation: PackageValidation(isComplete: true, missingItems: []),
+            packageURL: tempURL,
+            createdDate: Date(),
+            options: ClaimPackageOptions(includePhotos: true, includeReceipts: true, compressionLevel: .medium)
+        )
+    }
+}
+
+struct MockInsuranceClaimService: InsuranceClaimService, Sendable {
+    func createClaim(items: [Item], metadata: ClaimMetadata) async throws -> InsuranceClaim {
+        InsuranceClaim(
+            id: UUID(),
+            claimNumber: "MOCK-CLAIM-001",
+            status: .draft,
+            items: items,
+            totalClaimValue: 0,
+            metadata: metadata,
+            createdAt: Date(),
+            updatedAt: Date()
+        )
+    }
+    
+    func submitClaim(_ claim: InsuranceClaim) async throws -> ClaimSubmissionResult {
+        ClaimSubmissionResult(
+            success: true,
+            claimId: claim.id,
+            confirmationNumber: "CONF-123",
+            submittedAt: Date()
+        )
+    }
+}
+
+struct MockClaimPackageAssemblerService: ClaimPackageAssemblerService, Sendable {
+    func assembleClaimPackage(items: [Item], metadata: ClaimMetadata) async throws -> ClaimPackageBundle {
+        ClaimPackageBundle(id: UUID(), items: items, metadata: metadata, documents: [], photos: [], totalValue: 0, createdAt: Date())
+    }
+    
+    func exportClaimPackage(_ bundle: ClaimPackageBundle, format: ExportFormat) async throws -> Data {
+        "Mock exported data".data(using: .utf8) ?? Data()
     }
 }

@@ -10,8 +10,16 @@
 import Foundation
 import SwiftUI
 
+// MARK: - ReceiptOCRService Protocol
+
+public protocol ReceiptOCRService: Sendable {
+    func processReceiptImage(_ image: UIImage) async throws -> EnhancedReceiptData
+}
+
+// MARK: - Live Implementation
+
 @MainActor
-public final class ReceiptOCRService: ObservableObject {
+public final class LiveReceiptOCRService: ReceiptOCRService, ObservableObject {
     // MARK: - Types
 
     public struct ReceiptData {

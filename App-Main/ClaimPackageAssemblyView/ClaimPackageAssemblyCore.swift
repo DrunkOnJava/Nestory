@@ -34,7 +34,7 @@ public final class ClaimPackageAssemblyCore: ObservableObject {
     
     // MARK: - Initialization
     
-    public init(assemblerService: ClaimPackageAssemblerService = ClaimPackageAssemblerService()) {
+    public init(assemblerService: ClaimPackageAssemblerService = LiveClaimPackageAssemblerService()) {
         self.assemblerService = assemblerService
     }
     

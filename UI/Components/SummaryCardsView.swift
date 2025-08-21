@@ -11,13 +11,20 @@
 
 import SwiftUI
 
-struct SummaryCardsView: View {
+public struct SummaryCardsView: View {
     let totalItems: Int
     let totalValue: Decimal
     let categoriesCount: Int
     let averageValue: Decimal
+    
+    public init(totalItems: Int, totalValue: Decimal, categoriesCount: Int, averageValue: Decimal) {
+        self.totalItems = totalItems
+        self.totalValue = totalValue
+        self.categoriesCount = categoriesCount
+        self.averageValue = averageValue
+    }
 
-    var body: some View {
+    public var body: some View {
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
             SummaryCard(
                 title: "Total Items",

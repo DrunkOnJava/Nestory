@@ -273,61 +273,7 @@ public struct ClaimSubmissionStepView: View {
 }
 
 // MARK: - Mail Composer View
-
-public struct MailComposerView: UIViewControllerRepresentable {
-    let email: ClaimEmailConfiguration
-    let onResult: (Result<Void, EmailError>) -> Void
-
-    public init(email: ClaimEmailConfiguration, onResult: @escaping (Result<Void, EmailError>) -> Void) {
-        self.email = email
-        self.onResult = onResult
-    }
-
-    public func makeUIViewController(context: Context) -> MFMailComposeViewController {
-        let controller = MFMailComposeViewController()
-        controller.mailComposeDelegate = context.coordinator
-        controller.setSubject(email.subject)
-        controller.setMessageBody(email.body, isHTML: false)
-        controller.setToRecipients([email.recipientEmail])
-
-        if let attachment = email.attachment {
-            controller.addAttachmentData(attachment.data, mimeType: attachment.mimeType, fileName: attachment.fileName)
-        }
-
-        return controller
-    }
-
-    public func updateUIViewController(_: MFMailComposeViewController, context _: Context) {
-        // No updates needed
-    }
-
-    public func makeCoordinator() -> Coordinator {
-        Coordinator(onResult: onResult)
-    }
-
-    public class Coordinator: NSObject, MFMailComposeViewControllerDelegate {
-        let onResult: (Result<Void, EmailError>) -> Void
-
-        init(onResult: @escaping (Result<Void, EmailError>) -> Void) {
-            self.onResult = onResult
-        }
-
-        public func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error _: Error?) {
-            switch result {
-            case .sent:
-                onResult(.success(()))
-            case .failed:
-                onResult(.failure(.sendingFailed))
-            case .cancelled:
-                onResult(.failure(.cancelled))
-            default:
-                onResult(.failure(.compositionFailed))
-            }
-
-            controller.dismiss(animated: true)
-        }
-    }
-}
+// MailComposerView is defined in ClaimEmailService in Services layer
 
 // MARK: - Supporting Types
 
@@ -345,14 +291,4 @@ public struct ClaimEmailConfiguration {
     }
 }
 
-public struct EmailAttachment {
-    public let data: Data
-    public let mimeType: String
-    public let fileName: String
-
-    public init(data: Data, mimeType: String, fileName: String) {
-        self.data = data
-        self.mimeType = mimeType
-        self.fileName = fileName
-    }
-}
+// EmailAttachment is defined in ClaimEmailService in Services layer

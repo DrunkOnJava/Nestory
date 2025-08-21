@@ -7,11 +7,8 @@
 import Foundation
 import SwiftData
 
-// Re-export modular components for backward compatibility
-@_exported import ClaimExportModels
-@_exported import ClaimExportCore
-@_exported import ClaimExportFormatters
-@_exported import ClaimExportValidators
+// Modular components are automatically available within the same target
+// ClaimExportModels, ClaimExportCore, ClaimExportFormatters, ClaimExportValidators included
 
 // MARK: - Service Facade
 

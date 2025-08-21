@@ -18,9 +18,9 @@ struct ImportExportSettingsView: View {
     @Query private var rooms: [Room]
     @Environment(\.modelContext) private var modelContext
 
-    @StateObject private var insuranceReportService = InsuranceReportService()
+    @Dependency(\.insuranceReportService) var insuranceReportService
     @Dependency(\.importExportService) var importExportService
-    @StateObject private var insuranceExportService = InsuranceExportService()
+    @State private var insuranceExportService = InsuranceExportService()
 
     // REMINDER: InsuranceReportService, ImportExportService, and InsuranceExportService are all wired here!
 

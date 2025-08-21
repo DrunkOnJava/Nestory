@@ -7,9 +7,8 @@
 import SwiftUI
 
 // Re-export modular components for backward compatibility
-@_exported import RepairCostEstimationCore
-@_exported import RepairCostEstimationComponents 
-@_exported import RepairCostEstimationForms
+// Modular components are automatically available within the same target
+// RepairCostEstimationCore, RepairCostEstimationComponents, RepairCostEstimationForms included
 
 struct RepairCostEstimationView: View {
     @Binding var assessment: DamageAssessment

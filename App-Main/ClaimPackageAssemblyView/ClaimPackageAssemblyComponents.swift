@@ -360,11 +360,26 @@ extension ClaimType {
     var displayName: String {
         switch self {
         case .fire: "Fire Damage"
-        case .flood: "Flood Damage"
-        case .theft: "Theft/Burglary"
-        case .multipleItems: "Multiple Items"
+        case .water: "Water Damage"
+        case .theft: "Theft"
+        case .burglary: "Burglary"
+        case .vandalism: "Vandalism"
+        case .naturalDisaster: "Natural Disaster"
+        case .accident: "Accidental Damage"
+        case .windStorm: "Wind/Storm Damage"
+        case .generalLoss: "General Loss"
+        }
+    }
+}
+
+extension ClaimScope {
+    var displayName: String {
+        switch self {
         case .singleItem: "Single Item"
-        case .total: "Total Loss"
+        case .multipleItems: "Multiple Items"
+        case .roomBased: "Room/Area Based"
+        case .theft: "Theft"
+        case .totalLoss: "Total Loss"
         }
     }
 }

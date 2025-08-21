@@ -97,26 +97,20 @@ public struct ClaimDocumentHelpers {
 
     // MARK: - Validation
 
-    public static func validateClaimRequest(_ request: InsuranceClaimService.ClaimRequest) -> [String] {
+    public static func validateClaimRequest(_ request: ClaimRequest) -> [String] {
         var issues: [String] = []
         
-        if request.selectedItemIds.isEmpty {
+        if request.items.isEmpty {
             issues.append("No items selected for claim")
         }
         
-        if request.contactEmail == nil && request.contactPhone == nil {
+        if request.contactInfo.email.isEmpty && request.contactInfo.phone.isEmpty {
             issues.append("No contact information provided")
         }
         
-        if request.incidentDate == nil {
-            issues.append("No incident date specified")
-        }
+        // incidentDate is non-optional, so no need to check for nil
         
-        let selectedItems = request.selectedItemIds.compactMap { id in
-            request.allItems.first { $0.id == id }
-        }
-        
-        let itemsWithoutPrice = selectedItems.filter { $0.purchasePrice == nil }
+        let itemsWithoutPrice = request.items.filter { $0.purchasePrice == nil }
         if !itemsWithoutPrice.isEmpty {
             issues.append("\(itemsWithoutPrice.count) items missing purchase price")
         }
@@ -183,7 +177,7 @@ public struct ClaimDocumentHelpers {
     private static func calculateConditionCounts(_ items: [Item]) -> [String: Int] {
         var counts: [String: Int] = [:]
         for item in items {
-            let conditionName = item.condition?.rawValue ?? "Unknown"
+            let conditionName = item.condition
             counts[conditionName, default: 0] += 1
         }
         return counts
@@ -207,6 +201,6 @@ public struct ItemStatistics {
 
 private extension Decimal {
     var isInteger: Bool {
-        return self.remainder(dividingBy: 1) == 0
+        return self.truncatingRemainder(dividingBy: 1) == 0
     }
 }

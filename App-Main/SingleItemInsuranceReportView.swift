@@ -145,9 +145,9 @@ struct SingleItemInsuranceReportView: View {
     item.purchasePrice = 2499.00
     item.currency = "$"
 
-    return SingleItemInsuranceReportView(
+    SingleItemInsuranceReportView(
         item: item,
-        insuranceReportService: InsuranceReportService(),
+        insuranceReportService: try! LiveInsuranceReportService(),
     )
     .modelContainer(for: [Item.self, Category.self], inMemory: true)
 }

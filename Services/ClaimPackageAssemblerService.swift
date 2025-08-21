@@ -12,6 +12,16 @@ import SwiftData
 // APPLE_FRAMEWORK_OPPORTUNITY: Replace with MessageUI - Email claim packages directly
 // APPLE_FRAMEWORK_OPPORTUNITY: Replace with FileProvider - Cloud storage integration for claim backup
 
+// MARK: - ClaimPackageAssemblerService Protocol
+
+public protocol ClaimPackageAssemblerService: Sendable {
+    func assembleClaimPackage(items: [Item], claimInfo: ClaimInfo) async throws -> ClaimPackage
+    func validatePackageCompleteness(_ package: ClaimPackage) async throws -> ValidationResult
+    func exportAsZIP(package: ClaimPackage) async throws -> URL
+    func exportAsPDF(package: ClaimPackage) async throws -> URL
+    func prepareForEmail(package: ClaimPackage) async throws -> EmailPackage
+}
+
 public enum ClaimPackageError: LocalizedError {
     case noItemsSelected
     case missingDocumentation
@@ -35,8 +45,10 @@ public enum ClaimPackageError: LocalizedError {
     }
 }
 
+// MARK: - Live Implementation
+
 @MainActor
-public final class ClaimPackageAssemblerService: ObservableObject {
+public final class LiveClaimPackageAssemblerService: ClaimPackageAssemblerService, ObservableObject {
     // MARK: - Dependencies
 
     private let core: ClaimPackageCore
@@ -92,14 +104,14 @@ public final class ClaimPackageAssemblerService: ObservableObject {
 // MARK: - Data Models (Retained for backward compatibility)
 
 public struct ClaimScenario {
-    public let type: ClaimType
+    public let type: ClaimScope
     public let incidentDate: Date
     public let description: String
     public let metadata: [String: String]
     public let requiresConditionDocumentation: Bool
 
     public init(
-        type: ClaimType,
+        type: ClaimScope,
         incidentDate: Date,
         description: String,
         metadata: [String: String] = [:],
@@ -113,7 +125,7 @@ public struct ClaimScenario {
     }
 }
 
-public enum ClaimType: String, CaseIterable {
+public enum ClaimScope: String, CaseIterable {
     case singleItem = "Single Item"
     case multipleItems = "Multiple Items"
     case roomBased = "Room/Area Based"
@@ -140,7 +152,7 @@ public struct ClaimPackageOptions {
 
 public struct PackageValidation {
     public let isValid: Bool
-    public let issues: [ValidationIssue]
+    public let issues: [PackageValidationIssue]
     public let missingRequirements: [String]
     public let totalItems: Int
     public let documentedItems: Int
@@ -149,7 +161,7 @@ public struct PackageValidation {
 }
 
 public struct ClaimSummary {
-    public let claimType: ClaimType
+    public let claimType: ClaimScope
     public let incidentDate: Date
     public let totalItems: Int
     public let totalValue: Decimal

@@ -4,12 +4,13 @@
 // Purpose: Preview generated insurance claim documents
 //
 
+import ComposableArchitecture
 import SwiftUI
 import PDFKit
 import QuickLook
 
 struct ClaimPreviewView: View {
-    let claim: InsuranceClaimService.GeneratedClaim
+    let claim: GeneratedClaim
     @Environment(\.dismiss) private var dismiss
 
     @State private var showingQuickLook = false
@@ -17,7 +18,7 @@ struct ClaimPreviewView: View {
     @State private var isExporting = false
     @State private var exportURL: URL?
 
-    @StateObject private var claimService = InsuranceClaimService()
+    @Dependency(\.insuranceClaimService) var claimService
 
     var body: some View {
         NavigationView {
@@ -297,7 +298,7 @@ import WebKit
 
 private struct TextPreviewView: View {
     let data: Data
-    let format: InsuranceClaimService.ClaimDocumentFormat
+    let format: ClaimDocumentFormat
 
     var body: some View {
         ScrollView {
@@ -365,13 +366,13 @@ private struct ShareSheet: UIViewControllerRepresentable {
 // MARK: - Preview
 
 #Preview {
-    let mockRequest = InsuranceClaimService.ClaimRequest(
+    let mockRequest = ClaimRequest(
         claimType: .fire,
         insuranceCompany: .stateFarm,
         items: [],
         incidentDate: Date(),
         incidentDescription: "House fire caused damage to personal belongings",
-        contactInfo: InsuranceClaimService.ClaimContactInfo(
+        contactInfo: ClaimContactInfo(
             name: "John Doe",
             phone: "555-0123",
             email: "john@example.com",
@@ -379,11 +380,11 @@ private struct ShareSheet: UIViewControllerRepresentable {
         )
     )
 
-    let mockClaim = InsuranceClaimService.GeneratedClaim(
+    let mockClaim = GeneratedClaim(
         request: mockRequest,
         documentData: "Mock PDF Data".data(using: .utf8)!,
         filename: "Insurance_Claim_Fire_StateFarm_2024-01-15.pdf",
-        format: .pdf,
+        format: .standardPDF,
         checklistItems: [
             "✓ Review all item details for accuracy",
             "□ Police report",
@@ -393,5 +394,5 @@ private struct ShareSheet: UIViewControllerRepresentable {
         submissionInstructions: "Submit to State Farm online or by phone."
     )
 
-    return ClaimPreviewView(claim: mockClaim)
+    ClaimPreviewView(claim: mockClaim)
 }

@@ -157,12 +157,4 @@ public final class InsuranceClaimCore: ObservableObject {
 
 // MARK: - Supporting Types
 
-// Placeholder type - these should be defined in their respective services
-public enum ClaimStatus {
-    case pending
-    case submitted
-    case inReview
-    case approved
-    case denied
-    case closed
-}
+// ClaimStatus is defined in ClaimExport/ClaimExportModels.swift

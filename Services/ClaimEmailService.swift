@@ -326,7 +326,7 @@ public struct MailComposerView: UIViewControllerRepresentable {
         Coordinator(onResult: onResult)
     }
 
-    public class Coordinator: NSObject, MFMailComposeViewControllerDelegate {
+    public class Coordinator: NSObject, @preconcurrency MFMailComposeViewControllerDelegate {
         let onResult: (Result<Void, EmailError>) -> Void
 
         init(onResult: @escaping (Result<Void, EmailError>) -> Void) {

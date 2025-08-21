@@ -5,6 +5,7 @@
 //
 
 @testable import Nestory
+import ComposableArchitecture
 import SwiftData
 import SwiftUI
 import XCTest
@@ -107,33 +108,41 @@ final class SnapshotTests: XCTestCase {
         }
     }
 
-    // MARK: - ContentView Snapshots
+    // MARK: - RootView Snapshots
 
-    func testContentViewSnapshot() throws {
+    func testRootViewSnapshot() throws {
         try createTestData()
 
-        let contentView = ContentView()
-            .environmentObject(themeManager)
-            .modelContainer(container)
+        let rootView = RootView(
+            store: Store(initialState: RootFeature.State()) {
+                RootFeature()
+            }
+        )
+        .environmentObject(themeManager)
+        .modelContainer(container)
 
-        let image = renderView(contentView)
-        saveSnapshot(image, name: "ContentView_Light")
+        let image = renderView(rootView)
+        saveSnapshot(image, name: "RootView_Light")
 
         // Verify the view renders without crashing
         XCTAssertNotNil(image)
     }
 
-    func testContentViewDarkModeSnapshot() throws {
+    func testRootViewDarkModeSnapshot() throws {
         try createTestData()
         themeManager.setTheme(.dark)
 
-        let contentView = ContentView()
-            .environmentObject(themeManager)
-            .modelContainer(container)
-            .preferredColorScheme(.dark)
+        let rootView = RootView(
+            store: Store(initialState: RootFeature.State()) {
+                RootFeature()
+            }
+        )
+        .environmentObject(themeManager)
+        .modelContainer(container)
+        .preferredColorScheme(.dark)
 
-        let image = renderView(contentView)
-        saveSnapshot(image, name: "ContentView_Dark")
+        let image = renderView(rootView)
+        saveSnapshot(image, name: "RootView_Dark")
 
         XCTAssertNotNil(image)
     }
@@ -293,16 +302,20 @@ final class SnapshotTests: XCTestCase {
 
     // MARK: - Different Device Sizes
 
-    func testContentViewiPadSnapshot() throws {
+    func testRootViewiPadSnapshot() throws {
         try createTestData()
 
-        let contentView = ContentView()
-            .environmentObject(themeManager)
-            .modelContainer(container)
+        let rootView = RootView(
+            store: Store(initialState: RootFeature.State()) {
+                RootFeature()
+            }
+        )
+        .environmentObject(themeManager)
+        .modelContainer(container)
 
         let iPadSize = CGSize(width: 768, height: 1024)
-        let image = renderView(contentView, size: iPadSize)
-        saveSnapshot(image, name: "ContentView_iPad")
+        let image = renderView(rootView, size: iPadSize)
+        saveSnapshot(image, name: "RootView_iPad")
 
         XCTAssertNotNil(image)
     }

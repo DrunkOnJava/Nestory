@@ -14,3 +14,7 @@ App-Main/DamageAssessmentViews/RepairCostEstimationView.swift # 2025-08-20 - Com
 App-Main/ClaimSubmissionView.swift # 2025-08-20 - Comprehensive claim submission UI with step-by-step workflow - complex user interface requirements necessitate single view file
 Services/ClaimTrackingService.swift # 2025-08-20 - Claim tracking with comprehensive status management and correspondence history - integrated tracking workflow
 Services/ClaimValidationService.swift # 2025-08-20 - Comprehensive claim validation with photo quality analysis and company-specific requirements - complex validation logic
+Services/DependencyKeys.swift # 2025-08-21 - Central TCA dependency key definitions - all service dependencies in one location for easier management during development phase, will modularize after TCA architecture stabilizes
+Features/Receipt/ReceiptFeature.swift # 2025-08-21 - TCA Receipt Feature with comprehensive state management - will modularize after TCA patterns stabilize
+Features/Insurance/InsuranceFeature.swift # 2025-08-21 - TCA Insurance Feature with complex claim workflows - will modularize after TCA patterns stabilize  
+Features/Warranty/WarrantyFeature.swift # 2025-08-21 - TCA Warranty Feature with tracking and notification logic - will modularize after TCA patterns stabilize

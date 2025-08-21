@@ -511,7 +511,7 @@ public struct ClaimValidationResults {
     }
 }
 
-public struct ValidationIssue: Identifiable {
+public struct ClaimValidationIssue: Identifiable {
     public let id = UUID()
     public let type: ValidationIssueType
     public let severity: ValidationSeverity

@@ -54,12 +54,12 @@ public enum ClaimExportValidators {
     // MARK: - Item Validation
 
     public static func validateItems(_ items: [Item]) -> [ValidationIssue] {
-        var issues: [ValidationIssue] = []
+        var issues: [ExportValidationIssue] = []
 
         for item in items {
             // Check for missing photos
             if item.photos.isEmpty {
-                issues.append(ValidationIssue(
+                issues.append(ExportValidationIssue(
                     itemId: item.id,
                     itemName: item.name,
                     severity: .warning,
@@ -70,7 +70,7 @@ public enum ClaimExportValidators {
 
             // Check for missing purchase price
             if item.purchasePrice == nil {
-                issues.append(ValidationIssue(
+                issues.append(ExportValidationIssue(
                     itemId: item.id,
                     itemName: item.name,
                     severity: .error,
@@ -81,7 +81,7 @@ public enum ClaimExportValidators {
 
             // Check for missing serial number on high-value items
             if (item.purchasePrice ?? 0) > 500, item.serialNumber?.isEmpty != false {
-                issues.append(ValidationIssue(
+                issues.append(ExportValidationIssue(
                     itemId: item.id,
                     itemName: item.name,
                     severity: .warning,
@@ -92,7 +92,7 @@ public enum ClaimExportValidators {
 
             // Check for missing purchase date
             if item.purchaseDate == nil {
-                issues.append(ValidationIssue(
+                issues.append(ExportValidationIssue(
                     itemId: item.id,
                     itemName: item.name,
                     severity: .info,
@@ -111,13 +111,13 @@ public enum ClaimExportValidators {
         items: [Item],
         format: InsuranceCompanyFormat
     ) -> [ValidationIssue] {
-        var issues: [ValidationIssue] = []
+        var issues: [ExportValidationIssue] = []
 
         switch format {
         case .acord:
             // ACORD requires specific data structure
             for item in items where item.category == nil {
-                issues.append(ValidationIssue(
+                issues.append(ExportValidationIssue(
                     itemId: item.id,
                     itemName: item.name,
                     severity: .warning,
@@ -129,7 +129,7 @@ public enum ClaimExportValidators {
         case .allstate, .statefarm, .geico:
             // Spreadsheet formats need structured data
             for item in items where item.purchasePrice == nil {
-                issues.append(ValidationIssue(
+                issues.append(ExportValidationIssue(
                     itemId: item.id,
                     itemName: item.name,
                     severity: .error,
@@ -141,7 +141,7 @@ public enum ClaimExportValidators {
         case .progressive, .farmers:
             // PDF formats benefit from photos
             for item in items where item.photos.isEmpty {
-                issues.append(ValidationIssue(
+                issues.append(ExportValidationIssue(
                     itemId: item.id,
                     itemName: item.name,
                     severity: .warning,
@@ -172,10 +172,10 @@ public enum ClaimExportValidators {
         fileSize: Int,
         requirements: ClaimValidationRequirements
     ) -> [ValidationIssue] {
-        var issues: [ValidationIssue] = []
+        var issues: [ExportValidationIssue] = []
 
         if fileSize > requirements.maximumFileSize {
-            issues.append(ValidationIssue(
+            issues.append(ExportValidationIssue(
                 itemId: UUID(), // Global validation
                 itemName: "Export File",
                 severity: .error,
@@ -190,7 +190,7 @@ public enum ClaimExportValidators {
 
 // MARK: - Validation Types
 
-public struct ValidationIssue: Identifiable {
+public struct ExportValidationIssue: Identifiable {
     public let id = UUID()
     public let itemId: UUID
     public let itemName: String
@@ -213,19 +213,7 @@ public struct ValidationIssue: Identifiable {
     }
 }
 
-public enum ValidationSeverity: String, CaseIterable {
-    case info = "Info"
-    case warning = "Warning"
-    case error = "Error"
-
-    var priority: Int {
-        switch self {
-        case .info: 1
-        case .warning: 2
-        case .error: 3
-        }
-    }
-}
+// ValidationSeverity is defined in ClaimValidationService.swift
 
 public enum ValidationCategory: String, CaseIterable {
     case missingPhoto = "Missing Photo"

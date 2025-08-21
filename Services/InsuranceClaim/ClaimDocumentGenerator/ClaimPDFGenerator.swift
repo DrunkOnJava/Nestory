@@ -18,7 +18,7 @@ public struct ClaimPDFGenerator {
     // MARK: - PDF Generation
 
     public func generatePDF(
-        request: InsuranceClaimService.ClaimRequest,
+        request: ClaimRequest,
         template: ClaimTemplate
     ) async throws -> Data {
         let format = UIGraphicsPDFRendererFormat()
@@ -90,7 +90,7 @@ public struct ClaimPDFGenerator {
     private func drawClaimHeader(
         in _: UIGraphicsPDFRendererContext,
         at yPosition: CGFloat,
-        request: InsuranceClaimService.ClaimRequest,
+        request: ClaimRequest,
         template: ClaimTemplate
     ) -> CGFloat {
         var currentY = yPosition
@@ -151,7 +151,7 @@ public struct ClaimPDFGenerator {
     private func drawIncidentDetails(
         in _: UIGraphicsPDFRendererContext,
         at yPosition: CGFloat,
-        request: InsuranceClaimService.ClaimRequest
+        request: ClaimRequest
     ) -> CGFloat {
         var currentY = yPosition
 
@@ -183,7 +183,7 @@ public struct ClaimPDFGenerator {
     private func drawContactInformation(
         in _: UIGraphicsPDFRendererContext,
         at yPosition: CGFloat,
-        request: InsuranceClaimService.ClaimRequest
+        request: ClaimRequest
     ) -> CGFloat {
         var currentY = yPosition
 
@@ -213,7 +213,7 @@ public struct ClaimPDFGenerator {
     private func drawItemsTable(
         in _: UIGraphicsPDFRendererContext,
         at yPosition: CGFloat,
-        request: InsuranceClaimService.ClaimRequest
+        request: ClaimRequest
     ) -> CGFloat {
         var currentY = yPosition
 
@@ -288,7 +288,7 @@ public struct ClaimPDFGenerator {
     private func drawPhotosSection(
         in context: UIGraphicsPDFRendererContext,
         at yPosition: CGFloat,
-        request: InsuranceClaimService.ClaimRequest
+        request: ClaimRequest
     ) -> CGFloat {
         var currentY = yPosition
 
@@ -315,7 +315,7 @@ public struct ClaimPDFGenerator {
     private func drawSummarySection(
         in _: UIGraphicsPDFRendererContext,
         at yPosition: CGFloat,
-        request: InsuranceClaimService.ClaimRequest
+        request: ClaimRequest
     ) -> CGFloat {
         var currentY = yPosition
 

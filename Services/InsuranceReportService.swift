@@ -15,8 +15,20 @@ import SwiftData
 // APPLE_FRAMEWORK_OPPORTUNITY: Replace with FileProvider - Cloud storage integration for insurance document backup
 import SwiftUI
 
+// MARK: - InsuranceReportService Protocol
+
+public protocol InsuranceReportService: Sendable {
+    func generateInsuranceReport(
+        items: [Item], 
+        categories: [Category], 
+        options: ReportOptions
+    ) async throws -> Data
+}
+
+// MARK: - Live Implementation
+
 @MainActor
-public final class InsuranceReportService: ObservableObject {
+public final class LiveInsuranceReportService: InsuranceReportService, ObservableObject {
     // MARK: - Types
 
     public enum ReportError: LocalizedError {
@@ -90,7 +102,7 @@ public final class InsuranceReportService: ObservableObject {
     public func generateInsuranceReport(
         items: [Item],
         categories: [Category],
-        options: ReportOptions = ReportOptions(),
+        options: ReportOptions
     ) async throws -> Data {
         guard !items.isEmpty else {
             throw ReportError.noItems

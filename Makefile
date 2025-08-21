@@ -472,6 +472,38 @@ clean-logs: ## Clean build logs
 	@rm -f release-*.log
 	@rm -f fast-*.log
 
+.PHONY: clean-all
+clean-all: ## Comprehensive cleanup of all build artifacts and system files
+	@echo "$(YELLOW)🧹 Comprehensive project cleanup...$(NC)"
+	@echo "  Removing build artifacts..."
+	@rm -rf .build build */build
+	@rm -rf DerivedData
+	@rm -rf ~/Library/Developer/Xcode/DerivedData/$(PROJECT_NAME)-*
+	@echo "  Removing system files..."
+	@find . -name ".DS_Store" -delete 2>/dev/null || true
+	@find . -name "*.log" -delete 2>/dev/null || true
+	@find . -name "Thumbs.db" -delete 2>/dev/null || true
+	@echo "  Cleaning cache directories..."
+	@find . -type d -name "*cache*" -exec rm -rf {} + 2>/dev/null || true
+	@echo "  Running git clean..."
+	@git clean -fd 2>/dev/null || true
+	@if [ -f "$(PROJECT_FILE)/project.pbxproj" ]; then \
+		xcodebuild clean 2>/dev/null || true; \
+	fi
+	@echo "$(GREEN)✅ Comprehensive cleanup complete!$(NC)"
+
+.PHONY: deep-clean
+deep-clean: clean-all ## Deep clean including system-wide Xcode caches
+	@echo "$(YELLOW)🔥 Deep cleaning system caches...$(NC)"
+	@echo "  Removing global Xcode DerivedData..."
+	@rm -rf ~/Library/Developer/Xcode/DerivedData
+	@echo "  Removing Xcode caches..."
+	@rm -rf ~/Library/Caches/com.apple.dt.Xcode
+	@rm -rf ~/Library/Developer/CoreSimulator/Caches
+	@echo "  Removing iOS Simulator cache..."
+	@xcrun simctl shutdown all 2>/dev/null || true
+	@echo "$(GREEN)✅ Deep clean complete!$(NC)"
+
 .PHONY: reset-simulator
 reset-simulator: ## Reset iPhone 16 Pro Max simulator
 	@echo "$(YELLOW)🔄 Resetting iPhone 16 Pro Max simulator...$(NC)"

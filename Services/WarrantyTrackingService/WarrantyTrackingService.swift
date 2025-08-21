@@ -153,7 +153,7 @@ public enum WarrantyStatus: Equatable {
 }
 
 /// Statistics about warranty coverage
-public struct WarrantyStatistics {
+public struct WarrantyTrackingStatistics {
     public let totalItems: Int
     public let itemsWithWarranty: Int
     public let activeWarranties: Int

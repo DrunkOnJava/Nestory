@@ -7,10 +7,8 @@
 import SwiftUI
 import SwiftData
 
-// Re-export modular components for backward compatibility
-@_exported import WarrantyTrackingCore
-@_exported import WarrantyTrackingComponents 
-@_exported import WarrantyTrackingSheets
+// Modular components are automatically available within the same target
+// WarrantyTrackingCore, WarrantyTrackingComponents, WarrantyTrackingSheets included
 
 /// Enhanced warranty tracking view with smart detection and comprehensive management
 struct WarrantyTrackingView: View {
@@ -152,10 +150,10 @@ struct WarrantyTrackingView: View {
     // Create sample item
     let item = Item(name: "MacBook Pro")
     item.brand = "Apple"
-    item.model = "MacBook Pro 16-inch"
+    item.modelNumber = "MacBook Pro 16-inch"
     item.serialNumber = "ABC123DEF456"
     
-    return WarrantyTrackingView(item: item, modelContext: context)
+    WarrantyTrackingView(item: item, modelContext: context)
         .modelContainer(container)
         .environmentObject(LiveNotificationService())
 }

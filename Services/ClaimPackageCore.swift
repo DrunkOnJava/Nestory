@@ -9,7 +9,7 @@ import SwiftData
 
 // MARK: - Supporting Types
 
-public struct ValidationIssue {
+public struct PackageValidationIssue {
     public let itemId: UUID
     public let itemName: String
     public let issues: [String]
@@ -23,11 +23,7 @@ public struct ValidationIssue {
     }
 }
 
-public enum ValidationSeverity {
-    case critical
-    case warning
-    case info
-}
+// ValidationSeverity is defined in ClaimValidationService.swift
 
 @MainActor
 public final class ClaimPackageCore: ObservableObject {

@@ -30,14 +30,14 @@ import Foundation
 @Reducer
 struct AnalyticsFeature {
     @ObservableState
-    struct State: Equatable {
+    struct State {
         // 📊 CORE STATE: Analytics dashboard state
         var items: [Item] = [] // Source data for analytics
         var categories: [Category] = [] // Category definitions
         var selectedTimeRange: TimeRange = .month // User-selected time filter
         var isLoading = false // Loading state for UI feedback
         var error: AnalyticsError? = nil // Error state for user display
-        var alert: AlertState<Action>? = nil // Error/info alerts
+        @Presents var alert: AlertState<Alert>? // Error/info alerts
 
         // 📈 ANALYTICS DATA: Computed dashboard content
         var dashboardData: DashboardData? = nil // Enhanced analytics from service
@@ -89,6 +89,21 @@ struct AnalyticsFeature {
             case quarter = "Quarter"
             case year = "Year"
             case all = "All Time"
+        }
+    }
+
+    // MARK: - Equatable Conformance
+    extension State: Equatable {
+        static func == (lhs: State, rhs: State) -> Bool {
+            return lhs.items == rhs.items &&
+                   lhs.categories == rhs.categories &&
+                   lhs.selectedTimeRange == rhs.selectedTimeRange &&
+                   lhs.isLoading == rhs.isLoading &&
+                   lhs.error == rhs.error &&
+                   lhs.dashboardData == rhs.dashboardData &&
+                   lhs.summaryData == rhs.summaryData &&
+                   lhs.chartsData == rhs.chartsData
+            // Note: @Presents properties handle their own equality
         }
     }
 
@@ -187,7 +202,7 @@ struct AnalyticsFeature {
                 state.alert = AlertState {
                     TextState("Analytics Error")
                 } actions: {
-                    ButtonState(action: .send(.loadAnalytics)) {
+                    ButtonState(action: .dataLoadError) {
                         TextState("Retry")
                     }
                 } message: {
@@ -198,6 +213,12 @@ struct AnalyticsFeature {
             case .refresh:
                 return .send(.loadAnalytics)
 
+            case .alert(.presented(.dataLoadError)):
+                return .send(.loadAnalytics)
+                
+            case .alert(.presented(.calculationError)):
+                return .none
+                
             case .alert:
                 return .none
 
@@ -207,7 +228,7 @@ struct AnalyticsFeature {
                 }
             }
         }
-        .ifLet(\.$alert, action: \.alert)
+        .ifLet(\.$alert, action: /Action.alert)
     }
 }
 

@@ -8,13 +8,9 @@ import Foundation
 import PDFKit
 import UIKit
 
-// Re-export modular components for backward compatibility
-@_exported import ClaimDocumentCore
-@_exported import ClaimPDFGenerator
-@_exported import ClaimJSONGenerator
-@_exported import ClaimHTMLGenerator
-@_exported import ClaimSpreadsheetGenerator
-@_exported import ClaimDocumentHelpers
+// Modular components are automatically available within the same target
+// ClaimDocumentCore, ClaimPDFGenerator, ClaimJSONGenerator, ClaimHTMLGenerator, 
+// ClaimSpreadsheetGenerator, and ClaimDocumentHelpers are included in the project
 
 // APPLE_FRAMEWORK_OPPORTUNITY: Replace with PDFKit - Advanced form field population and annotations
 // APPLE_FRAMEWORK_OPPORTUNITY: Replace with CoreGraphics - Enhanced PDF rendering and layout
@@ -33,7 +29,7 @@ public struct ClaimDocumentGenerator {
     // MARK: - Main Generation Method (Delegated)
 
     public func generateDocument(
-        request: InsuranceClaimService.ClaimRequest,
+        request: ClaimRequest,
         template: ClaimTemplate
     ) async throws -> Data {
         try await core.generateDocument(request: request, template: template)
@@ -55,7 +51,7 @@ public struct ClaimDocumentGenerator {
 
     // MARK: - Validation (Static Access)
 
-    public static func validateClaimRequest(_ request: InsuranceClaimService.ClaimRequest) -> [String] {
+    public static func validateClaimRequest(_ request: ClaimRequest) -> [String] {
         ClaimDocumentHelpers.validateClaimRequest(request)
     }
 

@@ -6,6 +6,7 @@
 
 import SwiftUI
 import VisionKit
+import ComposableArchitecture
 
 @available(iOS 16.0, *)
 struct LiveReceiptScannerView: UIViewControllerRepresentable {
@@ -92,7 +93,7 @@ struct EnhancedReceiptCaptureView: View {
     @Bindable var item: Item
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
-    @StateObject private var appleProcessor = AppleFrameworksReceiptProcessor()
+    @Dependency(\.receiptOCRService) var receiptOCRService
 
     @State private var showingLiveScanner = false
     @State private var showingPhotoPicker = false
@@ -227,7 +228,7 @@ struct EnhancedReceiptCaptureView: View {
             do {
                 // Create a simple image from text (for demo - in practice you'd use the actual image)
                 let image = createImageFromText(scannedText)
-                let result = try await appleProcessor.processReceiptImage(image)
+                let result = try await receiptOCRService.processReceiptImage(image)
 
                 await MainActor.run {
                     enhancedData = result

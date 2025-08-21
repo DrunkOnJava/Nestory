@@ -431,7 +431,7 @@ extension MLReceiptProcessor {
 
 // MARK: - Data Models
 
-public struct EnhancedReceiptData: Sendable {
+public struct EnhancedReceiptData: Sendable, Equatable {
     public let vendor: String?
     public let total: Decimal?
     public let tax: Decimal?
@@ -460,7 +460,7 @@ public struct OCRResults: Sendable {
     public let averageConfidence: Float
 }
 
-public struct ReceiptItem: Sendable {
+public struct ReceiptItem: Sendable, Equatable {
     public let name: String
     public let price: Decimal
     public let quantity: Int
@@ -472,7 +472,7 @@ public struct ReceiptItem: Sendable {
     }
 }
 
-public struct ReceiptProcessingMetadata: Sendable {
+public struct ReceiptProcessingMetadata: Sendable, Equatable {
     public let documentCorrectionApplied: Bool
     public let patternsMatched: [String: Bool]
     public let mlClassifierUsed: Bool

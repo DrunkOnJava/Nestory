@@ -12,7 +12,7 @@ public struct ClaimJSONGenerator {
     // MARK: - JSON Generation
 
     public func generateJSON(
-        request: InsuranceClaimService.ClaimRequest,
+        request: ClaimRequest,
         template: ClaimTemplate
     ) throws -> Data {
         let claimData = ClaimJSONStructure(
@@ -49,7 +49,7 @@ public struct ClaimJSONGenerator {
 
     // MARK: - JSON Structure Builders
 
-    private func buildItemsJSON(_ request: InsuranceClaimService.ClaimRequest) -> [ClaimJSONStructure.ClaimItem] {
+    private func buildItemsJSON(_ request: ClaimRequest) -> [ClaimJSONStructure.ClaimItem] {
         return request.selectedItemIds.compactMap { itemId in
             guard let item = request.allItems.first(where: { $0.id == itemId }) else {
                 return nil
@@ -88,7 +88,7 @@ public struct ClaimJSONGenerator {
         }
     }
 
-    private func buildSummaryJSON(_ request: InsuranceClaimService.ClaimRequest) -> ClaimJSONStructure.Summary {
+    private func buildSummaryJSON(_ request: ClaimRequest) -> ClaimJSONStructure.Summary {
         let selectedItems = request.selectedItemIds.compactMap { id in
             request.allItems.first { $0.id == id }
         }

@@ -175,3 +175,15 @@ public final class Receipt: @unchecked Sendable {
         updatedAt = Date()
     }
 }
+
+// MARK: - Equatable Conformance for TCA State Management
+extension Receipt: Equatable {
+    public static func == (lhs: Receipt, rhs: Receipt) -> Bool {
+        return lhs.id == rhs.id &&
+               lhs.vendor == rhs.vendor &&
+               lhs.purchaseDate == rhs.purchaseDate &&
+               lhs.total == rhs.total &&
+               lhs.updatedAt == rhs.updatedAt &&
+               lhs.receiptNumber == rhs.receiptNumber
+    }
+}
