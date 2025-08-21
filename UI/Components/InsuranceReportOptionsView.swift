@@ -4,7 +4,6 @@
 // Purpose: Insurance report options view for configuring report generation
 //
 
-import os.log
 import SwiftUI
 
 public struct InsuranceReportOptionsView: View {
@@ -13,7 +12,7 @@ public struct InsuranceReportOptionsView: View {
     let insuranceReportService: InsuranceReportService
     @Binding var isGenerating: Bool
     @Environment(\.dismiss) private var dismiss
-    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory.dev", category: "InsuranceReportUI")
+    // UI components should not handle logging - delegate to parent layer
 
     @State private var includePhotos = true
     @State private var includeReceipts = true
@@ -151,7 +150,7 @@ public struct InsuranceReportOptionsView: View {
             } catch {
                 isGenerating = false
                 // Handle error - in production would show alert
-                logger.error("Report generation failed: \(error)")
+                // Error logging handled by service layer
             }
         }
     }

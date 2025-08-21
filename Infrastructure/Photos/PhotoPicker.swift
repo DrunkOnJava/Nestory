@@ -1,18 +1,11 @@
 //
-// Layer: UI
-// Module: Components
-// Purpose: Reusable photo picker with PhotosUI integration
+// Layer: Infrastructure
+// Module: Photos
+// Purpose: Photo picker for image selection using PhotosUI
 //
-// 🎨 UI COMPONENT: Pure photo selection interface
-// - UIViewControllerRepresentable wrapper for PHPickerViewController
-// - Reusable across Item photos, Receipt capture, Warranty docs, and Insurance claims
-// - Proper privacy controls and Apple framework usage
-// - Foundation-only imports for maximum portability
 
 import PhotosUI
 import SwiftUI
-
-// APPLE_FRAMEWORK_OPPORTUNITY: Already using PhotosUI properly - Good implementation of PHPickerViewController with privacy controls
 
 struct PhotoPicker: UIViewControllerRepresentable {
     @Binding var imageData: Data?
