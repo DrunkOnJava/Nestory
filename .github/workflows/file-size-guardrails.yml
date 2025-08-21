@@ -1,0 +1,98 @@
+name: File Size Guardrails
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  push:
+    branches: [ main, develop ]
+
+jobs:
+  file-size-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Check file sizes
+      run: |
+        echo "🔍 Running file size guardrail check..."
+        
+        # Define thresholds
+        CRITICAL_THRESHOLD=600
+        HIGH_THRESHOLD=500
+        MEDIUM_THRESHOLD=400
+        
+        # Check all Swift files in the repository
+        VIOLATIONS_FOUND=false
+        CRITICAL_VIOLATIONS=()
+        HIGH_VIOLATIONS=()
+        MEDIUM_VIOLATIONS=()
+        
+        echo "📏 Scanning all Swift files..."
+        
+        find . -name "*.swift" -not -path "./.build/*" -not -path "./DerivedData/*" | while read file; do
+          if [ -f "$file" ]; then
+            LINE_COUNT=$(wc -l < "$file" 2>/dev/null || echo 0)
+            
+            if [ "$LINE_COUNT" -gt "$CRITICAL_THRESHOLD" ]; then
+              echo "❌ CRITICAL: $file has $LINE_COUNT lines (>$CRITICAL_THRESHOLD lines)"
+              echo "CRITICAL_VIOLATION=true" >> $GITHUB_ENV
+            elif [ "$LINE_COUNT" -gt "$HIGH_THRESHOLD" ]; then
+              echo "⚠️  HIGH PRIORITY: $file has $LINE_COUNT lines (>$HIGH_THRESHOLD lines)"
+            elif [ "$LINE_COUNT" -gt "$MEDIUM_THRESHOLD" ]; then
+              echo "ℹ️  MEDIUM PRIORITY: $file has $LINE_COUNT lines (>$MEDIUM_THRESHOLD lines)"
+            fi
+          fi
+        done
+    
+    - name: Fail build if critical violations found
+      run: |
+        if [ "${CRITICAL_VIOLATION:-false}" = "true" ]; then
+          echo ""
+          echo "🚨 BUILD FAILED: Critical file size violations found"
+          echo ""
+          echo "📋 Files exceeding $CRITICAL_THRESHOLD lines must be modularized before merging."
+          echo ""
+          echo "📚 Modularization Guidelines:"
+          echo "• Split large files into focused components"
+          echo "• Move components to appropriate architectural layers"
+          echo "• See CLAUDE.md for detailed modularization procedures"
+          echo "• Reference successful examples: SettingsView.swift, BarcodeScannerView.swift"
+          echo ""
+          echo "🎯 Target Metrics:"
+          echo "• 0 files >600 lines (Critical)"
+          echo "• <5 files 500-599 lines (High Priority)"
+          echo "• <10 files 400-499 lines (Medium Priority)"
+          echo ""
+          exit 1
+        else
+          echo "✅ No critical file size violations found"
+        fi
+
+  build-test:
+    runs-on: macos-latest
+    needs: file-size-check
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Select Xcode version
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: latest-stable
+    
+    - name: Build project
+      run: |
+        echo "🔨 Building project to verify no compilation regressions..."
+        xcodebuild build \
+          -project Nestory.xcodeproj \
+          -scheme Nestory-Dev \
+          -destination 'platform=iOS Simulator,name=iPhone 16 Pro Max' \
+          -configuration Debug \
+          CODE_SIGN_IDENTITY="" \
+          CODE_SIGNING_REQUIRED=NO \
+          ONLY_ACTIVE_ARCH=YES
