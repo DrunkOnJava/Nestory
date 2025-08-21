@@ -28,8 +28,40 @@ public struct AnalyticsDashboardView: View {
         )
     }
     
-    public init(store: StoreOf<AnalyticsFeature>) {
+    init(store: StoreOf<AnalyticsFeature>) {
         self.store = store
+    }
+    
+    private var timeRangePicker: some View {
+        Picker("Time Range", selection: $store.selectedTimeRange.sending(\.timeRangeChanged)) {
+            ForEach(AnalyticsFeature.State.TimeRange.allCases, id: \.self) { range in
+                Text(range.rawValue).tag(range)
+            }
+        }
+        .pickerStyle(.segmented)
+    }
+    
+    private var summaryCardsSection: some View {
+        Group {
+            if let summaryData = store.summaryData {
+                SummaryCardsView(
+                    totalItems: summaryData.totalItems,
+                    totalValue: summaryData.totalValue,
+                    categoriesCount: summaryData.categoriesCount,
+                    averageValue: summaryData.averageValue
+                )
+                .padding(.horizontal)
+            } else {
+                let provider = dataProvider
+                SummaryCardsView(
+                    totalItems: store.totalItems,
+                    totalValue: provider.totalValue,
+                    categoriesCount: provider.categoriesWithItems.count,
+                    averageValue: provider.averageValue
+                )
+                .padding(.horizontal)
+            }
+        }
     }
 
     public var body: some View {
@@ -37,32 +69,11 @@ public struct AnalyticsDashboardView: View {
             ScrollView {
                 VStack(spacing: 20) {
                     // Time Range Picker
-                    Picker("Time Range", selection: $store.selectedTimeRange.sending(\.timeRangeChanged)) {
-                        ForEach(AnalyticsFeature.State.TimeRange.allCases, id: \.self) { range in
-                            Text(range.rawValue).tag(range)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                    .padding(.horizontal)
+                    timeRangePicker
+                        .padding(.horizontal)
 
                     // Summary Cards (using TCA state)
-                    if let summaryData = store.summaryData {
-                        SummaryCardsView(
-                            totalItems: summaryData.totalItems,
-                            totalValue: summaryData.totalValue,
-                            categoriesCount: summaryData.categoriesCount,
-                            averageValue: summaryData.averageValue
-                        )
-                        .padding(.horizontal)
-                    } else {
-                        SummaryCardsView(
-                            totalItems: store.totalItems,
-                            totalValue: dataProvider.totalValue,
-                            categoriesCount: dataProvider.categoriesWithItems.count,
-                            averageValue: dataProvider.averageValue
-                        )
-                        .padding(.horizontal)
-                    }
+                    summaryCardsSection
 
                     // Enhanced Analytics Summary (using TCA dashboard data)
                     if let data = store.dashboardData {
@@ -78,35 +89,28 @@ public struct AnalyticsDashboardView: View {
                     VStack(alignment: .leading, spacing: 16) {
                         // Category Distribution Chart (existing)
                         ChartContainer(title: "Category Distribution") {
-                            CategoryDistributionChart(categories: dataProvider.categoriesWithItems)
+                            let categories = dataProvider.categoriesWithItems
+                            CategoryDistributionChart(categories: categories)
                         }
 
                         // Value by Category Chart (using TCA state)
                         ChartContainer(title: "Value by Category") {
-                            if let chartsData = store.chartsData {
-                                ValueByCategoryChart(
-                                    categories: dataProvider.categoriesWithItems,
-                                    items: store.filteredItems
-                                )
-                            } else {
-                                ValueByCategoryChart(
-                                    categories: dataProvider.categoriesWithItems,
-                                    items: store.filteredItems
-                                )
-                            }
+                            let categories = dataProvider.categoriesWithItems
+                            let items = store.filteredItems
+                            ValueByCategoryChart(categories: categories, items: items)
                         }
 
                         // Recent Activity Chart (using TCA state)
                         ChartContainer(title: "Recent Activity") {
-                            RecentActivityChart(
-                                items: dataProvider.recentItems,
-                                timeRange: timeRangeMapping[store.selectedTimeRange] ?? .month
-                            )
+                            let items = dataProvider.recentItems
+                            let timeRange = timeRangeMapping[store.selectedTimeRange] ?? .month
+                            RecentActivityChart(items: items, timeRange: timeRange)
                         }
 
-                        // Item Status Overview (using TCA state)
+                        // Item Status Overview (using TCA state)  
                         ChartContainer(title: "Item Status Overview") {
-                            ItemStatusChart(items: store.filteredItems)
+                            let items = store.filteredItems
+                            ItemStatusChart(items: items)
                         }
                     }
                     .padding(.horizontal)

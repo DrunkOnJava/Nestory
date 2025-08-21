@@ -7,56 +7,70 @@
 import ComposableArchitecture
 import SwiftUI
 
-struct InventoryView: View {
+public struct InventoryView: View {
     @Bindable var store: StoreOf<InventoryFeature>
+
+    private var mainContent: some View {
+        Group {
+            if store.isLoading, store.items.isEmpty {
+                InventoryLoadingView()
+            } else if store.filteredItems.isEmpty {
+                emptyStateView
+            } else {
+                inventoryList
+            }
+        }
+    }
+    
+    private var emptyStateView: some View {
+        Group {
+            if store.searchText.isEmpty, store.selectedCategory == nil {
+                EmptyInventoryView(
+                    title: "No Items",
+                    message: "Start by adding your first item to the inventory",
+                    systemImage: "archivebox"
+                ) {
+                    store.send(.addItemTapped)
+                }
+            } else {
+                EmptyInventoryView(
+                    title: "No Results",
+                    message: "Try adjusting your search or filters",
+                    systemImage: "magnifyingglass"
+                )
+            }
+        }
+    }
+    
+    private var inventoryList: some View {
+        List {
+            ForEach(store.filteredItems) { item in
+                ItemRow(item: item) {
+                    store.send(.itemTapped(item))
+                }
+                .listRowInsets(EdgeInsets(
+                    top: 8,
+                    leading: 16,
+                    bottom: 8,
+                    trailing: 16
+                ))
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
+            }
+            .onDelete { indexSet in
+                store.send(.deleteItems(indexSet))
+            }
+        }
+        .listStyle(.plain)
+        .searchable(
+            text: $store.searchText.sending(\.searchTextChanged),
+            prompt: "Search items, categories, or locations"
+        )
+    }
 
     var body: some View {
         NavigationStackStore(store.scope(state: \.path, action: \.path)) {
-            Group {
-                if store.isLoading, store.items.isEmpty {
-                    InventoryLoadingView()
-                } else if store.filteredItems.isEmpty {
-                    if store.searchText.isEmpty, store.selectedCategory == nil {
-                        EmptyInventoryView(
-                            title: "No Items",
-                            message: "Start by adding your first item to the inventory",
-                            systemImage: "archivebox"
-                        ) {
-                            store.send(.addItemTapped)
-                        }
-                    } else {
-                        EmptyInventoryView(
-                            title: "No Results",
-                            message: "Try adjusting your search or filters",
-                            systemImage: "magnifyingglass"
-                        )
-                    }
-                } else {
-                    List {
-                        ForEach(store.filteredItems) { item in
-                            ItemRow(item: item) {
-                                store.send(.itemTapped(item))
-                            }
-                            .listRowInsets(EdgeInsets(
-                                top: 8,
-                                leading: 16,
-                                bottom: 8,
-                                trailing: 16
-                            ))
-                            .listRowSeparator(.hidden)
-                            .listRowBackground(Color.clear)
-                        }
-                        .onDelete { indexSet in
-                            store.send(.deleteItems(indexSet))
-                        }
-                    }
-                    .listStyle(.plain)
-                    .searchable(
-                        text: $store.searchText.sending(\.searchTextChanged),
-                        prompt: "Search items, categories, or locations"
-                    )
-                }
-            }
+            mainContent
             .navigationTitle("Inventory")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
@@ -81,7 +95,7 @@ struct InventoryView: View {
         } destination: { store in
             switch store.case {
             case let .itemDetail(store):
-                ItemDetailView(store: store)
+                ItemDetailPlaceholderView(store: store)
             case let .itemEdit(store):
                 ItemEditView(store: store)
             }
@@ -145,7 +159,7 @@ private struct EmptyInventoryView: View {
 
 // MARK: - Placeholder Child Views
 
-private struct ItemDetailView: View {
+private struct ItemDetailPlaceholderView: View {
     let store: StoreOf<ItemDetailFeature>
 
     var body: some View {
@@ -239,7 +253,7 @@ struct ItemRow: View {
                 // Chevron
                 Image(systemName: "chevron.right")
                     .font(.caption)
-                    .foregroundColor(.tertiary)
+                    .foregroundColor(.quaternary)
             }
             .padding(12)
             .background(Color(.systemGray6))

@@ -27,9 +27,9 @@ import SwiftUI
 import Foundation
 
 @Reducer
-struct InventoryFeature {
+public struct InventoryFeature {
     @ObservableState
-    struct State: Equatable {
+    public struct State: Equatable {
         // 📊 CORE STATE: Inventory management state
         var items: [Item] = [] // Primary data source
         var searchText = "" // Real-time search filtering
@@ -38,7 +38,7 @@ struct InventoryFeature {
         var path = StackState<Path.State>() // TCA navigation stack
 
         // 🚨 ALERT STATE: Uses @Presents for proper TCA integration
-        @Presents var alert: AlertState<Alert>?
+        @Presents var alert: AlertState<Action>?
 
         // 🔍 COMPUTED PROPERTIES: Derived state for UI consumption
         // Using computed properties keeps state minimal and derived values fresh
@@ -67,22 +67,19 @@ struct InventoryFeature {
         }
     }
 
-    enum Action {
+    public enum Action {
         case onAppear
         case loadItems
         case itemsLoaded([Item])
+        case loadItemsFailed(Error)
         case searchTextChanged(String)
         case categorySelected(String?)
         case addItemTapped
         case itemTapped(Item)
         case deleteItems(IndexSet)
         case deleteConfirmed(IndexSet)
-        case alert(PresentationAction<Alert>)
+        case alert(PresentationAction<Never>)
         case path(StackAction<Path.State, Path.Action>)
-
-        enum Alert: Equatable {
-            case confirmDelete
-        }
     }
 
     @Reducer
@@ -122,22 +119,29 @@ struct InventoryFeature {
                         let items = try await inventoryService.fetchItems()
                         await send(.itemsLoaded(items))
                     } catch {
-                        state.isLoading = false
-                        state.alert = AlertState {
-                            TextState("Error Loading Items")
-                        } actions: {
-                            ButtonState(action: .send(.loadItems)) {
-                                TextState("Retry")
-                            }
-                        } message: {
-                            TextState("Failed to load inventory: \(error.localizedDescription)")
-                        }
+                        await send(.loadItemsFailed(error))
                     }
                 }
 
             case let .itemsLoaded(items):
                 state.isLoading = false
                 state.items = items
+                return .none
+
+            case let .loadItemsFailed(error):
+                state.isLoading = false
+                state.alert = AlertState {
+                    TextState("Error Loading Items")
+                } actions: {
+                    ButtonState(action: .send(.loadItems)) {
+                        TextState("Retry")
+                    }
+                    ButtonState(role: .cancel) {
+                        TextState("Cancel")
+                    }
+                } message: {
+                    TextState("Failed to load inventory: \(error.localizedDescription)")
+                }
                 return .none
 
             case let .searchTextChanged(text):
@@ -160,7 +164,7 @@ struct InventoryFeature {
                 state.alert = AlertState {
                     TextState("Delete Items")
                 } actions: {
-                    ButtonState(role: .destructive, action: .confirmDelete) {
+                    ButtonState(role: .destructive, action: .deleteConfirmed(indexSet)) {
                         TextState("Delete")
                     }
                     ButtonState(role: .cancel) {
@@ -171,17 +175,8 @@ struct InventoryFeature {
                 }
                 return .none
 
-            case .alert(.presented(.confirmDelete)):
-                // Handle delete confirmation
-                return .none
-
-            case .alert:
-                return .none
-
-            case .path:
-                return .none
-
             case let .deleteConfirmed(indexSet):
+                // Handle actual deletion
                 let itemsToDelete = indexSet.map { state.items[$0] }
                 state.items.remove(atOffsets: indexSet)
 
@@ -194,12 +189,32 @@ struct InventoryFeature {
                         // Handle delete error - could add alert here
                     }
                 }
+
+            case .alert:
+                return .none
+
+            case .path:
+                return .none
             }
         }
         .forEach(\.path, action: \.path) {
             Path()
         }
         .ifLet(\.$alert, action: \.alert)
+    }
+}
+
+// MARK: - Equatable Conformance
+
+extension InventoryFeature.State: Equatable {
+    static func == (lhs: InventoryFeature.State, rhs: InventoryFeature.State) -> Bool {
+        return lhs.items == rhs.items &&
+               lhs.searchText == rhs.searchText &&
+               lhs.selectedCategory == rhs.selectedCategory &&
+               lhs.isLoading == rhs.isLoading &&
+               lhs.path == rhs.path
+        // Note: alert is excluded from comparison as @Presents creates PresentationState
+        // which doesn't participate in meaningful state equality for TCA diffing
     }
 }
 

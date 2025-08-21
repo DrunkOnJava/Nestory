@@ -16,7 +16,7 @@ struct ItemEditFeature {
         var mode: EditMode = .create
         var item: Item
         var isLoading = false
-        var alert: AlertState<Action>? = nil
+        @Presents var alert: AlertState<Action>?
 
         enum EditMode {
             case create
@@ -37,14 +37,10 @@ struct ItemEditFeature {
         case onAppear
         case saveTapped
         case cancelTapped
-        case alert(PresentationAction<Alert>)
+        case alert(PresentationAction<Never>)
 
         case updateName(String)
         case updateDescription(String)
-
-        enum Alert: Equatable {
-            case saveError
-        }
     }
 
     @Dependency(\.inventoryService) var inventoryService
@@ -73,3 +69,17 @@ struct ItemEditFeature {
         .ifLet(\.$alert, action: \.alert)
     }
 }
+
+// MARK: - Equatable Conformance
+
+extension ItemEditFeature.State: Equatable {
+    static func == (lhs: ItemEditFeature.State, rhs: ItemEditFeature.State) -> Bool {
+        return lhs.mode == rhs.mode &&
+               lhs.item == rhs.item &&
+               lhs.isLoading == rhs.isLoading
+        // Note: alert is excluded from comparison as @Presents creates PresentationState
+        // which doesn't participate in meaningful state equality for TCA diffing
+    }
+}
+
+extension ItemEditFeature.State.EditMode: Equatable {}

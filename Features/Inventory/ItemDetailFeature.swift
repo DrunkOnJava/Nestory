@@ -24,7 +24,7 @@ struct ItemDetailFeature {
         var isLoading = false
 
         // 🚨 ALERT STATE: Uses @Presents for proper TCA integration
-        @Presents var alert: AlertState<Alert>?
+        @Presents var alert: AlertState<Action>?
 
         var documentationScore: Double {
             var score = 0.0
@@ -43,11 +43,8 @@ struct ItemDetailFeature {
         case onAppear
         case editTapped
         case deleteTapped
-        case alert(PresentationAction<Alert>)
-
-        enum Alert: Equatable {
-            case confirmDelete
-        }
+        case deleteConfirmed
+        case alert(PresentationAction<Never>)
     }
 
     @Dependency(\.inventoryService) var inventoryService
@@ -61,11 +58,39 @@ struct ItemDetailFeature {
                 state.isEditing = true
                 return .none
             case .deleteTapped:
+                state.alert = AlertState {
+                    TextState("Delete Item")
+                } actions: {
+                    ButtonState(role: .destructive, action: .deleteConfirmed) {
+                        TextState("Delete")
+                    }
+                    ButtonState(role: .cancel) {
+                        TextState("Cancel")
+                    }
+                } message: {
+                    TextState("Are you sure you want to delete \(state.item.name)?")
+                }
                 return .none
+            case .deleteConfirmed:
+                return .run { [item = state.item] _ in
+                    try await inventoryService.deleteItem(id: item.id)
+                }
             case .alert:
                 return .none
             }
         }
         .ifLet(\.$alert, action: \.alert)
+    }
+}
+
+// MARK: - Equatable Conformance
+
+extension ItemDetailFeature.State: Equatable {
+    static func == (lhs: ItemDetailFeature.State, rhs: ItemDetailFeature.State) -> Bool {
+        return lhs.item == rhs.item &&
+               lhs.isEditing == rhs.isEditing &&
+               lhs.isLoading == rhs.isLoading
+        // Note: alert is excluded from comparison as @Presents creates PresentationState
+        // which doesn't participate in meaningful state equality for TCA diffing
     }
 }

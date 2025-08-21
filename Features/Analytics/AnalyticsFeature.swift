@@ -28,9 +28,9 @@ import SwiftUI
 import Foundation
 
 @Reducer
-struct AnalyticsFeature {
+public struct AnalyticsFeature {
     @ObservableState
-    struct State {
+    public struct State {
         // 📊 CORE STATE: Analytics dashboard state
         var items: [Item] = [] // Source data for analytics
         var categories: [Category] = [] // Category definitions
@@ -83,7 +83,7 @@ struct AnalyticsFeature {
             }
         }
 
-        enum TimeRange: String, CaseIterable, Equatable {
+        public enum TimeRange: String, CaseIterable, Equatable {
             case week = "Week"
             case month = "Month"
             case quarter = "Quarter"
@@ -92,22 +92,7 @@ struct AnalyticsFeature {
         }
     }
 
-    // MARK: - Equatable Conformance
-    extension State: Equatable {
-        static func == (lhs: State, rhs: State) -> Bool {
-            return lhs.items == rhs.items &&
-                   lhs.categories == rhs.categories &&
-                   lhs.selectedTimeRange == rhs.selectedTimeRange &&
-                   lhs.isLoading == rhs.isLoading &&
-                   lhs.error == rhs.error &&
-                   lhs.dashboardData == rhs.dashboardData &&
-                   lhs.summaryData == rhs.summaryData &&
-                   lhs.chartsData == rhs.chartsData
-            // Note: @Presents properties handle their own equality
-        }
-    }
-
-    enum Action {
+    public enum Action {
         case onAppear
         case loadAnalytics
         case loadItems([Item])
@@ -121,7 +106,7 @@ struct AnalyticsFeature {
         case alert(PresentationAction<Alert>)
         case trackEvent(AnalyticsEvent)
 
-        enum Alert: Equatable {
+        public enum Alert: Equatable {
             case dataLoadError
             case calculationError
         }
@@ -130,7 +115,7 @@ struct AnalyticsFeature {
     @Dependency(\.analyticsService) var analyticsService
     @Dependency(\.inventoryService) var inventoryService
 
-    var body: some ReducerOf<Self> {
+    public var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
             case .onAppear:
@@ -228,13 +213,13 @@ struct AnalyticsFeature {
                 }
             }
         }
-        .ifLet(\.$alert, action: /Action.alert)
+        .ifLet(\.$alert, action: \.alert)
     }
 }
 
 // MARK: - Supporting Types
 
-struct SummaryData: Equatable {
+public struct SummaryData: Equatable {
     let totalItems: Int
     let totalValue: Decimal
     let categoriesCount: Int
@@ -243,33 +228,33 @@ struct SummaryData: Equatable {
     let documentationScore: Double
 }
 
-struct ChartsData: Equatable {
+public struct ChartsData: Equatable {
     let categoryDistribution: [CategoryBreakdown]
     let valueByCategory: [CategoryValue]
     let recentActivity: [ActivityPoint]
     let statusOverview: ItemStatusSummary
 }
 
-struct CategoryValue: Equatable {
+public struct CategoryValue: Equatable {
     let categoryName: String
     let totalValue: Decimal
     let itemCount: Int
 }
 
-struct ActivityPoint: Equatable {
+public struct ActivityPoint: Equatable {
     let date: Date
     let itemsAdded: Int
     let valueAdded: Decimal
 }
 
-struct ItemStatusSummary: Equatable {
+public struct ItemStatusSummary: Equatable {
     let completeDocumentation: Int
     let incompleteDocumentation: Int
     let missingReceipts: Int
     let missingImages: Int
 }
 
-enum AnalyticsError: Error, Equatable {
+public enum AnalyticsError: Error, Equatable {
     case dataLoadError(Error)
     case calculationError(String)
     case serviceUnavailable
@@ -391,6 +376,21 @@ private func calculateChartsData(_ items: [Item]) async -> ChartsData {
         recentActivity: activityPoints,
         statusOverview: statusSummary
     )
+}
+
+// MARK: - Equatable Conformance
+extension AnalyticsFeature.State: Equatable {
+    public static func == (lhs: AnalyticsFeature.State, rhs: AnalyticsFeature.State) -> Bool {
+        return lhs.items == rhs.items &&
+               lhs.categories == rhs.categories &&
+               lhs.selectedTimeRange == rhs.selectedTimeRange &&
+               lhs.isLoading == rhs.isLoading &&
+               lhs.error == rhs.error &&
+               lhs.dashboardData == rhs.dashboardData &&
+               lhs.summaryData == rhs.summaryData &&
+               lhs.chartsData == rhs.chartsData
+        // Note: @Presents properties handle their own equality
+    }
 }
 
 // MARK: - TCA Integration Notes
