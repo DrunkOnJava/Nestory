@@ -9,6 +9,8 @@ import os.log
 import SwiftData
 import UserNotifications
 
+// APPLE_FRAMEWORK_OPPORTUNITY: Replace with Speech Framework - Add voice-activated item queries and hands-free inventory management using SFSpeechRecognizer
+
 @MainActor
 public final class LiveNotificationService: NotificationService, ObservableObject {
     // Internal access to shared utilities

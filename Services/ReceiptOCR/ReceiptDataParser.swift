@@ -32,6 +32,7 @@ public struct ReceiptDataParser {
     // MARK: - Date Extraction
 
     public func extractDate(from text: String) -> Date? {
+        // APPLE_FRAMEWORK_OPPORTUNITY: Replace with Natural Language Framework - Use NLTagger with temporal entity recognition for more accurate date extraction
         // Common date patterns in receipts
         let datePatterns = [
             "\\d{1,2}/\\d{1,2}/\\d{2,4}", // MM/DD/YYYY or M/D/YY
