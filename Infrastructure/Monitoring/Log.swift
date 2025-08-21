@@ -231,3 +231,4 @@ private struct InfrastructureFoundationLogger: FoundationLogger {
     func error(_ message: String) {
         log.error(message, category: category)
     }
+}
