@@ -1,6 +1,44 @@
 // Layer: Infrastructure
 // Module: Infrastructure/Monitoring
 // Purpose: Performance monitoring and metrics collection
+//
+// 🏗️ INFRASTRUCTURE LAYER PATTERN: Technical Performance Monitoring
+// - Handles technical performance measurement and SLO compliance
+// - NO business logic (that belongs in Services layer)
+// - ONLY imports Foundation (architectural rule from SPEC.json)
+// - Provides performance capabilities for Services to consume
+//
+// 📊 PERFORMANCE MONITORING: Production-ready observability
+// - Transaction timing for critical operations
+// - Memory usage tracking and alerting
+// - Database operation performance monitoring
+// - UI responsiveness measurement
+// - SLO violation detection and alerting
+//
+// 🎯 INSURANCE APP PERFORMANCE: User experience optimization
+// - Fast item browsing for quick claim preparation
+// - Responsive photo capture and processing
+// - Efficient search across large inventories
+// - Quick PDF generation for insurance reports
+// - Smooth navigation between documentation screens
+//
+// 📋 INFRASTRUCTURE STANDARDS:
+// - Swift 6 actor isolation for thread safety
+// - Structured logging with os.log integration
+// - Configurable metric retention and limits
+// - Statistical analysis (percentiles, means, SLOs)
+// - Memory-efficient metric storage
+//
+// ⚡ SLO COMPLIANCE: Performance targets from SPEC.json
+// - Cold start: <1800ms (app launch to usability)
+// - Database reads: <250ms (item queries)
+// - UI responsiveness: <16ms (smooth 60fps)
+// - Photo processing: <3000ms (capture to storage)
+//
+// 🍎 APPLE FRAMEWORK OPPORTUNITIES (Phase 3):
+// - MetricKit: System-level performance metrics and crash reporting
+// - Instruments: Deep profiling integration for development builds
+//
 
 import Foundation
 import os.log
@@ -221,6 +259,7 @@ public actor PerformanceMonitor {
         return sortedValues[lower] * (1 - weight) + sortedValues[upper] * weight
     }
 
+    // APPLE_FRAMEWORK_OPPORTUNITY: Replace with MetricKit - Use MXMemoryMetric.peakMemoryUsage instead of direct mach task_info calls
     private func getMemoryUsage() -> Int64 {
         var info = mach_task_basic_info()
         var count = mach_msg_type_number_t(MemoryLayout<mach_task_basic_info>.size) / 4

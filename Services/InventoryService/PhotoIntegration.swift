@@ -226,6 +226,7 @@ public struct LivePhotoIntegrationService: PhotoIntegrationService, Sendable {
         }
     }
 
+    // APPLE_FRAMEWORK_OPPORTUNITY: Replace with AVFoundation - Already using AVFoundation but could add AVCaptureDevice.DiscoverySession for advanced camera selection
     private func requestCameraPermission() async -> Bool {
         switch AVCaptureDevice.authorizationStatus(for: .video) {
         case .authorized:
@@ -237,6 +238,7 @@ public struct LivePhotoIntegrationService: PhotoIntegrationService, Sendable {
         }
     }
 
+    // APPLE_FRAMEWORK_OPPORTUNITY: Replace with Photos - Already using Photos but could enhance with PHPhotoLibraryChangeObserver for real-time photo library monitoring
     private func requestPhotoLibraryPermission() async -> Bool {
         let status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
 

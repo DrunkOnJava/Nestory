@@ -5,9 +5,9 @@
 //
 
 import Foundation
-import os.log
 import SwiftData
 import SwiftUI
+import os.log
 
 @MainActor
 @Observable

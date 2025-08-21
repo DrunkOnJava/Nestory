@@ -3,6 +3,8 @@
 import Foundation
 import os.log
 
+// APPLE_FRAMEWORK_OPPORTUNITY: Replace with Compression - Add Compression framework for automatic file compression and decompression
+
 public final class FileStore: @unchecked Sendable {
     private let baseDirectory: URL
     private let fileManager = FileManager.default

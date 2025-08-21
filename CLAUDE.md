@@ -38,31 +38,35 @@ The app helps homeowners and renters catalog their belongings for:
 4. **No placeholders** - Every `TODO` or `FIXME` must reference `ADR-\d+` or be rejected.
 5. **Test everything** - 80% coverage minimum. No untested code ships.
 6. **Fail fast** - If uncertain about architecture compliance, run `nestoryctl arch-verify` immediately.
-7. **ALWAYS USE iPhone 16 Plus** - When building/testing in simulator, always use "iPhone 16 Plus" as the target device.
+7. **ALWAYS USE iPhone 16 Pro Max** - When building/testing in simulator, always use "iPhone 16 Pro Max" as the target device.
 
-## 📐 ARCHITECTURE (IMMUTABLE)
+## 📐 ARCHITECTURE (TCA 6-LAYER)
 ```
-App → Services → Infrastructure → Foundation
-     ↘ UI ↗
+App → Features → UI → Services → Infrastructure → Foundation
+        ↘     ↗
 ```
-**Current Implementation Note**: The project currently uses a **4-layer architecture** without a separate Features layer. Services are accessed directly from App-Main views using `@StateObject` patterns.
+**NEW TCA Implementation**: The project uses **The Composable Architecture (TCA)** with a 6-layer architecture for sophisticated state management and Apple Framework integration.
 
-- **App-Main**: Main views and entry points. Imports UI+Services+Foundation.
-- **Services**: Domain APIs with @MainActor and ObservableObject. Import Infrastructure+Foundation ONLY.
-- **UI**: Shared components. Import Foundation ONLY. NO business logic.
+- **App**: Root app coordination and TCA store setup. Imports Features+UI+Services+Foundation.
+- **Features**: TCA Reducers with business logic and state management. Import UI+Services+Foundation ONLY.
+- **UI**: Shared SwiftUI components. Import Foundation ONLY. NO business logic.
+- **Services**: Protocol-first domain APIs for TCA dependency injection. Import Infrastructure+Foundation ONLY.
 - **Infrastructure**: Technical adapters (Cache, Network, Security). Import Foundation ONLY.
 - **Foundation**: Pure types/models (Item, Category, Money). NO imports except Swift stdlib.
 
 ### Instant Violation Check
 ```swift
-// ILLEGAL: App-Main → Infrastructure
+// ILLEGAL: Features → Infrastructure
 import NetworkClient // ❌ Must go through Services
 
 // ILLEGAL: UI → Services  
 import InventoryService // ❌ UI components must be pure
 
-// LEGAL: App-Main → Services
-@StateObject private var inventoryService = InventoryService() // ✅
+// LEGAL: Features → Services (TCA Dependency)
+@Dependency(\.inventoryService) var inventoryService // ✅
+
+// LEGAL: App → Features (TCA Store)
+StoreOf<RootFeature>() // ✅
 
 // LEGAL: Services → Infrastructure
 import NetworkClient // ✅ Services can use infrastructure
@@ -100,47 +104,64 @@ final class Item {
 }
 ```
 
-### Current Service Pattern (No TCA)
+### TCA Feature Pattern
 ```swift
-// Services use @MainActor and ObservableObject patterns
-@MainActor
-public final class InventoryService: ObservableObject {
-    @Published public var items: [Item] = []
-    @Published public var isLoading = false
-    
-    private let modelContext: ModelContext
-    private let cache: Cache<UUID, Item>
-    
-    public init(modelContext: ModelContext) throws {
-        self.modelContext = modelContext
-        self.cache = try Cache(name: "inventory")
+// Features use TCA Reducer pattern with structured state management
+@Reducer
+struct InventoryFeature {
+    @ObservableState
+    struct State: Equatable {
+        var items: [Item] = []
+        var isLoading = false
+        var searchText = ""
+        var path = StackState<Path.State>()
     }
     
-    public func fetchItems() async throws -> [Item] {
-        isLoading = true
-        defer { isLoading = false }
-        
-        let descriptor = FetchDescriptor<Item>(
-            sortBy: [SortDescriptor(\.updatedAt, order: .reverse)]
-        )
-        let items = try modelContext.fetch(descriptor)
-        self.items = items
-        return items
+    enum Action {
+        case onAppear
+        case loadItems
+        case itemsLoaded([Item])
+        case searchTextChanged(String)
+        case itemTapped(Item)
+    }
+    
+    @Dependency(\.inventoryService) var inventoryService
+    
+    var body: some ReducerOf<Self> {
+        Reduce { state, action in
+            switch action {
+            case .onAppear:
+                state.isLoading = true
+                return .run { send in
+                    let items = try await inventoryService.fetchItems()
+                    await send(.itemsLoaded(items))
+                }
+            case let .itemsLoaded(items):
+                state.items = items
+                state.isLoading = false
+                return .none
+            case let .searchTextChanged(text):
+                state.searchText = text
+                return .none
+            case .itemTapped:
+                return .none
+            }
+        }
     }
 }
 ```
 
-### Protocol-First Service Design
+### TCA Service Integration
 ```swift
-// Define protocol for testability
-public protocol InventoryServiceProtocol: Sendable {
+// Protocol-first service for TCA dependency injection
+public protocol InventoryService: Sendable {
     func fetchItems() async throws -> [Item]
     func saveItem(_ item: Item) async throws
     func searchItems(query: String) async throws -> [Item]
 }
 
-// Live implementation with SwiftData
-public struct LiveInventoryService: InventoryServiceProtocol {
+// Live implementation for TCA dependencies
+public struct LiveInventoryService: InventoryService {
     private let modelContext: ModelContext
     private let cache: Cache<UUID, Item>
     
@@ -153,6 +174,18 @@ public struct LiveInventoryService: InventoryServiceProtocol {
         let descriptor = FetchDescriptor<Item>()
         return try modelContext.fetch(descriptor)
     }
+}
+
+// TCA Dependency Key
+extension DependencyValues {
+    var inventoryService: InventoryService {
+        get { self[InventoryServiceKey.self] }
+        set { self[InventoryServiceKey.self] = newValue }
+    }
+}
+
+private enum InventoryServiceKey: DependencyKey {
+    static let liveValue: InventoryService = LiveInventoryService()
 }
 ```
 
@@ -719,3 +752,4 @@ done
 **Your primary job**: Transform requirements into compliant, tested, performant code that respects the 6-layer architecture without exception.
 
 **When in doubt**: Check SPEC.json → Run arch-verify → Ask for clarification → Then proceed.
+- READ FILES BEFORE WRITING TO THE M

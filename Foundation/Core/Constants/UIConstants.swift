@@ -4,74 +4,75 @@
 // Purpose: UI-related constants for consistent design system
 //
 
-import CoreGraphics
+import Foundation
 
 /// UI constants for consistent design patterns throughout the application
+/// Note: Values are Double - cast to CGFloat in upper layers that import CoreGraphics
 public enum UIConstants {
     /// Spacing values for consistent layout margins and padding
     public enum Spacing {
         /// Extra small spacing (8pt)
-        public static let xs: CGFloat = 8
+        public static let xs: Double = 8
 
         /// Small spacing (12pt)
-        public static let sm: CGFloat = 12
+        public static let sm: Double = 12
 
         /// Medium spacing (16pt)
-        public static let md: CGFloat = 16
+        public static let md: Double = 16
 
         /// Large spacing (20pt)
-        public static let lg: CGFloat = 20
+        public static let lg: Double = 20
 
         /// Extra large spacing (24pt)
-        public static let xl: CGFloat = 24
+        public static let xl: Double = 24
 
         /// Extra extra large spacing (30pt)
-        public static let xxl: CGFloat = 30
+        public static let xxl: Double = 30
 
         /// Standard component spacing (20pt)
-        public static let component: CGFloat = 20
+        public static let component: Double = 20
 
         /// Section spacing (30pt)
-        public static let section: CGFloat = 30
+        public static let section: Double = 30
     }
 
     /// Font sizes for typography scale
     public enum FontSize {
         /// Caption text (12pt)
-        public static let caption: CGFloat = 12
+        public static let caption: Double = 12
 
         /// Body text (16pt)
-        public static let body: CGFloat = 16
+        public static let body: Double = 16
 
         /// Title text (24pt)
-        public static let title: CGFloat = 24
+        public static let title: Double = 24
 
         /// Large title (32pt)
-        public static let largeTitle: CGFloat = 32
+        public static let largeTitle: Double = 32
 
         /// Icon sizes for system images
-        public static let iconLarge: CGFloat = 60
+        public static let iconLarge: Double = 60
 
         /// Subtitle text (18pt)
-        public static let subtitle: CGFloat = 18
+        public static let subtitle: Double = 18
     }
 
     /// Standard UI element dimensions
     public enum Size {
         /// Standard button maximum width
-        public static let buttonMaxWidth: CGFloat = 200
+        public static let buttonMaxWidth: Double = 200
 
         /// Standard thumbnail dimensions
-        public static let thumbnailSize: CGFloat = 200
+        public static let thumbnailSize: Double = 200
 
         /// Standard image height for lists
-        public static let imageHeight: CGFloat = 150
+        public static let imageHeight: Double = 150
 
         /// Standard corner radius
-        public static let cornerRadius: CGFloat = 8
+        public static let cornerRadius: Double = 8
 
         /// Large corner radius
-        public static let cornerRadiusLarge: CGFloat = 12
+        public static let cornerRadiusLarge: Double = 12
     }
 
     /// Animation and interaction timing
@@ -92,13 +93,13 @@ public enum UIConstants {
     /// Border and stroke widths
     public enum Border {
         /// Standard border width (1pt)
-        public static let standard: CGFloat = 1
+        public static let standard: Double = 1
 
         /// Thick border width (2pt)
-        public static let thick: CGFloat = 2
+        public static let thick: Double = 2
 
         /// Hair line border width (0.5pt)
-        public static let hairline: CGFloat = 0.5
+        public static let hairline = 0.5
     }
 
     /// Alpha values for transparency effects

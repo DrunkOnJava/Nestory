@@ -6,6 +6,8 @@
 
 import Foundation
 
+// APPLE_FRAMEWORK_OPPORTUNITY: Replace with VisionKit - Use DataScannerViewController in VisionKit for built-in barcode scanning UI and enhanced recognition
+
 /// Protocol defining barcode scanning capabilities for item identification
 public protocol BarcodeScannerService: Sendable {
     /// Check if camera access is available for barcode scanning

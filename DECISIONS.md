@@ -660,3 +660,80 @@ Archive/
 All archived code is well-organized, documented, and ready for future integration when needed.
 
 **Result**: Project structure significantly cleaner while preserving all valuable code and enhancing current functionality.
+
+---
+
+## ADR-0014: Complete TCA Migration Decision
+
+**Date:** 2025-08-20  
+**Status:** Accepted  
+**Context:** After comprehensive architectural analysis, the decision has been made to migrate from the current 4-layer architecture to The Composable Architecture (TCA) to support complex Apple Framework integration and advanced features.
+
+### Decision
+
+**Migrate to full 6-layer TCA architecture** for the following strategic reasons:
+
+1. **Apple Framework Integration**: 84+ planned framework integrations (AppIntents, WidgetKit, Core Spotlight, PassKit) require sophisticated state management
+2. **Production-Ready Implementation**: Archived TCA features provide proven, production-quality foundation
+3. **Industry Best Practices**: TCA adoption by major companies (Adidas, Crypto.com) validates approach
+4. **Future Complexity**: Advanced features (family sharing, multi-device sync, warranty tracking) benefit from TCA's structured state management
+5. **Testing Excellence**: Complex feature interactions require TCA's testing capabilities
+
+### Architecture Evolution
+
+**From 4-Layer:**
+```
+App-Main → Services → Infrastructure → Foundation
+         ↘ UI ↗
+```
+
+**To 6-Layer TCA:**
+```
+App → Features → UI → Services → Infrastructure → Foundation
+        ↘     ↗
+```
+
+### Implementation Strategy
+
+**Phase 1: Foundation (Week 1)**
+- Restore TCA infrastructure from Archive/TCA-Migration/
+- Migrate Inventory feature as proof of concept
+- Verify build and test systems
+
+**Phase 2: Core Features (Week 2)**  
+- Migrate Analytics, Settings, Search features to TCA
+- Update navigation to TCA patterns
+- Comprehensive testing of migrated features
+
+**Phase 3: Apple Integration (Week 3)**
+- Implement AppIntents with TCA actions
+- Add WidgetKit with shared state management
+- Core Spotlight integration using TCA state
+
+### Consequences
+
+**Positive:**
+- Superior state management for complex Apple Framework integration
+- Excellent testing capabilities for sophisticated workflows
+- Structured feature composition and modularity
+- Future-proofed architecture for advanced features
+- Industry-validated approach for complex SwiftUI applications
+
+**Negative:**
+- 2-3 week migration effort required
+- Learning curve for team members unfamiliar with TCA
+- Potential compile time increase (mitigated with proper practices)
+
+**Mitigations:**
+- Leverage existing production-quality TCA implementation
+- Incremental migration with current architecture as fallback
+- Comprehensive testing throughout migration process
+- Document TCA patterns and provide team training
+
+### Success Criteria
+
+- [ ] All current functionality preserved post-migration
+- [ ] Apple Framework integration simplified and enhanced
+- [ ] Improved testing coverage and capabilities
+- [ ] Enhanced state predictability and debugging
+- [ ] Clean separation of concerns across features

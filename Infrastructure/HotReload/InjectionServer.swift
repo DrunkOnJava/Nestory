@@ -8,6 +8,8 @@ import Foundation
 import Network
 import OSLog
 
+// APPLE_FRAMEWORK_OPPORTUNITY: Replace with MultipeerConnectivity - Could use MCSession for peer-to-peer hot reload communication
+
 @MainActor
 public final class InjectionServer: ObservableObject {
     public static let shared = InjectionServer()
@@ -16,6 +18,7 @@ public final class InjectionServer: ObservableObject {
     private var listener: NWListener?
     private let port: UInt16 = 8899
     private var connections: [NWConnection] = []
+    // APPLE_FRAMEWORK_OPPORTUNITY: Replace with NWConnection - Already using Network framework optimally for TCP connections
 
     @Published var isRunning = false
     @Published var lastInjectionTime: Date?

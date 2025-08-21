@@ -7,6 +7,9 @@ import os.log
 import UIKit
 import UniformTypeIdentifiers
 
+// APPLE_FRAMEWORK_OPPORTUNITY: Replace with PhotosUI - Use PHPickerViewController and PhotosUI for better photo library integration
+// APPLE_FRAMEWORK_OPPORTUNITY: Replace with Compression - Add Compression framework for optimized image file compression algorithms
+
 public final class ImageIO: @unchecked Sendable {
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory", category: "ImageIO")
     private let context: CIContext
@@ -105,6 +108,7 @@ public final class ImageIO: @unchecked Sendable {
         }
     }
 
+    // APPLE_FRAMEWORK_OPPORTUNITY: Replace with Core Image - Use CIFilter for hardware-accelerated image processing
     public nonisolated func resizeImage(_ image: UIImage, maxDimension: CGFloat) async throws -> UIImage {
         let size = image.size
 

@@ -8,6 +8,8 @@ import Foundation
 import os.log
 import SwiftData
 
+// APPLE_FRAMEWORK_OPPORTUNITY: Replace with TabularData Framework - Use DataFrame for structured CSV operations with better type safety and performance
+
 // MARK: - CSV Operations Extension
 
 extension LiveImportExportService {

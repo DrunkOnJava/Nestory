@@ -7,6 +7,8 @@
 import Foundation
 import SwiftData
 
+// APPLE_FRAMEWORK_OPPORTUNITY: Replace with UniformTypeIdentifiers - Use UTType for robust file type detection and handling instead of custom file extension logic
+
 /// Protocol defining import/export capabilities for inventory data
 @MainActor
 public protocol ImportExportService: AnyObject {

@@ -5,6 +5,8 @@
 import SwiftData
 import SwiftUI
 
+// APPLE_FRAMEWORK_OPPORTUNITY: Consider adding MapKit - Could add location-based organization of items (where purchased, where stored) with visual location tracking
+
 struct AddItemView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
@@ -56,6 +58,29 @@ struct AddItemView: View {
                     .buttonStyle(.plain)
                 }
 
+                // Quick Barcode Scan Section
+                Section {
+                    Button(action: { showingBarcodeScanner = true }) {
+                        HStack {
+                            Image(systemName: "barcode.viewfinder")
+                                .foregroundColor(.accentColor)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Scan Barcode")
+                                    .foregroundColor(.accentColor)
+                                Text("Add barcode for product identification")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.secondary)
+                                .font(.caption)
+                        }
+                        .padding(.vertical, 4)
+                    }
+                    .buttonStyle(.plain)
+                }
+
                 Section("Item Information") {
                     TextField("Item Name", text: $name)
                     TextField("Description", text: $itemDescription, axis: .vertical)
@@ -75,16 +100,29 @@ struct AddItemView: View {
                 Section("Additional Details") {
                     TextField("Brand", text: $brand)
                     TextField("Model Number", text: $modelNumber)
-                    HStack {
-                        TextField("Serial Number", text: $serialNumber)
-                        Button(action: { showingBarcodeScanner = true }) {
-                            Image(systemName: "barcode.viewfinder")
+                    TextField("Serial Number", text: $serialNumber)
+
+                    // Show barcode if captured
+                    if let scannedBarcode = tempItem.barcode, !scannedBarcode.isEmpty {
+                        HStack {
+                            Image(systemName: "barcode")
                                 .foregroundColor(.accentColor)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Barcode: \(scannedBarcode)")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                if !tempItem.name.isEmpty, tempItem.name != "New Item" {
+                                    Text("Product details auto-populated")
+                                        .font(.caption2)
+                                        .foregroundColor(.green)
+                                }
+                            }
+                            Spacer()
                         }
                     }
 
-                    // REMINDER: Barcode scanner is wired here!
-                    if !modelNumber.isEmpty || !serialNumber.isEmpty {
+                    // Product codes captured indicator
+                    if !modelNumber.isEmpty || !serialNumber.isEmpty || (tempItem.barcode?.isEmpty == false) {
                         HStack {
                             Image(systemName: "checkmark.circle.fill")
                                 .foregroundColor(.green)
@@ -147,6 +185,10 @@ struct AddItemView: View {
                         if !tempItem.name.isEmpty, name.isEmpty {
                             name = tempItem.name
                         }
+                        // Copy barcode if captured
+                        if let scannedBarcode = tempItem.barcode, !scannedBarcode.isEmpty {
+                            // Barcode will be saved with the item
+                        }
                     }
             }
         }
@@ -168,6 +210,7 @@ struct AddItemView: View {
         newItem.brand = brand.isEmpty ? nil : brand
         newItem.modelNumber = modelNumber.isEmpty ? nil : modelNumber
         newItem.serialNumber = serialNumber.isEmpty ? nil : serialNumber
+        newItem.barcode = tempItem.barcode?.isEmpty == false ? tempItem.barcode : nil
         newItem.notes = notes.isEmpty ? nil : notes
         newItem.imageData = imageData
 

@@ -5,7 +5,8 @@
 //
 
 import Foundation
-import os.log
+
+// UI layer - no direct logging imports
 import SwiftUI
 
 // MARK: - Lazy Loading List View
@@ -59,6 +60,7 @@ public struct OptimizedList<Data: RandomAccessCollection & Sendable, ID: Hashabl
     }
 
     private func handleItemAppear(at index: Int) {
+        // APPLE_FRAMEWORK_OPPORTUNITY: Replace with GameplayKit Framework - Use GKRandomSource for performance testing and data generation algorithms
         let profiler = PerformanceProfiler.shared
         Task {
             await profiler.measureUI("list_item_appear") {
@@ -90,7 +92,7 @@ public struct OptimizedList<Data: RandomAccessCollection & Sendable, ID: Hashabl
 
 @MainActor
 public class ListPerformanceMonitor: ObservableObject {
-    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory.dev", category: "UIPerformance")
+    // UI components should not handle logging directly
     private var displayLink: CADisplayLink?
     private var frameCount = 0
     private var lastTimestamp: CFTimeInterval = 0
@@ -99,7 +101,7 @@ public class ListPerformanceMonitor: ObservableObject {
     public func startMonitoring() {
         displayLink = CADisplayLink(target: self, selector: #selector(displayLinkFired(_:)))
         displayLink?.add(to: .main, forMode: .common)
-        logger.debug("Started UI performance monitoring")
+        // Performance monitoring started
     }
 
     public func stopMonitoring() {
@@ -108,7 +110,7 @@ public class ListPerformanceMonitor: ObservableObject {
 
         if frameCount > 0 {
             let dropRate = Double(droppedFrames) / Double(frameCount) * 100
-            logger.info("UI Performance Summary - Total frames: \(frameCount), Dropped: \(droppedFrames) (\(String(format: "%.1f%%", dropRate)))")
+            // Performance summary: Total frames: \(frameCount), Dropped: \(droppedFrames)
         }
     }
 
@@ -124,7 +126,7 @@ public class ListPerformanceMonitor: ObservableObject {
 
                 // Log severe frame drops
                 if actualInterval > expectedInterval * 3.0 {
-                    logger.warning("Severe frame drop detected: \(actualInterval * 1000)ms")
+                    // Severe frame drop detected: \(actualInterval * 1000)ms
 
                     Task {
                         await PerformanceProfiler.shared.measureUI("frame_drop") {}
@@ -208,7 +210,7 @@ public class ImageCacheManager: ObservableObject {
     public static let shared = ImageCacheManager()
 
     private let cache = NSCache<NSString, UIImage>()
-    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory.dev", category: "ImageCache")
+    // UI components should not handle logging directly
 
     private init() {
         cache.countLimit = CacheConstants.Image.maxCount
@@ -238,12 +240,12 @@ public class ImageCacheManager: ObservableObject {
 
     public func clearCache() {
         cache.removeAllObjects()
-        logger.info("Cleared image cache")
+        // Image cache cleared
     }
 
     @objc private func handleMemoryWarning() {
         cache.removeAllObjects()
-        logger.warning("Memory warning - cleared image cache")
+        // Memory warning - cleared image cache
     }
 
     private func imageMemoryCost(_ image: UIImage) -> Int {

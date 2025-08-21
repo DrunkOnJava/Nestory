@@ -1,6 +1,12 @@
 # Nestory Project Makefile
 # This Makefile serves as the single source of truth for all project operations
 # ensuring consistency across different chat sessions and context windows
+#
+# 🏗️ ARCHITECTURE DECISION: TCA MIGRATION (August 20, 2025)
+# - Migrated from 4-layer to 6-layer TCA architecture 
+# - Added ComposableArchitecture dependency for sophisticated state management
+# - All future features MUST use TCA patterns (Reducers, Actions, Dependencies)
+# - See ADR-0014 in DECISIONS.md for full rationale
 
 # ============================================================================
 # CONFIGURATION
@@ -48,7 +54,7 @@ help: ## Show this help message
 	@echo "$(BLUE)╚══════════════════════════════════════════════════════════════╝$(NC)"
 	@echo ""
 	@echo "$(YELLOW)Primary Commands:$(NC)"
-	@echo "  $(GREEN)make run$(NC)              - Build and run app in iPhone 16 Plus simulator"
+	@echo "  $(GREEN)make run$(NC)              - Build and run app in iPhone 16 Pro Max simulator"
 	@echo "  $(GREEN)make build$(NC)            - Build the app (Debug configuration)"
 	@echo "  $(GREEN)make fast-build$(NC)       - Parallel build with maximum speed ($(PARALLEL_JOBS) jobs)"
 	@echo "  $(GREEN)make test$(NC)             - Run all tests"
@@ -65,10 +71,12 @@ help: ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-20s$(NC) %s\n", $$1, $$2}'
 	@echo ""
 	@echo "$(YELLOW)Project Guidelines:$(NC)"
-	@echo "  • $(BLUE)ALWAYS$(NC) use iPhone 16 Plus simulator"
+	@echo "  • $(BLUE)ALWAYS$(NC) use iPhone 16 Pro Max simulator"
 	@echo "  • $(BLUE)ALWAYS$(NC) wire up new features in UI"
 	@echo "  • $(BLUE)NO$(NC) 'low stock' references (insurance focus)"
 	@echo "  • $(BLUE)NO$(NC) orphaned code - everything must be accessible"
+	@echo "  • $(RED)TCA REQUIRED$(NC) - All new features must use TCA patterns"
+	@echo "  • $(RED)ARCHITECTURE$(NC) - App→Features→UI→Services→Infrastructure→Foundation"
 	@echo ""
 	@echo "$(RED)Remember:$(NC) This is for personal belongings insurance documentation!"
 
@@ -77,8 +85,8 @@ help: ## Show this help message
 # ============================================================================
 
 .PHONY: run
-run: build-for-simulator ## Build and run app in iPhone 16 Plus simulator
-	@echo "$(YELLOW)🚀 Installing and launching Nestory on iPhone 16 Plus...$(NC)"
+run: build-for-simulator ## Build and run app in iPhone 16 Pro Max simulator
+	@echo "$(YELLOW)🚀 Installing and launching Nestory on iPhone 16 Pro Max...$(NC)"
 	@echo "Booting simulator..."
 	@xcrun simctl boot "$(SIMULATOR_NAME)" 2>/dev/null || true
 	@echo "Installing app..."
@@ -91,7 +99,7 @@ run: build-for-simulator ## Build and run app in iPhone 16 Plus simulator
 
 .PHONY: build
 build: gen check-tools clean-logs check-file-sizes ## Build the app (Debug configuration)
-	@echo "$(YELLOW)🔨 Building Nestory for iPhone 16 Plus...$(NC)"
+	@echo "$(YELLOW)🔨 Building Nestory for iPhone 16 Pro Max...$(NC)"
 	@timeout $(BUILD_TIMEOUT) xcodebuild -scheme $(ACTIVE_SCHEME) \
 		-destination '$(DESTINATION)' \
 		-configuration $(CONFIGURATION) \
@@ -272,7 +280,14 @@ verify-wiring: ## Verify all features are wired to UI
 	@for service in Services/*.swift; do \
 		if [ -f "$$service" ]; then \
 			basename=$$(basename $$service .swift); \
-			if ! grep -r "$$basename" App-Main/ > /dev/null 2>&1; then \
+			if [ "$$basename" = "CloudStorageServices" ]; then \
+				if ! grep -r "CloudStorageManager" App-Main/ > /dev/null 2>&1; then \
+					echo "$(RED)❌ $$basename not wired in UI!$(NC)"; \
+					exit 1; \
+				else \
+					echo "$(GREEN)✓$(NC) $$basename is wired"; \
+				fi \
+			elif ! grep -r "$$basename" App-Main/ > /dev/null 2>&1; then \
 				echo "$(RED)❌ $$basename not wired in UI!$(NC)"; \
 				exit 1; \
 			else \
@@ -458,8 +473,8 @@ clean-logs: ## Clean build logs
 	@rm -f fast-*.log
 
 .PHONY: reset-simulator
-reset-simulator: ## Reset iPhone 16 Plus simulator
-	@echo "$(YELLOW)🔄 Resetting iPhone 16 Plus simulator...$(NC)"
+reset-simulator: ## Reset iPhone 16 Pro Max simulator
+	@echo "$(YELLOW)🔄 Resetting iPhone 16 Pro Max simulator...$(NC)"
 	@xcrun simctl shutdown "$(SIMULATOR_NAME)" 2>/dev/null || true
 	@xcrun simctl erase "$(SIMULATOR_NAME)" 2>/dev/null || true
 	@echo "$(GREEN)✅ Simulator reset!$(NC)"
@@ -549,8 +564,8 @@ doctor: ## Diagnose project setup issues
 	@echo ""
 	@echo "$(YELLOW)Simulator:$(NC)"
 	@xcrun simctl list devices | grep -q "$(SIMULATOR_NAME)" && \
-		echo "$(GREEN)✓$(NC) iPhone 16 Plus simulator available" || \
-		echo "$(RED)✗$(NC) iPhone 16 Plus simulator not found"
+		echo "$(GREEN)✓$(NC) iPhone 16 Pro Max simulator available" || \
+		echo "$(RED)✗$(NC) iPhone 16 Pro Max simulator not found"
 	@echo ""
 	@echo "$(YELLOW)Services Wiring Status:$(NC)"
 	@for service in Services/*.swift; do \
@@ -614,13 +629,13 @@ context: tree ## Generate context for new chat sessions
 	@echo "## CRITICAL REMINDERS" >> CURRENT_CONTEXT.md
 	@echo "- **App Type**: Personal home inventory for INSURANCE DOCUMENTATION" >> CURRENT_CONTEXT.md
 	@echo "- **NOT**: Business inventory or stock management" >> CURRENT_CONTEXT.md
-	@echo "- **Simulator**: ALWAYS use iPhone 16 Plus (per CLAUDE.md)" >> CURRENT_CONTEXT.md
+	@echo "- **Simulator**: ALWAYS use iPhone 16 Pro Max (per CLAUDE.md)" >> CURRENT_CONTEXT.md
 	@echo "- **Architecture**: App → Services → Infrastructure → Foundation" >> CURRENT_CONTEXT.md
 	@echo "- **Focus**: Insurance claims, warranties, receipts, disaster documentation" >> CURRENT_CONTEXT.md
 	@echo "" >> CURRENT_CONTEXT.md
 	@echo "## Build & Run Commands" >> CURRENT_CONTEXT.md
 	@echo '```bash' >> CURRENT_CONTEXT.md
-	@echo "make run          # Build and run on iPhone 16 Plus" >> CURRENT_CONTEXT.md
+	@echo "make run          # Build and run on iPhone 16 Pro Max" >> CURRENT_CONTEXT.md
 	@echo "make build        # Build only" >> CURRENT_CONTEXT.md
 	@echo "make check        # Run all verification checks" >> CURRENT_CONTEXT.md
 	@echo "make doctor       # Diagnose setup issues" >> CURRENT_CONTEXT.md
@@ -688,8 +703,8 @@ open: ## Open project in Xcode
 	fi
 
 .PHONY: simulator
-simulator: ## Open iOS Simulator with iPhone 16 Plus
-	@echo "$(YELLOW)📱 Opening Simulator with iPhone 16 Plus...$(NC)"
+simulator: ## Open iOS Simulator with iPhone 16 Pro Max
+	@echo "$(YELLOW)📱 Opening Simulator with iPhone 16 Pro Max...$(NC)"
 	@open -a Simulator
 	@xcrun simctl boot "$(SIMULATOR_NAME)" 2>/dev/null || true
 

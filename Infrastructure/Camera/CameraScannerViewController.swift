@@ -7,6 +7,8 @@
 import AVFoundation
 import UIKit
 
+// APPLE_FRAMEWORK_OPPORTUNITY: Replace with VisionKit - Use VNDocumentCameraViewController for document scanning and VNBarcodeObservation for barcode detection
+
 public class CameraScannerViewController: UIViewController, AVCaptureMetadataOutputObjectsDelegate {
     public var scanner: BarcodeScannerService?
     public var onScan: ((BarcodeResult) -> Void)?

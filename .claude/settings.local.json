@@ -34,12 +34,25 @@
       "Bash(else)",
       "Bash(fi)",
       "Bash(timeout 60 make build-staging)",
-      "Bash(timeout 60 make build-prod)"
+      "Bash(timeout 60 make build-prod)",
+      "Bash(DevTools/nestoryctl/.build/release/nestoryctl arch-verify:*)",
+      "Bash(grep:*)",
+      "Bash(cp:*)",
+      "Bash(touch:*)",
+      "Bash(ruby Scripts/approve_xcode_macros.rb:*)",
+      "Bash(bundle install)",
+      "Bash(xcrun simctl boot:*)",
+      "Bash(open:*)",
+      "Bash(xcrun simctl install:*)",
+      "Bash(xcrun simctl list:*)",
+      "Bash(pkill:*)",
+      "Bash(xcrun simctl launch:*)"
     ],
     "deny": [],
     "ask": [],
     "additionalDirectories": [
-      "/Users/griffin/Library/Application Support/Claude/Logs"
+      "/Users/griffin/Library/Application Support/Claude/Logs",
+      "/Users/griffin/Library/Developer/Xcode/DerivedData"
     ]
   },
   "outputStyle": "Explanatory"

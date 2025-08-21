@@ -6,6 +6,9 @@ import LocalAuthentication
 import os.log
 import Security
 
+// APPLE_FRAMEWORK_OPPORTUNITY: Replace with CryptoKit - Already using CryptoKit optimally for Secure Enclave operations
+// APPLE_FRAMEWORK_OPPORTUNITY: Replace with LocalAuthentication - Already using LocalAuthentication but could enhance with LABiometryType for specific biometric detection
+
 public final class SecureEnclaveHelper {
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory", category: "SecureEnclaveHelper")
     private let keychain = KeychainStore()

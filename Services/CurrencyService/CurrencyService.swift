@@ -5,6 +5,8 @@
 import Foundation
 import os.log
 
+// APPLE_FRAMEWORK_OPPORTUNITY: Replace with URLSession - Use URLSessionDataTask with background configuration for currency rate updates
+
 public protocol CurrencyService: Sendable {
     func convert(amount: Decimal, from: String, to: String) async throws -> Decimal
     func updateRates() async throws

@@ -8,6 +8,8 @@ import Foundation
 import PDFKit
 import UIKit
 
+// APPLE_FRAMEWORK_OPPORTUNITY: Replace with PDFKit - Already using PDFKit but could leverage PDFDocument for more advanced features
+
 @MainActor
 public struct PDFReportGenerator {
     private let pageRect = CGRect(x: 0, y: 0, width: 612, height: 792) // Letter size

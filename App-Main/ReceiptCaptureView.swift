@@ -11,6 +11,7 @@ import VisionKit
 struct ReceiptCaptureView: View {
     @Bindable var item: Item
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
     @StateObject private var ocrService = ReceiptOCRService()
 
     @State private var showingScanner = false
@@ -21,6 +22,11 @@ struct ReceiptCaptureView: View {
     @State private var isProcessing = false
     @State private var showingError = false
     @State private var errorMessage = ""
+    @State private var latestReceipt: Receipt?
+    @State private var ocrConfidence = 0.0
+    @State private var showingReceiptPreview = false
+    @State private var enhancedReceiptData: EnhancedReceiptData?
+    @State private var showingMLProgress = false
 
     var body: some View {
         NavigationStack {
@@ -90,18 +96,57 @@ struct ReceiptCaptureView: View {
                         .cornerRadius(12)
                     }
 
+                    // ML Processing Progress
+                    if showingMLProgress || isProcessing {
+                        // TODO: ARCH - Move MLProcessingProgressView to proper UI import
+                        // MLProcessingProgressView(
+                        //     stage: ocrService.processingStage,
+                        //     confidence: ocrService.confidenceScore,
+                        //     isProcessing: ocrService.isProcessing
+                        // )
+                        ProgressView("Processing receipt...")
+                    }
+
+                    // Enhanced Receipt Data Display
+                    if let enhancedData = enhancedReceiptData {
+                        EnhancedReceiptDataView(data: enhancedData)
+                    }
+
                     // Extracted Text Display
                     if !extractedText.isEmpty {
                         VStack(alignment: .leading, spacing: 12) {
                             HStack {
-                                Text("Extracted Information")
-                                    .font(.headline)
-                                Spacer()
-                                Button("Apply to Item") {
-                                    applyExtractedData()
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Extracted Information")
+                                        .font(.headline)
+                                    if ocrConfidence > 0 {
+                                        HStack(spacing: 4) {
+                                            Text("Confidence:")
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                            Text(confidenceText)
+                                                .font(.caption)
+                                                .fontWeight(.medium)
+                                                .foregroundColor(confidenceColor)
+                                        }
+                                    }
                                 }
-                                .buttonStyle(.borderedProminent)
-                                .disabled(isProcessing)
+                                Spacer()
+                                VStack(spacing: 4) {
+                                    Button("Apply to Item") {
+                                        applyExtractedData()
+                                    }
+                                    .buttonStyle(.borderedProminent)
+                                    .disabled(isProcessing)
+
+                                    if latestReceipt != nil {
+                                        Button("View Receipt") {
+                                            showingReceiptPreview = true
+                                        }
+                                        .buttonStyle(.bordered)
+                                        .font(.caption)
+                                    }
+                                }
                             }
 
                             ScrollView {
@@ -160,7 +205,9 @@ struct ReceiptCaptureView: View {
             }
             .sheet(isPresented: $showingScanner) {
                 if #available(iOS 16.0, *) {
-                    DocumentScannerView(scannedImage: $scannedImage)
+                    // TODO: ARCH - Move DocumentScannerView to UI layer for proper access
+                    // DocumentScannerView(scannedImage: $scannedImage)
+                    Text("Document Scanner - Architecture Fix Needed")
                         .ignoresSafeArea()
                         .onDisappear {
                             if let image = scannedImage {
@@ -187,6 +234,33 @@ struct ReceiptCaptureView: View {
             } message: {
                 Text(errorMessage)
             }
+            .sheet(isPresented: $showingReceiptPreview) {
+                if let receipt = latestReceipt {
+                    ReceiptDetailView(receipt: receipt)
+                }
+            }
+        }
+    }
+
+    // MARK: - Computed Properties
+
+    private var confidenceText: String {
+        switch ocrConfidence {
+        case 0.9 ... 1.0: "Excellent"
+        case 0.7 ..< 0.9: "Good"
+        case 0.5 ..< 0.7: "Fair"
+        case 0.0 ..< 0.5: "Poor"
+        default: "Unknown"
+        }
+    }
+
+    private var confidenceColor: Color {
+        switch ocrConfidence {
+        case 0.9 ... 1.0: .green
+        case 0.7 ..< 0.9: .blue
+        case 0.5 ..< 0.7: .orange
+        case 0.0 ..< 0.5: .red
+        default: .secondary
         }
     }
 
@@ -227,30 +301,113 @@ struct ReceiptCaptureView: View {
     }
 
     private func extractTextFromReceipt(_ imageData: Data) {
+        guard let image = UIImage(data: imageData) else {
+            showError("Invalid image data")
+            return
+        }
+
         isProcessing = true
+        showingMLProgress = true
 
         Task {
             do {
-                let text = try await ocrService.extractTextFromImage(imageData)
-                let receiptData = ocrService.parseReceiptData(from: text)
+                // Use enhanced ML processing
+                let enhancedData = try await ocrService.processReceiptImage(image)
 
                 await MainActor.run {
-                    extractedText = formatExtractedData(receiptData)
+                    self.enhancedReceiptData = enhancedData
+                    extractedText = formatEnhancedReceiptData(enhancedData)
+                    ocrConfidence = enhancedData.confidence
 
-                    // Auto-apply if confident
-                    if receiptData.totalAmount != nil || receiptData.date != nil {
-                        ocrService.autoFillItemFromReceipt(receiptData, for: item)
+                    // Create Receipt model from enhanced data
+                    let receipt = createReceiptFromEnhancedData(enhancedData, imageData: imageData)
+                    if let receipt {
+                        latestReceipt = receipt
+                        modelContext.insert(receipt)
+                        try? modelContext.save()
                     }
 
                     isProcessing = false
+                    showingMLProgress = false
                 }
             } catch {
                 await MainActor.run {
-                    showError("OCR failed: \(error.localizedDescription)")
+                    showError("Enhanced OCR failed: \(error.localizedDescription)")
                     isProcessing = false
+                    showingMLProgress = false
                 }
             }
         }
+    }
+
+    private func createReceiptFromEnhancedData(_ data: EnhancedReceiptData, imageData: Data) -> Receipt? {
+        guard let vendor = data.vendor,
+              let total = data.total,
+              let date = data.date
+        else {
+            return nil
+        }
+
+        let money = Money(amount: total, currencyCode: "USD")
+        let receipt = Receipt(vendor: vendor, total: money, purchaseDate: date, item: item)
+
+        // Set enhanced data
+        receipt.setOCRResults(
+            text: data.rawText,
+            confidence: data.confidence,
+            categories: data.categories
+        )
+
+        if let tax = data.tax {
+            receipt.taxMoney = Money(amount: tax, currencyCode: "USD")
+        }
+
+        receipt.setImageData(imageData, fileName: "receipt_\(receipt.id.uuidString).jpg")
+
+        return receipt
+    }
+
+    private func formatEnhancedReceiptData(_ data: EnhancedReceiptData) -> String {
+        var result = "=== AI-Enhanced Receipt Analysis ===\n\n"
+
+        if let vendor = data.vendor {
+            result += "🏪 Vendor: \(vendor)\n"
+        }
+
+        if let total = data.total {
+            result += "💰 Total: $\(total)\n"
+        }
+
+        if let tax = data.tax {
+            result += "🧾 Tax: $\(tax)\n"
+        }
+
+        if let date = data.date {
+            let formatter = DateFormatter()
+            formatter.dateStyle = .medium
+            result += "📅 Date: \(formatter.string(from: date))\n"
+        }
+
+        if !data.categories.isEmpty {
+            result += "🏷️ Categories: \(data.categories.joined(separator: ", "))\n"
+        }
+
+        result += "🎯 Confidence: \(Int(data.confidence * 100))%\n"
+
+        if data.processingMetadata.mlClassifierUsed {
+            result += "🤖 Enhanced with Machine Learning\n"
+        }
+
+        if !data.items.isEmpty {
+            result += "\n📝 Items Detected:\n"
+            for (index, item) in data.items.enumerated() {
+                result += "\(index + 1). \(item.name) - $\(item.price)\n"
+            }
+        }
+
+        result += "\n--- Raw OCR Text ---\n\(data.rawText)"
+
+        return result
     }
 
     private func formatExtractedData(_ data: ReceiptOCRService.ReceiptData) -> String {

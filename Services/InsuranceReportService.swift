@@ -9,6 +9,10 @@
 import Foundation
 import PDFKit
 import SwiftData
+
+// APPLE_FRAMEWORK_OPPORTUNITY: Replace with AppleArchive - Compress insurance claim packages for efficient transfer
+// APPLE_FRAMEWORK_OPPORTUNITY: Replace with MessageUI - Email insurance reports directly with PDF attachments
+// APPLE_FRAMEWORK_OPPORTUNITY: Replace with FileProvider - Cloud storage integration for insurance document backup
 import SwiftUI
 
 @MainActor

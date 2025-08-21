@@ -1,6 +1,37 @@
 // Layer: App
 // Module: InventoryListView
 // Purpose: Main inventory list and item browsing
+//
+// 🏗️ TRANSITION VIEW: Current MVVM → Future TCA
+// - Currently uses InventoryListViewModel (@StateObject pattern)
+// - PLANNED: Will migrate to TCA InventoryFeature in Part 2
+// - Should NOT add new business logic here - that belongs in Features layer
+// - Focus on UI presentation and navigation coordination
+//
+// 🎯 INSURANCE FOCUS: Home inventory browsing and documentation
+// - Comprehensive item listing with search and filtering
+// - Documentation status indicators (missing photos, receipts, serials)
+// - Bulk insurance claim generation workflows
+// - Quick access to item detail documentation
+//
+// 📱 UI PATTERNS: Standard iOS list interface
+// - NavigationStack for hierarchical navigation
+// - SearchableModifier for real-time search
+// - SwipeActions for item management
+// - Sheet presentations for modal workflows
+// - RefreshableModifier for pull-to-refresh
+//
+// 🔄 TCA MIGRATION STATUS:
+// - Part 1: Keep current implementation working
+// - Part 2: Replace InventoryListViewModel with InventoryFeature.State
+// - Part 2: Replace @State with TCA Store
+// - Part 2: Replace async Task calls with TCA Actions
+//
+// 🍎 APPLE FRAMEWORK OPPORTUNITIES (Phase 3):
+// - Core Spotlight: System-wide item search integration
+// - AppIntents: "Hey Siri, show my electronics" voice commands
+// - WidgetKit: Home screen inventory summary widgets
+//
 
 import SwiftData
 import SwiftUI
@@ -33,6 +64,9 @@ struct InventoryListView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var viewModel: InventoryListViewModel
     @State private var showingAddItem = false
+    @State private var showingBulkClaim = false
+    @State private var selectedItems: Set<Item> = []
+    @State private var isSelectionMode = false
 
     init() {
         // Initialize with placeholder, will be updated in onAppear
@@ -57,6 +91,23 @@ struct InventoryListView: View {
             .navigationBarTitleDisplayMode(.large)
             .searchable(text: $viewModel.searchText, prompt: "Search your stuff...")
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    if !viewModel.isEmpty {
+                        Menu {
+                            Button("Generate Bulk Insurance Claim") {
+                                selectedItems = Set(viewModel.filteredItems)
+                                showingBulkClaim = true
+                            }
+
+                            Button("Select Items for Claim") {
+                                isSelectionMode = true
+                            }
+                        } label: {
+                            Label("Bulk Actions", systemImage: "ellipsis.circle")
+                        }
+                    }
+                }
+
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: { showingAddItem = true }) {
                         Label("Add Item", systemImage: "plus")
@@ -65,6 +116,9 @@ struct InventoryListView: View {
             }
             .sheet(isPresented: $showingAddItem) {
                 AddItemView()
+            }
+            .sheet(isPresented: $showingBulkClaim) {
+                InsuranceClaimView(items: Array(selectedItems))
             }
             .overlay {
                 if viewModel.isEmpty {

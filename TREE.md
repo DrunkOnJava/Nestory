@@ -1,6 +1,6 @@
 # Project Structure
 
-_Last updated: 2025-08-20 03:42:39_
+_Last updated: 2025-08-20 20:10:38_
 
 ```
 [01;34m.[0m
@@ -8,6 +8,8 @@ _Last updated: 2025-08-20 03:42:39_
 │   ├── [01;34mAnalyticsViews[0m
 │   │   ├── AnalyticsCharts.swift
 │   │   ├── AnalyticsDataProvider.swift
+│   │   ├── EnhancedAnalyticsSummaryView.swift
+│   │   ├── EnhancedInsightsView.swift
 │   │   ├── InsightsView.swift
 │   │   └── SummaryCardsView.swift
 │   ├── [01;34mAssets.xcassets[0m
@@ -37,6 +39,12 @@ _Last updated: 2025-08-20 03:42:39_
 │   │   ├── ScanningTipsView.swift
 │   │   ├── ScanOptionsView.swift
 │   │   └── ScanResultView.swift
+│   ├── [01;34mDamageAssessmentViews[0m
+│   │   ├── BeforeAfterPhotoComparisonView.swift
+│   │   ├── DamageAssessmentReportView.swift
+│   │   ├── DamageAssessmentWorkflowView.swift
+│   │   ├── DamageSeverityAssessmentView.swift
+│   │   └── RepairCostEstimationView.swift
 │   ├── [01;34mItemConditionViews[0m
 │   │   ├── ConditionModels.swift
 │   │   ├── ConditionNotesView.swift
@@ -54,12 +62,15 @@ _Last updated: 2025-08-20 03:42:39_
 │   │   ├── AboutSupportSettingsView.swift
 │   │   ├── AppearanceSettingsView.swift
 │   │   ├── CloudBackupSettingsView.swift
+│   │   ├── CurrencySettingsView.swift
 │   │   ├── DangerZoneSettingsView.swift
 │   │   ├── DataStorageSettingsView.swift
 │   │   ├── ExportOptionsView.swift
 │   │   ├── GeneralSettingsView.swift
 │   │   ├── ImportExportSettingsView.swift
 │   │   ├── InsuranceReportOptionsView.swift
+│   │   ├── NotificationAnalyticsView.swift
+│   │   ├── NotificationFrequencyView.swift
 │   │   ├── NotificationSettingsView.swift
 │   │   ├── PrivacyPolicyView.swift
 │   │   └── TermsOfServiceView.swift
@@ -69,31 +80,48 @@ _Last updated: 2025-08-20 03:42:39_
 │   ├── [01;34mWarrantyViews[0m
 │   │   ├── DocumentManagementView.swift
 │   │   ├── LocationManagementView.swift
+│   │   ├── WarrantyCharts.swift
+│   │   ├── WarrantyDashboardComponents.swift
+│   │   ├── WarrantyFormView.swift
 │   │   ├── WarrantyManagementView.swift
 │   │   ├── WarrantyStatusCalculator.swift
-│   │   └── WarrantySubviews.swift
+│   │   ├── WarrantySubviews.swift
+│   │   └── WarrantyTrackingView.swift
 │   ├── AddItemView.swift
 │   ├── AdvancedSearchView.swift
 │   ├── AnalyticsDashboardView.swift
 │   ├── BarcodeScannerView.swift
 │   ├── CategoriesView.swift
+│   ├── ClaimExportView.swift
+│   ├── ClaimPackageAssemblyView.swift
+│   ├── ClaimPreviewView.swift
+│   ├── ClaimSubmissionView.swift
 │   ├── ContentView.swift
 │   ├── EditItemView.swift
+│   ├── EnhancedReceiptDataView.swift
 │   ├── Info.plist
+│   ├── InsuranceClaimView.swift
 │   ├── InsuranceExportOptionsView.swift
 │   ├── InventoryListView.swift
 │   ├── ItemConditionView.swift
 │   ├── ItemDetailView.swift
+│   ├── LiveReceiptScannerView.swift
 │   ├── ManualBarcodeEntryView.swift
+│   ├── MLProcessingProgressView.swift
 │   ├── Nestory.entitlements
 │   ├── NestoryApp.swift
 │   ├── PhotoCaptureView.swift
 │   ├── PhotoPicker.swift
 │   ├── ReceiptCaptureView.swift
+│   ├── ReceiptDetailView.swift
+│   ├── ReceiptsSection.swift
+│   ├── RootFeature.swift
+│   ├── RootView.swift
 │   ├── SearchView.swift
 │   ├── SettingsView.swift
 │   ├── SingleItemInsuranceReportView.swift
 │   ├── ThemeManager.swift
+│   ├── WarrantyDashboardView.swift
 │   └── WarrantyDocumentsView.swift
 ├── [01;34mApp-Widgets[0m
 ├── [01;34mArchive[0m
@@ -209,6 +237,12 @@ _Last updated: 2025-08-20 03:42:39_
 │   ├── Snapfile
 │   ├── upload_direct.rb
 │   └── upload_testflight.rb
+├── [01;34mFeatures[0m
+│   └── [01;34mInventory[0m
+│       ├── InventoryFeature.swift
+│       ├── InventoryView.swift
+│       ├── ItemDetailFeature.swift
+│       └── ItemEditFeature.swift
 ├── [01;34mFoundation[0m
 │   ├── [01;34mCore[0m
 │   │   ├── [01;34mConstants[0m
@@ -223,6 +257,7 @@ _Last updated: 2025-08-20 03:42:39_
 │   │   ├── ErrorLogger.swift
 │   │   ├── ErrorRecoveryStrategy.swift
 │   │   ├── Errors.swift
+│   │   ├── FoundationLogger.swift
 │   │   ├── Identifiers.swift
 │   │   ├── Money.swift
 │   │   ├── NonEmptyString.swift
@@ -273,17 +308,21 @@ _Last updated: 2025-08-20 03:42:39_
 │   ├── [01;34mPerformance[0m
 │   │   ├── PerformanceBaselines.swift
 │   │   └── PerformanceProfiler.swift
+│   ├── [01;34mPhotos[0m
+│   │   └── PhotoPicker.swift
 │   ├── [01;34mSecurity[0m
 │   │   ├── CryptoBox.swift
 │   │   ├── KeychainStore.swift
 │   │   └── SecureEnclaveHelper.swift
-│   └── [01;34mStorage[0m
-│       ├── Cache.swift
-│       ├── FileStore.swift
-│       ├── ImageIO.swift
-│       ├── PerceptualHash.swift
-│       ├── SecureStorage.swift
-│       └── Thumbnailer.swift
+│   ├── [01;34mStorage[0m
+│   │   ├── Cache.swift
+│   │   ├── FileStore.swift
+│   │   ├── ImageIO.swift
+│   │   ├── PerceptualHash.swift
+│   │   ├── SecureStorage.swift
+│   │   └── Thumbnailer.swift
+│   └── [01;34mVisionKit[0m
+│       └── DocumentScannerView.swift
 ├── [01;34mNestory.xcodeproj[0m
 │   ├── [01;34mNestory.xcodeproj[0m
 │   │   ├── [01;34mxcshareddata[0m
@@ -360,7 +399,8 @@ _Last updated: 2025-08-20 03:42:39_
 │   ├── [01;34mBarcodeScannerService[0m
 │   │   ├── BarcodeScannerService.swift
 │   │   ├── LiveBarcodeScannerService.swift
-│   │   └── MockBarcodeScannerService.swift
+│   │   ├── MockBarcodeScannerService.swift
+│   │   └── ProductLookupService.swift
 │   ├── [01;34mCloudBackupService[0m
 │   │   ├── BackupDataTransformer.swift
 │   │   ├── BackupModels.swift
@@ -372,6 +412,9 @@ _Last updated: 2025-08-20 03:42:39_
 │   │   └── RestoreDataTransformer.swift
 │   ├── [01;34mCurrencyService[0m
 │   │   └── CurrencyService.swift
+│   ├── [01;34mDamageAssessmentService[0m
+│   │   ├── DamageAssessmentModels.swift
+│   │   └── DamageAssessmentService.swift
 │   ├── [01;34mImportExportService[0m
 │   │   ├── CSVOperations.swift
 │   │   ├── ImportExportModels.swift
@@ -379,6 +422,9 @@ _Last updated: 2025-08-20 03:42:39_
 │   │   ├── JSONOperations.swift
 │   │   ├── LiveImportExportService.swift
 │   │   └── MockImportExportService.swift
+│   ├── [01;34mInsuranceClaim[0m
+│   │   ├── ClaimDocumentGenerator.swift
+│   │   └── ClaimTemplateManager.swift
 │   ├── [01;34mInsuranceExport[0m
 │   │   ├── DataFormatHelpers.swift
 │   │   ├── HTMLTemplateGenerator.swift
@@ -396,18 +442,42 @@ _Last updated: 2025-08-20 03:42:39_
 │   ├── [01;34mNotificationService[0m
 │   │   ├── LiveNotificationService.swift
 │   │   ├── MockNotificationService.swift
+│   │   ├── NotificationAdvancedOperations.swift
+│   │   ├── NotificationAnalytics.swift
+│   │   ├── NotificationBackgroundProcessor.swift
 │   │   ├── NotificationManagement.swift
 │   │   ├── NotificationOtherOperations.swift
+│   │   ├── NotificationPersistence.swift
+│   │   ├── NotificationScheduler.swift
+│   │   ├── NotificationSchedulingTypes.swift
 │   │   ├── NotificationService.swift
 │   │   ├── NotificationServiceError.swift
+│   │   ├── NotificationSettings.swift
 │   │   └── NotificationWarrantyOperations.swift
 │   ├── [01;34mReceiptOCR[0m
+│   │   ├── AppleFrameworksReceiptProcessor.swift
+│   │   ├── CategoryClassifier.swift
+│   │   ├── MLReceiptProcessor.swift
 │   │   ├── ReceiptDataParser.swift
 │   │   ├── ReceiptItemExtractor.swift
 │   │   └── VisionTextExtractor.swift
+│   ├── [01;34mWarrantyService[0m
+│   │   └── WarrantyService.swift
+│   ├── [01;34mWarrantyTrackingService[0m
+│   │   ├── LiveWarrantyTrackingService.swift
+│   │   └── WarrantyTrackingService.swift
+│   ├── ClaimEmailService.swift
+│   ├── ClaimExportService.swift
+│   ├── ClaimPackageAssemblerService.swift
+│   ├── ClaimTrackingService.swift
+│   ├── ClaimValidationService.swift
+│   ├── CloudStorageServices.swift
+│   ├── DependencyKeys.swift
+│   ├── InsuranceClaimService.swift
 │   ├── InsuranceExportService.swift
 │   ├── InsuranceReportService.swift
 │   └── ReceiptOCRService.swift
+├── [01;34mServices.backup[0m
 ├── [01;34mSources[0m
 │   └── [01;34mNestoryGuards[0m
 │       └── NestoryGuards.swift
@@ -428,6 +498,8 @@ _Last updated: 2025-08-20 03:42:39_
 │   │   ├── InventoryServiceTests.swift
 │   │   ├── NotificationServiceTests.swift
 │   │   └── SyncServiceTests.swift
+│   ├── [01;34mServicesTests[0m
+│   │   └── WarrantyTrackingServiceTests.swift
 │   ├── [01;34mSnapshot[0m
 │   │   └── SnapshotTests.swift
 │   ├── [01;34mTestSupport[0m
@@ -441,11 +513,13 @@ _Last updated: 2025-08-20 03:42:39_
 │   │   ├── ItemDetailViewTests.swift
 │   │   └── SettingsViewTests.swift
 │   ├── [01;34mUnit[0m
-│   │   └── [01;34mFoundation[0m
-│   │       ├── IdentifierTests.swift
-│   │       ├── ModelInvariantTests.swift
-│   │       ├── MoneyTests.swift
-│   │       └── TestHelpers.swift
+│   │   ├── [01;34mFoundation[0m
+│   │   │   ├── IdentifierTests.swift
+│   │   │   ├── ModelInvariantTests.swift
+│   │   │   ├── MoneyTests.swift
+│   │   │   └── TestHelpers.swift
+│   │   └── [01;34mServices[0m
+│   │       └── InsuranceClaimServiceTests.swift
 │   └── TestConfiguration.swift
 ├── [01;34mtools[0m
 │   └── [01;34mdev[0m
@@ -462,14 +536,14 @@ _Last updated: 2025-08-20 03:42:39_
 │       └── [01;32mtest_hot_reload.sh[0m
 ├── [01;34mUI[0m
 │   ├── [01;34mComponents[0m
+│   │   ├── ComingSoonView.swift
+│   │   ├── ErrorView.swift
 │   │   ├── ExportOptionsView.swift
 │   │   ├── InsuranceReportOptionsView.swift
-│   │   ├── ManualBarcodeEntryView.swift
-│   │   └── PhotoPicker.swift
+│   │   └── ManualBarcodeEntryView.swift
 │   ├── [01;34mPerformance[0m
 │   │   └── UIPerformanceOptimizer.swift
 │   ├── [01;34mUI-Components[0m
-│   │   ├── DocumentScannerView.swift
 │   │   ├── EmptyStateView.swift
 │   │   ├── ItemCard.swift
 │   │   ├── PrimaryButton.swift
@@ -494,7 +568,9 @@ _Last updated: 2025-08-20 03:42:39_
 ├── BUILD_STATUS.md
 ├── build_with_swift6.sh
 ├── build.sh
+├── Building project Nestory with scheme Nestory-Dev_2025-08-20T03-32-53.txt
 ├── [01;32mcheck_environment.sh[0m
+├── CLAIM_PACKAGE_SUMMARY.md
 ├── CLAUDE.md
 ├── CURRENT_CONTEXT.md
 ├── DECISIONS.md
@@ -558,7 +634,7 @@ _Last updated: 2025-08-20 03:42:39_
 ├── verify_build.sh
 └── XCODE_FIX.md
 
-107 directories, 447 files
+119 directories, 511 files
 ```
 
 _📁 Directories:  | 📄 Files: 

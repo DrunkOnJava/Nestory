@@ -4,6 +4,7 @@
 
 import Foundation
 import os.log
+// APPLE_FRAMEWORK_OPPORTUNITY: Replace with OSLog - Already using but could integrate with os_signpost for performance tracing
 
 // Bundle-based configuration access
 
@@ -200,4 +201,33 @@ public final class Log {
     // Specialized operations have been moved to extension files:
     // - LogSpecializedOperations.swift - performance, network, database, user actions
     // - LogContext.swift - context management and contextual logging
+    
+    /// Create a Foundation-compatible logger adapter
+    /// - Parameter category: The log category to use
+    /// - Returns: A FoundationLogger that bridges to the Infrastructure layer
+    public func foundationLogger(for category: LogCategory = .app) -> FoundationLogger {
+        InfrastructureFoundationLogger(log: self, category: category)
+    }
 }
+
+/// Foundation-compatible logger that bridges to Infrastructure logging
+private struct InfrastructureFoundationLogger: FoundationLogger {
+    private let log: Log
+    private let category: Log.LogCategory
+    
+    init(log: Log, category: Log.LogCategory) {
+        self.log = log
+        self.category = category
+    }
+    
+    func info(_ message: String) {
+        log.info(message, category: category)
+    }
+    
+    func warning(_ message: String) {
+        log.warning(message, category: category)
+    }
+    
+    func error(_ message: String) {
+        log.error(message, category: category)
+    }

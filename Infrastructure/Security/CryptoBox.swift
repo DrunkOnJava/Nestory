@@ -4,6 +4,8 @@ import CryptoKit
 import Foundation
 import os.log
 
+// APPLE_FRAMEWORK_OPPORTUNITY: Replace with CryptoKit - Already using CryptoKit, well-implemented
+
 public final class CryptoBox {
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory", category: "CryptoBox")
 

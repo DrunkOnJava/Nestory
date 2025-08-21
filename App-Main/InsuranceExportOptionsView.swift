@@ -170,7 +170,7 @@ struct InsuranceExportOptionsView: View {
             }
             .sheet(isPresented: $showingShareSheet) {
                 if let url = exportedFileURL {
-                    ShareSheet(items: [url])
+                    ShareSheet(activityItems: [url])
                 }
             }
         }
@@ -243,15 +243,7 @@ struct InsuranceExportOptionsView: View {
 
 // MARK: - Share Sheet
 
-struct ShareSheet: UIViewControllerRepresentable {
-    let items: [Any]
-
-    func makeUIViewController(context _: Context) -> UIActivityViewController {
-        UIActivityViewController(activityItems: items, applicationActivities: nil)
-    }
-
-    func updateUIViewController(_: UIActivityViewController, context _: Context) {}
-}
+// Using UI/UI-Components/ShareSheet.swift
 
 #Preview {
     InsuranceExportOptionsView(

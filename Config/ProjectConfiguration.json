@@ -7,7 +7,10 @@
     "teamId": "2VXBQV4XC9",
     "organizationName": "Nestory",
     "minIOSVersion": "17.0",
-    "swiftVersion": "6.0"
+    "swiftVersion": "6.0",
+    "architecture": "TCA-6-Layer",
+    "migrationDate": "2025-08-20",
+    "architectureNotes": "Migrated to The Composable Architecture for advanced state management"
   },
   "environments": {
     "development": {
@@ -89,8 +92,9 @@
     "baseBundleId": "com.drunkonjava.nestory",
     "baseProductName": "Nestory",
     "simulator": {
-      "name": "iPhone 16 Plus",
-      "os": "iOS Simulator"
+      "name": "iPhone 16 Pro Max",
+      "os": "iOS Simulator",
+      "notes": "Updated August 2025 - Pro Max for consistency"
     },
     "schemes": {
       "development": "Nestory-Dev",
@@ -101,6 +105,14 @@
       "build": 300,
       "test": 180,
       "archive": 600
+    },
+    "dependencies": {
+      "swift-composable-architecture": {
+        "version": "1.15.0",
+        "purpose": "TCA state management architecture",
+        "addedDate": "2025-08-20",
+        "reason": "Advanced state management for Apple Framework integration"
+      }
     }
   },
   "deploymentRings": {

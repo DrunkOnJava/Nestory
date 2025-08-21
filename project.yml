@@ -1,4 +1,9 @@
 name: Nestory
+# 🏗️ TCA ARCHITECTURE MIGRATION NOTES (August 20, 2025)
+# - Migrated to The Composable Architecture for advanced state management
+# - Added swift-composable-architecture dependency (v1.15.0+)
+# - All new features MUST use TCA patterns (see CLAUDE.md for guidance)
+# - iPhone 16 Pro Max is the standard simulator target
 options:
   bundleIdPrefix: com.drunkonjava.nestory
   deploymentTarget:
@@ -39,7 +44,13 @@ settings:
       SWIFT_STRICT_CONCURRENCY: complete
       DEBUG_INFORMATION_FORMAT: dwarf-with-dsym
 
-packages: {}
+packages:
+  # TCA MIGRATION: Added for 6-layer architecture (ADR-0014)
+  # The Composable Architecture enables sophisticated state management
+  # Required for: Apple Framework integration, complex workflows, testability
+  swift-composable-architecture:
+    url: https://github.com/pointfreeco/swift-composable-architecture
+    majorVersion: 1.15.0
 
 targets:
   Nestory:
@@ -53,6 +64,7 @@ targets:
           - "RootFeature.swift"
           - "RootView.swift"
           - "SearchView-Old.swift"
+      - path: Features
       - path: Foundation/Models
       - path: Foundation/Core
       - path: Foundation/Utils
@@ -95,10 +107,14 @@ targets:
         ENABLE_PREVIEWS: YES
         SWIFT_UPCOMING_FEATURE_CONCURRENCY: YES
         SWIFT_UPCOMING_FEATURE_EXISTENTIAL_ANY: YES
+    SWIFT_EXEC: /usr/bin/xcrun swift
+    ENABLE_TESTABILITY: YES
         
     dependencies:
       - sdk: SwiftData.framework
       - sdk: CloudKit.framework
+      - package: swift-composable-architecture
+        product: ComposableArchitecture
 
   NestoryUITests:
     type: bundle.ui-testing

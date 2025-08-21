@@ -7,6 +7,9 @@
 import Foundation
 import os.log
 
+// APPLE_FRAMEWORK_OPPORTUNITY: Replace with NSCache - Use NSCache for automatic memory management and NSURLCache for network caching
+// APPLE_FRAMEWORK_OPPORTUNITY: Replace with OSLog - Add os_signpost for cache performance tracking
+
 public final class DiskCache<Key: Hashable & Sendable, Value>: @unchecked Sendable {
     private let fileManager = FileManager.default
     private let diskCacheURL: URL

@@ -7,6 +7,8 @@
 import CloudKit
 import Foundation
 
+// APPLE_FRAMEWORK_OPPORTUNITY: Replace with CloudKit - Already using CloudKit but could leverage CKSyncEngine for automatic sync management
+
 public struct CloudKitBackupOperations: @unchecked Sendable {
     private let privateDatabase: CKDatabase
     private let backupZone: CKRecordZone

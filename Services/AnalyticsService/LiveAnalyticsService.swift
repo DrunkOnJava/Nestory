@@ -170,6 +170,7 @@ public struct LiveAnalyticsService: AnalyticsService, Sendable {
     }
 
     public nonisolated func calculateDepreciation(for items: [Item]) async -> [DepreciationReport] {
+        // APPLE_FRAMEWORK_OPPORTUNITY: Replace with Accelerate Framework - Use vDSP functions for batch mathematical operations on depreciation calculations
         var reports: [DepreciationReport] = []
 
         for item in items {

@@ -21,6 +21,9 @@ public final class Receipt: @unchecked Sendable {
     public var paymentMethod: String?
     public var rawText: String? // OCR extracted text
     public var fileName: String? // Scanned receipt image
+    public var imageData: Data? // The actual receipt image data
+    public var confidence = 0.0 // OCR confidence score (0.0 - 1.0)
+    public var categories: [String] = [] // Auto-detected categories (grocery, electronics, etc.)
 
     // Timestamps
     public var createdAt: Date
@@ -92,8 +95,23 @@ public final class Receipt: @unchecked Sendable {
 
     /// Check if receipt has image attached
     public var hasImage: Bool {
-        guard let fileName else { return false }
-        return !fileName.isEmpty
+        imageData != nil || (fileName != nil && !fileName!.isEmpty)
+    }
+
+    /// Get confidence level description
+    public var confidenceLevel: String {
+        switch confidence {
+        case 0.9 ... 1.0: "Excellent"
+        case 0.7 ..< 0.9: "Good"
+        case 0.5 ..< 0.7: "Fair"
+        case 0.0 ..< 0.5: "Poor"
+        default: "Unknown"
+        }
+    }
+
+    /// Check if receipt data is reliable enough for auto-application
+    public var isReliable: Bool {
+        confidence >= 0.7 && hasOCRData
     }
 
     // MARK: - Methods
@@ -137,6 +155,23 @@ public final class Receipt: @unchecked Sendable {
     /// Attach scanned image
     public func attachImage(fileName: String) {
         self.fileName = fileName
+        updatedAt = Date()
+    }
+
+    /// Set receipt image data directly
+    public func setImageData(_ data: Data, fileName: String? = nil) {
+        self.imageData = data
+        if let fileName {
+            self.fileName = fileName
+        }
+        updatedAt = Date()
+    }
+
+    /// Set OCR results with confidence score
+    public func setOCRResults(text: String, confidence: Double, categories: [String] = []) {
+        self.rawText = text
+        self.confidence = confidence
+        self.categories = categories
         updatedAt = Date()
     }
 }

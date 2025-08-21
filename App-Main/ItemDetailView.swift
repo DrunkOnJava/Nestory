@@ -10,16 +10,32 @@
 import SwiftData
 import SwiftUI
 
+// APPLE_FRAMEWORK_OPPORTUNITY: Replace with ActivityKit - Add Live Activities for warranty countdown timers
+// APPLE_FRAMEWORK_OPPORTUNITY: Replace with LinkPresentation - Rich URL previews for purchase links and manuals
+// APPLE_FRAMEWORK_OPPORTUNITY: Replace with PassKit - Store warranty cards and receipts in Apple Wallet
+
 struct ItemDetailView: View {
     @Bindable var item: Item
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
     @State private var isEditing = false
     @State private var showingReceiptCapture = false
     @State private var showingWarrantyDocuments = false
     @State private var showingConditionDocumentation = false
+    @State private var showingDamageAssessment = false
     @State private var showingInsuranceReport = false
+    @State private var showingClaimPackage = false
+    @State private var showingWarrantyTracking = false
+    @State private var showingInsuranceClaim = false
+    @State private var warrantyStatus: WarrantyStatus = .noWarranty
 
     @StateObject private var insuranceReportService = InsuranceReportService()
+    @StateObject private var claimPackageService = ClaimPackageAssemblerService()
+    @EnvironmentObject private var notificationService: LiveNotificationService
+
+    private var warrantyTrackingService: LiveWarrantyTrackingService {
+        LiveWarrantyTrackingService(modelContext: modelContext, notificationService: notificationService)
+    }
 
     var body: some View {
         ScrollView {
@@ -134,32 +150,83 @@ struct ItemDetailView: View {
                                 }
                             }
 
-                            Button(action: { showingConditionDocumentation = true }) {
-                                Label("Update Condition", systemImage: "pencil.circle")
-                                    .frame(maxWidth: .infinity)
+                            HStack(spacing: 8) {
+                                Button(action: { showingConditionDocumentation = true }) {
+                                    Label("Update Condition", systemImage: "pencil.circle")
+                                        .frame(maxWidth: .infinity)
+                                }
+                                .buttonStyle(.borderedProminent)
+
+                                Button(action: { showingDamageAssessment = true }) {
+                                    Label("Damage Assessment", systemImage: "exclamationmark.triangle.fill")
+                                        .frame(maxWidth: .infinity)
+                                }
+                                .buttonStyle(.bordered)
+                                .foregroundColor(.orange)
                             }
-                            .buttonStyle(.borderedProminent)
                         }
                         .padding(.vertical, 4)
                     }
 
-                    // Warranty & Location Section
+                    // Enhanced Warranty & Location Section
                     GroupBox("Warranty & Location") {
                         VStack(spacing: 12) {
-                            // Warranty status
-                            if let warrantyDate = item.warrantyExpirationDate {
-                                HStack {
-                                    Image(systemName: "shield.fill")
-                                        .foregroundColor(warrantyDate > Date() ? .green : .red)
-                                    VStack(alignment: .leading) {
-                                        Text("Warranty \(warrantyDate > Date() ? "Active" : "Expired")")
-                                            .font(.headline)
-                                        Text("Expires: \(warrantyDate.formatted(date: .abbreviated, time: .omitted))")
+                            // Enhanced Warranty status with new service
+                            HStack {
+                                Image(systemName: warrantyStatus.icon)
+                                    .font(.title2)
+                                    .foregroundColor(Color(hex: warrantyStatus.color))
+                                VStack(alignment: .leading) {
+                                    Text("Warranty Status")
+                                        .font(.headline)
+                                    Text(warrantyStatus.displayText)
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                Spacer()
+
+                                if warrantyStatus.requiresAttention {
+                                    Image(systemName: "exclamationmark.triangle.fill")
+                                        .foregroundColor(.orange)
+                                        .font(.title3)
+                                }
+                            }
+
+                            // Show progress for active warranties
+                            if case let .active(daysRemaining) = warrantyStatus,
+                               let warranty = item.warranty
+                            {
+                                let totalDays = warranty.durationInDays
+                                let progress = Double(totalDays - daysRemaining) / Double(totalDays)
+
+                                VStack(alignment: .leading, spacing: 4) {
+                                    HStack {
+                                        Text("Progress")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                        Spacer()
+                                        Text("\(daysRemaining) days remaining")
                                             .font(.caption)
                                             .foregroundColor(.secondary)
                                     }
+
+                                    ProgressView(value: progress)
+                                        .progressViewStyle(LinearProgressViewStyle(tint: Color(hex: warrantyStatus.color)))
+                                }
+                            } else if case let .expiringSoon(daysRemaining) = warrantyStatus {
+                                HStack {
+                                    Image(systemName: "clock.badge.exclamationmark")
+                                        .foregroundColor(.orange)
+                                    Text("⚠️ Expires in \(daysRemaining) days")
+                                        .font(.caption)
+                                        .foregroundColor(.orange)
+                                        .fontWeight(.medium)
                                     Spacer()
                                 }
+                                .padding(.vertical, 4)
+                                .padding(.horizontal, 8)
+                                .background(Color.orange.opacity(0.1))
+                                .cornerRadius(6)
                             }
 
                             // Location info
@@ -190,69 +257,26 @@ struct ItemDetailView: View {
                                 }
                             }
 
-                            // Action button
-                            Button(action: { showingWarrantyDocuments = true }) {
-                                Label("Manage Warranty & Documents", systemImage: "shield.checkerboard")
-                                    .frame(maxWidth: .infinity)
-                            }
-                            .buttonStyle(.borderedProminent)
-                        }
-                        .padding(.vertical, 4)
-                    }
-
-                    // Receipt Section
-                    GroupBox("Receipt Documentation") {
-                        VStack(spacing: 12) {
-                            if let receiptData = item.receiptImageData,
-                               let uiImage = UIImage(data: receiptData)
-                            {
-                                // Receipt exists
-                                HStack {
-                                    Image(uiImage: uiImage)
-                                        .resizable()
-                                        .scaledToFit()
-                                        .frame(width: 60, height: 60)
-                                        .cornerRadius(8)
-
-                                    VStack(alignment: .leading) {
-                                        Text("Receipt Attached")
-                                            .font(.headline)
-                                        if item.extractedReceiptText != nil {
-                                            Text("OCR data available")
-                                                .font(.caption)
-                                                .foregroundColor(.secondary)
-                                        }
-                                    }
-
-                                    Spacer()
-
-                                    Button("View/Edit") {
-                                        showingReceiptCapture = true
-                                    }
-                                    .buttonStyle(.bordered)
+                            // Enhanced Action buttons
+                            HStack(spacing: 8) {
+                                Button(action: { showingWarrantyTracking = true }) {
+                                    Label("Warranty Tracking", systemImage: "shield.lefthalf.filled")
+                                        .frame(maxWidth: .infinity)
                                 }
-                            } else {
-                                // No receipt
-                                HStack {
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text("No Receipt Attached")
-                                            .foregroundColor(.secondary)
-                                        Text("Add a receipt for insurance documentation")
-                                            .font(.caption)
-                                            .foregroundColor(.secondary)
-                                    }
+                                .buttonStyle(.borderedProminent)
 
-                                    Spacer()
-
-                                    Button(action: { showingReceiptCapture = true }) {
-                                        Label("Add Receipt", systemImage: "doc.text.viewfinder")
-                                    }
-                                    .buttonStyle(.borderedProminent)
+                                Button(action: { showingWarrantyDocuments = true }) {
+                                    Label("Documents", systemImage: "doc.stack")
+                                        .frame(maxWidth: .infinity)
                                 }
+                                .buttonStyle(.bordered)
                             }
                         }
                         .padding(.vertical, 4)
                     }
+
+                    // Receipts Section
+                    ReceiptsSection(item: item, showingReceiptCapture: $showingReceiptCapture)
 
                     // Insurance Report Section
                     GroupBox("Insurance Documentation") {
@@ -272,6 +296,31 @@ struct ItemDetailView: View {
 
                             Button(action: { showingInsuranceReport = true }) {
                                 Label("Generate Item Report", systemImage: "doc.text")
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(.borderedProminent)
+                        }
+                        .padding(.vertical, 4)
+                    }
+
+                    // Insurance Claim Generation Section
+                    GroupBox("Insurance Claim Generation") {
+                        VStack(spacing: 12) {
+                            HStack {
+                                Image(systemName: "doc.badge.plus")
+                                    .foregroundColor(.orange)
+                                VStack(alignment: .leading) {
+                                    Text("Generate Insurance Claim")
+                                        .font(.headline)
+                                    Text("Create professional insurance claim documents for this item")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                Spacer()
+                            }
+
+                            Button(action: { showingInsuranceClaim = true }) {
+                                Label("Generate Claim", systemImage: "doc.badge.plus")
                                     .frame(maxWidth: .infinity)
                             }
                             .buttonStyle(.borderedProminent)
@@ -320,8 +369,52 @@ struct ItemDetailView: View {
         .sheet(isPresented: $showingConditionDocumentation) {
             ItemConditionView(item: item)
         }
+        .sheet(isPresented: $showingDamageAssessment) {
+            DamageAssessmentWorkflowView(item: item, modelContext: modelContext)
+        }
         .sheet(isPresented: $showingInsuranceReport) {
             SingleItemInsuranceReportView(item: item, insuranceReportService: insuranceReportService)
+        }
+        .sheet(isPresented: $showingClaimPackage) {
+            ClaimPackageAssemblyView()
+        }
+        .sheet(isPresented: $showingWarrantyTracking) {
+            WarrantyTrackingView(item: item, modelContext: modelContext)
+        }
+        .sheet(isPresented: $showingInsuranceClaim) {
+            InsuranceClaimView(items: [item])
+        }
+        .task {
+            await loadWarrantyStatus()
+        }
+    }
+
+    // MARK: - Helper Methods
+
+    private func loadWarrantyStatus() async {
+        do {
+            let status = try await warrantyTrackingService.getWarrantyStatus(for: item)
+            await MainActor.run {
+                warrantyStatus = status
+            }
+        } catch {
+            print("Failed to load warranty status: \(error.localizedDescription)")
+            // Fallback to basic status calculation
+            await MainActor.run {
+                if let warranty = item.warranty {
+                    let now = Date()
+                    let calendar = Calendar.current
+                    if now >= warranty.expiresAt {
+                        let days = calendar.dateComponents([.day], from: warranty.expiresAt, to: now).day ?? 0
+                        warrantyStatus = .expired(daysAgo: days)
+                    } else {
+                        let days = calendar.dateComponents([.day], from: now, to: warranty.expiresAt).day ?? 0
+                        warrantyStatus = days <= 30 ? .expiringSoon(daysRemaining: days) : .active(daysRemaining: days)
+                    }
+                } else {
+                    warrantyStatus = .noWarranty
+                }
+            }
         }
     }
 }
@@ -343,8 +436,50 @@ struct DetailRow: View {
 }
 
 #Preview {
-    NavigationStack {
-        ItemDetailView(item: Item(name: "Sample Item", itemDescription: "A sample item for preview", quantity: 5))
-            .modelContainer(for: [Item.self, Category.self], inMemory: true)
+    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+    let container = try! ModelContainer(for: Item.self, Category.self, Warranty.self, configurations: config)
+    let context = ModelContext(container)
+
+    let category = Category(name: "Electronics", icon: "tv.fill", colorHex: "#FF6B6B")
+    let item = Item(name: "MacBook Pro", itemDescription: "13-inch M2", quantity: 1, category: category)
+    item.purchaseDate = Date()
+    item.purchasePrice = 1299.00
+    item.brand = "Apple"
+
+    context.insert(category)
+    context.insert(item)
+
+    return NavigationStack {
+        ItemDetailView(item: item)
+            .modelContainer(container)
+    }
+}
+
+// MARK: - Color Extension
+
+extension Color {
+    init?(hex: String) {
+        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+        var int: UInt64 = 0
+        Scanner(string: hex).scanHexInt64(&int)
+        let a, r, g, b: UInt64
+        switch hex.count {
+        case 3: // RGB (12-bit)
+            (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
+        case 6: // RGB (24-bit)
+            (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
+        case 8: // ARGB (32-bit)
+            (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
+        default:
+            return nil
+        }
+
+        self.init(
+            .sRGB,
+            red: Double(r) / 255,
+            green: Double(g) / 255,
+            blue: Double(b) / 255,
+            opacity: Double(a) / 255
+        )
     }
 }

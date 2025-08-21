@@ -5,6 +5,8 @@ import Foundation
 import os.log
 import Security
 
+// APPLE_FRAMEWORK_OPPORTUNITY: Replace with Security Framework - Already using Security framework for Keychain, well-implemented
+
 public final class KeychainStore: @unchecked Sendable {
     private let service: String
     private let accessGroup: String?

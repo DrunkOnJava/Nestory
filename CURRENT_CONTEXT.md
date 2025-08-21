@@ -1,5 +1,5 @@
 # Nestory Project Context
-Generated: Tue Aug 19 09:10:28 EDT 2025
+Generated: Wed Aug 20 17:19:06 EDT 2025
 
 ## CRITICAL REMINDERS
 - **App Type**: Personal home inventory for INSURANCE DOCUMENTATION
@@ -17,28 +17,29 @@ make doctor       # Diagnose setup issues
 ```
 
 ## Active Services
-- BarcodeScannerService.swift
-- CloudBackupService.swift
-- ImportExportService.swift
 - InsuranceExportService.swift
 - InsuranceReportService.swift
-- NotificationService.swift
 - ReceiptOCRService.swift
 
 ## UI Views
 - AddItemView.swift
+- AdvancedSearchView.swift
 - AnalyticsDashboardView.swift
 - BarcodeScannerView.swift
 - CategoriesView.swift
 - ContentView.swift
 - EditItemView.swift
+- EnhancedReceiptDataView.swift
 - InsuranceExportOptionsView.swift
 - InventoryListView.swift
 - ItemConditionView.swift
 - ItemDetailView.swift
+- LiveReceiptScannerView.swift
 - ManualBarcodeEntryView.swift
+- MLProcessingProgressView.swift
 - PhotoCaptureView.swift
 - ReceiptCaptureView.swift
+- ReceiptDetailView.swift
 - SearchView.swift
 - SettingsView.swift
 - SingleItemInsuranceReportView.swift
@@ -52,12 +53,8 @@ make doctor       # Diagnose setup issues
 - Warranty.swift
 
 ## Wiring Status
-✓ BarcodeScannerService - wired
-✗ CloudBackupService - NOT WIRED
-✗ ImportExportService - NOT WIRED
 ✓ InsuranceExportService - wired
 ✓ InsuranceReportService - wired
-✓ NotificationService - wired
 ✓ ReceiptOCRService - wired
 
 ## Key Project Rules
@@ -70,98 +67,77 @@ make doctor       # Diagnose setup issues
 
 ## Recent TODOs
 ./Archive/TCA-Migration/Features.backup/Inventory/InventoryFeature.swift:            // TODO: Implement with SwiftData
+./Infrastructure/Network/HTTPClient.swift:    // Circuit breaker temporarily disabled for compilation - TODO: Integrate with actor-based CircuitBreaker
 
 ## Git Status
- M .claude/settings.local.json
- M .swiftlint.yml
- D App-Main.backup/RootFeature.swift
- D App-Main.backup/RootView.swift
  M App-Main/AddItemView.swift
- M App-Main/ContentView.swift
+ M App-Main/AnalyticsViews/AnalyticsDataProvider.swift
+ M App-Main/BarcodeScannerView.swift
  M App-Main/InventoryListView.swift
  M App-Main/ItemDetailView.swift
  M App-Main/NestoryApp.swift
- M App-Main/SettingsViews/CloudBackupSettingsView.swift
- M App-Main/SettingsViews/ExportOptionsView.swift
- M App-Main/SettingsViews/ImportExportSettingsView.swift
- M App-Main/SettingsViews/InsuranceReportOptionsView.swift
+ M App-Main/PhotoPicker.swift
+ M App-Main/ReceiptCaptureView.swift
+ M App-Main/SearchView.swift
+ M App-Main/SettingsView.swift
  M App-Main/SettingsViews/NotificationSettingsView.swift
- M App-Main/WarrantyViews/DocumentManagementView.swift
- M App-Main/WarrantyViews/WarrantyManagementView.swift
+ M App-Main/SettingsViews/PrivacyPolicyView.swift
+ M App-Main/ViewModels/AdvancedSearchViewModel.swift
+ M App-Main/WarrantyViews/WarrantyStatusCalculator.swift
  M CURRENT_CONTEXT.md
- M DECISIONS.md
- D Features.backup/Inventory/InventoryFeature.swift
- D Features.backup/Inventory/InventoryView.swift
- D Features.backup/Inventory/ItemDetailFeature.swift
- D Features.backup/Inventory/ItemEditFeature.swift
- M Foundation/Core/NonEmptyString.swift
- M Foundation/Core/Slug.swift
- D Foundation/Models.backup/Category.swift
- D Foundation/Models.backup/CurrencyRate.swift
- D Foundation/Models.backup/Location.swift
- D Foundation/Models.backup/MaintenanceTask.swift
- D Foundation/Models.backup/PhotoAsset.swift
- D Foundation/Models.backup/Receipt.swift
- D Foundation/Models.backup/SchemaVersion.swift
- D Foundation/Models.backup/ShareGroup.swift
- D Foundation/Models.backup/Warranty.swift
+ M Foundation/Core/ErrorRecoveryStrategy.swift
  M Foundation/Models/Item.swift
- D Foundation/Models/Item.swift.backup
- M Infrastructure/Cache/MemoryCache.swift
+ M Foundation/Models/Receipt.swift
+ M Foundation/Utils/CurrencyUtils.swift
+ M Foundation/Utils/Validation.swift
+ M Infrastructure/Cache/DiskCache.swift
+ M Infrastructure/Cache/SmartCache.swift
+ M Infrastructure/Camera/CameraScannerViewController.swift
+ M Infrastructure/HotReload/InjectionServer.swift
  M Infrastructure/Monitoring/Log.swift
+ M Infrastructure/Monitoring/LogContext.swift
+ M Infrastructure/Monitoring/PerformanceMonitor.swift
+ M Infrastructure/Network/HTTPClient.swift
  M Infrastructure/Network/NetworkClient.swift
- M Makefile
- D Services.backup/AnalyticsService/AnalyticsService.swift
- D Services.backup/Authentication/AuthError.swift
- D Services.backup/Authentication/AuthService.swift
- D Services.backup/CurrencyService/CurrencyService.swift
- D Services.backup/ExportService/ExportService.swift
- D Services.backup/InventoryService/InventoryService.swift
- D Services.backup/InventoryService/PhotoIntegration.swift
- D Services.backup/SyncService/BGTaskRegistrar.swift
- D Services.backup/SyncService/ConflictResolver.swift
- D Services.backup/SyncService/SyncService.swift
- M Services/AppStoreConnect/AppMetadataService.swift
+ M Infrastructure/Performance/PerformanceProfiler.swift
+ M Infrastructure/Security/CryptoBox.swift
+ M Infrastructure/Security/KeychainStore.swift
+ M Infrastructure/Security/SecureEnclaveHelper.swift
+ M Infrastructure/Storage/FileStore.swift
+ M Infrastructure/Storage/ImageIO.swift
+ M Infrastructure/Storage/PerceptualHash.swift
+ M Infrastructure/Storage/SecureStorage.swift
+ M Infrastructure/Storage/Thumbnailer.swift
+ M Services/AnalyticsService/AnalyticsService.swift
+ M Services/AnalyticsService/LiveAnalyticsService.swift
  M Services/AppStoreConnect/AppStoreConnectClient.swift
- M Services/AppStoreConnect/AppStoreConnectConfiguration.swift
- M Services/AppStoreConnect/AppStoreConnectOrchestrator.swift
- M Services/AppStoreConnect/AppVersionService.swift
- M Services/AppStoreConnect/MediaUploadService.swift
- M Services/CloudBackupService.swift
- D Services/DependencyKeys.swift.backup
- M Services/InsuranceExport/SpreadsheetExporter.swift
- M Services/InsuranceExport/XMLExporter.swift
- M Services/InsuranceExportService.swift
- M Services/InsuranceReport/ReportExportManager.swift
- M Services/InsuranceReport/ReportSectionDrawer.swift
+ M Services/BarcodeScannerService/BarcodeScannerService.swift
+ M Services/BarcodeScannerService/LiveBarcodeScannerService.swift
+ M Services/CloudBackupService/CloudKitBackupOperations.swift
+ M Services/CloudBackupService/LiveCloudBackupService.swift
+ M Services/CurrencyService/CurrencyService.swift
+ M Services/ImportExportService/CSVOperations.swift
+ M Services/ImportExportService/ImportExportService.swift
+ M Services/InsuranceReport/PDFReportGenerator.swift
  M Services/InsuranceReportService.swift
- M Services/NotificationService.swift
+ M Services/InventoryService/InventoryService.swift
+ M Services/InventoryService/PhotoIntegration.swift
+ M Services/NotificationService/LiveNotificationService.swift
+ M Services/NotificationService/NotificationService.swift
+ M Services/ReceiptOCR/ReceiptDataParser.swift
+ M Services/ReceiptOCRService.swift
+ M TODO.md
  M TREE.md
- M Tests/Services/AnalyticsServiceTests.swift
- M UI/Components/ExportOptionsView.swift
- M UI/Components/InsuranceReportOptionsView.swift
- M UI/UI-Components/EmptyStateView.swift
- M project.yml
- M tools/dev/injection_coordinator.sh
-?? .file-size-override
-?? App-Main/SingleItemInsuranceReportView.swift
-?? Archive/
-?? Foundation/Core/Constants/
-?? Foundation/Models/Receipt.swift
-?? Foundation/Models/Warranty.swift
-?? Infrastructure/Actors/
-?? Infrastructure/HotReload/
-?? Services/AnalyticsService/
-?? Services/AppStoreConnect/AppStoreConnectTypes.swift
-?? Services/AppStoreConnect/AppVersionModels.swift
-?? Services/AppStoreConnect/AppVersionOperations.swift
-?? Services/AppStoreConnect/MediaUploadModels.swift
-?? Services/AppStoreConnect/MediaUploadOperations.swift
-?? Services/CurrencyService/
-?? Services/InventoryService/
-?? Tests/Services/CloudBackupServiceTests.swift
-?? Tests/Services/NotificationServiceTests.swift
-?? tools/dev/install_injection.sh
+ M UI/Performance/UIPerformanceOptimizer.swift
+?? App-Main/EnhancedReceiptDataView.swift
+?? App-Main/LiveReceiptScannerView.swift
+?? App-Main/MLProcessingProgressView.swift
+?? App-Main/ReceiptDetailView.swift
+?? App-Main/ReceiptsSection.swift
+?? App-Main/SettingsViews/CurrencySettingsView.swift
+?? Services/ReceiptOCR/AppleFrameworksReceiptProcessor.swift
+?? Services/ReceiptOCR/CategoryClassifier.swift
+?? Services/ReceiptOCR/MLReceiptProcessor.swift
 
 ## Last Commit
-25a34b8 fix: critical CloudKit crash in Settings tab
+e5d2caa feat: complete Swift 6 migration with multi-scheme build verification

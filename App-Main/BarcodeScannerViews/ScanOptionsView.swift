@@ -21,7 +21,7 @@ struct ScanOptionsView: View {
                         .foregroundColor(.accentColor)
                     Text("Scan with Camera")
                         .font(.headline)
-                    Text("Point at barcode or serial number")
+                    Text("Auto-detects product info and categories")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -40,7 +40,7 @@ struct ScanOptionsView: View {
                         .foregroundColor(.green)
                     Text("Select from Photos")
                         .font(.headline)
-                    Text("Choose photo with barcode")
+                    Text("Extract product details from photo")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }

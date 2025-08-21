@@ -4,12 +4,15 @@ import Foundation
 import Network
 import os.log
 
+// APPLE_FRAMEWORK_OPPORTUNITY: Replace with URLSession - Use URLSessionDataTask, URLSessionDelegate, and URLSessionTaskMetrics for better HTTP/2 support and connection pooling
+
 public final class HTTPClient: @unchecked Sendable {
     private let session: URLSession
     private let baseURL: URL
     // Circuit breaker temporarily disabled for compilation - TODO: Integrate with actor-based CircuitBreaker
     // private let circuitBreaker: CircuitBreaker
     private let monitor = NWPathMonitor()
+    // APPLE_FRAMEWORK_OPPORTUNITY: Replace with NWPathMonitor - Already using but could integrate with Network.framework's NWConnection for custom protocols
     private let monitorQueue = DispatchQueue(label: "\(Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory.dev").network.monitor")
     private var isNetworkAvailable = true
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory", category: "HTTPClient")

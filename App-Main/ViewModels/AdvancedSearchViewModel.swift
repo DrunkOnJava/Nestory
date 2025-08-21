@@ -5,7 +5,8 @@
 //
 
 import Foundation
-import os.log
+
+// App layer - no direct logging imports
 import SwiftUI
 
 @MainActor
@@ -40,7 +41,7 @@ public final class AdvancedSearchViewModel {
 
     // Dependencies
     private let inventoryService: InventoryService
-    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory.dev", category: "AdvancedSearchViewModel")
+    // ViewModels should delegate logging to services
 
     public init(inventoryService: InventoryService) {
         self.inventoryService = inventoryService
@@ -51,9 +52,9 @@ public final class AdvancedSearchViewModel {
     public func loadCategories() async {
         do {
             availableCategories = try await inventoryService.fetchCategories()
-            logger.info("Loaded \(self.availableCategories.count) categories for filtering")
+            // Loaded categories for filtering
         } catch {
-            logger.error("Failed to load categories: \(error)")
+            // Error handling delegated to service
             searchError = "Failed to load categories: \(error.localizedDescription)"
         }
     }
@@ -76,9 +77,9 @@ public final class AdvancedSearchViewModel {
             searchResults = results
             sortResults()
 
-            logger.info("Advanced search found \(results.count) items")
+            // Search completed
         } catch {
-            logger.error("Advanced search failed: \(error)")
+            // Error handling delegated to service
             searchError = "Search failed: \(error.localizedDescription)"
             searchResults = []
         }
@@ -175,6 +176,7 @@ public final class AdvancedSearchViewModel {
     }
 
     private func sortResults() {
+        // APPLE_FRAMEWORK_OPPORTUNITY: Replace with Natural Language Framework - Use NLStringTokenizer for linguistic-aware sorting and search ranking
         switch sortOption {
         case .nameAsc:
             searchResults.sort { $0.name.localizedCompare($1.name) == .orderedAscending }

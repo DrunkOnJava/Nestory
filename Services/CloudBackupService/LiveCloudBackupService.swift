@@ -201,6 +201,7 @@ public final class LiveCloudBackupService: CloudBackupService, ObservableObject 
             // Save backup metadata with validation
             backupStatus = .backing(.metadata)
             progress = 0.9
+            // APPLE_FRAMEWORK_OPPORTUNITY: Replace with DeviceCheck - Could use DCDevice.current.generateToken() for secure device verification instead of device name
             let deviceName = UIDevice.current.name.isEmpty ? "Unknown Device" : UIDevice.current.name
             let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
 

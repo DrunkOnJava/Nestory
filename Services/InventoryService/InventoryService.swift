@@ -1,22 +1,50 @@
 // Layer: Services
 // Module: InventoryService
 // Purpose: SwiftData inventory operations service
+//
+// 🏗️ SERVICE LAYER PATTERN: Protocol-first design for TCA dependency injection
+// - Protocol defines service contract for Features layer consumption
+// - Live implementation handles SwiftData persistence operations
+// - Follows 6-layer architecture: can import Infrastructure, Foundation only
+//
+// 🎯 BUSINESS FOCUS: Personal inventory for insurance documentation
+// - CRUD operations for personal belongings (NOT business stock management)
+// - Search and filtering for insurance claim preparation
+// - Category management for insurance coverage organization
+//
+// 📋 SERVICE STANDARDS:
+// - All services must be Sendable for Swift 6 concurrency
+// - Use Result types for error handling where appropriate
+// - Include performance logging for database operations
+// - Validate data integrity before persistence
+//
 
 import Foundation
 import os.log
 import SwiftData
 
+// APPLE_FRAMEWORK_OPPORTUNITY: Replace with SwiftData - Already using SwiftData but could leverage CloudKit integration for sync
+
+// 🏗️ TCA SERVICE PROTOCOL: Contract for dependency injection
+// - Sendable for Swift 6 concurrency compliance
+// - Async/throws pattern for proper error handling
+// - Intent-based method names (fetch, save, not get/set)
 public protocol InventoryService: Sendable {
-    func fetchItems() async throws -> [Item]
-    func fetchItem(id: UUID) async throws -> Item?
-    func saveItem(_ item: Item) async throws
-    func updateItem(_ item: Item) async throws
-    func deleteItem(id: UUID) async throws
-    func searchItems(query: String) async throws -> [Item]
-    func fetchCategories() async throws -> [Category]
-    func saveCategory(_ category: Category) async throws
-    func assignItemToCategory(itemId: UUID, categoryId: UUID) async throws
-    func fetchItemsByCategory(categoryId: UUID) async throws -> [Item]
+    // 📊 CORE OPERATIONS: Primary inventory management
+    func fetchItems() async throws -> [Item] // Load all items
+    func fetchItem(id: UUID) async throws -> Item? // Load specific item
+    func saveItem(_ item: Item) async throws // Create new item
+    func updateItem(_ item: Item) async throws // Update existing item
+    func deleteItem(id: UUID) async throws // Remove item
+
+    // 🔍 SEARCH OPERATIONS: Insurance claim preparation support
+    func searchItems(query: String) async throws -> [Item] // Multi-field search
+
+    // 📂 CATEGORY OPERATIONS: Insurance coverage organization
+    func fetchCategories() async throws -> [Category] // Load all categories
+    func saveCategory(_ category: Category) async throws // Create category
+    func assignItemToCategory(itemId: UUID, categoryId: UUID) async throws // Link item to category
+    func fetchItemsByCategory(categoryId: UUID) async throws -> [Item] // Filter by category
 
     // Batch Operations for Performance
     func bulkImport(items: [Item]) async throws
