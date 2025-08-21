@@ -12,6 +12,7 @@ import MessageUI
 public enum ClaimSubmissionSteps {
     // MARK: - Step 1: Claim Configuration
 
+    @MainActor
     public static func claimConfigurationStep(
         core: ClaimSubmissionCore
     ) -> some View {
@@ -60,6 +61,7 @@ public enum ClaimSubmissionSteps {
 
     // MARK: - Step 2: Item Selection
 
+    @MainActor
     public static func itemSelectionStep(
         core: ClaimSubmissionCore,
         items: [Item]
@@ -105,6 +107,7 @@ public enum ClaimSubmissionSteps {
 
     // MARK: - Step 3: Validation
 
+    @MainActor
     public static func validationStep(
         core: ClaimSubmissionCore,
         items: [Item]
@@ -149,6 +152,7 @@ public enum ClaimSubmissionSteps {
 
     // MARK: - Step 4: Submission
 
+    @MainActor
     public static func submissionStep(
         core: ClaimSubmissionCore
     ) -> some View {

@@ -8,7 +8,7 @@ import SwiftUI
 
 // MARK: - Add Repair Cost Form
 
-public struct AddRepairCostView: View {
+public struct AddRepairCostForm: View {
     @Binding var description: String
     @Binding var amount: String
     @Binding var category: String
@@ -74,7 +74,7 @@ public struct AddRepairCostView: View {
 
 // MARK: - Add Additional Cost Form
 
-public struct AddAdditionalCostView: View {
+public struct AddAdditionalCostForm: View {
     @Binding var description: String
     @Binding var amount: String
     @Binding var type: CostEstimation.AdditionalCost.CostType
@@ -122,18 +122,26 @@ public struct AddAdditionalCostView: View {
                 Section("Examples") {
                     Group {
                         switch type {
-                        case .temporaryHousing:
-                            Text("• Hotel stays during repairs")
-                            Text("• Rental property costs")
-                            Text("• Extended stay accommodations")
+                        case .permit:
+                            Text("• Building permits")
+                            Text("• Electrical permits")
+                            Text("• Plumbing permits")
+                        case .disposal:
+                            Text("• Debris removal")
+                            Text("• Hazardous material disposal")
+                            Text("• Dumpster rental")
+                        case .inspection:
+                            Text("• Safety inspections")
+                            Text("• Code compliance checks")
+                            Text("• Final approval inspections")
                         case .storage:
                             Text("• Storage unit rental")
                             Text("• Moving and packing services")
                             Text("• Climate-controlled storage")
-                        case .transportation:
-                            Text("• Rental car expenses")
-                            Text("• Additional fuel costs")
-                            Text("• Public transportation")
+                        case .emergency:
+                            Text("• Emergency boarding services")
+                            Text("• Water extraction")
+                            Text("• Emergency power rental")
                         case .other:
                             Text("• Document replacement fees")
                             Text("• Emergency supplies")

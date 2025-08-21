@@ -5,11 +5,13 @@
 //
 
 import SwiftUI
+import SwiftData
 
 // MARK: - Step Content Builder
 
 public enum StepContentBuilder {
     @ViewBuilder
+    @MainActor
     public static func stepContentView(for step: DamageAssessmentStep, workflow: DamageAssessmentWorkflow, damageService: DamageAssessmentService) -> some View {
         switch step {
         case .initialDocumentation:
@@ -129,30 +131,22 @@ public struct GenericStepView: View {
 
     public var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Step: \(step.title)")
+            Text("Step: \(step.rawValue)")
                 .font(.headline)
 
             Text(step.description)
                 .font(.body)
                 .foregroundColor(.secondary)
 
-            if !step.requirements.isEmpty {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Requirements:")
-                        .font(.caption)
-                        .fontWeight(.medium)
+            // Step description
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Description:")
+                    .font(.caption)
+                    .fontWeight(.medium)
 
-                    ForEach(step.requirements, id: \.self) { requirement in
-                        HStack {
-                            Image(systemName: "circle.fill")
-                                .font(.system(size: 4))
-                                .foregroundColor(.secondary)
-                            Text(requirement)
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                }
+                Text(step.description)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
             }
         }
     }
@@ -183,13 +177,13 @@ public struct CurrentStepView: View {
                     Text("Current Step")
                         .font(.caption)
                         .foregroundColor(.secondary)
-                    Text(workflow.currentStep.title)
+                    Text(workflow.currentStep.rawValue)
                         .font(.headline)
                 }
 
                 Spacer()
 
-                Text("Step \(workflow.currentStepIndex + 1) of \(workflow.totalSteps)")
+                Text("Step \((workflow.damageType.assessmentSteps.firstIndex(of: workflow.currentStep) ?? 0) + 1) of \(workflow.damageType.assessmentSteps.count)")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
@@ -247,13 +241,13 @@ public struct CompletedStepsView: View {
                     .foregroundColor(.secondary)
             }
 
-            ForEach(workflow.completedSteps, id: \.self) { step in
+            ForEach(Array(workflow.completedSteps), id: \.self) { (step: DamageAssessmentStep) in
                 HStack {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundColor(.green)
                         .font(.caption)
 
-                    Text(step.title)
+                    Text(step.rawValue)
                         .font(.body)
 
                     Spacer()

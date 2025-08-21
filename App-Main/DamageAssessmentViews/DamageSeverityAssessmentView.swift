@@ -401,13 +401,13 @@ struct SeverityCard: View {
             .frame(maxWidth: .infinity)
             .padding()
             .background(
-                isSelected ? Color(hex: severity.color).opacity(0.1) : Color(.systemGray6)
+                isSelected ? (Color(hex: severity.color) ?? .gray).opacity(0.1) : Color(.systemGray6)
             )
             .cornerRadius(12)
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
                     .stroke(
-                        isSelected ? Color(hex: severity.color) : Color.clear,
+                        isSelected ? (Color(hex: severity.color) ?? .gray) : Color.clear,
                         lineWidth: 2
                     )
             )
@@ -443,7 +443,7 @@ struct ValueImpactBar: View {
                         .cornerRadius(4)
 
                     Rectangle()
-                        .fill(Color(hex: severity.color))
+                        .fill(Color(hex: severity.color) ?? .gray)
                         .frame(
                             width: geometry.size.width * severity.valueImpactPercentage,
                             height: 8

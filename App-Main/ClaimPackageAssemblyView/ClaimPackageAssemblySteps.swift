@@ -92,12 +92,12 @@ public struct ScenarioSetupStepView: View {
                 .pickerStyle(.segmented)
             }
             
-            Section("Incident Details") {
+            Section("Incident Details", content: {
                 DatePicker("Incident Date", selection: $scenario.incidentDate, displayedComponents: .date)
                 
                 TextEditor(text: $scenario.description)
                     .frame(minHeight: 80)
-            } footer: {
+            }) {
                 Text("Describe what happened and how the items were affected.")
             }
             
@@ -135,14 +135,14 @@ public struct PackageOptionsStepView: View {
     
     public var body: some View {
         Form {
-            Section("Documentation Level") {
+            Section("Documentation Level", content: {
                 Picker("Level", selection: $options.documentationLevel) {
                     Text("Basic").tag(DocumentationLevel.basic)
                     Text("Detailed").tag(DocumentationLevel.detailed)
                     Text("Comprehensive").tag(DocumentationLevel.comprehensive)
                 }
                 .pickerStyle(.segmented)
-            } footer: {
+            }) {
                 Text("Choose how much detail to include in the package.")
             }
             

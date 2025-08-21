@@ -12,6 +12,7 @@ import SwiftData
 public final class ClaimExportFormatters {
     private let insuranceExportService: InsuranceExportService
 
+    @MainActor
     public init() {
         self.insuranceExportService = InsuranceExportService()
     }

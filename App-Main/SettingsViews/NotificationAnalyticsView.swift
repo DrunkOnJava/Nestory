@@ -11,8 +11,8 @@
 import ComposableArchitecture
 import SwiftUI
 
-// Resolve ambiguity with NotificationAnalytics type
-typealias NotificationAnalyticsData = NotificationAnalytics
+// Use NotificationAnalyticsData from Services layer
+// (NotificationAnalyticsData struct is defined in Services/NotificationService/NotificationSchedulingTypes.swift)
 
 struct NotificationAnalyticsView: View {
     @Dependency(\.notificationService) var notificationService
@@ -59,14 +59,14 @@ struct NotificationAnalyticsView: View {
 
                     AnalyticsMetricRow(
                         title: "Delivery Rate",
-                        value: "\(analytics.deliveryRate * 100, specifier: "%.1f")%",
+                        value: String(format: "%.1f%%", analytics.deliveryRate * 100),
                         icon: "paperplane.fill",
                         color: analytics.deliveryRate > 0.8 ? .green : analytics.deliveryRate > 0.5 ? .orange : .red
                     )
 
                     AnalyticsMetricRow(
                         title: "Interaction Rate",
-                        value: "\(analytics.interactionRate * 100, specifier: "%.1f")%",
+                        value: String(format: "%.1f%%", analytics.interactionRate * 100),
                         icon: "hand.tap.fill",
                         color: analytics.interactionRate > 0.5 ? .green : analytics.interactionRate > 0.3 ? .orange : .red
                     )
@@ -188,7 +188,8 @@ struct NotificationAnalyticsView: View {
         errorMessage = nil
 
         do {
-            analytics = try await notificationService.getNotificationAnalytics()
+            let notificationAnalytics = try await notificationService.getNotificationAnalytics()
+            analytics = try await notificationAnalytics.generateAnalytics()
         } catch {
             errorMessage = "Failed to load analytics: \(error.localizedDescription)"
         }

@@ -29,9 +29,13 @@ import SwiftUI
 import Foundation
 
 @Reducer
-struct SearchFeature {
+public struct SearchFeature {
+    // 🔌 TCA DEPENDENCIES: Service injection for search functionality
+    @Dependency(\.inventoryService) var inventoryService
+    @Dependency(\.searchHistoryService) var searchHistoryService
+    
     @ObservableState
-    struct State: Equatable {
+    public struct State {
         // 🔍 SEARCH STATE: Core search functionality
         var searchText = "" // Current search query
         var isSearching = false // Active search indicator
@@ -109,8 +113,8 @@ struct SearchFeature {
             case relevance = "Best Match"
         }
     }
-
-    enum Action {
+    
+    public enum Action {
         case onAppear
         case loadSearchData
 
@@ -166,11 +170,7 @@ struct SearchFeature {
         }
     }
 
-    @Dependency(\.inventoryService) var inventoryService
-    // @Dependency(\.searchHistoryService) var searchHistoryService
-    // TODO: P0.1.4 - Add searchHistoryService to DependencyKeys.swift
-
-    var body: some ReducerOf<Self> {
+    public var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
             case .onAppear:
@@ -386,6 +386,32 @@ struct SearchFeature {
             }
         }
         .ifLet(\.$alert, action: \.alert)
+    }
+}
+
+// MARK: - Equatable Conformance
+extension SearchFeature.State: Equatable {
+    static func == (lhs: SearchFeature.State, rhs: SearchFeature.State) -> Bool {
+        return lhs.searchText == rhs.searchText &&
+               lhs.isSearching == rhs.isSearching &&
+               lhs.searchResults == rhs.searchResults &&
+               lhs.totalResultsCount == rhs.totalResultsCount &&
+               lhs.isLoadingResults == rhs.isLoadingResults &&
+               lhs.filters == rhs.filters &&
+               lhs.availableCategories == rhs.availableCategories &&
+               lhs.availableRooms == rhs.availableRooms &&
+               lhs.sortOption == rhs.sortOption &&
+               lhs.showFiltersSheet == rhs.showFiltersSheet &&
+               lhs.searchHistory == rhs.searchHistory &&
+               lhs.savedSearches == rhs.savedSearches &&
+               lhs.showHistorySheet == rhs.showHistorySheet &&
+               lhs.maxHistoryItems == rhs.maxHistoryItems &&
+               lhs.selectedItem == rhs.selectedItem &&
+               lhs.showItemDetail == rhs.showItemDetail &&
+               lhs.searchMode == rhs.searchMode &&
+               lhs.error == rhs.error &&
+               lhs.searchMetrics == rhs.searchMetrics
+        // Note: alert is excluded from comparison as PresentationState<AlertState<Alert>> doesn't conform to Equatable
     }
 }
 

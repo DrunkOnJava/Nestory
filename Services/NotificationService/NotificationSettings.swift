@@ -16,6 +16,10 @@ public struct NotificationSettings {
     public static let weekendNotificationsEnabled = "weekend_notifications_enabled"
     public static let summaryNotificationsEnabled = "summary_notifications_enabled"
     public static let analyticsEnabled = "notification_analytics_enabled"
+    public static let warrantyNotificationsEnabled = "warranty_notifications_enabled"
+    public static let insuranceNotificationsEnabled = "insurance_notifications_enabled"
+    public static let documentNotificationsEnabled = "document_notifications_enabled"
+    public static let maintenanceNotificationsEnabled = "maintenance_notifications_enabled"
 
     // Default settings
     public static let defaultNotificationDays: [Int] = [30, 7, 1]
@@ -24,6 +28,10 @@ public struct NotificationSettings {
     public static let defaultWeekendEnabled = false
     public static let defaultSummaryEnabled = true
     public static let defaultAnalyticsEnabled = true
+    public static let defaultWarrantyNotificationsEnabled = true
+    public static let defaultInsuranceNotificationsEnabled = true
+    public static let defaultDocumentNotificationsEnabled = true
+    public static let defaultMaintenanceNotificationsEnabled = true
 
     // Current settings instance
     private let userDefaults: UserDefaults
@@ -97,16 +105,60 @@ public struct NotificationSettings {
         }
     }
 
+    /// Whether warranty notifications are enabled
+    public var warrantyNotificationsEnabled: Bool {
+        get {
+            userDefaults.bool(forKey: Self.warrantyNotificationsEnabled)
+        }
+        set {
+            userDefaults.set(newValue, forKey: Self.warrantyNotificationsEnabled)
+        }
+    }
+
+    /// Whether insurance notifications are enabled
+    public var insuranceNotificationsEnabled: Bool {
+        get {
+            userDefaults.bool(forKey: Self.insuranceNotificationsEnabled)
+        }
+        set {
+            userDefaults.set(newValue, forKey: Self.insuranceNotificationsEnabled)
+        }
+    }
+
+    /// Whether document notifications are enabled
+    public var documentNotificationsEnabled: Bool {
+        get {
+            userDefaults.bool(forKey: Self.documentNotificationsEnabled)
+        }
+        set {
+            userDefaults.set(newValue, forKey: Self.documentNotificationsEnabled)
+        }
+    }
+
+    /// Whether maintenance notifications are enabled
+    public var maintenanceNotificationsEnabled: Bool {
+        get {
+            userDefaults.bool(forKey: Self.maintenanceNotificationsEnabled)
+        }
+        set {
+            userDefaults.set(newValue, forKey: Self.maintenanceNotificationsEnabled)
+        }
+    }
+
     // MARK: - Convenience Methods
 
     /// Reset all settings to defaults
-    public func resetToDefaults() {
+    public mutating func resetToDefaults() {
         warrantyNotificationDays = Self.defaultNotificationDays
         frequency = Self.defaultFrequency
         optimalNotificationHour = Self.defaultNotificationHour
         weekendNotificationsEnabled = Self.defaultWeekendEnabled
         summaryNotificationsEnabled = Self.defaultSummaryEnabled
         analyticsEnabled = Self.defaultAnalyticsEnabled
+        warrantyNotificationsEnabled = Self.defaultWarrantyNotificationsEnabled
+        insuranceNotificationsEnabled = Self.defaultInsuranceNotificationsEnabled
+        documentNotificationsEnabled = Self.defaultDocumentNotificationsEnabled
+        maintenanceNotificationsEnabled = Self.defaultMaintenanceNotificationsEnabled
     }
 
     /// Export current settings
@@ -118,12 +170,16 @@ public struct NotificationSettings {
             "weekendNotificationsEnabled": weekendNotificationsEnabled,
             "summaryNotificationsEnabled": summaryNotificationsEnabled,
             "analyticsEnabled": analyticsEnabled,
+            "warrantyNotificationsEnabled": warrantyNotificationsEnabled,
+            "insuranceNotificationsEnabled": insuranceNotificationsEnabled,
+            "documentNotificationsEnabled": documentNotificationsEnabled,
+            "maintenanceNotificationsEnabled": maintenanceNotificationsEnabled,
             "exportedAt": Date().timeIntervalSince1970,
         ]
     }
 
     /// Import settings from dictionary
-    public func importSettings(_ settings: [String: Any]) {
+    public mutating func importSettings(_ settings: [String: Any]) {
         if let days = settings["warrantyNotificationDays"] as? [Int] {
             warrantyNotificationDays = days
         }
@@ -148,6 +204,22 @@ public struct NotificationSettings {
 
         if let analyticsEnabled = settings["analyticsEnabled"] as? Bool {
             self.analyticsEnabled = analyticsEnabled
+        }
+
+        if let warrantyNotificationsEnabled = settings["warrantyNotificationsEnabled"] as? Bool {
+            self.warrantyNotificationsEnabled = warrantyNotificationsEnabled
+        }
+
+        if let insuranceNotificationsEnabled = settings["insuranceNotificationsEnabled"] as? Bool {
+            self.insuranceNotificationsEnabled = insuranceNotificationsEnabled
+        }
+
+        if let documentNotificationsEnabled = settings["documentNotificationsEnabled"] as? Bool {
+            self.documentNotificationsEnabled = documentNotificationsEnabled
+        }
+
+        if let maintenanceNotificationsEnabled = settings["maintenanceNotificationsEnabled"] as? Bool {
+            self.maintenanceNotificationsEnabled = maintenanceNotificationsEnabled
         }
     }
 
@@ -182,13 +254,13 @@ public struct NotificationSettings {
 }
 
 /// Notification categories and their configurations
-public struct NotificationCategory {
+public struct NotificationCategory: Sendable {
     public let identifier: String
     public let title: String
     public let subtitle: String?
-    public let actions: [NotificationAction]
+    public let actions: [UNNotificationActionConfig]
 
-    public init(identifier: String, title: String, subtitle: String? = nil, actions: [NotificationAction] = []) {
+    public init(identifier: String, title: String, subtitle: String? = nil, actions: [UNNotificationActionConfig] = []) {
         self.identifier = identifier
         self.title = title
         self.subtitle = subtitle
@@ -220,17 +292,17 @@ public struct NotificationCategory {
         title: "Warranty Expiring",
         subtitle: "Take action to protect your item",
         actions: [
-            NotificationAction(
+            UNNotificationActionConfig(
                 identifier: "extend_warranty",
                 title: "Extend Warranty",
                 options: [.foreground]
             ),
-            NotificationAction(
+            UNNotificationActionConfig(
                 identifier: "contact_vendor",
                 title: "Contact Vendor",
                 options: [.foreground]
             ),
-            NotificationAction(
+            UNNotificationActionConfig(
                 identifier: "dismiss",
                 title: "Dismiss",
                 options: []
@@ -243,17 +315,17 @@ public struct NotificationCategory {
         title: "Maintenance Due",
         subtitle: "Keep your item in good condition",
         actions: [
-            NotificationAction(
+            UNNotificationActionConfig(
                 identifier: "mark_completed",
                 title: "Mark Completed",
                 options: []
             ),
-            NotificationAction(
+            UNNotificationActionConfig(
                 identifier: "snooze_1day",
                 title: "Remind Tomorrow",
                 options: []
             ),
-            NotificationAction(
+            UNNotificationActionConfig(
                 identifier: "dismiss",
                 title: "Dismiss",
                 options: []
@@ -266,12 +338,12 @@ public struct NotificationCategory {
         title: "Document Update",
         subtitle: "Keep your records current",
         actions: [
-            NotificationAction(
+            UNNotificationActionConfig(
                 identifier: "update_documents",
                 title: "Update Now",
                 options: [.foreground]
             ),
-            NotificationAction(
+            UNNotificationActionConfig(
                 identifier: "snooze_1week",
                 title: "Remind Next Week",
                 options: []
@@ -284,12 +356,12 @@ public struct NotificationCategory {
         title: "Insurance Review",
         subtitle: "Ensure adequate coverage",
         actions: [
-            NotificationAction(
+            UNNotificationActionConfig(
                 identifier: "review_coverage",
                 title: "Review Coverage",
                 options: [.foreground]
             ),
-            NotificationAction(
+            UNNotificationActionConfig(
                 identifier: "contact_agent",
                 title: "Contact Agent",
                 options: [.foreground]
@@ -306,8 +378,8 @@ public struct NotificationCategory {
     ]
 }
 
-/// Notification action configuration
-public struct NotificationAction {
+/// Notification action configuration for UNNotificationAction
+public struct UNNotificationActionConfig: Sendable {
     public let identifier: String
     public let title: String
     public let options: UNNotificationActionOptions

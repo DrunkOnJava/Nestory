@@ -16,6 +16,7 @@ public enum NotificationServiceError: LocalizedError {
     case schedulingFailed(String)
     case itemNotFound(UUID)
     case invalidWarrantyDate(Date?)
+    case persistenceFailed(String)
 
     public var errorDescription: String? {
         switch self {
@@ -33,6 +34,8 @@ public enum NotificationServiceError: LocalizedError {
             "Item not found: \(id)"
         case let .invalidWarrantyDate(date):
             "Invalid warranty date: \(date?.description ?? "nil")"
+        case let .persistenceFailed(reason):
+            "Failed to persist notification data: \(reason)"
         }
     }
 
@@ -50,6 +53,8 @@ public enum NotificationServiceError: LocalizedError {
             "Refresh the item list and try again"
         case .invalidWarrantyDate:
             "Set a valid warranty expiration date"
+        case .persistenceFailed:
+            "Try again or restart the app if the problem persists"
         }
     }
 }

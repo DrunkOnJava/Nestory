@@ -86,7 +86,7 @@ public final class NotificationAnalytics: @unchecked Sendable {
     // MARK: - Analytics Generation
 
     /// Generate comprehensive notification analytics
-    public func generateAnalytics() async throws -> NotificationAnalytics {
+    public func generateAnalytics() async throws -> NotificationAnalyticsData {
         logger.info("Generating notification analytics report")
 
         let history = loadNotificationHistory()
@@ -102,7 +102,7 @@ public final class NotificationAnalytics: @unchecked Sendable {
         let interactionRateByType = calculateInteractionRateByType(from: history, interactions: interactions)
         let snoozePattersByType = calculateSnoozePattersByType()
 
-        let analytics = NotificationAnalytics(
+        let analytics = NotificationAnalyticsData(
             totalScheduled: totalScheduled,
             totalDelivered: totalDelivered,
             totalInteracted: totalInteracted,
@@ -370,7 +370,7 @@ public final class NotificationAnalytics: @unchecked Sendable {
 
 // MARK: - Supporting Data Types
 
-private struct InteractionRecord: Codable {
+private struct InteractionRecord: Codable, Sendable {
     let action: NotificationAction
     let timestamp: Date
     let responseTime: TimeInterval
@@ -381,7 +381,7 @@ private struct TimingRecord: Codable {
     let wasInteracted: Bool
 }
 
-private struct SnoozeRecord: Codable {
+private struct SnoozeRecord: Codable, Sendable {
     let identifier: String
     let duration: SnoozeDuration
     let snoozeCount: Int

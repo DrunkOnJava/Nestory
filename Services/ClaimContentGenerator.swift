@@ -7,6 +7,7 @@
 import Foundation
 import SwiftData
 
+@MainActor
 public final class ClaimContentGenerator {
     // MARK: - Dependencies
 
@@ -162,8 +163,8 @@ public final class ClaimContentGenerator {
         coverLetter.content.data(using: .utf8) ?? Data()
     }
 
-    public func generateAttestationPDF(attestation: Attestation) throws -> Data {
-        attestation.content.data(using: .utf8) ?? Data()
+    public func generateAttestationPDF(attestation: Attestation) async throws -> Data {
+        return attestation.content.data(using: .utf8) ?? Data()
     }
 
     public func generateComprehensivePDF(package _: ClaimPackage) async throws -> Data {

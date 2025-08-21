@@ -101,4 +101,95 @@ public final class MockNotificationService: NotificationService {
     public func setupNotificationCategories() async {
         // Mock implementation - do nothing
     }
+
+    // MARK: - Advanced Scheduling
+
+    public func scheduleSmartNotifications(for items: [Item]) async throws {
+        for item in items {
+            scheduledNotifications.append("smart_\(item.id)")
+        }
+    }
+
+    public func rescheduleNotificationsWithPriority() async throws {
+        scheduledNotifications.append("priority_reschedule")
+    }
+
+    public func scheduleRecurringReminders(for itemId: UUID, interval: RecurringInterval, reminderType: ReminderType) async throws {
+        scheduledNotifications.append("recurring_\(itemId)_\(reminderType.rawValue)")
+    }
+
+    public func updateNotificationFrequency(for itemId: UUID, frequency: NotificationFrequency) async throws {
+        scheduledNotifications.append("frequency_update_\(itemId)")
+    }
+
+    public func snoozeNotification(identifier: String, for duration: SnoozeDuration) async throws {
+        scheduledNotifications.append("snooze_\(identifier)_\(duration.rawValue)")
+    }
+
+    public func batchScheduleNotifications(_ requests: [NotificationScheduleRequest]) async throws -> BatchScheduleResult {
+        for request in requests {
+            scheduledNotifications.append("batch_\(request.itemId)")
+        }
+        return BatchScheduleResult(
+            totalRequests: requests.count,
+            successfullyScheduled: requests.count,
+            failed: 0,
+            errors: []
+        )
+    }
+
+    // MARK: - Analytics & Persistence
+
+    public func getNotificationAnalytics() async throws -> NotificationAnalytics {
+        NotificationAnalytics(
+            totalDelivered: scheduledNotifications.count,
+            totalInteracted: 0,
+            averageResponseTime: 0,
+            weeklyDeliveryCount: scheduledNotifications.count,
+            optimalNotificationTime: Date()
+        )
+    }
+
+    public func getNotificationHistory(for itemId: UUID?) async throws -> [NotificationHistoryEntry] {
+        guard let itemId else { return [] }
+        return [
+            NotificationHistoryEntry(
+                itemId: itemId,
+                type: .warranty,
+                scheduledDate: Date(),
+                deliveredDate: nil,
+                interactionDate: nil,
+                title: "Mock History Entry",
+                body: "Mock notification history"
+            )
+        ]
+    }
+
+    public func markNotificationInteracted(_ identifier: String, action: NotificationAction) async throws {
+        scheduledNotifications.append("interaction_\(identifier)_\(action.rawValue)")
+    }
+
+    public func saveNotificationState() async throws {
+        // Mock implementation - do nothing
+    }
+
+    public func restoreNotificationState() async throws {
+        // Mock implementation - do nothing
+    }
+
+    // MARK: - Background Processing
+
+    public func processBackgroundNotifications() async throws {
+        scheduledNotifications.append("background_processing")
+    }
+
+    public func registerBackgroundTask() async throws -> String {
+        let taskId = UUID().uuidString
+        scheduledNotifications.append("background_task_\(taskId)")
+        return taskId
+    }
+
+    public func cleanupExpiredNotifications() async throws {
+        scheduledNotifications.append("cleanup_expired")
+    }
 }

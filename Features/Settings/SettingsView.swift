@@ -49,46 +49,15 @@ import ComposableArchitecture
 import SwiftData
 import SwiftUI
 
-struct SettingsView: View {
+public struct SettingsView: View {
     @Bindable var store: StoreOf<SettingsFeature>
 
     var body: some View {
         NavigationStack {
             Form {
-                // Appearance Settings Section
-                Section("Appearance") {
-                    Picker("Theme", selection: $store.selectedTheme.sending(\.themeChanged)) {
-                        ForEach(SettingsFeature.AppTheme.allCases, id: \.self) { theme in
-                            Text(theme.rawValue).tag(theme)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                }
-
-                // Currency Settings Section
-                Section("Currency") {
-                    Picker("Currency", selection: $store.selectedCurrency.sending(\.currencyChanged)) {
-                        ForEach(store.availableCurrencies, id: \.self) { currency in
-                            Text(currency).tag(currency)
-                        }
-                    }
-                }
-
-                // Notification Settings Section
-                Section("Notifications") {
-                    Toggle("Enable Notifications", isOn: $store.notificationsEnabled.sending(\.notificationsToggled))
-
-                    if store.notificationsEnabled {
-                        Toggle("Warranty Reminders", isOn: $store.warrantyRemindersEnabled.sending(\.warrantyRemindersToggled))
-                        Toggle("Export Reminders", isOn: $store.exportRemindersEnabled.sending(\.exportRemindersToggled))
-
-                        Picker("Reminder Frequency", selection: $store.reminderFrequency.sending(\.reminderFrequencyChanged)) {
-                            ForEach(SettingsFeature.ReminderFrequency.allCases, id: \.self) { frequency in
-                                Text(frequency.rawValue).tag(frequency)
-                            }
-                        }
-                    }
-                }
+                appearanceSection
+                currencySection
+                notificationsSection
 
                 // Data & Storage Section
                 Section("Data & Storage") {
@@ -207,6 +176,46 @@ struct SettingsView: View {
             }
             .sheet(isPresented: $store.showingImportOptions) {
                 Text("Import Options Coming Soon")
+            }
+        }
+    }
+    
+    // MARK: - Computed Properties
+    
+    private var appearanceSection: some View {
+        Section("Appearance") {
+            Picker("Theme", selection: $store.selectedTheme.sending(\.themeChanged)) {
+                ForEach(SettingsFeature.AppTheme.allCases, id: \.self) { theme in
+                    Text(theme.rawValue).tag(theme)
+                }
+            }
+            .pickerStyle(.segmented)
+        }
+    }
+    
+    private var currencySection: some View {
+        Section("Currency") {
+            Picker("Currency", selection: $store.selectedCurrency.sending(\.currencyChanged)) {
+                ForEach(store.availableCurrencies, id: \.self) { currency in
+                    Text(currency).tag(currency)
+                }
+            }
+        }
+    }
+    
+    private var notificationsSection: some View {
+        Section("Notifications") {
+            Toggle("Enable Notifications", isOn: $store.notificationsEnabled.sending(\.notificationsToggled))
+
+            if store.notificationsEnabled {
+                Toggle("Warranty Reminders", isOn: $store.warrantyRemindersEnabled.sending(\.warrantyRemindersToggled))
+                Toggle("Export Reminders", isOn: $store.exportRemindersEnabled.sending(\.exportRemindersToggled))
+
+                Picker("Reminder Frequency", selection: $store.reminderFrequency.sending(\.reminderFrequencyChanged)) {
+                    ForEach(SettingsFeature.ReminderFrequency.allCases, id: \.self) { frequency in
+                        Text(frequency.rawValue).tag(frequency)
+                    }
+                }
             }
         }
     }

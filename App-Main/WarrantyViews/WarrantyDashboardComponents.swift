@@ -9,6 +9,46 @@ import SwiftUI
 
 // MARK: - Supporting Views
 
+struct WarrantySummaryCard: View {
+    let title: String
+    let value: String
+    let subtitle: String
+    let icon: String
+    let color: Color
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Image(systemName: icon)
+                    .foregroundColor(color)
+                    .font(.title2)
+                
+                Spacer()
+            }
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(value)
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(color)
+                
+                Text(title)
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundColor(.primary)
+                
+                Text(subtitle)
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(.systemGray6))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+}
+
 struct WarrantySummaryCardsView: View {
     let insights: WarrantyInsights
 
@@ -17,7 +57,7 @@ struct WarrantySummaryCardsView: View {
             GridItem(.flexible()),
             GridItem(.flexible()),
         ], spacing: 12) {
-            SummaryCard(
+            WarrantySummaryCard(
                 title: "Total Items",
                 value: "\(insights.totalItems)",
                 subtitle: "\(insights.itemsWithWarranty) protected",
@@ -25,7 +65,7 @@ struct WarrantySummaryCardsView: View {
                 color: .blue
             )
 
-            SummaryCard(
+            WarrantySummaryCard(
                 title: "Coverage",
                 value: String(format: "%.1f%%", NSDecimalNumber(decimal: insights.coveragePercentage).doubleValue),
                 subtitle: "Value protected",
@@ -33,7 +73,7 @@ struct WarrantySummaryCardsView: View {
                 color: .green
             )
 
-            SummaryCard(
+            WarrantySummaryCard(
                 title: "Expiring Soon",
                 value: "\(insights.expiringSoon)",
                 subtitle: "Next 30 days",
@@ -41,7 +81,7 @@ struct WarrantySummaryCardsView: View {
                 color: .orange
             )
 
-            SummaryCard(
+            WarrantySummaryCard(
                 title: "Need Attention",
                 value: "\(insights.expired + insights.withoutWarranty)",
                 subtitle: "Expired or missing",

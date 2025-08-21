@@ -388,12 +388,7 @@ extension LiveNotificationService {
 
 // MARK: - Supporting Extensions
 
-extension NotificationScheduler {
-    /// Helper method exposed for LiveNotificationService
-    func calculateOptimalDates(from warrantyDate: Date, daysBefore: [Int]) -> [Date] {
-        calculateOptimalDates(from: warrantyDate, daysBefore: daysBefore)
-    }
-}
+// Note: calculateOptimalDates method is implemented privately in NotificationScheduler.swift
 
 // MARK: - Error Extensions
 

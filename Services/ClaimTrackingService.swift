@@ -28,6 +28,47 @@ public final class ClaimTrackingService: ObservableObject {
         loadPendingFollowUps()
     }
 
+    // MARK: - Claim Tracking
+    
+    /// Track a newly generated claim by creating a submission record
+    public func trackClaim(_ claim: GeneratedClaim) async throws {
+        // Create a ClaimSubmission record for tracking
+        let submission = ClaimSubmission(
+            insuranceCompany: claim.request.insuranceCompany.rawValue,
+            claimType: InsuranceClaimType(rawValue: claim.request.claimType.rawValue) ?? .fire,
+            submissionMethod: .onlinePortal,
+            exportFormat: claim.format.rawValue
+        )
+        
+        // Set additional properties
+        submission.itemIds = claim.request.items.map { $0.id }
+        submission.totalItemCount = claim.request.items.count
+        submission.totalClaimedValue = claim.request.estimatedTotalLoss
+        submission.incidentDate = claim.request.incidentDate
+        submission.notes = "Generated Claim ID: \(claim.id)\nIncident: \(claim.request.incidentDescription)"
+        submission.policyNumber = claim.request.policyNumber
+        submission.claimNumber = claim.request.claimNumber
+        
+        modelContext.insert(submission)
+        try modelContext.save()
+        
+        // Record initial activity
+        let activity = ClaimActivity(
+            claimId: submission.id,
+            type: .statusUpdate,
+            description: "Claim generated and ready for submission",
+            timestamp: Date(),
+            details: [
+                "generatedClaimId": claim.id.uuidString,
+                "itemCount": String(claim.request.items.count),
+                "totalValue": claim.request.estimatedTotalLoss.description
+            ]
+        )
+        
+        await recordActivity(activity)
+        await refreshData()
+    }
+
     // MARK: - Claim Status Management
 
     public func updateClaimStatus(

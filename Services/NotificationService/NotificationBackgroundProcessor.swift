@@ -8,6 +8,7 @@ import Foundation
 import BackgroundTasks
 import UserNotifications
 import SwiftData
+import UIKit
 import os.log
 
 /// Advanced background processing manager for notifications
@@ -19,7 +20,7 @@ public final class NotificationBackgroundProcessor: @unchecked Sendable {
     private let analytics: NotificationAnalytics
 
     // Background task identifiers
-    public enum TaskIdentifier {
+    public enum BackgroundTaskIdentifier {
         static let notificationProcessing = "com.drunkonjava.nestory.notification-processing"
         static let warrantyCheck = "com.drunkonjava.nestory.warranty-check"
         static let analyticsCollection = "com.drunkonjava.nestory.analytics-collection"
@@ -49,21 +50,21 @@ public final class NotificationBackgroundProcessor: @unchecked Sendable {
         logger.info("Setting up background task handlers")
 
         // App refresh background task
-        BGTaskScheduler.shared.register(forTaskWithIdentifier: TaskIdentifier.notificationProcessing, using: nil) { task in
+        BGTaskScheduler.shared.register(forTaskWithIdentifier: BackgroundTaskIdentifier.notificationProcessing, using: nil) { task in
             Task { @MainActor in
                 await self.handleNotificationProcessingTask(task as! BGAppRefreshTask)
             }
         }
 
         // Warranty check background task
-        BGTaskScheduler.shared.register(forTaskWithIdentifier: TaskIdentifier.warrantyCheck, using: nil) { task in
+        BGTaskScheduler.shared.register(forTaskWithIdentifier: BackgroundTaskIdentifier.warrantyCheck, using: nil) { task in
             Task { @MainActor in
                 await self.handleWarrantyCheckTask(task as! BGAppRefreshTask)
             }
         }
 
         // Analytics collection background task
-        BGTaskScheduler.shared.register(forTaskWithIdentifier: TaskIdentifier.analyticsCollection, using: nil) { task in
+        BGTaskScheduler.shared.register(forTaskWithIdentifier: BackgroundTaskIdentifier.analyticsCollection, using: nil) { task in
             Task { @MainActor in
                 await self.handleAnalyticsCollectionTask(task as! BGAppRefreshTask)
             }
@@ -78,7 +79,7 @@ public final class NotificationBackgroundProcessor: @unchecked Sendable {
     public func scheduleNotificationProcessingTask() async throws {
         logger.info("Scheduling notification processing background task")
 
-        let request = BGAppRefreshTaskRequest(identifier: TaskIdentifier.notificationProcessing)
+        let request = BGAppRefreshTaskRequest(identifier: BackgroundTaskIdentifier.notificationProcessing)
         request.earliestBeginDate = Date(timeIntervalSinceNow: 4 * 60 * 60) // 4 hours from now
 
         do {
@@ -86,7 +87,7 @@ public final class NotificationBackgroundProcessor: @unchecked Sendable {
 
             // Save task info
             let taskInfo = BackgroundTaskInfo(
-                identifier: TaskIdentifier.notificationProcessing,
+                identifier: BackgroundTaskIdentifier.notificationProcessing,
                 taskType: "notification-processing",
                 expirationTime: Date(timeIntervalSinceNow: 24 * 60 * 60)
             )
@@ -103,14 +104,14 @@ public final class NotificationBackgroundProcessor: @unchecked Sendable {
     public func scheduleWarrantyCheckTask() async throws {
         logger.info("Scheduling warranty check background task")
 
-        let request = BGAppRefreshTaskRequest(identifier: TaskIdentifier.warrantyCheck)
+        let request = BGAppRefreshTaskRequest(identifier: BackgroundTaskIdentifier.warrantyCheck)
         request.earliestBeginDate = Date(timeIntervalSinceNow: 12 * 60 * 60) // 12 hours from now
 
         do {
             try BGTaskScheduler.shared.submit(request)
 
             let taskInfo = BackgroundTaskInfo(
-                identifier: TaskIdentifier.warrantyCheck,
+                identifier: BackgroundTaskIdentifier.warrantyCheck,
                 taskType: "warranty-check",
                 expirationTime: Date(timeIntervalSinceNow: 24 * 60 * 60)
             )
@@ -127,14 +128,14 @@ public final class NotificationBackgroundProcessor: @unchecked Sendable {
     public func scheduleAnalyticsTask() async throws {
         logger.info("Scheduling analytics collection background task")
 
-        let request = BGAppRefreshTaskRequest(identifier: TaskIdentifier.analyticsCollection)
+        let request = BGAppRefreshTaskRequest(identifier: BackgroundTaskIdentifier.analyticsCollection)
         request.earliestBeginDate = Date(timeIntervalSinceNow: 8 * 60 * 60) // 8 hours from now
 
         do {
             try BGTaskScheduler.shared.submit(request)
 
             let taskInfo = BackgroundTaskInfo(
-                identifier: TaskIdentifier.analyticsCollection,
+                identifier: BackgroundTaskIdentifier.analyticsCollection,
                 taskType: "analytics-collection",
                 expirationTime: Date(timeIntervalSinceNow: 24 * 60 * 60)
             )
@@ -434,9 +435,9 @@ public final class NotificationBackgroundProcessor: @unchecked Sendable {
     public func cancelAllBackgroundTasks() async {
         logger.info("Cancelling all background tasks")
 
-        BGTaskScheduler.shared.cancel(taskRequestWithIdentifier: TaskIdentifier.notificationProcessing)
-        BGTaskScheduler.shared.cancel(taskRequestWithIdentifier: TaskIdentifier.warrantyCheck)
-        BGTaskScheduler.shared.cancel(taskRequestWithIdentifier: TaskIdentifier.analyticsCollection)
+        BGTaskScheduler.shared.cancel(taskRequestWithIdentifier: BackgroundTaskIdentifier.notificationProcessing)
+        BGTaskScheduler.shared.cancel(taskRequestWithIdentifier: BackgroundTaskIdentifier.warrantyCheck)
+        BGTaskScheduler.shared.cancel(taskRequestWithIdentifier: BackgroundTaskIdentifier.analyticsCollection)
 
         // Clear saved task info
         let persistence = NotificationPersistence()

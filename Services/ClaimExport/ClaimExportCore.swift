@@ -216,23 +216,28 @@ public final class ClaimExportCore: ObservableObject {
 
     // MARK: - Validation Operations
 
-    public func validateItemsForClaim(_ items: [Item]) -> [ValidationIssue] {
+    public func validateItemsForClaim(_ items: [Item]) -> [ExportValidationIssue] {
         validators.validateItems(items)
     }
 
     public func validateForFormat(
         items: [Item],
         format: InsuranceCompanyFormat
-    ) -> [ValidationIssue] {
+    ) -> [ExportValidationIssue] {
         validators.validateForFormat(items: items, format: format)
     }
 
     // MARK: - Data Loading
 
     private func loadActiveSubmissions() {
+        // SwiftData Predicate macro requires simpler expressions
+        // Using rawValue comparison for enum types
+        let closedRawValue = ClaimStatus.closed.rawValue
+        let settledRawValue = ClaimStatus.settled.rawValue
+        
         let descriptor = FetchDescriptor<ClaimSubmission>(
             predicate: #Predicate<ClaimSubmission> { submission in
-                submission.status != .closed && submission.status != .settled
+                submission.status.rawValue != closedRawValue && submission.status.rawValue != settledRawValue
             },
             sortBy: [SortDescriptor(\.updatedAt, order: .reverse)]
         )

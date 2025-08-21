@@ -6,6 +6,8 @@
 
 import Foundation
 import SwiftData
+import UIKit
+import CoreImage
 import Vision
 import CoreImage
 
@@ -77,10 +79,10 @@ public final class ClaimValidationService: ObservableObject {
         // Check for empty items list
         if items.isEmpty {
             results.criticalIssues.append(ValidationIssue(
-                type: .missingData,
                 severity: .critical,
                 message: "No items selected for claim",
-                affectedItems: []
+                field: "items",
+                code: ValidationIssueType.missingData.rawValue
             ))
             return
         }
@@ -90,10 +92,10 @@ public final class ClaimValidationService: ObservableObject {
             let itemsWithoutPhotos = items.filter(\.photos.isEmpty)
             if !itemsWithoutPhotos.isEmpty {
                 results.warnings.append(ValidationIssue(
-                    type: .missingPhotos,
                     severity: .warning,
                     message: "\(itemsWithoutPhotos.count) items missing photos",
-                    affectedItems: itemsWithoutPhotos.map(\.id)
+                    field: "photos",
+                    code: ValidationIssueType.missingPhotos.rawValue
                 ))
                 results.photoCompleteness = Double(items.count - itemsWithoutPhotos.count) / Double(items.count)
             } else {
@@ -106,10 +108,10 @@ public final class ClaimValidationService: ObservableObject {
             let itemsWithoutReceipts = items.filter(\.receipts.isEmpty)
             if !itemsWithoutReceipts.isEmpty {
                 results.warnings.append(ValidationIssue(
-                    type: .missingReceipts,
                     severity: .warning,
                     message: "\(itemsWithoutReceipts.count) items missing receipts",
-                    affectedItems: itemsWithoutReceipts.map(\.id)
+                    field: "receipts",
+                    code: ValidationIssueType.missingReceipts.rawValue
                 ))
                 results.receiptCompleteness = Double(items.count - itemsWithoutReceipts.count) / Double(items.count)
             } else {
@@ -122,10 +124,10 @@ public final class ClaimValidationService: ObservableObject {
             let itemsWithoutSerial = items.filter { $0.serialNumber?.isEmpty != false }
             if !itemsWithoutSerial.isEmpty {
                 results.warnings.append(ValidationIssue(
-                    type: .missingSerialNumbers,
                     severity: .warning,
                     message: "\(itemsWithoutSerial.count) items missing serial numbers",
-                    affectedItems: itemsWithoutSerial.map(\.id)
+                    field: "serialNumber",
+                    code: ValidationIssueType.missingSerialNumbers.rawValue
                 ))
             }
         }
@@ -135,10 +137,10 @@ public final class ClaimValidationService: ObservableObject {
             let lowValueItems = items.filter { ($0.purchasePrice ?? 0) < minValue }
             if !lowValueItems.isEmpty {
                 results.warnings.append(ValidationIssue(
-                    type: .valueThreshold,
                     severity: .info,
                     message: "\(lowValueItems.count) items below minimum value threshold (\(minValue))",
-                    affectedItems: lowValueItems.map(\.id)
+                    field: "purchasePrice",
+                    code: ValidationIssueType.valueThreshold.rawValue
                 ))
             }
         }
@@ -148,8 +150,8 @@ public final class ClaimValidationService: ObservableObject {
         var completedFields = items.count // names are always present
 
         completedFields += items.count(where: { $0.purchasePrice != nil })
-        completedFields += items.count(where: { !$0.photos.isEmpty })
-        completedFields += items.count(where: { !$0.receipts.isEmpty })
+        completedFields += items.count(where: { $0.imageData != nil || !$0.conditionPhotos.isEmpty })
+        completedFields += items.count(where: { $0.receiptImageData != nil })
 
         results.overallCompleteness = Double(completedFields) / Double(totalFields)
     }
@@ -165,16 +167,31 @@ public final class ClaimValidationService: ObservableObject {
         var itemsWithQualityIssues: [UUID] = []
 
         for item in items {
-            for photoPath in item.photos {
+            // Check main image
+            if let imageData = item.imageData {
                 totalPhotos += 1
-
-                if let url = URL(string: photoPath),
-                   let data = try? Data(contentsOf: url),
-                   let image = CIImage(data: data)
+                
+                if let ciImage = CIImage(data: imageData)
                 {
-                    let qualityScore = await assessPhotoQuality(image)
+                    let qualityScore = await assessPhotoQuality(ciImage)
 
                     if qualityScore < 0.6 { // Below acceptable quality threshold
+                        qualityIssues += 1
+                        if !itemsWithQualityIssues.contains(item.id) {
+                            itemsWithQualityIssues.append(item.id)
+                        }
+                    }
+                }
+            }
+            
+            // Check condition photos
+            for photoData in item.conditionPhotos {
+                totalPhotos += 1
+                
+                if let ciImage = CIImage(data: photoData) {
+                    let qualityScore = await assessPhotoQuality(ciImage)
+                    
+                    if qualityScore < 0.6 {
                         qualityIssues += 1
                         if !itemsWithQualityIssues.contains(item.id) {
                             itemsWithQualityIssues.append(item.id)
@@ -187,10 +204,10 @@ public final class ClaimValidationService: ObservableObject {
         if qualityIssues > 0 {
             let severity: ValidationSeverity = qualityIssues > totalPhotos / 2 ? .warning : .info
             results.warnings.append(ValidationIssue(
-                type: .photoQuality,
                 severity: severity,
                 message: "\(qualityIssues) of \(totalPhotos) photos may have quality issues",
-                affectedItems: itemsWithQualityIssues
+                field: "photos",
+                code: ValidationIssueType.photoQuality.rawValue
             ))
         }
 
@@ -265,10 +282,10 @@ public final class ClaimValidationService: ObservableObject {
 
         if !itemsWithReceiptIssues.isEmpty {
             results.warnings.append(ValidationIssue(
-                type: .receiptMismatch,
                 severity: .warning,
                 message: "\(itemsWithReceiptIssues.count) items have receipt validation issues",
-                affectedItems: itemsWithReceiptIssues
+                field: "receipts",
+                code: ValidationIssueType.receiptMismatch.rawValue
             ))
         }
 
@@ -282,14 +299,14 @@ public final class ClaimValidationService: ObservableObject {
 
         // Check if receipt has minimum required fields
         guard !receipt.merchantName.isEmpty,
-              receipt.totalAmount > 0,
-              receipt.dateOfPurchase != nil
+              receipt.totalAmount != nil && receipt.totalAmount! > 0
         else {
             return false
         }
 
         // Check price variance (allow 10% difference for tax/fees)
-        let priceDifference = abs(receipt.totalAmount - expectedPrice)
+        let receiptAmount = receipt.totalAmount ?? 0
+        let priceDifference = abs(receiptAmount - expectedPrice)
         let allowableVariance = expectedPrice * 0.1
 
         return priceDifference <= allowableVariance
@@ -322,19 +339,19 @@ public final class ClaimValidationService: ObservableObject {
 
         if !highValueItems.isEmpty {
             results.warnings.append(ValidationIssue(
-                type: .highValue,
                 severity: .info,
                 message: "\(highValueItems.count) items have high values (>$5,000) - may require additional documentation",
-                affectedItems: highValueItems
+                field: "purchasePrice",
+                code: ValidationIssueType.highValue.rawValue
             ))
         }
 
         if !suspiciousValueItems.isEmpty {
             results.warnings.append(ValidationIssue(
-                type: .valueAnomalies,
                 severity: .warning,
                 message: "\(suspiciousValueItems.count) items have value patterns that may require review",
-                affectedItems: suspiciousValueItems
+                field: "purchasePrice",
+                code: ValidationIssueType.valueAnomalies.rawValue
             ))
         }
 
@@ -345,10 +362,10 @@ public final class ClaimValidationService: ObservableObject {
         // Flag if total claim value is unusually high
         if totalValue > 100_000 {
             results.warnings.append(ValidationIssue(
-                type: .highClaimValue,
                 severity: .info,
                 message: "Total claim value exceeds $100,000 - may require additional underwriting review",
-                affectedItems: []
+                field: "totalValue",
+                code: ValidationIssueType.highClaimValue.rawValue
             ))
         }
     }
@@ -365,8 +382,9 @@ public final class ClaimValidationService: ObservableObject {
 
         // Electronics depreciate faster
         if item.category?.name.lowercased().contains("electronic") == true {
-            let expectedDepreciatedValue = price * pow(0.8, ageInYears) // 20% per year
-            if price > expectedDepreciatedValue * 1.5 {
+            let depreciationFactor = Decimal(pow(0.8, ageInYears))
+            let expectedDepreciatedValue = price * depreciationFactor // 20% per year
+            if price > expectedDepreciatedValue * Decimal(1.5) {
                 return true // Value too high for age
             }
         }
@@ -409,10 +427,10 @@ public final class ClaimValidationService: ObservableObject {
 
         if !itemsWithoutSerial.isEmpty {
             results.warnings.append(ValidationIssue(
-                type: .missingSerialNumbers,
                 severity: .warning,
                 message: "USAA requires serial numbers for items over $1,000",
-                affectedItems: itemsWithoutSerial.map(\.id)
+                field: "serialNumber",
+                code: ValidationIssueType.missingSerialNumbers.rawValue
             ))
         }
     }
@@ -427,10 +445,10 @@ public final class ClaimValidationService: ObservableObject {
             let itemsWithoutPhotos = items.filter(\.photos.isEmpty)
             if !itemsWithoutPhotos.isEmpty {
                 results.criticalIssues.append(ValidationIssue(
-                    type: .missingPhotos,
                     severity: .critical,
                     message: "State Farm requires photos for all theft/vandalism claims",
-                    affectedItems: itemsWithoutPhotos.map(\.id)
+                    field: "photos",
+                    code: ValidationIssueType.missingPhotos.rawValue
                 ))
             }
         }
@@ -448,10 +466,10 @@ public final class ClaimValidationService: ObservableObject {
             let itemsWithoutReceipts = items.filter(\.receipts.isEmpty)
             if Double(itemsWithoutReceipts.count) / Double(items.count) > 0.5 {
                 results.criticalIssues.append(ValidationIssue(
-                    type: .missingReceipts,
                     severity: .critical,
                     message: "Allstate requires receipts for majority of items in high-value fire claims",
-                    affectedItems: itemsWithoutReceipts.map(\.id)
+                    field: "receipts",
+                    code: ValidationIssueType.missingReceipts.rawValue
                 ))
             }
         }
@@ -471,10 +489,10 @@ public final class ClaimValidationService: ObservableObject {
 
         if !itemsWithMissingData.isEmpty {
             results.criticalIssues.append(ValidationIssue(
-                type: .missingData,
                 severity: .critical,
                 message: "ACORD format requires complete data for all items (name, price, category)",
-                affectedItems: itemsWithMissingData.map(\.id)
+                field: "itemData",
+                code: ValidationIssueType.missingData.rawValue
             ))
         }
     }
@@ -482,7 +500,7 @@ public final class ClaimValidationService: ObservableObject {
 
 // MARK: - Data Models
 
-public struct ClaimValidationResults {
+public struct ClaimValidationResults: Sendable {
     public var overallCompleteness = 0.0
     public var photoCompleteness = 0.0
     public var receiptCompleteness = 0.0
@@ -548,24 +566,4 @@ public enum ValidationIssueType: String, CaseIterable {
     case companySpecific = "Company Requirements"
 }
 
-public enum ValidationSeverity: String, CaseIterable {
-    case critical = "Critical"
-    case warning = "Warning"
-    case info = "Info"
-
-    var color: String {
-        switch self {
-        case .critical: "red"
-        case .warning: "orange"
-        case .info: "blue"
-        }
-    }
-
-    var icon: String {
-        switch self {
-        case .critical: "exclamationmark.circle.fill"
-        case .warning: "exclamationmark.triangle.fill"
-        case .info: "info.circle.fill"
-        }
-    }
-}
+// ValidationSeverity is now defined in Foundation/Core/ValidationIssue.swift

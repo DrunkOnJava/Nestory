@@ -25,8 +25,8 @@ struct WarrantyTrackingView: View {
     }
 
     var body: some View {
-        NavigationView {
-            ScrollView {
+        NavigationStack {
+            ScrollView(.vertical) {
                 VStack(alignment: .leading, spacing: 20) {
                     // Current Warranty Status Card
                     WarrantyStatusCard(
@@ -103,7 +103,6 @@ struct WarrantyTrackingView: View {
                 }
             }
         }
-        .navigationViewStyle(.stack)
         .sheet(isPresented: $core.showingAutoDetectSheet) {
             if let result = core.detectionResult {
                 AutoDetectResultSheet(
@@ -120,7 +119,7 @@ struct WarrantyTrackingView: View {
             if let warranty = item.warranty {
                 WarrantyExtensionSheet(
                     currentWarranty: warranty,
-                    onExtensionPurchased: { extension in
+                    onExtensionPurchased: { extensionInfo in
                         // Handle extension purchase
                         core.showingExtensionOptions = false
                     }

@@ -8,7 +8,7 @@ import Foundation
 
 // MARK: - Damage Type Classification
 
-public enum DamageType: String, CaseIterable, Codable {
+public enum DamageType: String, CaseIterable, Codable, Sendable {
     case fire = "Fire"
     case water = "Water"
     case theft = "Theft"
@@ -78,7 +78,7 @@ public enum DamageType: String, CaseIterable, Codable {
 
 // MARK: - Assessment Steps
 
-public enum DamageAssessmentStep: String, CaseIterable, Codable {
+public enum DamageAssessmentStep: String, CaseIterable, Codable, Sendable {
     case initialDocumentation = "Initial Documentation"
     case smokeAssessment = "Smoke Damage Assessment"
     case heatDamageEvaluation = "Heat Damage Evaluation"
@@ -170,7 +170,7 @@ public enum DamageAssessmentStep: String, CaseIterable, Codable {
 
 // MARK: - Damage Severity
 
-public enum DamageSeverity: String, CaseIterable, Codable {
+public enum DamageSeverity: String, CaseIterable, Codable, Sendable {
     case minor = "Minor"
     case moderate = "Moderate"
     case major = "Major"
@@ -231,12 +231,12 @@ public enum DamageSeverity: String, CaseIterable, Codable {
 
 // MARK: - Assessment Data Models
 
-public struct DamageAssessment: Codable, Identifiable {
+public struct DamageAssessment: Codable, Identifiable, Sendable {
     public let id: UUID
     public let itemId: UUID
     public let assessmentDate: Date
     public let damageType: DamageType
-    public let severity: DamageSeverity
+    public var severity: DamageSeverity
 
     public var incidentDate: Date?
     public var incidentLocation: String?
@@ -283,7 +283,7 @@ public struct DamageAssessment: Codable, Identifiable {
 
 // MARK: - Assessment Workflow State
 
-public struct DamageAssessmentWorkflow: Codable {
+public struct DamageAssessmentWorkflow: Codable, Sendable {
     public let id: UUID
     public let damageType: DamageType
     public var currentStep: DamageAssessmentStep
@@ -327,7 +327,7 @@ public struct DamageAssessmentWorkflow: Codable {
 
 // MARK: - Photo Documentation
 
-public struct DamagePhoto: Codable, Identifiable {
+public struct DamagePhoto: Codable, Identifiable, Sendable {
     public let id: UUID
     public let imageData: Data
     public let description: String
@@ -335,7 +335,7 @@ public struct DamagePhoto: Codable, Identifiable {
     public let photoType: PhotoType
     public let location: String?
 
-    public enum PhotoType: String, CaseIterable, Codable {
+    public enum PhotoType: String, CaseIterable, Codable, Sendable {
         case before = "Before"
         case after = "After"
         case detail = "Detail"
@@ -375,68 +375,17 @@ public struct DamagePhoto: Codable, Identifiable {
 
 // MARK: - Cost Estimation
 
-public struct CostEstimation: Codable {
-    public var repairCosts: [RepairCost] = []
-    public var replacementCost: Decimal?
-    public var additionalCosts: [AdditionalCost] = []
-    public var laborCost: Decimal?
-    public var materialsCost: Decimal?
-    public var totalEstimate: Decimal {
-        let repairTotal = repairCosts.reduce(0) { $0 + $1.amount }
-        let additionalTotal = additionalCosts.reduce(0) { $0 + $1.amount }
-        let labor = laborCost ?? 0
-        let materials = materialsCost ?? 0
-        return repairTotal + additionalTotal + labor + materials
-    }
-
-    public struct RepairCost: Codable, Identifiable {
-        public let id: UUID
-        public let description: String
-        public let amount: Decimal
-        public let category: String
-
-        public init(description: String, amount: Decimal, category: String) {
-            self.id = UUID()
-            self.description = description
-            self.amount = amount
-            self.category = category
-        }
-    }
-
-    public struct AdditionalCost: Codable, Identifiable {
-        public let id: UUID
-        public let description: String
-        public let amount: Decimal
-        public let type: CostType
-
-        public enum CostType: String, CaseIterable, Codable {
-            case temporary = "Temporary Housing"
-            case storage = "Storage"
-            case cleaning = "Professional Cleaning"
-            case inspection = "Professional Inspection"
-            case permits = "Permits"
-            case disposal = "Disposal"
-            case other = "Other"
-        }
-
-        public init(description: String, amount: Decimal, type: CostType) {
-            self.id = UUID()
-            self.description = description
-            self.amount = amount
-            self.type = type
-        }
-    }
-}
+// Note: CostEstimation is now defined in Foundation/Models/CostEstimation.swift
 
 // MARK: - Assessment Templates
 
-public struct AssessmentTemplate {
+public struct AssessmentTemplate: Sendable {
     public let damageType: DamageType
     public let checklistItems: [ChecklistItem]
     public let photoRequirements: [PhotoRequirement]
     public let recommendedMeasurements: [String]
 
-    public struct ChecklistItem: Identifiable {
+    public struct ChecklistItem: Identifiable, Sendable {
         public let id: UUID
         public let description: String
         public let category: String
@@ -452,7 +401,7 @@ public struct AssessmentTemplate {
         }
     }
 
-    public struct PhotoRequirement: Identifiable {
+    public struct PhotoRequirement: Identifiable, Sendable {
         public let id: UUID
         public let description: String
         public let photoType: DamagePhoto.PhotoType

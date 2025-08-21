@@ -52,7 +52,11 @@
       "Bash(timeout 45 xcodebuild:*)",
       "Bash(timeout 90 make build)",
       "Bash(timeout 30 swift build:*)",
-      "Bash(xcodegen:*)"
+      "Bash(xcodegen:*)",
+      "Bash(gh pr:*)",
+      "Bash(timeout 10 swift build:*)",
+      "Bash(timeout 30 make build)",
+      "Bash(timeout 45 make build)"
     ],
     "deny": [],
     "ask": [],

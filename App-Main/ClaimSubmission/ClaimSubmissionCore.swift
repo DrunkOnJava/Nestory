@@ -6,6 +6,7 @@
 
 import SwiftUI
 import SwiftData
+import MessageUI
 
 // MARK: - Core State Management
 

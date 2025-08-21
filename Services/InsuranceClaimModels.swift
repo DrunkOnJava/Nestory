@@ -6,195 +6,23 @@
 
 import Foundation
 
-// MARK: - Claim Types
-
-public enum ClaimType: String, CaseIterable, Codable {
-    case theft = "Theft"
-    case fire = "Fire Damage"
-    case water = "Water Damage"
-    case vandalism = "Vandalism"
-    case naturalDisaster = "Natural Disaster"
-    case accident = "Accidental Damage"
-    case burglary = "Burglary"
-    case windStorm = "Wind/Storm Damage"
-    case generalLoss = "General Loss"
-
-    public var icon: String {
-        switch self {
-        case .theft, .burglary:
-            "lock.open"
-        case .fire:
-            "flame"
-        case .water:
-            "drop"
-        case .vandalism:
-            "hammer"
-        case .naturalDisaster:
-            "tornado"
-        case .accident:
-            "exclamationmark.triangle"
-        case .windStorm:
-            "wind"
-        case .generalLoss:
-            "questionmark.circle"
-        }
-    }
-
-    public var description: String {
-        switch self {
-        case .theft:
-            "Items stolen from property"
-        case .fire:
-            "Damage caused by fire or smoke"
-        case .water:
-            "Damage from flooding, leaks, or water exposure"
-        case .vandalism:
-            "Intentional damage to property"
-        case .naturalDisaster:
-            "Damage from earthquakes, hurricanes, tornados"
-        case .accident:
-            "Accidental damage to items"
-        case .burglary:
-            "Break-in with theft"
-        case .windStorm:
-            "Damage from wind or storms"
-        case .generalLoss:
-            "Other types of covered losses"
-        }
-    }
-
-    public var requiredDocumentation: [String] {
-        switch self {
-        case .theft, .burglary:
-            [
-                "Police report number",
-                "List of stolen items with values",
-                "Photos of point of entry",
-                "Security system logs (if available)",
-            ]
-        case .fire:
-            [
-                "Fire department report",
-                "Photos of fire damage",
-                "Smoke damage documentation",
-                "Professional cleanup estimates",
-            ]
-        case .water:
-            [
-                "Photos of water damage",
-                "Plumber's report (if applicable)",
-                "Moisture readings",
-                "Professional restoration estimate",
-            ]
-        case .vandalism:
-            [
-                "Police report",
-                "Photos of vandalism damage",
-                "Witness statements (if available)",
-                "Repair estimates",
-            ]
-        case .naturalDisaster:
-            [
-                "Weather service reports",
-                "Photos of storm damage",
-                "Professional assessment",
-                "Temporary repairs documentation",
-            ]
-        case .accident:
-            [
-                "Incident description",
-                "Photos of damage",
-                "Witness information",
-                "Repair estimates",
-            ]
-        case .windStorm:
-            [
-                "Weather reports",
-                "Photos of wind damage",
-                "Roofing/structural assessment",
-                "Emergency repair receipts",
-            ]
-        case .generalLoss:
-            [
-                "Detailed incident description",
-                "Supporting documentation",
-                "Photos of damage/loss",
-                "Professional estimates",
-            ]
-        }
-    }
-}
-
-// MARK: - Insurance Companies
-
-public enum InsuranceCompany: String, CaseIterable {
-    case stateFarm = "State Farm"
-    case allstate = "Allstate"
-    case geico = "GEICO"
-    case progressive = "Progressive"
-    case usaa = "USAA"
-    case nationwide = "Nationwide"
-    case farmers = "Farmers"
-    case aaa = "AAA"
-    case libertymutual = "Liberty Mutual"
-    case travelers = "Travelers"
-    case americanFamily = "American Family"
-    case amica = "Amica"
-
-    public var supportedClaimTypes: [ClaimType] {
-        // Most companies support all claim types, with some exceptions
-        switch self {
-        case .usaa:
-            // USAA has specific military/veteran requirements
-            ClaimType.allCases
-        default:
-            ClaimType.allCases
-        }
-    }
-
-    public var preferredFormat: ClaimDocumentFormat {
-        switch self {
-        case .stateFarm, .allstate:
-            .standardPDF
-        case .geico, .progressive:
-            .structuredJSON
-        case .usaa:
-            .detailedPDF
-        default:
-            .standardPDF
-        }
-    }
-
-    public var claimSubmissionURL: String? {
-        switch self {
-        case .stateFarm:
-            "https://www.statefarm.com/claims"
-        case .allstate:
-            "https://www.allstate.com/claims"
-        case .geico:
-            "https://www.geico.com/claims"
-        case .progressive:
-            "https://www.progressive.com/claims"
-        case .usaa:
-            "https://www.usaa.com/inet/wc/banking_insurance_claims"
-        default:
-            nil
-        }
-    }
-}
+// Foundation layer imports
+// ClaimType and InsuranceCompany are defined in Foundation/Models/InsuranceTypes.swift
 
 // MARK: - Document Formats
 
-public enum ClaimDocumentFormat: String, CaseIterable {
+public enum ClaimDocumentFormat: String, CaseIterable, Sendable {
+    case pdf = "PDF"
     case standardPDF = "Standard PDF"
     case detailedPDF = "Detailed PDF"
+    case militaryFormat = "Military Format"
     case structuredJSON = "Structured JSON"
     case spreadsheet = "Excel Spreadsheet"
     case htmlPackage = "HTML Package"
 
     public var fileExtension: String {
         switch self {
-        case .standardPDF, .detailedPDF:
+        case .pdf, .standardPDF, .detailedPDF, .militaryFormat:
             "pdf"
         case .structuredJSON:
             "json"
@@ -208,7 +36,8 @@ public enum ClaimDocumentFormat: String, CaseIterable {
 
 // MARK: - Claim Request
 
-public struct ClaimRequest {
+public struct ClaimRequest: Sendable, Identifiable {
+    public let id: UUID
     public let claimType: ClaimType
     public let insuranceCompany: InsuranceCompany
     public let items: [Item]
@@ -237,6 +66,7 @@ public struct ClaimRequest {
         estimatedTotalLoss: Decimal = 0,
         format: ClaimDocumentFormat? = nil
     ) {
+        self.id = UUID()
         self.claimType = claimType
         self.insuranceCompany = insuranceCompany
         self.items = items
@@ -255,7 +85,7 @@ public struct ClaimRequest {
 
 // MARK: - Contact Information
 
-public struct ClaimContactInfo {
+public struct ClaimContactInfo: Sendable {
     public let name: String
     public let phone: String
     public let email: String
@@ -277,9 +107,30 @@ public struct ClaimContactInfo {
     }
 }
 
+// MARK: - Insurance Company Extensions
+
+extension InsuranceCompany {
+    public var preferredFormat: ClaimDocumentFormat {
+        switch preferredFormatName {
+        case "Standard PDF":
+            return .standardPDF
+        case "Detailed PDF":
+            return .detailedPDF
+        case "Military Format":
+            return .militaryFormat
+        case "Excel Spreadsheet":
+            return .spreadsheet
+        case "Structured JSON":
+            return .structuredJSON
+        default:
+            return .pdf
+        }
+    }
+}
+
 // MARK: - Generated Claim
 
-public struct GeneratedClaim {
+public struct GeneratedClaim: Sendable {
     public let id: UUID
     public let request: ClaimRequest
     public let documentData: Data

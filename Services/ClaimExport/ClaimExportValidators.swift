@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import SwiftData
 
 // MARK: - Claim Validation
 
@@ -19,7 +20,9 @@ public enum ClaimExportValidators {
         var validationErrors: [String] = []
 
         if requirements.requiresPhotos {
-            let itemsWithoutPhotos = items.filter(\.photos.isEmpty)
+            let itemsWithoutPhotos = items.filter { item in
+                item.imageData == nil && item.conditionPhotos.isEmpty
+            }
             if !itemsWithoutPhotos.isEmpty {
                 validationErrors.append("\(itemsWithoutPhotos.count) items missing photos")
             }
@@ -53,12 +56,12 @@ public enum ClaimExportValidators {
 
     // MARK: - Item Validation
 
-    public static func validateItems(_ items: [Item]) -> [ValidationIssue] {
+    public static func validateItems(_ items: [Item]) -> [ExportValidationIssue] {
         var issues: [ExportValidationIssue] = []
 
         for item in items {
             // Check for missing photos
-            if item.photos.isEmpty {
+            if item.imageData == nil && item.conditionPhotos.isEmpty {
                 issues.append(ExportValidationIssue(
                     itemId: item.id,
                     itemName: item.name,
@@ -110,7 +113,7 @@ public enum ClaimExportValidators {
     public static func validateForFormat(
         items: [Item],
         format: InsuranceCompanyFormat
-    ) -> [ValidationIssue] {
+    ) -> [ExportValidationIssue] {
         var issues: [ExportValidationIssue] = []
 
         switch format {
@@ -171,7 +174,7 @@ public enum ClaimExportValidators {
     public static func validateFileRequirements(
         fileSize: Int,
         requirements: ClaimValidationRequirements
-    ) -> [ValidationIssue] {
+    ) -> [ExportValidationIssue] {
         var issues: [ExportValidationIssue] = []
 
         if fileSize > requirements.maximumFileSize {
@@ -213,7 +216,7 @@ public struct ExportValidationIssue: Identifiable {
     }
 }
 
-// ValidationSeverity is defined in ClaimValidationService.swift
+// MARK: - Note: ValidationSeverity is now defined in Foundation/Core/ValidationIssue.swift
 
 public enum ValidationCategory: String, CaseIterable {
     case missingPhoto = "Missing Photo"

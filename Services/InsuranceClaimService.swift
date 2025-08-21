@@ -14,9 +14,15 @@ import SwiftUI
 
 // MARK: - InsuranceClaimService Protocol
 
+@MainActor
 public protocol InsuranceClaimService: Sendable {
+    var isGenerating: Bool { get }
+    
     func generateClaim(for request: ClaimRequest) async throws -> GeneratedClaim
     func getClaim(by id: UUID) async -> GeneratedClaim?
+    func exportClaim(_ claim: GeneratedClaim, includePhotos: Bool) async throws -> URL
+    func validateItemsForClaim(items: [Item]) -> [String]
+    func estimateClaimValue(items: [Item]) -> Decimal
 }
 
 // MARK: - Live Implementation
@@ -61,8 +67,8 @@ public final class LiveInsuranceClaimService: InsuranceClaimService, ObservableO
         core.removeClaim(by: id)
     }
 
-    public func exportClaim(_ claim: GeneratedClaim) async throws -> URL {
-        try await core.exportClaim(claim)
+    public func exportClaim(_ claim: GeneratedClaim, includePhotos: Bool = true) async throws -> URL {
+        try await core.exportClaim(claim, includePhotos: includePhotos)
     }
 
     public func createHTMLPackage(for claim: GeneratedClaim) async throws -> URL {

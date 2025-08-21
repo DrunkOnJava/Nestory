@@ -4,6 +4,7 @@
 // Purpose: Reusable UI components for claim package assembly interface
 //
 
+import Foundation
 import SwiftUI
 import SwiftData
 
@@ -249,10 +250,10 @@ public struct ClaimScenarioSetupView: View {
                     DatePicker("Incident Date", selection: $scenario.incidentDate)
                 }
                 
-                Section("Incident Description") {
+                Section("Incident Description", content: {
                     TextEditor(text: $scenario.description)
                         .frame(minHeight: 120)
-                } footer: {
+                }) {
                     Text("Provide a detailed description of what happened and how it affected your items.")
                 }
                 
@@ -308,12 +309,12 @@ public struct ClaimPackageOptionsView: View {
                     .pickerStyle(.navigationLink)
                 }
                 
-                Section("Media Inclusion") {
+                Section("Media Inclusion", content: {
                     Toggle("Include Item Photos", isOn: $options.includePhotos)
                     Toggle("Include Damage Photos", isOn: $options.includeDamagePhotos)
                     Toggle("Include Receipt Images", isOn: $options.includeReceipts)
                     Toggle("Include Warranty Documents", isOn: $options.includeWarranties)
-                }
+                })
                 
                 Section("Export Formats") {
                     Picker("Primary Format", selection: $options.primaryFormat) {
@@ -356,21 +357,7 @@ public struct ClaimPackageOptionsView: View {
 
 // MARK: - Extensions for Display Names
 
-extension ClaimType {
-    var displayName: String {
-        switch self {
-        case .fire: "Fire Damage"
-        case .water: "Water Damage"
-        case .theft: "Theft"
-        case .burglary: "Burglary"
-        case .vandalism: "Vandalism"
-        case .naturalDisaster: "Natural Disaster"
-        case .accident: "Accidental Damage"
-        case .windStorm: "Wind/Storm Damage"
-        case .generalLoss: "General Loss"
-        }
-    }
-}
+// ClaimType.displayName is already defined in Foundation/Models/InsuranceTypes.swift
 
 extension ClaimScope {
     var displayName: String {
@@ -403,17 +390,14 @@ extension DocumentationLevel {
 }
 
 extension ExportFormat {
-    var displayName: String {
-        switch self {
-        case .pdf: "PDF Document"
-        case .html: "HTML Package"
-        case .spreadsheet: "Excel Spreadsheet"
-        }
-    }
-    
     var icon: String {
         switch self {
+        case .csv: "tablecells"
+        case .json: "doc.text"
+        case .xml: "doc.text"
+        case .txt: "doc.plaintext"
         case .pdf: "doc.text"
+        case .excel: "tablecells"
         case .html: "globe"
         case .spreadsheet: "tablecells"
         }

@@ -10,7 +10,7 @@ import SwiftData
 import UIKit
 import UniformTypeIdentifiers
 
-public enum ExportError: LocalizedError {
+public enum InsuranceExportError: LocalizedError {
     case dataConversionFailed
     case fileWriteFailed
     case missingData
@@ -37,7 +37,7 @@ public final class InsuranceExportService: ObservableObject {
 
     // MARK: - Export Formats
 
-    public enum ExportFormat: String, CaseIterable {
+    public enum ExportFormat: String, CaseIterable, Sendable {
         case standardForm = "Standard Insurance Form (PDF)"
         case detailedSpreadsheet = "Detailed Spreadsheet (Excel)"
         case digitalPackage = "Digital Evidence Package (ZIP)"
@@ -119,7 +119,7 @@ public final class InsuranceExportService: ObservableObject {
 
         // Convert HTML to PDF (simplified for now)
         guard let pdfData = htmlContent.data(using: .utf8) else {
-            throw ExportError.dataConversionFailed
+            throw InsuranceExportError.dataConversionFailed
         }
 
         // Save to temporary file

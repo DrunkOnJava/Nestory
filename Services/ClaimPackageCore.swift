@@ -9,7 +9,7 @@ import SwiftData
 
 // MARK: - Supporting Types
 
-public struct PackageValidationIssue {
+public struct PackageValidationIssue: Sendable {
     public let itemId: UUID
     public let itemName: String
     public let issues: [String]
@@ -140,7 +140,7 @@ public final class ClaimPackageCore: ObservableObject {
         items: [Item],
         scenario: ClaimScenario
     ) async throws -> PackageValidation {
-        var issues: [ValidationIssue] = []
+        var issues: [PackageValidationIssue] = []
         var missing: [String] = []
 
         for item in items {
@@ -176,7 +176,7 @@ public final class ClaimPackageCore: ObservableObject {
             }
 
             if !itemIssues.isEmpty {
-                issues.append(ValidationIssue(
+                issues.append(PackageValidationIssue(
                     itemId: item.id,
                     itemName: item.name,
                     issues: itemIssues,

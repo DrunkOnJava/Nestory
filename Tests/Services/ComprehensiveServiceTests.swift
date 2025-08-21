@@ -307,25 +307,6 @@ protocol AnalyticsServiceProtocol {
     func trackItemDeletion(_ itemId: UUID)
 }
 
-protocol CloudBackupServiceProtocol {
-    func backup(_ items: [Item]) async throws -> BackupResult
-    func restore() async throws -> RestoreResult
-}
+// CloudBackupServiceProtocol removed - using the actual CloudBackupService protocol from Services layer
 
-// MARK: - Result Types
-
-enum BackupResult {
-    case success(BackupMetadata)
-    case failure(Error)
-}
-
-enum RestoreResult {
-    case success([Item])
-    case failure(Error)
-}
-
-struct BackupMetadata {
-    let id: UUID
-    let timestamp: Date
-    let itemCount: Int
-}
+// Note: BackupMetadata is now defined in Foundation/Models/BackupMetadata.swift

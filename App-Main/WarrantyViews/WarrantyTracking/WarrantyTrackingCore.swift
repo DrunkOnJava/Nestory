@@ -46,15 +46,16 @@ public final class WarrantyTrackingCore: ObservableObject {
     }
     
     public var canAutoDetect: Bool {
-        !item.brand.isNilOrEmpty || !item.model.isNilOrEmpty || !item.serialNumber.isNilOrEmpty
+        !item.brand.isNilOrEmpty || !item.modelNumber.isNilOrEmpty || !item.serialNumber.isNilOrEmpty
     }
     
     public var warrantyProgress: Double {
-        guard let warranty = item.warranty,
-              let startDate = warranty.startDate,
-              let endDate = warranty.endDate else {
+        guard let warranty = item.warranty else {
             return 0.0
         }
+        
+        let startDate = warranty.startDate
+        let endDate = warranty.endDate
         
         let now = Date()
         let total = endDate.timeIntervalSince(startDate)
@@ -64,12 +65,11 @@ public final class WarrantyTrackingCore: ObservableObject {
     }
     
     public var daysRemaining: Int? {
-        guard let warranty = item.warranty,
-              let endDate = warranty.endDate else {
+        guard let warranty = item.warranty else {
             return nil
         }
         
-        let days = Calendar.current.dateComponents([.day], from: Date(), to: endDate).day
+        let days = Calendar.current.dateComponents([.day], from: Date(), to: warranty.expiresAt).day
         return max(0, days ?? 0)
     }
     
@@ -83,7 +83,7 @@ public final class WarrantyTrackingCore: ObservableObject {
             do {
                 let result = try await warrantyTrackingService.detectWarrantyInfo(
                     brand: item.brand,
-                    model: item.model,
+                    model: item.modelNumber,
                     serialNumber: item.serialNumber,
                     purchaseDate: item.purchaseDate
                 )
@@ -106,12 +106,11 @@ public final class WarrantyTrackingCore: ObservableObject {
         guard let result = detectionResult else { return }
         
         let warranty = Warranty(
-            type: result.type,
             provider: result.provider,
+            type: result.type,
             startDate: result.startDate,
-            endDate: result.endDate,
-            terms: result.terms,
-            registrationRequired: result.registrationRequired
+            expiresAt: result.endDate,
+            item: item
         )
         
         item.warranty = warranty
@@ -153,7 +152,7 @@ public final class WarrantyTrackingCore: ObservableObject {
                 )
                 
                 await MainActor.run {
-                    warranty.isRegistered = true
+                    // Note: isRegistered property not available in current Warranty model
                     updateWarrantyStatus()
                 }
             } catch {
@@ -172,12 +171,12 @@ public final class WarrantyTrackingCore: ObservableObject {
     
     private func updateWarrantyStatus() {
         if let warranty = item.warranty {
-            if let endDate = warranty.endDate {
-                let now = Date()
-                if endDate < now {
-                    warrantyStatus = .expired
-                } else {
-                    let daysUntilExpiry = Calendar.current.dateComponents([.day], from: now, to: endDate).day ?? 0
+            let endDate = warranty.expiresAt
+            let now = Date()
+            if endDate < now {
+                warrantyStatus = .expired
+            } else {
+                let daysUntilExpiry = Calendar.current.dateComponents([.day], from: now, to: endDate).day ?? 0
                     if daysUntilExpiry <= 30 {
                         warrantyStatus = .expiringSoon
                     } else if daysUntilExpiry <= 90 {
@@ -195,32 +194,29 @@ public final class WarrantyTrackingCore: ObservableObject {
     }
     
     private func scheduleWarrantyNotifications() {
-        guard let warranty = item.warranty,
-              let endDate = warranty.endDate else { return }
+        guard let warranty = item.warranty else { return }
+        let endDate = warranty.expiresAt
         
         Task {
-            try await notificationService.scheduleWarrantyReminder(
-                itemName: item.name,
-                expiryDate: endDate,
-                itemId: item.id
-            )
+            try await notificationService.scheduleWarrantyExpirationNotifications(for: item)
         }
     }
     
     private func cancelWarrantyNotifications() {
         Task {
-            await notificationService.cancelWarrantyNotifications(itemId: item.id)
+            await notificationService.cancelWarrantyNotifications(for: item.id)
         }
     }
     
     // MARK: - Statistics
     
     public func getWarrantyStatistics() -> WarrantyProgressStatistics {
-        guard let warranty = item.warranty,
-              let startDate = warranty.startDate,
-              let endDate = warranty.endDate else {
+        guard let warranty = item.warranty else {
             return WarrantyProgressStatistics()
         }
+        
+        let startDate = warranty.startDate
+        let endDate = warranty.endDate
         
         let totalDays = Calendar.current.dateComponents([.day], from: startDate, to: endDate).day ?? 0
         let remainingDays = max(0, Calendar.current.dateComponents([.day], from: Date(), to: endDate).day ?? 0)

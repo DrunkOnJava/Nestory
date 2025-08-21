@@ -218,7 +218,7 @@ public struct ValidationResultsView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
                         Image(systemName: issue.severity.icon)
-                            .foregroundColor(Color(issue.severity.color))
+                            .foregroundColor(colorForSeverity(issue.severity))
 
                         Text(issue.message)
                             .fontWeight(.medium)
@@ -238,9 +238,20 @@ public struct ValidationResultsView: View {
                     }
                 }
                 .padding()
-                .background(Color(issue.severity.color).opacity(0.1))
+                .background(colorForSeverity(issue.severity).opacity(0.1))
                 .cornerRadius(8)
             }
+        }
+    }
+    
+    private func colorForSeverity(_ severity: ValidationSeverity) -> Color {
+        switch severity {
+        case .critical, .error:
+            return .red
+        case .warning:
+            return .orange
+        case .info:
+            return .blue
         }
     }
 }

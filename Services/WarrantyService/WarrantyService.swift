@@ -76,12 +76,13 @@ public struct LiveWarrantyService: WarrantyService, @unchecked Sendable {
     }
 
     public func fetchItemsExpiringWithin(days: Int) async throws -> [Item] {
-        let futureDate = Calendar.current.date(byAdding: .day, value: days, to: Date()) ?? Date()
+        let currentDate = Date()
+        let futureDate = Calendar.current.date(byAdding: .day, value: days, to: currentDate) ?? currentDate
 
         let descriptor = FetchDescriptor<Item>(
             predicate: #Predicate { item in
                 item.warrantyExpirationDate != nil &&
-                    item.warrantyExpirationDate! > Date() &&
+                    item.warrantyExpirationDate! > currentDate &&
                     item.warrantyExpirationDate! <= futureDate
             },
             sortBy: [SortDescriptor(\.warrantyExpirationDate)]
@@ -98,10 +99,11 @@ public struct LiveWarrantyService: WarrantyService, @unchecked Sendable {
     }
 
     public func fetchExpiredItems() async throws -> [Item] {
+        let currentDate = Date()
         let descriptor = FetchDescriptor<Item>(
             predicate: #Predicate { item in
                 item.warrantyExpirationDate != nil &&
-                    item.warrantyExpirationDate! < Date()
+                    item.warrantyExpirationDate! < currentDate
             },
             sortBy: [SortDescriptor(\.warrantyExpirationDate, order: .reverse)]
         )
@@ -163,15 +165,17 @@ public struct LiveWarrantyService: WarrantyService, @unchecked Sendable {
     }
 
     public func getTotalWarrantyValue() async throws -> Decimal {
-        let descriptor = FetchDescriptor<Item>(
-            predicate: #Predicate { item in
-                (item.warrantyExpirationDate != nil && item.warrantyExpirationDate! > Date()) ||
-                    (item.warranty != nil && item.warranty!.expiresAt > Date())
-            }
-        )
+        let currentDate = Date()
+        // Fetch all items and filter in memory due to complex predicate
+        let descriptor = FetchDescriptor<Item>()
 
         do {
-            let items = try modelContext.fetch(descriptor)
+            let allItems = try modelContext.fetch(descriptor)
+            // Filter items with active warranties
+            let items = allItems.filter { item in
+                (item.warrantyExpirationDate != nil && item.warrantyExpirationDate! > currentDate) ||
+                    (item.warranty != nil && item.warranty!.expiresAt > currentDate)
+            }
             return items.compactMap(\.purchasePrice).reduce(0, +)
         } catch {
             logger.error("Failed to calculate warranty value: \(error.localizedDescription)")
@@ -186,15 +190,12 @@ public struct LiveWarrantyService: WarrantyService, @unchecked Sendable {
         var coverage: [CategoryCoverage] = []
 
         for category in categories {
-            let itemsDescriptor = FetchDescriptor<Item>(
-                predicate: #Predicate { item in
-                    if let categoryId = item.category?.id {
-                        return categoryId == category.id
-                    }
-                    return false
-                }
-            )
-            let items = try modelContext.fetch(itemsDescriptor)
+            // Fetch all items and filter by category in memory
+            let itemsDescriptor = FetchDescriptor<Item>()
+            let allItems = try modelContext.fetch(itemsDescriptor)
+            let items = allItems.filter { item in
+                item.category?.id == category.id
+            }
 
             let totalItems = items.count
             let totalValue = items.compactMap(\.purchasePrice).reduce(0, +)

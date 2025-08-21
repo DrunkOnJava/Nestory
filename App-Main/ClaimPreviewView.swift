@@ -191,7 +191,7 @@ struct ClaimPreviewView: View {
         defer { isExporting = false }
 
         do {
-            let url = try await claimService.exportClaim(claim)
+            let url = try await claimService.exportClaim(claim, includePhotos: true)
             await MainActor.run {
                 documentURL = url
                 showingQuickLook = true
@@ -347,21 +347,11 @@ private struct QuickLookShareView: View {
     let url: URL
 
     var body: some View {
-        ShareSheet(items: [url])
+        ShareSheet(activityItems: [url])
     }
 }
 
-private struct ShareSheet: UIViewControllerRepresentable {
-    let items: [Any]
-
-    func makeUIViewController(context _: Context) -> UIActivityViewController {
-        UIActivityViewController(activityItems: items, applicationActivities: nil)
-    }
-
-    func updateUIViewController(_: UIActivityViewController, context _: Context) {
-        // No updates needed
-    }
-}
+// Note: ShareSheet is now defined in UI/UI-Components/ShareSheet.swift
 
 // MARK: - Preview
 

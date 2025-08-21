@@ -23,25 +23,11 @@ struct SearchFilterView: View {
                 // Categories Section
                 Section("Categories") {
                     ForEach(categories) { category in
-                        let isSelected = filters.selectedCategories.contains(category.id)
-                        let categoryColor = Color(hex: category.colorHex) ?? .accentColor
-
-                        HStack {
-                            Label(category.name, systemImage: category.icon)
-                                .foregroundColor(categoryColor)
-
-                            Spacer()
-
-                            if isSelected {
-                                Image(systemName: "checkmark")
-                                    .foregroundColor(.accentColor)
-                                    .accessibilityLabel("Selected")
-                            }
-                        }
-                        .contentShape(Rectangle())
-                        .accessibilityAddTraits(.isButton)
-                        .onTapGesture {
-                            if isSelected {
+                        CategoryFilterRow(
+                            category: category,
+                            isSelected: filters.selectedCategories.contains(category.id)
+                        ) {
+                            if filters.selectedCategories.contains(category.id) {
                                 filters.selectedCategories.remove(category.id)
                             } else {
                                 filters.selectedCategories.insert(category.id)
@@ -61,12 +47,9 @@ struct SearchFilterView: View {
                         .font(.caption)
 
                         RangeSlider(
-                            value: Binding(
-                                get: { filters.priceRange },
-                                set: { filters.priceRange = $0 },
-                            ),
+                            value: $filters.priceRange,
                             bounds: 0 ... 10000,
-                            step: 100,
+                            step: 100
                         )
                     }
                 }
@@ -97,23 +80,11 @@ struct SearchFilterView: View {
                 if !rooms.isEmpty {
                     Section("Rooms") {
                         ForEach(rooms) { room in
-                            let isSelected = filters.rooms.contains(room.name)
-
-                            HStack {
-                                Label(room.name, systemImage: room.icon)
-
-                                Spacer()
-
-                                if isSelected {
-                                    Image(systemName: "checkmark")
-                                        .foregroundColor(.accentColor)
-                                        .accessibilityLabel("Selected")
-                                }
-                            }
-                            .contentShape(Rectangle())
-                            .accessibilityAddTraits(.isButton)
-                            .onTapGesture {
-                                if isSelected {
+                            RoomFilterRow(
+                                room: room,
+                                isSelected: filters.rooms.contains(room.name)
+                            ) {
+                                if filters.rooms.contains(room.name) {
                                     filters.rooms.remove(room.name)
                                 } else {
                                     filters.rooms.insert(room.name)
@@ -234,5 +205,56 @@ struct RangeSlider: View {
         let range = bounds.upperBound - bounds.lowerBound
         let ratio = offset / totalWidth
         return bounds.lowerBound + (ratio * range)
+    }
+}
+
+// MARK: - Helper Components
+
+struct CategoryFilterRow: View {
+    let category: Category
+    let isSelected: Bool
+    let onTap: () -> Void
+    
+    var body: some View {
+        let categoryColor = Color(hex: category.colorHex) ?? .accentColor
+        
+        HStack {
+            Label(category.name, systemImage: category.icon)
+                .foregroundColor(categoryColor)
+            
+            Spacer()
+            
+            if isSelected {
+                Image(systemName: "checkmark")
+                    .foregroundColor(.accentColor)
+                    .accessibilityLabel("Selected")
+            }
+        }
+        .contentShape(Rectangle())
+        .accessibilityAddTraits(.isButton)
+        .onTapGesture(perform: onTap)
+    }
+}
+
+struct RoomFilterRow: View {
+    let room: Room
+    let isSelected: Bool
+    let onTap: () -> Void
+    
+    var body: some View {
+        HStack {
+            Label(room.name, systemImage: room.icon)
+            
+            Spacer()
+            
+            if isSelected {
+                Image(systemName: "checkmark")
+                    .foregroundColor(.accentColor)
+                    .accessibilityLabel("Selected")
+            }
+        }
+        .contentShape(Rectangle())
+        .accessibilityAddTraits(.isButton)
+        .onTapGesture(perform: onTap)
     }
 }

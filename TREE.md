@@ -1,6 +1,6 @@
 # Project Structure
 
-_Last updated: 2025-08-21 04:03:36_
+_Last updated: 2025-08-21 14:50:09_
 
 ```
 [01;34m.[0m
@@ -108,7 +108,6 @@ _Last updated: 2025-08-21 04:03:36_
 │   ├── ClaimPackageAssemblyView.swift
 │   ├── ClaimPreviewView.swift
 │   ├── ClaimSubmissionView.swift
-│   ├── ContentView.swift
 │   ├── EditItemView.swift
 │   ├── EnhancedReceiptDataView.swift
 │   ├── Info.plist
@@ -131,7 +130,6 @@ _Last updated: 2025-08-21 04:03:36_
 │   ├── ThemeManager.swift
 │   ├── WarrantyDashboardView.swift
 │   └── WarrantyDocumentsView.swift
-├── [01;34mApp-Widgets[0m
 ├── [01;34mArchive[0m
 │   ├── [01;34mFuture-Features[0m
 │   │   └── [01;34mSyncService[0m
@@ -145,21 +143,27 @@ _Last updated: 2025-08-21 04:03:36_
 │   │   ├── PhotoAsset.swift
 │   │   ├── SchemaVersion.swift
 │   │   └── ShareGroup.swift
+│   ├── [01;34mScripts[0m
 │   ├── [01;34mServices[0m
 │   │   └── [01;34mAuthentication[0m
 │   │       ├── AuthError.swift
 │   │       └── AuthService.swift
-│   └── [01;34mTCA-Migration[0m
-│       ├── [01;34mApp-Main.backup[0m
-│       │   ├── RootFeature.swift
-│       │   └── RootView.swift
-│       ├── [01;34mFeatures.backup[0m
-│       │   └── [01;34mInventory[0m
-│       │       ├── InventoryFeature.swift
-│       │       ├── InventoryView.swift
-│       │       ├── ItemDetailFeature.swift
-│       │       └── ItemEditFeature.swift
-│       └── DependencyKeys.swift.backup
+│   ├── [01;34mTCA-Migration[0m
+│   │   ├── [01;34mApp-Main.backup[0m
+│   │   │   ├── RootFeature.swift
+│   │   │   └── RootView.swift
+│   │   ├── [01;34mFeatures.backup[0m
+│   │   │   └── [01;34mInventory[0m
+│   │   │       ├── InventoryFeature.swift
+│   │   │       ├── InventoryView.swift
+│   │   │       ├── ItemDetailFeature.swift
+│   │   │       └── ItemEditFeature.swift
+│   │   └── DependencyKeys.swift.backup
+│   └── manual_navigation_test.swift
+├── [01;34mAssets[0m
+│   ├── [01;34mIcons[0m
+│   │   └── [01;35mAppIcon.png[0m
+│   └── [01;34mScreenshots[0m
 ├── [01;34mConfig[0m
 │   ├── [01;34mStoreKit[0m
 │   │   └── StoreKitConfiguration.storekit
@@ -185,7 +189,6 @@ _Last updated: 2025-08-21 04:03:36_
 │   ├── [01;34mnestoryctl[0m
 │   │   ├── [01;34mSources[0m
 │   │   │   └── [01;34mNestoryCtl[0m
-│   │   │       ├── [01;34mCommands[0m
 │   │   │       ├── [01;34mModels[0m
 │   │   │       │   └── ArchitectureSpec.swift
 │   │   │       ├── [01;34mUtils[0m
@@ -196,8 +199,6 @@ _Last updated: 2025-08-21 04:03:36_
 │   │   └── Package.swift
 │   └── [01;32minstall_hooks.sh[0m
 ├── [01;34mfastlane[0m
-│   ├── [01;34mfastlane[0m
-│   │   └── [01;34moutput[0m
 │   ├── [01;34mmetadata[0m
 │   │   └── [01;34men-US[0m
 │   │       ├── description.txt
@@ -208,36 +209,6 @@ _Last updated: 2025-08-21 04:03:36_
 │   │       ├── release_notes.txt
 │   │       ├── subtitle.txt
 │   │       └── support_url.txt
-│   ├── [01;34moutput[0m
-│   │   ├── [01;34mbuild3[0m
-│   │   │   ├── DistributionSummary.plist
-│   │   │   └── ExportOptions.plist
-│   │   ├── [01;34mlogs[0m
-│   │   │   └── [01;34mtests[0m
-│   │   └── [01;34mtests[0m
-│   │       └── [01;34mNestory-Dev.xcresult[0m
-│   │           ├── [01;34mData[0m
-│   │           │   ├── data.0~0OJxWWtGY-zr25VnCJoPb1n6Di9tm62yk9FviKzcEHE85aXbZghhZPs_w9SFXDzR4sH1udFAD9gP1O4IfRZGkA==
-│   │           │   ├── data.0~3tdcR6bwWxdzU22qUxcKe3glLeiYH8_XaDCQvx9TbExlAgQti1qiRQMlvHkmkDeb8RlcrUaKL8To60JB7E1wdA==
-│   │           │   ├── data.0~578N-L_gaTNsJ7gT4RM5cvYXRwYcQpJ_u-UvQi8ytwWD_sXErhZ9BBtTaWZI64jrEFJfCl1Y-WfV8-mO9Sg_oA==
-│   │           │   ├── data.0~fjD_EX2aNa694oPlo4aGCPpleUfl3REDSm29jV6RGMDpRKu5rb6jM4srwAhe_d5VyoPCuxbddDC-8R_x7VTuUQ==
-│   │           │   ├── data.0~fRjyAQsrS_YSYArimuF5HY5x1BAMQ4TAGuyYeD1ENUjqadCd8pQ-dDPX-dRssvIqcOTkMAGe79Vq8jo4E_Q9-Q==
-│   │           │   ├── data.0~GGroomo68b3K0-heFAojL-p6UJ4pRPONKB-y51tOeZ_EHYEvneBO0lFkGYgzHU1WGEY0I9rSL5m1aikTZUMSoA==
-│   │           │   ├── data.0~hYMQYJyPXImzVg0lrUKwju6tVsbgyeUrgfwGWmJDwNz64GZLgr5HHprGipLnl2AsFJz3R7fjD35U8gUICYUWUg==
-│   │           │   ├── data.0~NpW2WyDhbkgxunncA9g24p8Y8riKmudWzPbYsfsUJYDjfXbey5hRlk4ZWut-da-jsZtPkRA7doC3SXRPUH2xdw==
-│   │           │   ├── data.0~olfqdW6Fk7j5wZoo6NgSVSGJWMCEb2fe4CPr-JXQGKggLmnZX8DYSGzgvg4FykUOId9AVmVUkiQKSwU1gFCu2A==
-│   │           │   ├── data.0~tt3uRgNHIvT41tRHt_XFvpruZr3IqspblC425EUZYNkhu9Nf32b7L6z_pZz8nLXbVvZ5kZhrdCv62GLFop1ufw==
-│   │           │   ├── refs.0~0OJxWWtGY-zr25VnCJoPb1n6Di9tm62yk9FviKzcEHE85aXbZghhZPs_w9SFXDzR4sH1udFAD9gP1O4IfRZGkA==
-│   │           │   ├── refs.0~3tdcR6bwWxdzU22qUxcKe3glLeiYH8_XaDCQvx9TbExlAgQti1qiRQMlvHkmkDeb8RlcrUaKL8To60JB7E1wdA==
-│   │           │   ├── refs.0~578N-L_gaTNsJ7gT4RM5cvYXRwYcQpJ_u-UvQi8ytwWD_sXErhZ9BBtTaWZI64jrEFJfCl1Y-WfV8-mO9Sg_oA==
-│   │           │   ├── refs.0~fjD_EX2aNa694oPlo4aGCPpleUfl3REDSm29jV6RGMDpRKu5rb6jM4srwAhe_d5VyoPCuxbddDC-8R_x7VTuUQ==
-│   │           │   ├── refs.0~fRjyAQsrS_YSYArimuF5HY5x1BAMQ4TAGuyYeD1ENUjqadCd8pQ-dDPX-dRssvIqcOTkMAGe79Vq8jo4E_Q9-Q==
-│   │           │   ├── refs.0~GGroomo68b3K0-heFAojL-p6UJ4pRPONKB-y51tOeZ_EHYEvneBO0lFkGYgzHU1WGEY0I9rSL5m1aikTZUMSoA==
-│   │           │   ├── refs.0~hYMQYJyPXImzVg0lrUKwju6tVsbgyeUrgfwGWmJDwNz64GZLgr5HHprGipLnl2AsFJz3R7fjD35U8gUICYUWUg==
-│   │           │   ├── refs.0~NpW2WyDhbkgxunncA9g24p8Y8riKmudWzPbYsfsUJYDjfXbey5hRlk4ZWut-da-jsZtPkRA7doC3SXRPUH2xdw==
-│   │           │   ├── refs.0~olfqdW6Fk7j5wZoo6NgSVSGJWMCEb2fe4CPr-JXQGKggLmnZX8DYSGzgvg4FykUOId9AVmVUkiQKSwU1gFCu2A==
-│   │           │   └── refs.0~tt3uRgNHIvT41tRHt_XFvpruZr3IqspblC425EUZYNkhu9Nf32b7L6z_pZz8nLXbVvZ5kZhrdCv62GLFop1ufw==
-│   │           └── Info.plist
 │   ├── [01;34mscreenshots[0m
 │   │   ├── [01;34men-US[0m
 │   │   └── screenshots.html
@@ -286,12 +257,24 @@ _Last updated: 2025-08-21 04:03:36_
 │   │   ├── NonEmptyString.swift
 │   │   ├── RetryStrategy.swift
 │   │   ├── ServiceError.swift
-│   │   └── Slug.swift
+│   │   ├── Slug.swift
+│   │   └── ValidationIssue.swift
 │   ├── [01;34mModels[0m
+│   │   ├── AuthTypes.swift
+│   │   ├── BackupMetadata.swift
 │   │   ├── Category.swift
+│   │   ├── ClaimInfo.swift
+│   │   ├── CostEstimation.swift
+│   │   ├── DocumentationLevel.swift
+│   │   ├── ExportFormat.swift
+│   │   ├── ExportTypes.swift
+│   │   ├── InsuranceTypes.swift
 │   │   ├── Item.swift
 │   │   ├── Receipt.swift
+│   │   ├── ReportMetadata.swift
+│   │   ├── ReportOptions.swift
 │   │   ├── Room.swift
+│   │   ├── ValidationResult.swift
 │   │   └── Warranty.swift
 │   ├── [01;34mResources[0m
 │   │   └── Fixtures.json
@@ -310,6 +293,8 @@ _Last updated: 2025-08-21 04:03:36_
 │   │   └── SmartCache.swift
 │   ├── [01;34mCamera[0m
 │   │   └── CameraScannerViewController.swift
+│   ├── [01;34mDatabase[0m
+│   │   └── DatabaseProvider.swift
 │   ├── [01;34mHotReload[0m
 │   │   ├── DynamicLoader.swift
 │   │   ├── InjectionClient.swift
@@ -328,6 +313,8 @@ _Last updated: 2025-08-21 04:03:36_
 │   │   ├── HTTPClient.swift
 │   │   ├── NetworkClient.swift
 │   │   └── NetworkError.swift
+│   ├── [01;34mNotifications[0m
+│   │   └── NotificationProvider.swift
 │   ├── [01;34mPerformance[0m
 │   │   ├── PerformanceBaselines.swift
 │   │   └── PerformanceProfiler.swift
@@ -344,6 +331,8 @@ _Last updated: 2025-08-21 04:03:36_
 │   │   ├── PerceptualHash.swift
 │   │   ├── SecureStorage.swift
 │   │   └── Thumbnailer.swift
+│   ├── [01;34mVision[0m
+│   │   └── VisionProcessor.swift
 │   └── [01;34mVisionKit[0m
 │       └── DocumentScannerView.swift
 ├── [01;34mNestory.xcodeproj[0m
@@ -388,6 +377,7 @@ _Last updated: 2025-08-21 04:03:36_
 │   ├── [01;32mgenerate-project-config.swift[0m
 │   ├── [01;32mios_simulator_automation.applescript[0m
 │   ├── [01;32mmanage-file-size-overrides.sh[0m
+│   ├── move_models.sh
 │   ├── nestory_aliases.sh
 │   ├── [01;32moptimize_xcode_workflow.sh[0m
 │   ├── [01;32mquick_build.sh[0m
@@ -419,6 +409,8 @@ _Last updated: 2025-08-21 04:03:36_
 │   │   ├── MediaUploadModels.swift
 │   │   ├── MediaUploadOperations.swift
 │   │   └── MediaUploadService.swift
+│   ├── [01;34mAuthService[0m
+│   │   └── AuthService.swift
 │   ├── [01;34mBarcodeScannerService[0m
 │   │   ├── BarcodeScannerService.swift
 │   │   ├── LiveBarcodeScannerService.swift
@@ -443,6 +435,10 @@ _Last updated: 2025-08-21 04:03:36_
 │   ├── [01;34mDamageAssessmentService[0m
 │   │   ├── DamageAssessmentModels.swift
 │   │   └── DamageAssessmentService.swift
+│   ├── [01;34mDependencies[0m
+│   │   └── CoreServiceKeys.swift.backup
+│   ├── [01;34mExportService[0m
+│   │   └── ExportService.swift
 │   ├── [01;34mImportExportService[0m
 │   │   ├── CSVOperations.swift
 │   │   ├── ImportExportModels.swift
@@ -496,6 +492,8 @@ _Last updated: 2025-08-21 04:03:36_
 │   │   ├── ReceiptDataParser.swift
 │   │   ├── ReceiptItemExtractor.swift
 │   │   └── VisionTextExtractor.swift
+│   ├── [01;34mSyncService[0m
+│   │   └── SyncService.swift
 │   ├── [01;34mWarrantyService[0m
 │   │   └── WarrantyService.swift
 │   ├── [01;34mWarrantyTrackingService[0m
@@ -519,14 +517,12 @@ _Last updated: 2025-08-21 04:03:36_
 │   ├── InsuranceExportService.swift
 │   ├── InsuranceReportService.swift
 │   └── ReceiptOCRService.swift
-├── [01;34mServices.backup[0m
 ├── [01;34mSources[0m
 │   └── [01;34mNestoryGuards[0m
 │       └── NestoryGuards.swift
 ├── [01;34mTests[0m
 │   ├── [01;34mArchitectureTests[0m
 │   │   └── ArchitectureTests.swift
-│   ├── [01;34mIntegration[0m
 │   ├── [01;34mPerformance[0m
 │   │   ├── baselines.json
 │   │   └── BatchOperationsPerformanceTests.swift
@@ -551,7 +547,6 @@ _Last updated: 2025-08-21 04:03:36_
 │   ├── [01;34mUI[0m
 │   │   ├── AccessibilityTests.swift
 │   │   ├── AddItemViewTests.swift
-│   │   ├── ContentViewTests.swift
 │   │   ├── InventoryListViewTests.swift
 │   │   ├── ItemDetailViewTests.swift
 │   │   └── SettingsViewTests.swift
@@ -582,29 +577,25 @@ _Last updated: 2025-08-21 04:03:36_
 │   │   ├── ComingSoonView.swift
 │   │   ├── ErrorView.swift
 │   │   ├── ExportOptionsView.swift
+│   │   ├── InfoRow.swift
 │   │   ├── InsuranceReportOptionsView.swift
 │   │   ├── ManualBarcodeEntryView.swift
 │   │   ├── MLProcessingProgressView.swift
-│   │   ├── PhotoPicker.swift
 │   │   └── SummaryCardsView.swift
 │   ├── [01;34mPerformance[0m
 │   │   └── UIPerformanceOptimizer.swift
 │   ├── [01;34mUI-Components[0m
 │   │   ├── EmptyStateView.swift
 │   │   ├── ItemCard.swift
-│   │   ├── PhotoPicker.swift
 │   │   ├── PrimaryButton.swift
 │   │   ├── SearchBar.swift
 │   │   └── ShareSheet.swift
-│   ├── [01;34mUI-Core[0m
-│   │   ├── Extensions.swift
-│   │   ├── Theme.swift
-│   │   └── Typography.swift
-│   └── [01;34mUI-Styles[0m
-├── app_store_connect_api_openapi.json
+│   └── [01;34mUI-Core[0m
+│       ├── Extensions.swift
+│       ├── Theme.swift
+│       └── Typography.swift
 ├── APP_STORE_CONNECT_API.md
 ├── APP_STORE_SUBMISSION_GUIDE.md
-├── [01;35mAppIcon.png[0m
 ├── APPLESCRIPT_IOS_SIMULATOR_NAVIGATION.md
 ├── ARCHAEOLOGICAL_LAYERS.md
 ├── ARCHITECTURE_NOTES.md
@@ -624,7 +615,6 @@ _Last updated: 2025-08-21 04:03:36_
 ├── EMERGENCY_MODULARIZATION.md
 ├── EXPORT_COMPLIANCE.md
 ├── [01;32mfix_build.sh[0m
-├── [01;35mfrustratingResults.jpg[0m
 ├── Gemfile.lock
 ├── [01;32mgenerate_app_icons.sh[0m
 ├── HOT_RELOAD_AUDIT_REPORT.md
@@ -632,24 +622,10 @@ _Last updated: 2025-08-21 04:03:36_
 ├── LICENSE
 ├── LINTING.md
 ├── Makefile
-├── manual_navigation_test.swift
 ├── [01;32mmetrics.sh[0m
 ├── MODULARIZATION_PLAN.md
-├── MODULARIZATION_VERIFICATION_REPORT.md
-├── move_models.sh
-├── [01;31mnestory_prompt_pack.zip[0m
-├── [01;35mNestory-Add-Item.png[0m
-├── [01;35mNestory-After-Cmd5.png[0m
-├── [01;35mNestory-After-Plus.png[0m
-├── [01;35mNestory-After-Settings-Click.png[0m
-├── [01;35mNestory-Current.png[0m
-├── [01;35mNestory-Main.png[0m
-├── [01;35mNestory-Settings-Before.png[0m
-├── [01;35mNestory-Settings-Tab.png[0m
-├── [01;35mNestory-Settings.png[0m
 ├── Observability.md
 ├── open_xcode.sh
-├── optimization_report.html
 ├── Package.resolved
 ├── Package.swift
 ├── PERFORMANCE_OPTIMIZATION_SUMMARY.md
@@ -671,7 +647,6 @@ _Last updated: 2025-08-21 04:03:36_
 ├── SPEC.json
 ├── SPEC.lock
 ├── SWIFT6_UITEST_MIGRATION.md
-├── swiftlint_violations.json
 ├── TCA_IMPLEMENTATION_STATUS.md
 ├── THIRD_PARTY_LICENSES.md
 ├── TODO.md
@@ -681,7 +656,7 @@ _Last updated: 2025-08-21 04:03:36_
 ├── verify_build.sh
 └── XCODE_FIX.md
 
-131 directories, 546 files
+128 directories, 524 files
 ```
 
 _📁 Directories:  | 📄 Files: 

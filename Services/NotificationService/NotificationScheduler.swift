@@ -126,7 +126,7 @@ public final class NotificationScheduler: @unchecked Sendable {
     }
 
     /// Calculate optimal notification dates, avoiding weekends and clustering
-    private func calculateOptimalDates(from warrantyDate: Date, daysBefore: [Int]) -> [Date] {
+    internal func calculateOptimalDates(from warrantyDate: Date, daysBefore: [Int]) -> [Date] {
         var optimalDates: [Date] = []
         let calendar = Calendar.current
 

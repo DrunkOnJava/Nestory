@@ -107,7 +107,7 @@ struct SingleItemInsuranceReportView: View {
             defer { isGenerating = false }
 
             do {
-                var options = InsuranceReportService.ReportOptions()
+                var options = ReportOptions()
                 options.includePhotos = includePhotos
                 options.includeReceipts = includeReceipts
                 options.includeDepreciation = false

@@ -37,8 +37,8 @@ public struct ClaimTemplateManager {
     // MARK: - Template Retrieval
 
     public func getTemplate(
-        for company: InsuranceClaimService.InsuranceCompany,
-        claimType: InsuranceClaimService.ClaimType
+        for company: InsuranceCompany,
+        claimType: ClaimType
     ) throws -> ClaimTemplate {
         switch company {
         case .stateFarm:
@@ -51,24 +51,28 @@ public struct ClaimTemplateManager {
             try getProgressiveTemplate(for: claimType)
         case .nationwide:
             try getNationwideTemplate(for: claimType)
-        case .farmersInsurance:
+        case .farmers:
             try getFarmersTemplate(for: claimType)
         case .usaa:
             try getUSAATemplate(for: claimType)
-        case .liberty:
+        case .libertymutual:
             try getLibertyMutualTemplate(for: claimType)
         case .travelers:
             try getTravelersTemplate(for: claimType)
+        case .aig:
+            try getAIGTemplate(for: claimType)
         case .amica:
             try getAmicaTemplate(for: claimType)
-        case .generic:
+        case .aaa:
+            try getAAATemplate(for: claimType)
+        case .other:
             try getGenericTemplate(for: claimType)
         }
     }
 
     // MARK: - Company-Specific Templates
 
-    private func getStateFarmTemplate(for claimType: InsuranceClaimService.ClaimType) throws -> ClaimTemplate {
+    private func getStateFarmTemplate(for claimType: ClaimType) throws -> ClaimTemplate {
         ClaimTemplate(
             id: UUID(),
             companyName: "State Farm",
@@ -98,7 +102,7 @@ public struct ClaimTemplateManager {
         )
     }
 
-    private func getAllstateTemplate(for claimType: InsuranceClaimService.ClaimType) throws -> ClaimTemplate {
+    private func getAllstateTemplate(for claimType: ClaimType) throws -> ClaimTemplate {
         ClaimTemplate(
             id: UUID(),
             companyName: "Allstate",
@@ -128,7 +132,7 @@ public struct ClaimTemplateManager {
         )
     }
 
-    private func getGeicoTemplate(for claimType: InsuranceClaimService.ClaimType) throws -> ClaimTemplate {
+    private func getGeicoTemplate(for claimType: ClaimType) throws -> ClaimTemplate {
         ClaimTemplate(
             id: UUID(),
             companyName: "GEICO",
@@ -158,7 +162,7 @@ public struct ClaimTemplateManager {
         )
     }
 
-    private func getUSAATemplate(for claimType: InsuranceClaimService.ClaimType) throws -> ClaimTemplate {
+    private func getUSAATemplate(for claimType: ClaimType) throws -> ClaimTemplate {
         ClaimTemplate(
             id: UUID(),
             companyName: "USAA",
@@ -188,7 +192,239 @@ public struct ClaimTemplateManager {
         )
     }
 
-    private func getGenericTemplate(for claimType: InsuranceClaimService.ClaimType) throws -> ClaimTemplate {
+    private func getProgressiveTemplate(for claimType: ClaimType) throws -> ClaimTemplate {
+        ClaimTemplate(
+            id: UUID(),
+            companyName: "Progressive",
+            claimType: claimType,
+            templateVersion: "2024.1",
+            logoData: createProgressiveLogo(),
+            headerText: "Progressive Insurance\nProperty Claim Form",
+            requiredFields: getProgressiveRequiredFields(for: claimType),
+            formSections: getProgressiveSections(),
+            legalDisclaimer: "I certify that the information provided is true and accurate.",
+            submissionInstructions: """
+            Submit your claim:
+            • Online: progressive.com
+            • Phone: 1-800-PROGRESSIVE (1-800-776-4737)
+            • Mobile App: Progressive Mobile
+            """,
+            contactInformation: "Questions? Call 1-800-PROGRESSIVE or visit progressive.com",
+            formatting: ClaimTemplate.FormattingOptions(
+                primaryColor: "#005BAA",
+                secondaryColor: "#FFFFFF",
+                fontFamily: "Arial",
+                logoPosition: .topLeft,
+                includeWatermark: false,
+                pageMargins: 45
+            )
+        )
+    }
+
+    private func getNationwideTemplate(for claimType: ClaimType) throws -> ClaimTemplate {
+        ClaimTemplate(
+            id: UUID(),
+            companyName: "Nationwide",
+            claimType: claimType,
+            templateVersion: "2024.1",
+            logoData: createNationwideLogo(),
+            headerText: "Nationwide Insurance\nHome Inventory Claim",
+            requiredFields: getNationwideRequiredFields(for: claimType),
+            formSections: getNationwideSections(),
+            legalDisclaimer: "I declare that the statements made are true to the best of my knowledge.",
+            submissionInstructions: """
+            File your claim:
+            • Online: nationwide.com
+            • Phone: 1-877-On Your Side (1-877-669-6877)
+            • Mobile App: Nationwide Mobile
+            """,
+            contactInformation: "Need assistance? Call 1-877-669-6877",
+            formatting: ClaimTemplate.FormattingOptions(
+                primaryColor: "#003DA5",
+                secondaryColor: "#FFFFFF",
+                fontFamily: "Arial",
+                logoPosition: .topCenter,
+                includeWatermark: true,
+                pageMargins: 50
+            )
+        )
+    }
+
+    private func getFarmersTemplate(for claimType: ClaimType) throws -> ClaimTemplate {
+        ClaimTemplate(
+            id: UUID(),
+            companyName: "Farmers Insurance",
+            claimType: claimType,
+            templateVersion: "2024.1",
+            logoData: createFarmersLogo(),
+            headerText: "Farmers Insurance Group\nProperty Loss Claim",
+            requiredFields: getFarmersRequiredFields(for: claimType),
+            formSections: getFarmersSections(),
+            legalDisclaimer: "I certify that the information provided is complete and accurate.",
+            submissionInstructions: """
+            Submit your claim:
+            • Online: farmers.com
+            • Phone: 1-800-FARMERS (1-800-327-6377)
+            • Mobile App: Farmers Insurance Mobile
+            """,
+            contactInformation: "Contact your Farmers agent or call 1-800-327-6377",
+            formatting: ClaimTemplate.FormattingOptions(
+                primaryColor: "#C8102E",
+                secondaryColor: "#FFFFFF",
+                fontFamily: "Arial",
+                logoPosition: .topLeft,
+                includeWatermark: true,
+                pageMargins: 50
+            )
+        )
+    }
+
+    private func getLibertyMutualTemplate(for claimType: ClaimType) throws -> ClaimTemplate {
+        ClaimTemplate(
+            id: UUID(),
+            companyName: "Liberty Mutual",
+            claimType: claimType,
+            templateVersion: "2024.1",
+            logoData: createLibertyMutualLogo(),
+            headerText: "Liberty Mutual Insurance\nProperty Insurance Claim",
+            requiredFields: getLibertyMutualRequiredFields(for: claimType),
+            formSections: getLibertyMutualSections(),
+            legalDisclaimer: "I affirm that all information provided is true and complete.",
+            submissionInstructions: """
+            Submit your claim:
+            • Online: libertymutual.com
+            • Phone: 1-800-225-2467
+            • Mobile App: Liberty Mutual Mobile
+            """,
+            contactInformation: "Questions? Call 1-800-225-2467 or contact your agent",
+            formatting: ClaimTemplate.FormattingOptions(
+                primaryColor: "#FFD100",
+                secondaryColor: "#000000",
+                fontFamily: "Arial",
+                logoPosition: .topCenter,
+                includeWatermark: false,
+                pageMargins: 45
+            )
+        )
+    }
+
+    private func getTravelersTemplate(for claimType: ClaimType) throws -> ClaimTemplate {
+        ClaimTemplate(
+            id: UUID(),
+            companyName: "Travelers",
+            claimType: claimType,
+            templateVersion: "2024.1",
+            logoData: createTravelersLogo(),
+            headerText: "Travelers Insurance\nProperty Claim Documentation",
+            requiredFields: getTravelersRequiredFields(for: claimType),
+            formSections: getTravelersSections(),
+            legalDisclaimer: "I certify that the information provided is accurate and complete.",
+            submissionInstructions: """
+            Submit your claim:
+            • Online: travelers.com
+            • Phone: 1-800-TRAVELERS (1-800-872-8356)
+            • Mobile App: Travelers Mobile
+            """,
+            contactInformation: "Need help? Call 1-800-872-8356 or visit travelers.com",
+            formatting: ClaimTemplate.FormattingOptions(
+                primaryColor: "#D71921",
+                secondaryColor: "#FFFFFF",
+                fontFamily: "Arial",
+                logoPosition: .topLeft,
+                includeWatermark: true,
+                pageMargins: 50
+            )
+        )
+    }
+
+    private func getAIGTemplate(for claimType: ClaimType) throws -> ClaimTemplate {
+        ClaimTemplate(
+            id: UUID(),
+            companyName: "AIG",
+            claimType: claimType,
+            templateVersion: "2024.1",
+            logoData: createAIGLogo(),
+            headerText: "AIG Insurance\nProperty Loss Claim Form",
+            requiredFields: getAIGRequiredFields(for: claimType),
+            formSections: getAIGSections(),
+            legalDisclaimer: "I declare that all statements made are true and accurate.",
+            submissionInstructions: """
+            Submit your claim:
+            • Online: aig.com
+            • Phone: 1-877-638-4244
+            • Email: claims@aig.com
+            """,
+            contactInformation: "For assistance, call 1-877-638-4244",
+            formatting: ClaimTemplate.FormattingOptions(
+                primaryColor: "#001F5C",
+                secondaryColor: "#FFFFFF",
+                fontFamily: "Arial",
+                logoPosition: .topCenter,
+                includeWatermark: true,
+                pageMargins: 50
+            )
+        )
+    }
+
+    private func getAmicaTemplate(for claimType: ClaimType) throws -> ClaimTemplate {
+        ClaimTemplate(
+            id: UUID(),
+            companyName: "Amica Mutual",
+            claimType: claimType,
+            templateVersion: "2024.1",
+            logoData: createAmicaLogo(),
+            headerText: "Amica Mutual Insurance\nHome Insurance Claim",
+            requiredFields: getAmicaRequiredFields(for: claimType),
+            formSections: getAmicaSections(),
+            legalDisclaimer: "I certify that the information provided is true and accurate.",
+            submissionInstructions: """
+            Submit your claim:
+            • Online: amica.com
+            • Phone: 1-800-242-6422
+            • Mobile App: Amica Mobile
+            """,
+            contactInformation: "Questions? Call 1-800-242-6422 or visit amica.com",
+            formatting: ClaimTemplate.FormattingOptions(
+                primaryColor: "#0066CC",
+                secondaryColor: "#FFFFFF",
+                fontFamily: "Arial",
+                logoPosition: .topLeft,
+                includeWatermark: false,
+                pageMargins: 45
+            )
+        )
+    }
+
+    private func getAAATemplate(for claimType: ClaimType) throws -> ClaimTemplate {
+        ClaimTemplate(
+            id: UUID(),
+            companyName: "AAA Insurance",
+            claimType: claimType,
+            templateVersion: "2024.1",
+            logoData: createAALogo(),
+            headerText: "AAA Insurance\nProperty Insurance Claim",
+            requiredFields: getAAARequiredFields(for: claimType),
+            formSections: getAAASections(),
+            legalDisclaimer: "I certify that all information provided is true and complete.",
+            submissionInstructions: """
+            Submit your claim:
+            • Online: aaa.com
+            • Phone: 1-800-AAA-HELP (1-800-222-4357)
+            • Visit your local AAA branch
+            """,
+            contactInformation: "Member services: 1-800-222-4357 or aaa.com",
+            formatting: ClaimTemplate.FormattingOptions(
+                primaryColor: "#004F9F",
+                secondaryColor: "#FFFFFF",
+                fontFamily: "Arial",
+                logoPosition: .topCenter,
+                includeWatermark: true,
+                pageMargins: 50
+            )
+        )
+    }
+
+    private func getGenericTemplate(for claimType: ClaimType) throws -> ClaimTemplate {
         ClaimTemplate(
             id: UUID(),
             companyName: "Insurance Company",
@@ -220,7 +456,7 @@ public struct ClaimTemplateManager {
 
     // MARK: - Required Fields by Company
 
-    private func getStateFarmRequiredFields(for claimType: InsuranceClaimService.ClaimType) -> [String] {
+    private func getStateFarmRequiredFields(for claimType: ClaimType) -> [String] {
         var baseFields = [
             "Policy Number",
             "Claim Number (if assigned)",
@@ -246,7 +482,7 @@ public struct ClaimTemplateManager {
         return baseFields
     }
 
-    private func getAllstateRequiredFields(for _: InsuranceClaimService.ClaimType) -> [String] {
+    private func getAllstateRequiredFields(for _: ClaimType) -> [String] {
         [
             "Policy Number",
             "Claim Number",
@@ -260,7 +496,7 @@ public struct ClaimTemplateManager {
         ]
     }
 
-    private func getGeicoRequiredFields(for _: InsuranceClaimService.ClaimType) -> [String] {
+    private func getGeicoRequiredFields(for _: ClaimType) -> [String] {
         [
             "Policy Number",
             "Date of Loss",
@@ -273,7 +509,7 @@ public struct ClaimTemplateManager {
         ]
     }
 
-    private func getUSAARequiredFields(for claimType: InsuranceClaimService.ClaimType) -> [String] {
+    private func getUSAARequiredFields(for claimType: ClaimType) -> [String] {
         var fields = [
             "USAA Policy Number",
             "Member Number",
@@ -292,7 +528,116 @@ public struct ClaimTemplateManager {
         return fields
     }
 
-    private func getGenericRequiredFields(for _: InsuranceClaimService.ClaimType) -> [String] {
+    private func getProgressiveRequiredFields(for _: ClaimType) -> [String] {
+        [
+            "Policy Number",
+            "Claim Number",
+            "Date and Time of Loss",
+            "Location of Incident",
+            "Description of Damage",
+            "Photos and Documentation",
+            "Contact Information",
+            "Estimated Cost of Repair",
+        ]
+    }
+
+    private func getNationwideRequiredFields(for _: ClaimType) -> [String] {
+        [
+            "Policy Number",
+            "Date of Loss",
+            "Time of Loss",
+            "Cause of Loss",
+            "Property Location",
+            "Description of Damage",
+            "Contact Information",
+            "Supporting Documents",
+        ]
+    }
+
+    private func getFarmersRequiredFields(for claimType: ClaimType) -> [String] {
+        var fields = [
+            "Policy Number",
+            "Date of Loss",
+            "Location of Loss",
+            "Description of Loss",
+            "Contact Information",
+            "Estimated Loss Value",
+            "Photos of Damage",
+        ]
+
+        if claimType == .theft || claimType == .burglary {
+            fields.append("Police Report Number")
+        }
+
+        return fields
+    }
+
+    private func getLibertyMutualRequiredFields(for _: ClaimType) -> [String] {
+        [
+            "Policy Number",
+            "Date of Incident",
+            "Location of Loss",
+            "Cause of Damage",
+            "Description of Items",
+            "Contact Information",
+            "Repair Estimates",
+            "Supporting Documentation",
+        ]
+    }
+
+    private func getTravelersRequiredFields(for _: ClaimType) -> [String] {
+        [
+            "Policy Number",
+            "Date of Loss",
+            "Time of Loss",
+            "Location of Property",
+            "Cause and Description",
+            "Contact Information",
+            "Property Inventory",
+            "Documentation and Photos",
+        ]
+    }
+
+    private func getAIGRequiredFields(for _: ClaimType) -> [String] {
+        [
+            "Policy Number",
+            "Date of Loss",
+            "Location of Loss",
+            "Description of Incident",
+            "Contact Information",
+            "Property Details",
+            "Supporting Evidence",
+            "Loss Amount Estimate",
+        ]
+    }
+
+    private func getAmicaRequiredFields(for _: ClaimType) -> [String] {
+        [
+            "Policy Number",
+            "Date of Loss",
+            "Location of Incident",
+            "Description of Damage",
+            "Contact Information",
+            "Property Inventory",
+            "Photos and Documentation",
+            "Estimated Replacement Cost",
+        ]
+    }
+
+    private func getAAARequiredFields(for _: ClaimType) -> [String] {
+        [
+            "AAA Membership Number",
+            "Policy Number",
+            "Date of Loss",
+            "Location of Property",
+            "Description of Loss",
+            "Contact Information",
+            "Supporting Documents",
+            "Estimated Repair Cost",
+        ]
+    }
+
+    private func getGenericRequiredFields(for _: ClaimType) -> [String] {
         [
             "Policy Number",
             "Date of Loss",
@@ -343,6 +688,86 @@ public struct ClaimTemplateManager {
         ]
     }
 
+    private func getProgressiveSections() -> [ClaimTemplate.FormSection] {
+        [
+            ClaimTemplate.FormSection(title: "Policy Details", fields: ["Policy Number", "Coverage Type", "Deductible"]),
+            ClaimTemplate.FormSection(title: "Incident Information", fields: ["Date", "Time", "Location", "Cause"]),
+            ClaimTemplate.FormSection(title: "Contact Information", fields: ["Name", "Phone", "Email", "Address"]),
+            ClaimTemplate.FormSection(title: "Property Information", fields: ["Damaged Items", "Estimated Values", "Photos"]),
+            ClaimTemplate.FormSection(title: "Additional Details", fields: ["Police Report", "Witnesses", "Other Insurance"]),
+        ]
+    }
+
+    private func getNationwideSections() -> [ClaimTemplate.FormSection] {
+        [
+            ClaimTemplate.FormSection(title: "Policy Information", fields: ["Policy Number", "Agent Information"]),
+            ClaimTemplate.FormSection(title: "Loss Details", fields: ["Date", "Time", "Location", "Cause"]),
+            ClaimTemplate.FormSection(title: "Contact Information", fields: ["Insured Name", "Phone", "Email"]),
+            ClaimTemplate.FormSection(title: "Property Damage", fields: ["Item List", "Damage Assessment", "Photos"]),
+            ClaimTemplate.FormSection(title: "Supporting Documents", fields: ["Receipts", "Estimates", "Reports"]),
+        ]
+    }
+
+    private func getFarmersSections() -> [ClaimTemplate.FormSection] {
+        [
+            ClaimTemplate.FormSection(title: "Policy & Agent", fields: ["Policy Number", "Agent Name", "Agent Contact"]),
+            ClaimTemplate.FormSection(title: "Incident Details", fields: ["Date", "Time", "Location", "Description"]),
+            ClaimTemplate.FormSection(title: "Contact Information", fields: ["Name", "Phone", "Email", "Address"]),
+            ClaimTemplate.FormSection(title: "Damaged Property", fields: ["Item Inventory", "Values", "Condition"]),
+            ClaimTemplate.FormSection(title: "Documentation", fields: ["Photos", "Receipts", "Police Reports"]),
+        ]
+    }
+
+    private func getLibertyMutualSections() -> [ClaimTemplate.FormSection] {
+        [
+            ClaimTemplate.FormSection(title: "Policy Information", fields: ["Policy Number", "Coverage Details"]),
+            ClaimTemplate.FormSection(title: "Incident Information", fields: ["Date", "Location", "Cause", "Description"]),
+            ClaimTemplate.FormSection(title: "Contact Details", fields: ["Name", "Phone", "Email", "Address"]),
+            ClaimTemplate.FormSection(title: "Property Details", fields: ["Damaged Items", "Replacement Values"]),
+            ClaimTemplate.FormSection(title: "Supporting Evidence", fields: ["Photos", "Documents", "Estimates"]),
+        ]
+    }
+
+    private func getTravelersSections() -> [ClaimTemplate.FormSection] {
+        [
+            ClaimTemplate.FormSection(title: "Policy Information", fields: ["Policy Number", "Coverage Type"]),
+            ClaimTemplate.FormSection(title: "Loss Information", fields: ["Date", "Time", "Location", "Circumstances"]),
+            ClaimTemplate.FormSection(title: "Contact Information", fields: ["Insured Name", "Phone", "Email"]),
+            ClaimTemplate.FormSection(title: "Property Inventory", fields: ["Item Details", "Values", "Age"]),
+            ClaimTemplate.FormSection(title: "Documentation", fields: ["Photos", "Receipts", "Repair Estimates"]),
+        ]
+    }
+
+    private func getAIGSections() -> [ClaimTemplate.FormSection] {
+        [
+            ClaimTemplate.FormSection(title: "Policy Details", fields: ["Policy Number", "Effective Dates"]),
+            ClaimTemplate.FormSection(title: "Loss Information", fields: ["Date", "Location", "Cause", "Description"]),
+            ClaimTemplate.FormSection(title: "Contact Information", fields: ["Name", "Phone", "Email", "Address"]),
+            ClaimTemplate.FormSection(title: "Property Assessment", fields: ["Damaged Items", "Values", "Condition"]),
+            ClaimTemplate.FormSection(title: "Supporting Materials", fields: ["Photos", "Documents", "Expert Reports"]),
+        ]
+    }
+
+    private func getAmicaSections() -> [ClaimTemplate.FormSection] {
+        [
+            ClaimTemplate.FormSection(title: "Policy Information", fields: ["Policy Number", "Coverage Limits"]),
+            ClaimTemplate.FormSection(title: "Incident Details", fields: ["Date", "Time", "Location", "Description"]),
+            ClaimTemplate.FormSection(title: "Contact Information", fields: ["Name", "Phone", "Email"]),
+            ClaimTemplate.FormSection(title: "Property Information", fields: ["Item List", "Values", "Photos"]),
+            ClaimTemplate.FormSection(title: "Additional Information", fields: ["Receipts", "Estimates", "Other Details"]),
+        ]
+    }
+
+    private func getAAASections() -> [ClaimTemplate.FormSection] {
+        [
+            ClaimTemplate.FormSection(title: "Membership & Policy", fields: ["AAA Number", "Policy Number", "Coverage"]),
+            ClaimTemplate.FormSection(title: "Incident Information", fields: ["Date", "Location", "Cause", "Description"]),
+            ClaimTemplate.FormSection(title: "Contact Information", fields: ["Member Name", "Phone", "Email"]),
+            ClaimTemplate.FormSection(title: "Property Details", fields: ["Damaged Items", "Values", "Documentation"]),
+            ClaimTemplate.FormSection(title: "Supporting Documents", fields: ["Photos", "Receipts", "Estimates"]),
+        ]
+    }
+
     private func getGenericSections() -> [ClaimTemplate.FormSection] {
         [
             ClaimTemplate.FormSection(title: "Policy Information", fields: ["Policy Number", "Coverage Type"]),
@@ -368,6 +793,38 @@ public struct ClaimTemplateManager {
 
     private func createUSAALogo() -> Data? {
         createPlaceholderLogo(text: "USAA", color: UIColor(red: 0, green: 0.19, blue: 0.37, alpha: 1))
+    }
+
+    private func createProgressiveLogo() -> Data? {
+        createPlaceholderLogo(text: "Progressive", color: UIColor(red: 0, green: 0.36, blue: 0.67, alpha: 1))
+    }
+
+    private func createNationwideLogo() -> Data? {
+        createPlaceholderLogo(text: "Nationwide", color: UIColor(red: 0, green: 0.24, blue: 0.65, alpha: 1))
+    }
+
+    private func createFarmersLogo() -> Data? {
+        createPlaceholderLogo(text: "Farmers", color: UIColor(red: 0.78, green: 0.06, blue: 0.18, alpha: 1))
+    }
+
+    private func createLibertyMutualLogo() -> Data? {
+        createPlaceholderLogo(text: "Liberty Mutual", color: UIColor(red: 1.0, green: 0.82, blue: 0, alpha: 1))
+    }
+
+    private func createTravelersLogo() -> Data? {
+        createPlaceholderLogo(text: "Travelers", color: UIColor(red: 0.84, green: 0.10, blue: 0.13, alpha: 1))
+    }
+
+    private func createAIGLogo() -> Data? {
+        createPlaceholderLogo(text: "AIG", color: UIColor(red: 0, green: 0.12, blue: 0.36, alpha: 1))
+    }
+
+    private func createAmicaLogo() -> Data? {
+        createPlaceholderLogo(text: "Amica", color: UIColor(red: 0, green: 0.40, blue: 0.80, alpha: 1))
+    }
+
+    private func createAALogo() -> Data? {
+        createPlaceholderLogo(text: "AAA", color: UIColor(red: 0, green: 0.31, blue: 0.62, alpha: 1))
     }
 
     private func createPlaceholderLogo(text: String, color: UIColor) -> Data? {
@@ -456,7 +913,7 @@ public struct ClaimTemplateManager {
 public struct ClaimTemplate {
     public let id: UUID
     public var companyName: String
-    public let claimType: InsuranceClaimService.ClaimType
+    public let claimType: ClaimType
     public let templateVersion: String
     public let logoData: Data?
     public var headerText: String

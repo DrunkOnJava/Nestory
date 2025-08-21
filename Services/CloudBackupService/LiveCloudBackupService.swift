@@ -202,7 +202,10 @@ public final class LiveCloudBackupService: CloudBackupService, ObservableObject 
             backupStatus = .backing(.metadata)
             progress = 0.9
             // APPLE_FRAMEWORK_OPPORTUNITY: Replace with DeviceCheck - Could use DCDevice.current.generateToken() for secure device verification instead of device name
-            let deviceName = UIDevice.current.name.isEmpty ? "Unknown Device" : UIDevice.current.name
+            let deviceName = await MainActor.run {
+                let name = UIDevice.current.name
+                return name.isEmpty ? "Unknown Device" : name
+            }
             let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
 
             try await executeCloudKitOperation {
@@ -264,9 +267,9 @@ public final class LiveCloudBackupService: CloudBackupService, ObservableObject 
         }
 
         let metadata = BackupMetadata(
-            date: metadataRecord["date"] as? Date ?? Date(),
+            forCloudBackup: metadataRecord["date"] as? Date ?? Date(),
             itemCount: metadataRecord["itemCount"] as? Int ?? 0,
-            deviceName: metadataRecord["deviceName"] as? String ?? "Unknown",
+            deviceName: metadataRecord["deviceName"] as? String ?? "Unknown"
         )
 
         // Restore categories
@@ -320,9 +323,9 @@ public final class LiveCloudBackupService: CloudBackupService, ObservableObject 
         }
 
         return BackupMetadata(
-            date: record["date"] as? Date ?? Date(),
+            forCloudBackup: record["date"] as? Date ?? Date(),
             itemCount: record["itemCount"] as? Int ?? 0,
-            deviceName: record["deviceName"] as? String ?? "Unknown",
+            deviceName: record["deviceName"] as? String ?? "Unknown"
         )
     }
 

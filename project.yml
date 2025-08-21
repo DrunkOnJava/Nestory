@@ -61,8 +61,6 @@ targets:
     sources:
       - path: App-Main
         excludes:
-          - "RootFeature.swift"
-          - "RootView.swift"
           - "SearchView-Old.swift"
       - path: Features
       - path: Foundation/Models

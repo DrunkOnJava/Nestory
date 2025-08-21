@@ -118,14 +118,14 @@ struct DamageAssessmentReportView: View {
                         label: "Damage Type",
                         value: workflow.damageType.rawValue,
                         icon: workflow.damageType.icon,
-                        color: Color(hex: workflow.damageType.color)
+                        color: Color(hex: workflow.damageType.color) ?? .gray
                     )
 
                     SummaryRow(
                         label: "Severity",
                         value: workflow.assessment.severity.rawValue,
                         icon: workflow.assessment.severity.icon,
-                        color: Color(hex: workflow.assessment.severity.color)
+                        color: Color(hex: workflow.assessment.severity.color) ?? .gray
                     )
 
                     SummaryRow(

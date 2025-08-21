@@ -214,7 +214,7 @@ public enum InsuranceCompanyFormat: String, CaseIterable {
 
 // MARK: - Validation Models
 
-public struct ClaimValidationRequirements {
+public struct ClaimValidationRequirements: Sendable {
     let requiresPhotos: Bool
     let requiresReceipts: Bool
     let requiresSerialNumbers: Bool

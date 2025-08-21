@@ -29,9 +29,9 @@ import SwiftUI
 import Foundation
 
 @Reducer
-struct SettingsFeature {
+public struct SettingsFeature {
     @ObservableState
-    struct State: Equatable {
+    public struct State: Equatable {
         // 🎨 APPEARANCE SETTINGS: User interface preferences
         var selectedTheme: AppTheme = .system
         var useSystemAppearance = true
@@ -67,7 +67,7 @@ struct SettingsFeature {
         var showingResetAlert = false
         var showingExportOptions = false
         var showingCloudSettings = false
-        var alert: AlertState<Action>? = nil
+        @Presents var alert: AlertState<Action>?
         var exportProgress = 0.0
 
         // 📊 COMPUTED PROPERTIES: Derived settings state
@@ -127,7 +127,7 @@ struct SettingsFeature {
         }
     }
 
-    enum Action {
+    public enum Action {
         case onAppear
         case loadSettings
 
@@ -190,6 +190,7 @@ struct SettingsFeature {
     @Dependency(\.notificationService) var notificationService
     @Dependency(\.cloudBackupService) var cloudBackupService
     @Dependency(\.importExportService) var importExportService
+    @Dependency(\.inventoryService) var inventoryService
 
     var body: some ReducerOf<Self> {
         Reduce { state, action in
@@ -199,7 +200,8 @@ struct SettingsFeature {
                     .send(.loadSettings),
                     .send(.refreshStorageInfo),
                     .run { send in
-                        let status = await notificationService.checkAuthorizationStatus()
+                        await notificationService.checkAuthorizationStatus()
+                        let status = notificationService.authorizationStatus
                         await send(.notificationStatusLoaded(mapNotificationStatus(status)))
                     }
                 )
@@ -314,7 +316,12 @@ struct SettingsFeature {
                 state.isLoading = true
                 return .run { send in
                     do {
-                        try await cloudBackupService.performBackup()
+                        // Fetch all data needed for backup
+                        let items = try await inventoryService.fetchItems()
+                        let categories = try await inventoryService.fetchCategories()
+                        let rooms = try await inventoryService.fetchRooms()
+                        
+                        try await cloudBackupService.performBackup(items: items, categories: categories, rooms: rooms)
                         await send(.backupCompleted(Date()))
                     } catch {
                         await send(.backupFailed(error.localizedDescription))
@@ -456,6 +463,40 @@ struct SettingsFeature {
             }
         }
         .ifLet(\.$alert, action: \.alert)
+    }
+}
+
+// MARK: - Equatable Conformance
+
+extension SettingsFeature.State: Equatable {
+    static func == (lhs: SettingsFeature.State, rhs: SettingsFeature.State) -> Bool {
+        return lhs.selectedTheme == rhs.selectedTheme &&
+               lhs.useSystemAppearance == rhs.useSystemAppearance &&
+               lhs.selectedCurrency == rhs.selectedCurrency &&
+               lhs.showCurrencySymbols == rhs.showCurrencySymbols &&
+               lhs.useDifferentCurrencies == rhs.useDifferentCurrencies &&
+               lhs.availableCurrencies == rhs.availableCurrencies &&
+               lhs.notificationsEnabled == rhs.notificationsEnabled &&
+               lhs.warrantyNotificationsEnabled == rhs.warrantyNotificationsEnabled &&
+               lhs.insuranceNotificationsEnabled == rhs.insuranceNotificationsEnabled &&
+               lhs.documentNotificationsEnabled == rhs.documentNotificationsEnabled &&
+               lhs.maintenanceNotificationsEnabled == rhs.maintenanceNotificationsEnabled &&
+               lhs.notificationAuthorizationStatus == rhs.notificationAuthorizationStatus &&
+               lhs.localStorageUsed == rhs.localStorageUsed &&
+               lhs.cloudBackupEnabled == rhs.cloudBackupEnabled &&
+               lhs.cloudBackupStatus == rhs.cloudBackupStatus &&
+               lhs.lastBackupDate == rhs.lastBackupDate &&
+               lhs.exportFormat == rhs.exportFormat &&
+               lhs.includeImages == rhs.includeImages &&
+               lhs.includeReceipts == rhs.includeReceipts &&
+               lhs.compressExport == rhs.compressExport &&
+               lhs.isLoading == rhs.isLoading &&
+               lhs.showingResetAlert == rhs.showingResetAlert &&
+               lhs.showingExportOptions == rhs.showingExportOptions &&
+               lhs.showingCloudSettings == rhs.showingCloudSettings &&
+               lhs.exportProgress == rhs.exportProgress
+        // Note: alert is excluded from comparison as @Presents creates PresentationState
+        // which doesn't participate in meaningful state equality for TCA diffing
     }
 }
 

@@ -66,8 +66,8 @@ final class InsuranceClaimServiceTests: XCTestCase {
         return item
     }
 
-    private func createTestContactInfo() -> InsuranceClaimService.ClaimContactInfo {
-        InsuranceClaimService.ClaimContactInfo(
+    private func createTestContactInfo() -> ClaimContactInfo {
+        ClaimContactInfo(
             name: "John Doe",
             phone: "555-0123",
             email: "john@example.com",
@@ -303,14 +303,14 @@ final class InsuranceClaimServiceTests: XCTestCase {
     // MARK: - Error Handling Tests
 
     func testInvalidClaimRequest() async {
-        let invalidContactInfo = InsuranceClaimService.ClaimContactInfo(
+        let invalidContactInfo = ClaimContactInfo(
             name: "",
             phone: "",
             email: "",
             address: ""
         )
 
-        let request = InsuranceClaimService.ClaimRequest(
+        let request = ClaimRequest(
             claimType: .theft,
             insuranceCompany: .stateFarm,
             items: testItems,

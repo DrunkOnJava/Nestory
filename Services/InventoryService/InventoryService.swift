@@ -161,18 +161,21 @@ public struct LiveInventoryService: InventoryService, @unchecked Sendable {
             return try await fetchItems()
         }
 
+        // SwiftData Predicate macro requires single expressions
+        // Using filter instead of complex predicate
         let descriptor = FetchDescriptor<Item>(
-            predicate: #Predicate<Item> { item in
+            sortBy: [SortDescriptor(\.name)]
+        )
+        
+        do {
+            let allItems = try modelContext.fetch(descriptor)
+            // Filter in memory for complex conditions
+            let items = allItems.filter { item in
                 item.name.localizedStandardContains(trimmedQuery) ||
                     item.itemDescription?.localizedStandardContains(trimmedQuery) ?? false ||
                     item.brand?.localizedStandardContains(trimmedQuery) ?? false ||
                     item.serialNumber?.localizedStandardContains(trimmedQuery) ?? false
-            },
-            sortBy: [SortDescriptor(\.name)]
-        )
-
-        do {
-            let items = try modelContext.fetch(descriptor)
+            }
             logger.debug("Search found \(items.count) items for query: \(query)")
             return items
         } catch {
@@ -180,6 +183,7 @@ public struct LiveInventoryService: InventoryService, @unchecked Sendable {
             throw InventoryError.searchFailed(error.localizedDescription)
         }
     }
+
 
     public func fetchCategories() async throws -> [Category] {
         let descriptor = FetchDescriptor<Category>(
@@ -482,15 +486,23 @@ public struct LiveInventoryService: InventoryService, @unchecked Sendable {
 
         case .pdf:
             throw InventoryError.exportFailed("PDF export not implemented")
+            
+        case .xml:
+            throw InventoryError.exportFailed("XML export not implemented")
+            
+        case .txt:
+            throw InventoryError.exportFailed("TXT export not implemented")
+            
+        case .excel, .spreadsheet:
+            throw InventoryError.exportFailed("Excel/Spreadsheet export not implemented")
+            
+        case .html:
+            throw InventoryError.exportFailed("HTML export not implemented")
         }
     }
 }
 
-public enum ExportFormat {
-    case json
-    case csv
-    case pdf
-}
+// Note: ExportFormat is now defined in Foundation/Models/ExportFormat.swift
 
 public enum InventoryError: LocalizedError {
     case fetchFailed(String)

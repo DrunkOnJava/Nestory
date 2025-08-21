@@ -18,6 +18,7 @@
 // APPLE_FRAMEWORK_OPPORTUNITY: Replace with SensitiveContentAnalysis - Analyze uploaded photos for potentially sensitive content
 
 import ComposableArchitecture
+import Foundation
 import SwiftData
 import SwiftUI
 
@@ -27,12 +28,9 @@ struct SearchView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                // Search Bar with TCA integration
-                TCASearchBarView(
-                    text: $store.searchText.sending(\.searchTextChanged),
-                    isSearching: store.isLoadingResults,
-                    onCommit: { store.send(.performSearch) }
-                )
+                searchBar
+                filterPillsSection
+                mainContentSection
 
                 // Filter Pills showing active filters
                 if store.hasActiveFilters || store.hasSearchQuery {
@@ -559,11 +557,109 @@ struct TCASearchHistorySheet: View {
                 }
         }
     }
+    
+    // MARK: - Computed Properties
+    
+    private var searchBar: some View {
+        TCASearchBarView(
+            text: $store.searchText.sending(\.searchTextChanged),
+            isSearching: store.isLoadingResults,
+            onCommit: { store.send(.performSearch) }
+        )
+    }
+    
+    private var filterPillsSection: some View {
+        Group {
+            if store.hasActiveFilters || store.hasSearchQuery {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack {
+                        if store.hasSearchQuery {
+                            FilterPill(
+                                label: "Search: \(store.searchText)",
+                                onRemove: { store.send(.clearSearch) }
+                            )
+                        }
+                        
+                        if !store.filters.selectedCategories.isEmpty {
+                            FilterPill(
+                                label: "\(store.filters.selectedCategories.count) Categories",
+                                onRemove: { store.send(.clearSpecificFilter(.categories)) }
+                            )
+                        }
+                        
+                        if store.filters.priceRange != (0 ... 10000) {
+                            FilterPill(
+                                label: "$\(Int(store.filters.priceRange.lowerBound))-$\(Int(store.filters.priceRange.upperBound))",
+                                onRemove: { store.send(.clearSpecificFilter(.priceRange)) }
+                            )
+                        }
+                        
+                        if store.filters.hasPhoto || store.filters.hasReceipt || store.filters.hasWarranty || store.filters.hasSerialNumber {
+                            FilterPill(
+                                label: "Documentation",
+                                onRemove: { store.send(.clearSpecificFilter(.documentation)) }
+                            )
+                        }
+                        
+                        if !store.filters.rooms.isEmpty {
+                            FilterPill(
+                                label: "\(store.filters.rooms.count) Rooms",
+                                onRemove: { store.send(.clearSpecificFilter(.rooms)) }
+                            )
+                        }
+                    }
+                    .padding(.horizontal)
+                }
+                .frame(height: 44)
+                .background(Color(.systemGray6))
+            }
+        }
+    }
+    
+    private var mainContentSection: some View {
+        Group {
+            if store.isLoadingResults {
+                ProgressView("Searching...")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if !store.hasSearchQuery, !store.hasActiveFilters {
+                TCASearchHistoryView(
+                    searchHistory: store.searchHistory,
+                    savedSearches: store.savedSearches,
+                    onHistoryItemSelected: { item in
+                        store.send(.selectHistoryItem(item))
+                    },
+                    onSavedSearchSelected: { saved in
+                        store.send(.searchTextChanged(saved.query))
+                        store.send(.updateFilters(saved.filters))
+                    }
+                )
+            } else if store.searchResults.isEmpty {
+                TCAEmptySearchView(
+                    hasQuery: store.hasSearchQuery,
+                    hasFilters: store.hasActiveFilters,
+                    onClearAll: { store.send(.clearAllFilters) }
+                )
+            } else {
+                searchResultsList
+            }
+        }
+    }
+    
+    private var searchResultsList: some View {
+        List {
+            ForEach(store.searchResults) { item in
+                SearchResultRow(item: item) {
+                    store.send(.itemSelected(item))
+                }
+            }
+        }
+        .listStyle(.plain)
+    }
 }
 
 #Preview {
     SearchView(
-        store: Store(initialState: SearchFeature.State()) {
+        store: Store<SearchFeature.State, SearchFeature.Action>(initialState: SearchFeature.State()) {
             SearchFeature()
         }
     )

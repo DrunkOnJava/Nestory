@@ -74,27 +74,18 @@ public struct AutoDetectResultSheet: View {
     private var detectedInfoCard: some View {
         GroupBox("Detected Warranty Information") {
             VStack(spacing: 12) {
-                if let type = detectionResult.type {
-                    InfoRow(label: "Warranty Type", value: type.rawValue)
+                InfoRow(label: "Provider", value: detectionResult.suggestedProvider)
+                
+                InfoRow(label: "Duration", value: "\(detectionResult.suggestedDuration) months")
+                
+                InfoRow(label: "Confidence", value: String(format: "%.1f%%", detectionResult.confidence * 100))
+                
+                if let extractedText = detectionResult.extractedText {
+                    InfoRow(label: "Source", value: extractedText)
                 }
                 
-                if let provider = detectionResult.provider {
-                    InfoRow(label: "Provider", value: provider)
-                }
-                
-                if let startDate = detectionResult.startDate {
-                    InfoRow(label: "Start Date", value: DateFormatter.medium.string(from: startDate))
-                }
-                
-                if let endDate = detectionResult.endDate {
-                    InfoRow(label: "End Date", value: DateFormatter.medium.string(from: endDate))
-                }
-                
-                if let duration = detectionResult.durationMonths {
-                    InfoRow(label: "Duration", value: "\(duration) months")
-                }
-                
-                if detectionResult.registrationRequired {
+                // Note: Registration info not available in current detection result
+                if false { // Placeholder for registration logic
                     HStack {
                         Image(systemName: "exclamationmark.triangle.fill")
                             .foregroundColor(.orange)
@@ -147,7 +138,7 @@ public struct AutoDetectResultSheet: View {
                         .font(.caption)
                         .foregroundColor(.blue)
                     
-                    Text("Source: \(detectionResult.source ?? "Database lookup")")
+                    Text("Source: \(detectionResult.extractedText ?? "Database lookup")")
                         .font(.caption)
                         .foregroundColor(.secondary)
                     
@@ -214,7 +205,7 @@ public struct ManualWarrantyFormSheet: View {
     public var body: some View {
         NavigationStack {
             Form {
-                Section("Basic Information") {
+                Section(header: Text("Basic Information")) {
                     Picker("Warranty Type", selection: $warrantyType) {
                         ForEach(WarrantyType.allCases, id: \.self) { type in
                             Text(type.displayName).tag(type)
@@ -224,7 +215,7 @@ public struct ManualWarrantyFormSheet: View {
                     TextField("Provider/Company", text: $provider)
                 }
                 
-                Section("Coverage Period") {
+                Section(header: Text("Coverage Period")) {
                     DatePicker("Start Date", selection: $startDate, displayedComponents: .date)
                     DatePicker("End Date", selection: $endDate, displayedComponents: .date)
                     
@@ -235,7 +226,7 @@ public struct ManualWarrantyFormSheet: View {
                     }
                 }
                 
-                Section("Additional Details") {
+                Section {
                     Toggle("Registration Required", isOn: $registrationRequired)
                     
                     if registrationRequired {
@@ -244,6 +235,8 @@ public struct ManualWarrantyFormSheet: View {
                     
                     TextField("Terms and Conditions", text: $terms, axis: .vertical)
                         .lineLimit(3...6)
+                } header: {
+                    Text("Additional Details")
                 } footer: {
                     Text("Enter any specific warranty terms, coverage limitations, or important notes.")
                 }
@@ -274,15 +267,17 @@ public struct ManualWarrantyFormSheet: View {
     
     private func saveWarranty() {
         let warranty = Warranty(
+            provider: provider.isEmpty ? "Unknown" : provider,
             type: warrantyType,
-            provider: provider.isEmpty ? nil : provider,
             startDate: startDate,
-            endDate: endDate,
-            terms: terms.isEmpty ? nil : terms,
-            registrationRequired: registrationRequired
+            expiresAt: endDate,
+            item: item
         )
         
-        warranty.isRegistered = registrationRequired ? isRegistered : nil
+        // Note: Additional properties like terms and registration not available in current Warranty model
+        if !terms.isEmpty {
+            warranty.coverageNotes = terms
+        }
         
         item.warranty = warranty
         dismiss()
@@ -359,30 +354,30 @@ public struct WarrantyExtensionSheet: View {
             Text("Extension Options")
                 .font(.headline)
             
-            ForEach(availableExtensions, id: \.id) { extension in
+            ForEach(availableExtensions, id: \.id) { warrantyExt in
                 ExtensionOptionCard(
-                    extension: extension,
-                    isSelected: selectedExtension?.id == extension.id,
-                    onSelect: { selectedExtension = extension }
+                    extension: warrantyExt,
+                    isSelected: selectedExtension?.id == warrantyExt.id,
+                    onSelect: { selectedExtension = warrantyExt }
                 )
             }
         }
     }
     
-    private func selectedExtensionCard(_ extension: WarrantyExtension) -> some View {
+    private func selectedExtensionCard(_ warrantyExtension: WarrantyExtension) -> some View {
         GroupBox("Selected Extension") {
             VStack(alignment: .leading, spacing: 8) {
-                InfoRow(label: "Duration", value: extension.displayDuration)
-                InfoRow(label: "Cost", value: extension.displayPrice)
-                InfoRow(label: "Coverage", value: extension.coverageType)
+                InfoRow(label: "Duration", value: warrantyExtension.displayDuration)
+                InfoRow(label: "Cost", value: warrantyExtension.displayPrice)
+                InfoRow(label: "Coverage", value: warrantyExtension.coverageType)
                 
-                if !extension.benefits.isEmpty {
+                if !warrantyExtension.benefits.isEmpty {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Benefits:")
                             .font(.caption)
                             .fontWeight(.medium)
                         
-                        ForEach(extension.benefits, id: \.self) { benefit in
+                        ForEach(warrantyExtension.benefits, id: \.self) { benefit in
                             HStack {
                                 Image(systemName: "checkmark.circle.fill")
                                     .font(.caption)
@@ -446,16 +441,16 @@ public struct WarrantyExtensionSheet: View {
 // MARK: - Extension Option Card
 
 public struct ExtensionOptionCard: View {
-    let extension: WarrantyExtension
+    let warrantyExtension: WarrantyExtension
     let isSelected: Bool
     let onSelect: () -> Void
     
     public init(
-        extension: WarrantyExtension,
+        `extension`: WarrantyExtension,
         isSelected: Bool,
         onSelect: @escaping () -> Void
     ) {
-        self.extension = extension
+        self.warrantyExtension = `extension`
         self.isSelected = isSelected
         self.onSelect = onSelect
     }
@@ -464,18 +459,18 @@ public struct ExtensionOptionCard: View {
         Button(action: onSelect) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(extension.displayDuration)
+                    Text(warrantyExtension.displayDuration)
                         .font(.headline)
                         .foregroundColor(.primary)
                     
-                    Text(extension.coverageType)
+                    Text(warrantyExtension.coverageType)
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
                 
                 Spacer()
                 
-                Text(extension.displayPrice)
+                Text(warrantyExtension.displayPrice)
                     .font(.headline)
                     .fontWeight(.semibold)
                     .foregroundColor(.primary)
@@ -499,29 +494,7 @@ public struct ExtensionOptionCard: View {
 
 // MARK: - Supporting Views
 
-public struct InfoRow: View {
-    let label: String
-    let value: String
-    
-    public init(label: String, value: String) {
-        self.label = label
-        self.value = value
-    }
-    
-    public var body: some View {
-        HStack {
-            Text(label)
-                .font(.caption)
-                .foregroundColor(.secondary)
-            
-            Spacer()
-            
-            Text(value)
-                .font(.caption)
-                .fontWeight(.medium)
-        }
-    }
-}
+// Note: InfoRow is now defined in UI/Components/InfoRow.swift
 
 // MARK: - Supporting Types
 
@@ -560,9 +533,11 @@ extension WarrantyType {
         switch self {
         case .manufacturer: return "Manufacturer"
         case .extended: return "Extended"
+        case .dealer: return "Dealer"
         case .thirdParty: return "Third Party"
-        case .store: return "Store/Retailer"
+        case .insurance: return "Insurance"
         case .service: return "Service Plan"
+        case .store: return "Store/Retailer"
         }
     }
 }

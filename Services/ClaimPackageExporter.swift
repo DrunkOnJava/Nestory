@@ -7,6 +7,7 @@
 import Foundation
 import SwiftData
 
+@MainActor
 public final class ClaimPackageExporter {
     // MARK: - Dependencies
 
@@ -55,7 +56,7 @@ public final class ClaimPackageExporter {
         )
 
         // Generate attestation documents
-        try documentProcessor.writeAttestationsToDirectory(
+        try await documentProcessor.writeAttestationsToDirectory(
             attestations: attestations,
             to: directories.attestations,
             using: contentGenerator

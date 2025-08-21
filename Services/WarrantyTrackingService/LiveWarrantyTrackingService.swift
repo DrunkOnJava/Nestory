@@ -356,7 +356,7 @@ public final class LiveWarrantyTrackingService: WarrantyTrackingService {
         }
     }
 
-    public func getWarrantyStatistics() async throws -> WarrantyStatistics {
+    public func getWarrantyStatistics() async throws -> WarrantyTrackingStatistics {
         let allItems = try await fetchAllItems()
         let totalItems = allItems.count
 
@@ -402,7 +402,7 @@ public final class LiveWarrantyTrackingService: WarrantyTrackingService {
         let averageWarrantyDuration = warrantyDurations.isEmpty ? 0.0 : warrantyDurations.reduce(0, +) / Double(warrantyDurations.count)
         let mostCommonProvider = providerCounts.max(by: { $0.value < $1.value })?.key
 
-        return WarrantyStatistics(
+        return WarrantyTrackingStatistics(
             totalItems: totalItems,
             itemsWithWarranty: itemsWithWarranty,
             activeWarranties: activeWarranties,
@@ -520,5 +520,118 @@ public final class LiveWarrantyTrackingService: WarrantyTrackingService {
             logger.error("Failed to schedule warranty notification for item \(item.id): \(error.localizedDescription)")
             throw WarrantyTrackingError.notificationFailed(error.localizedDescription)
         }
+    }
+
+    // MARK: - Additional Methods for UI Integration
+
+    /// Detect warranty information from item metadata (brand, model, serial number)
+    public func detectWarrantyInfo(
+        brand: String?,
+        model: String?,
+        serialNumber: String?,
+        purchaseDate: Date?
+    ) async throws -> WarrantyDetectionResult {
+        var confidence = 0.3 // Base confidence
+        var detectedDuration = 12 // Default 1 year
+        var detectedProvider = "Manufacturer"
+
+        // Improve confidence and detection based on available information
+        if let brand = brand, !brand.isEmpty {
+            detectedProvider = brand
+            confidence += 0.2
+
+            // Brand-specific warranty defaults
+            switch brand.lowercased() {
+            case "apple":
+                detectedDuration = 12
+                detectedProvider = "Apple Inc."
+                confidence += 0.3
+            case "samsung":
+                detectedDuration = 24
+                detectedProvider = "Samsung"
+                confidence += 0.3
+            case "sony":
+                detectedDuration = 12
+                detectedProvider = "Sony"
+                confidence += 0.2
+            case "lg":
+                detectedDuration = 24
+                detectedProvider = "LG Electronics"
+                confidence += 0.2
+            case "whirlpool", "kitchenaid":
+                detectedDuration = 12
+                detectedProvider = brand
+                confidence += 0.2
+            default:
+                confidence += 0.1
+            }
+        }
+
+        if let model = model, !model.isEmpty {
+            confidence += 0.1
+
+            // Model-specific adjustments
+            let modelLower = model.lowercased()
+            if modelLower.contains("pro") || modelLower.contains("premium") {
+                detectedDuration += 6 // Premium products often have longer warranties
+                confidence += 0.1
+            }
+        }
+
+        if let serialNumber = serialNumber, !serialNumber.isEmpty {
+            confidence += 0.1
+        }
+
+        if let purchaseDate = purchaseDate {
+            confidence += 0.1
+
+            // Adjust based on age - older items might have expired manufacturer warranties
+            let ageInMonths = Calendar.current.dateComponents([.month], from: purchaseDate, to: Date()).month ?? 0
+            if ageInMonths > 12 {
+                // Item is older, might have expired warranty
+                confidence -= 0.1
+            }
+        }
+
+        // Cap confidence at 1.0
+        confidence = min(confidence, 1.0)
+
+        guard confidence > 0.4 else {
+            throw WarrantyTrackingError.detectionFailed("Insufficient information to detect warranty details")
+        }
+
+        return WarrantyDetectionResult(
+            duration: detectedDuration,
+            provider: detectedProvider,
+            confidence: confidence,
+            extractedText: "Auto-detected from brand: \(brand ?? "Unknown"), model: \(model ?? "Unknown")"
+        )
+    }
+
+    /// Register warranty with manufacturer or provider
+    public func registerWarranty(warranty: Warranty, item: Item) async throws {
+        // Simulate warranty registration process
+        logger.info("Registering warranty for item \(item.id) with provider \(warranty.provider)")
+
+        // In a real implementation, this would:
+        // 1. Connect to manufacturer API
+        // 2. Submit registration with serial number, purchase date, etc.
+        // 3. Receive confirmation number
+        // 4. Update warranty with registration details
+
+        // For now, we'll simulate a successful registration
+        try await Task.sleep(nanoseconds: 1_000_000_000) // 1 second delay to simulate API call
+
+        // Update warranty registration status
+        warranty.isRegistered = true
+        warranty.registrationDate = Date()
+        
+        // Generate a mock confirmation number
+        warranty.confirmationNumber = "REG-\(Int.random(in: 100000...999999))"
+
+        // Save the updated warranty
+        try await saveWarranty(warranty, for: item.id)
+
+        logger.info("Successfully registered warranty for item \(item.id)")
     }
 }

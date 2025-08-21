@@ -17,7 +17,7 @@ struct ClaimPackageAssemblyView: View {
     @Query private var allItems: [Item]
     @Query private var allCategories: [Category]
     @Environment(\.dismiss) private var dismiss
-    @Dependency(\.claimPackageAssemblerService) var assemblerService
+    @StateObject private var core = ClaimPackageAssemblyCore()
     
     // Local state for the UI workflow
     @State private var currentStep: AssemblyStep = .itemSelection
@@ -143,7 +143,7 @@ struct ClaimPackageAssemblyView: View {
 
         case .assembly:
             AssemblyStepView(
-                assemblyService: core.assemblerService,
+                assemblyService: core.assemblyService,
                 generatedPackage: core.generatedPackage,
                 errorAlert: core.errorAlert
             )

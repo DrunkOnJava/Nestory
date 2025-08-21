@@ -21,12 +21,12 @@ struct ClaimSubmissionView: View {
     @StateObject private var core: ClaimSubmissionCore
 
     init(modelContext: ModelContext) {
-        _core = StateObject(wrappedValue: ClaimSubmissionCore(modelContext: modelContext))
+        self._core = StateObject(wrappedValue: ClaimSubmissionCore(modelContext: modelContext))
     }
 
     var body: some View {
         NavigationStack {
-            ScrollView {
+            ScrollView(.vertical) {
                 VStack(spacing: 20) {
                     // Progress Indicator
                     WorkflowProgressView(currentStep: core.currentStep, totalSteps: core.totalSteps)
@@ -142,13 +142,10 @@ struct ClaimSubmissionView: View {
         [Policyholder Name]
         """
 
-        let attachment = try? Data(contentsOf: fileURL).map { data in
-            EmailAttachment(
-                data: data,
-                mimeType: "application/octet-stream",
-                fileName: fileURL.lastPathComponent
-            )
-        }
+        let attachment = EmailAttachment(
+            fileURL: fileURL,
+            mimeType: "application/octet-stream"
+        )
 
         return ClaimEmailConfiguration(
             recipientEmail: core.recipientEmail,

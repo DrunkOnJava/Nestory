@@ -95,14 +95,14 @@ public final class ClaimExportService: ObservableObject {
 
     // MARK: - Validation Functions (Delegated)
 
-    public func validateItemsForClaim(_ items: [Item]) -> [ValidationIssue] {
+    public func validateItemsForClaim(_ items: [Item]) -> [ExportValidationIssue] {
         core.validateItemsForClaim(items)
     }
 
     public func validateForFormat(
         items: [Item],
         format: InsuranceCompanyFormat
-    ) -> [ValidationIssue] {
+    ) -> [ExportValidationIssue] {
         core.validateForFormat(items: items, format: format)
     }
 

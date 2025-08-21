@@ -11,10 +11,13 @@
 
 import ComposableArchitecture
 import SwiftUI
+import os
 
 struct WarrantyManagementView: View {
     @Bindable var item: Item
     @Dependency(\.notificationService) var notificationService
+    
+    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.nestory.app", category: "WarrantyManagement")
 
     @State private var warrantyEnabled = false
     @State private var warrantyExpiration = Date()

@@ -32,6 +32,11 @@ public final class ClaimPackageAssemblyCore: ObservableObject {
     
     private let assemblerService: ClaimPackageAssemblerService
     
+    // Public access to dependencies for view layer
+    public var assemblyService: ClaimPackageAssemblerService {
+        assemblerService
+    }
+    
     // MARK: - Initialization
     
     public init(assemblerService: ClaimPackageAssemblerService = LiveClaimPackageAssemblerService()) {
@@ -167,6 +172,18 @@ public final class ClaimPackageAssemblyCore: ObservableObject {
 }
 
 // MARK: - Supporting Types
+
+public struct ClaimPackageRequest {
+    public let selectedItemIds: [UUID]
+    public let scenario: ClaimScenario
+    public let options: ClaimPackageOptions
+    
+    public init(selectedItemIds: [UUID], scenario: ClaimScenario, options: ClaimPackageOptions) {
+        self.selectedItemIds = selectedItemIds
+        self.scenario = scenario
+        self.options = options
+    }
+}
 
 public enum AssemblyStep: Int, CaseIterable {
     case itemSelection = 0

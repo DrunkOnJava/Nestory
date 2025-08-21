@@ -49,9 +49,7 @@ struct WarrantyDashboardView: View {
                             .frame(maxWidth: .infinity)
                             .padding()
                     } else if let errorMessage {
-                        ErrorView(message: errorMessage) {
-                            await loadData()
-                        }
+                        ErrorView(message: errorMessage, retry: { await loadData() })
                         .padding()
                     } else {
                         warrantyContent

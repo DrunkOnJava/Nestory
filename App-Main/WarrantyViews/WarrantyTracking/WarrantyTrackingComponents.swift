@@ -35,7 +35,7 @@ public struct WarrantyStatusCard: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(warrantyStatus.title)
                             .font(.headline)
-                            .foregroundColor(warrantyStatus.color)
+                            .foregroundColor(Color(hex: warrantyStatus.color) ?? .gray)
                         
                         Text(statusDescription)
                             .font(.subheadline)
@@ -56,7 +56,7 @@ public struct WarrantyStatusCard: View {
     private var statusIcon: some View {
         Image(systemName: warrantyStatus.icon)
             .font(.title2)
-            .foregroundColor(warrantyStatus.color)
+            .foregroundColor(Color(hex: warrantyStatus.color) ?? .gray)
     }
     
     private var statusDescription: String {
@@ -73,6 +73,8 @@ public struct WarrantyStatusCard: View {
             return "Expires soon - take action"
         case .expired:
             return "Warranty has expired"
+        case .notStarted:
+            return "Warranty not yet active"
         }
     }
     
@@ -81,7 +83,7 @@ public struct WarrantyStatusCard: View {
         if progress > 0 {
             VStack(spacing: 4) {
                 ProgressView(value: progress)
-                    .progressViewStyle(LinearProgressViewStyle(tint: warrantyStatus.color))
+                    .progressViewStyle(LinearProgressViewStyle(tint: Color(hex: warrantyStatus.color) ?? .gray))
                 
                 HStack {
                     Text("Progress")
@@ -259,7 +261,7 @@ public struct WarrantyDetailsCard: View {
                     .font(.headline)
                 
                 VStack(spacing: 8) {
-                    DetailRow(label: "Type", value: warranty.type?.rawValue ?? "Not specified")
+                    DetailRow(label: "Type", value: warranty.type.rawValue)
                     DetailRow(label: "Provider", value: warranty.provider ?? "Not specified")
                     
                     if let startDate = warranty.startDate {
@@ -486,26 +488,10 @@ extension WarrantyStatus {
         case .active: return "Active Warranty"
         case .expiringSoon: return "Expiring Soon"
         case .expired: return "Expired"
+        case .notStarted: return "Not Started"
         }
     }
     
-    var icon: String {
-        switch self {
-        case .noWarranty: return "shield.slash"
-        case .active: return "shield.checkered"
-        case .expiringSoon: return "shield.righthalf.filled.trianglebadge.exclamationmark"
-        case .expired: return "shield.slash.fill"
-        }
-    }
-    
-    var color: Color {
-        switch self {
-        case .noWarranty: return .gray
-        case .active: return .green
-        case .expiringSoon: return .orange
-        case .expired: return .red
-        }
-    }
 }
 
 extension DateFormatter {

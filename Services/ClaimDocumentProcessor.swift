@@ -151,13 +151,14 @@ public final class ClaimDocumentProcessor {
         return packageForms
     }
 
+    @MainActor
     public func writeAttestationsToDirectory(
         attestations: [Attestation],
         to attestationsDir: URL,
         using contentGenerator: ClaimContentGenerator
-    ) throws {
+    ) async throws {
         for attestation in attestations {
-            let attestationData = try contentGenerator.generateAttestationPDF(attestation: attestation)
+            let attestationData = try await contentGenerator.generateAttestationPDF(attestation: attestation)
             let attestationURL = attestationsDir.appendingPathComponent("\(attestation.title).pdf")
             try attestationData.write(to: attestationURL)
         }

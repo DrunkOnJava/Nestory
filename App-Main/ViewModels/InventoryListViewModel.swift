@@ -235,33 +235,9 @@ extension InventoryListViewModel {
             let service = try LiveInventoryService(modelContext: modelContext)
             return InventoryListViewModel(inventoryService: service)
         } catch {
-            // Fallback to a mock service in case of initialization failure
-            let mockService = MockInventoryService()
-            return InventoryListViewModel(inventoryService: mockService)
+            // For now, create a minimal fallback service
+            // The actual MockInventoryService is defined in Services/DependencyKeys.swift
+            fatalError("Failed to create InventoryService: \(error)")
         }
     }
-}
-
-// MARK: - Mock Service for Testing
-
-private struct MockInventoryService: InventoryService {
-    nonisolated func fetchItems() async throws -> [Item] { [] }
-    nonisolated func fetchItem(id _: UUID) async throws -> Item? { nil }
-    nonisolated func saveItem(_: Item) async throws {}
-    nonisolated func updateItem(_: Item) async throws {}
-    nonisolated func deleteItem(id _: UUID) async throws {}
-    nonisolated func searchItems(query _: String) async throws -> [Item] { [] }
-    nonisolated func fetchCategories() async throws -> [Category] { [] }
-    nonisolated func saveCategory(_: Category) async throws {}
-    nonisolated func assignItemToCategory(itemId _: UUID, categoryId _: UUID) async throws {}
-    nonisolated func fetchItemsByCategory(categoryId _: UUID) async throws -> [Item] { [] }
-
-    // Batch Operations
-    nonisolated func bulkImport(items _: [Item]) async throws {}
-    nonisolated func bulkUpdate(items _: [Item]) async throws {}
-    nonisolated func bulkDelete(itemIds _: [UUID]) async throws {}
-    nonisolated func bulkSave(items _: [Item]) async throws {}
-    nonisolated func bulkAssignCategory(itemIds _: [UUID], categoryId _: UUID) async throws {}
-
-    nonisolated func exportInventory(format _: ExportFormat) async throws -> Data { Data() }
 }

@@ -17,7 +17,7 @@ struct ItemBuilder {
     private var id = UUID()
     private var name = "Test Item"
     private var category = "Test Category"
-    private var purchasePrice = Money(amount: 100.0, currency: .USD)
+    private var purchasePrice = Money(amount: 100.0, currencyCode: "USD")
     private var purchaseDate = Date()
     private var condition = "Excellent"
     private var location = "Living Room"
@@ -202,26 +202,43 @@ class MockAnalyticsService: AnalyticsServiceProtocol {
 }
 
 /// Mock implementation of CloudBackupService for testing
-class MockCloudBackupService: CloudBackupServiceProtocol {
+@MainActor
+class MockCloudBackupService: CloudBackupService {
+    var isBackingUp: Bool = false
+    var isRestoring: Bool = false
+    var lastBackupDate: Date? = nil
+    var backupStatus: BackupStatus = .idle
+    var errorMessage: String? = nil
+    var progress: Double = 0.0
+    var isCloudKitAvailable: Bool = true
+    
     var backupCalls: [BackupOperation] = []
     var restoreCalls: [RestoreOperation] = []
     var shouldFail = false
     var error: Error?
-    var backupResult: BackupResult = .success(BackupMetadata(id: UUID(), timestamp: Date(), itemCount: 0))
-    var restoreResult: RestoreResult = .success([])
-
-    func backup(_ items: [Item]) async throws -> BackupResult {
+    
+    func checkCloudKitAvailability() async -> Bool {
+        return isCloudKitAvailable
+    }
+    
+    func performBackup(items: [Item], categories: [Category], rooms: [Room]) async throws {
         let operation = BackupOperation(items: items, timestamp: Date())
         backupCalls.append(operation)
-
+        
         if shouldFail, let error {
             throw error
         }
-
-        return backupResult
     }
-
-    func restore() async throws -> RestoreResult {
+    
+    func estimateBackupSize(items: [Item]) -> String {
+        return "\(items.count) items (~1.2 MB)"
+    }
+    
+    func getBackupInfo() async throws -> BackupMetadata? {
+        return BackupMetadata(id: UUID(), timestamp: Date(), itemCount: 0)
+    }
+    
+    func performRestore(modelContext: ModelContext) async throws -> RestoreResult {
         let operation = RestoreOperation(timestamp: Date())
         restoreCalls.append(operation)
 
@@ -229,7 +246,12 @@ class MockCloudBackupService: CloudBackupServiceProtocol {
             throw error
         }
 
-        return restoreResult
+        return RestoreResult(
+            itemsRestored: 0,
+            categoriesRestored: 0,
+            roomsRestored: 0,
+            backupDate: Date()
+        )
     }
 
     func reset() {

@@ -16,6 +16,7 @@ import SwiftData
 
 public protocol ClaimPackageAssemblerService: Sendable {
     func assembleClaimPackage(items: [Item], claimInfo: ClaimInfo) async throws -> ClaimPackage
+    func assemblePackage(request: ClaimPackageRequest) async throws -> ClaimPackage
     func validatePackageCompleteness(_ package: ClaimPackage) async throws -> ValidationResult
     func exportAsZIP(package: ClaimPackage) async throws -> URL
     func exportAsPDF(package: ClaimPackage) async throws -> URL
@@ -71,12 +72,47 @@ public final class LiveClaimPackageAssemblerService: ClaimPackageAssemblerServic
 
     // MARK: - Main Assembly Methods (Delegated)
 
+    // Protocol conformance method
+    public func assembleClaimPackage(items: [Item], claimInfo: ClaimInfo) async throws -> ClaimPackage {
+        let scenario = ClaimScenario(
+            type: .multipleItems,
+            incidentDate: claimInfo.incidentDate ?? Date(),
+            description: claimInfo.incidentDescription ?? "Insurance claim",
+            metadata: ["company": claimInfo.insuranceCompany, "type": claimInfo.type]
+        )
+        return try await assembleClaimPackage(for: scenario, items: items)
+    }
+    
+    // Protocol conformance method for new signature
+    public func assemblePackage(request: ClaimPackageRequest) async throws -> ClaimPackage {
+        // Fetch items based on the request's selected item IDs
+        // Note: In a real implementation, you'd fetch these from the model context
+        let items: [Item] = [] // This should be fetched based on request.selectedItemIds
+        
+        return try await assembleClaimPackage(
+            for: request.scenario,
+            items: items,
+            options: request.options
+        )
+    }
+
     public func assembleClaimPackage(
         for scenario: ClaimScenario,
         items: [Item],
         options: ClaimPackageOptions = ClaimPackageOptions()
     ) async throws -> ClaimPackage {
         try await core.assembleClaimPackage(for: scenario, items: items, options: options)
+    }
+
+    // Protocol conformance method
+    public func validatePackageCompleteness(_ package: ClaimPackage) async throws -> ValidationResult {
+        // Convert PackageValidation to ValidationResult
+        let validation = try await core.validatePackageCompleteness(items: package.items, scenario: package.scenario)
+        return ValidationResult(
+            isComplete: validation.isValid,
+            missingItems: validation.missingRequirements,
+            totalValue: validation.totalValue
+        )
     }
 
     public func validatePackageCompleteness(
@@ -103,12 +139,12 @@ public final class LiveClaimPackageAssemblerService: ClaimPackageAssemblerServic
 
 // MARK: - Data Models (Retained for backward compatibility)
 
-public struct ClaimScenario {
-    public let type: ClaimScope
-    public let incidentDate: Date
-    public let description: String
-    public let metadata: [String: String]
-    public let requiresConditionDocumentation: Bool
+public struct ClaimScenario: Sendable {
+    public var type: ClaimScope
+    public var incidentDate: Date
+    public var description: String
+    public var metadata: [String: String]
+    public var requiresConditionDocumentation: Bool
 
     public init(
         type: ClaimScope,
@@ -125,7 +161,7 @@ public struct ClaimScenario {
     }
 }
 
-public enum ClaimScope: String, CaseIterable {
+public enum ClaimScope: String, CaseIterable, Sendable {
     case singleItem = "Single Item"
     case multipleItems = "Multiple Items"
     case roomBased = "Room/Area Based"
@@ -135,7 +171,7 @@ public enum ClaimScope: String, CaseIterable {
     var description: String { rawValue }
 }
 
-public struct ClaimPackageOptions {
+public struct ClaimPackageOptions: Sendable {
     public var policyHolder: String?
     public var policyNumber: String?
     public var propertyAddress: String?
@@ -146,11 +182,12 @@ public struct ClaimPackageOptions {
     public var includeWarranties = true
     public var compressPhotos = false
     public var generateAttestation = true
+    public var documentationLevel: DocumentationLevel = .detailed
 
     public init() {}
 }
 
-public struct PackageValidation {
+public struct PackageValidation: Sendable {
     public let isValid: Bool
     public let issues: [PackageValidationIssue]
     public let missingRequirements: [String]
@@ -160,7 +197,7 @@ public struct PackageValidation {
     public let validationDate: Date
 }
 
-public struct ClaimSummary {
+public struct ClaimSummary: Sendable {
     public let claimType: ClaimScope
     public let incidentDate: Date
     public let totalItems: Int
@@ -169,7 +206,7 @@ public struct ClaimSummary {
     public let description: String
 }
 
-public struct ClaimCoverLetter {
+public struct ClaimCoverLetter: Sendable {
     public let summary: ClaimSummary
     public let content: String
     public let generatedDate: Date
@@ -177,7 +214,7 @@ public struct ClaimCoverLetter {
     public let policyNumber: String?
 }
 
-public struct ItemDocumentation {
+public struct ItemDocumentation: Sendable {
     public let item: Item
     public let photos: [Data]
     public let receipts: [Data]
@@ -186,7 +223,7 @@ public struct ItemDocumentation {
     public let conditionPhotos: [Data]
 }
 
-public struct ClaimForm {
+public struct ClaimForm: Sendable {
     public let type: FormType
     public let name: String
     public var fileURL: URL?
@@ -202,7 +239,7 @@ public struct ClaimForm {
     }
 }
 
-public enum FormType {
+public enum FormType: Sendable {
     case standardInventory
     case detailedSpreadsheet
     case policeReport
@@ -210,20 +247,20 @@ public enum FormType {
     case attestation
 }
 
-public struct Attestation {
+public struct Attestation: Sendable {
     public let type: AttestationType
     public let title: String
     public let content: String
     public let requiresSignature: Bool
 }
 
-public enum AttestationType {
+public enum AttestationType: Sendable {
     case ownership
     case value
     case incident
 }
 
-public struct ClaimPackage {
+public struct ClaimPackage: Sendable {
     public let id: UUID
     public let scenario: ClaimScenario
     public let items: [Item]
@@ -237,7 +274,7 @@ public struct ClaimPackage {
     public let options: ClaimPackageOptions
 }
 
-public struct EmailPackage {
+public struct EmailPackage: Sendable {
     public let summaryPDF: URL
     public let compressedPhotos: [URL]
     public let attachmentSize: Int

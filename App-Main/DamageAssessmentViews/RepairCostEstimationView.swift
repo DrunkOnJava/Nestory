@@ -6,9 +6,9 @@
 
 import SwiftUI
 
-// Re-export modular components for backward compatibility
-// Modular components are automatically available within the same target
-// RepairCostEstimationCore, RepairCostEstimationComponents, RepairCostEstimationForms included
+// Note: Swift treats files in subdirectories as part of the same module in most Xcode projects
+// but we need to ensure the types are accessible. Since these are in the same target,
+// they should be available without explicit import
 
 struct RepairCostEstimationView: View {
     @Binding var assessment: DamageAssessment
@@ -28,10 +28,9 @@ struct RepairCostEstimationView: View {
                     CostEstimationHeaderView()
 
                     // Quick Assessment Based on Severity
-                    QuickAssessmentCard(
-                        severity: assessment.severity,
-                        damageType: assessment.damageType,
-                        replacementCost: assessment.replacementCost
+                    QuickAssessmentSection(
+                        assessment: assessment,
+                        quickDamageEstimate: core.costEstimation.replacementCost
                     )
 
                     // Replacement Cost

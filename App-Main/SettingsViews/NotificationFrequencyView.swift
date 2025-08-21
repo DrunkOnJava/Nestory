@@ -192,7 +192,8 @@ struct NotificationFrequencyView: View {
         statusMessage = "Calculating optimal timing from analytics..."
 
         do {
-            let analytics = try await notificationService.getNotificationAnalytics()
+            let notificationAnalytics = try await notificationService.getNotificationAnalytics()
+            let analytics = try await notificationAnalytics.generateAnalytics()
 
             if let mostEffectiveTime = analytics.mostEffectiveTime {
                 let calendar = Calendar.current

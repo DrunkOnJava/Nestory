@@ -124,7 +124,7 @@ struct InsuranceReportOptionsView: View {
 
         Task {
             do {
-                let options = InsuranceReportService.ReportOptions()
+                let options = ReportOptions()
                 // Configure options based on toggles
                 var mutableOptions = options
                 mutableOptions.includePhotos = includePhotos

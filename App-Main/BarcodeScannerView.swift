@@ -28,7 +28,7 @@ struct LegacyBarcodeScannerView: View {
 
     @State private var showingCamera = false
     @State private var showingPhotoPicker = false
-    @State private var selectedImage: Data?
+    @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var scannedResult: BarcodeResult?
     @State private var productInfo: ProductInfo?
     @State private var isProcessing = false
@@ -77,15 +77,20 @@ struct LegacyBarcodeScannerView: View {
             .sheet(isPresented: $showingCamera) {
                 CameraScannerView(scanner: scanner, onScan: handleScanResult)
             }
-            .sheet(isPresented: $showingPhotoPicker) {
-                PhotoPicker(imageData: $selectedImage)
-                    .onChange(of: selectedImage) { _, newValue in
-                        if let data = newValue {
-                            Task {
-                                await processImageForBarcode(data)
-                            }
+            .photosPicker(
+                isPresented: $showingPhotoPicker,
+                selection: $selectedPhotoItem,
+                matching: .images,
+                photoLibrary: .shared()
+            )
+            .onChange(of: selectedPhotoItem) { _, newValue in
+                if let item = newValue {
+                    Task {
+                        if let data = try? await item.loadTransferable(type: Data.self) {
+                            await processImageForBarcode(data)
                         }
                     }
+                }
             }
             .sheet(isPresented: $showingManualEntry) {
                 ManualBarcodeEntryView(onSave: handleManualEntry)
@@ -192,7 +197,7 @@ struct LegacyBarcodeScannerView: View {
     private func rescan() {
         scannedResult = nil
         productInfo = nil
-        selectedImage = nil
+        selectedPhotoItem = nil
     }
 }
 
@@ -216,6 +221,11 @@ private struct ProcessingOverlay: View {
             }
     }
 }
+
+// MARK: - Compatibility Alias for Legacy Views
+
+/// Compatibility alias for views that still reference BarcodeScannerView
+typealias BarcodeScannerView = LegacyBarcodeScannerView
 
 #Preview {
     LegacyBarcodeScannerView(item: Item(name: "Test Item"))

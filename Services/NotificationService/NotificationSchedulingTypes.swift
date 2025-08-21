@@ -9,7 +9,7 @@ import Foundation
 // MARK: - Scheduling Enums
 
 /// Recurring notification intervals for maintenance and reminders
-public enum RecurringInterval: String, CaseIterable, Sendable {
+public enum RecurringInterval: String, CaseIterable, Sendable, Codable {
     case weekly
     case monthly
     case quarterly
@@ -41,7 +41,7 @@ public enum RecurringInterval: String, CaseIterable, Sendable {
 }
 
 /// Types of reminders that can be scheduled
-public enum ReminderType: String, CaseIterable, Sendable {
+public enum ReminderType: String, CaseIterable, Sendable, Codable {
     case maintenance
     case documentUpdate
     case warranty
@@ -102,7 +102,7 @@ public enum NotificationFrequency: String, CaseIterable, Sendable {
 }
 
 /// Snooze duration options
-public enum SnoozeDuration: String, CaseIterable, Sendable {
+public enum SnoozeDuration: String, CaseIterable, Sendable, Codable {
     case fifteenMinutes = "15min"
     case oneHour = "1hour"
     case fourHours = "4hours"
@@ -134,7 +134,7 @@ public enum SnoozeDuration: String, CaseIterable, Sendable {
 }
 
 /// Actions that can be taken on notifications
-public enum NotificationAction: String, Sendable {
+public enum NotificationAction: String, Sendable, Codable {
     case viewed
     case dismissed
     case snoozed
@@ -145,7 +145,7 @@ public enum NotificationAction: String, Sendable {
 // MARK: - Data Types
 
 /// Request for scheduling a notification
-public struct NotificationScheduleRequest: Sendable {
+public struct NotificationScheduleRequest: Sendable, Codable {
     public let itemId: UUID
     public let type: ReminderType
     public let scheduledDate: Date
@@ -180,7 +180,7 @@ public struct NotificationScheduleRequest: Sendable {
 }
 
 /// Priority levels for notifications
-public enum NotificationPriority: Int, CaseIterable, Sendable {
+public enum NotificationPriority: Int, CaseIterable, Sendable, Codable {
     case low = 1
     case normal = 2
     case high = 3
@@ -226,7 +226,7 @@ public struct BatchScheduleResult: Sendable {
 }
 
 /// Analytics data for notification effectiveness
-public struct NotificationAnalytics: Sendable {
+public struct NotificationAnalyticsData: Sendable {
     public let totalScheduled: Int
     public let totalDelivered: Int
     public let totalInteracted: Int
@@ -270,7 +270,7 @@ public struct NotificationAnalytics: Sendable {
 }
 
 /// History entry for notification tracking
-public struct NotificationHistoryEntry: Sendable {
+public struct NotificationHistoryEntry: Sendable, Codable {
     public let id: UUID
     public let itemId: UUID
     public let type: ReminderType

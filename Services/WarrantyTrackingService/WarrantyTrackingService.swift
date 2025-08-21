@@ -51,7 +51,7 @@ public protocol WarrantyTrackingService: AnyObject {
     func getItemsMissingWarrantyInfo() async throws -> [Item]
 
     /// Get warranty statistics
-    func getWarrantyStatistics() async throws -> WarrantyStatistics
+    func getWarrantyStatistics() async throws -> WarrantyTrackingStatistics
 
     // MARK: - Bulk Operations
 

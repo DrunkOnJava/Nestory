@@ -361,7 +361,13 @@ struct ClaimExportView: View {
 
     private func iconForFormat(_ format: ClaimDocumentFormat) -> String {
         switch format {
-        case .pdf, .detailedPDF, .militaryFormat:
+        case .pdf:
+            "doc.fill"
+        case .standardPDF:
+            "doc.fill"
+        case .detailedPDF:
+            "doc.fill"
+        case .militaryFormat:
             "doc.fill"
         case .structuredJSON:
             "curlybraces"

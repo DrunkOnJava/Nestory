@@ -34,12 +34,12 @@ public struct DamageTypeCard: View {
             }
             .frame(maxWidth: .infinity)
             .padding()
-            .background(isSelected ? Color(hex: damageType.color).opacity(0.1) : Color(.systemGray6))
+            .background(isSelected ? (Color(hex: damageType.color) ?? Color.blue).opacity(0.1) : Color(.systemGray6))
             .cornerRadius(12)
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
                     .stroke(
-                        isSelected ? Color(hex: damageType.color) : Color.clear,
+                        isSelected ? (Color(hex: damageType.color) ?? Color.blue) : Color.clear,
                         lineWidth: 2
                     )
             )
@@ -50,16 +50,12 @@ public struct DamageTypeCard: View {
 
 // MARK: - Information Display
 
-public struct InfoRow: View {
+// Simple InfoRow component for displaying label-value pairs
+struct InfoRow: View {
     let label: String
     let value: String
-
-    public init(label: String, value: String) {
-        self.label = label
-        self.value = value
-    }
-
-    public var body: some View {
+    
+    var body: some View {
         HStack {
             Text(label)
                 .font(.caption)
@@ -88,7 +84,7 @@ public struct WorkflowProgressHeader: View {
             HStack {
                 Image(systemName: workflow.damageType.icon)
                     .font(.title2)
-                    .foregroundColor(Color(hex: workflow.damageType.color))
+                    .foregroundColor(Color(hex: workflow.damageType.color) ?? Color.blue)
 
                 VStack(alignment: .leading) {
                     Text(workflow.damageType.rawValue)

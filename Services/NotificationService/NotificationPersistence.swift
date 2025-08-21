@@ -438,7 +438,7 @@ public struct NotificationRecoveryResult: Sendable {
 }
 
 /// Result of system validation
-public struct ValidationResult: Sendable {
+public struct NotificationValidationResult: Sendable {
     public let isValid: Bool
     public let issues: [String]
     public let warnings: [String]
