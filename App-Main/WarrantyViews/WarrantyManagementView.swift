@@ -1,16 +1,20 @@
 //
 // Layer: App-Main
 // Module: WarrantyViews
-// Purpose: Manage item warranty information
+// Purpose: TCA-driven warranty information management
 //
+// 🏗️ TCA PATTERN: Dependency injection for service access
+// - Uses @Dependency for NotificationService instead of @StateObject
+// - Clean separation between UI logic and service implementation
+// - Testable through TCA dependency injection system
+// - Logging handled by service layer
 
-import os.log
+import ComposableArchitecture
 import SwiftUI
 
 struct WarrantyManagementView: View {
     @Bindable var item: Item
-    @StateObject private var notificationService = LiveNotificationService()
-    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory.dev", category: "WarrantyManagement")
+    @Dependency(\.notificationService) var notificationService
 
     @State private var warrantyEnabled = false
     @State private var warrantyExpiration = Date()
