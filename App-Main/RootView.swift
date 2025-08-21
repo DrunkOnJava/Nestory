@@ -7,10 +7,13 @@
 import ComposableArchitecture
 import SwiftUI
 
-struct RootView: View {
+// Import Features and UI components needed for root navigation
+// App layer can import from Features, UI, Services, Infrastructure, Foundation
+
+public struct RootView: View {
     @Bindable var store: StoreOf<RootFeature>
 
-    var body: some View {
+    public var body: some View {
         TabView(selection: $store.selectedTab) {
             ForEach(RootFeature.State.Tab.allCases, id: \.self) { tab in
                 Group {

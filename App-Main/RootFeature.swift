@@ -20,10 +20,15 @@ import ComposableArchitecture
 import Foundation
 import SwiftUI
 
+// Import Features (App layer can import Features)
+// Note: Import individual files, not modules, for proper TCA integration
+
+// Feature types are accessible since they're in the same target
+
 @Reducer
-struct RootFeature {
+public struct RootFeature {
     @ObservableState
-    struct State: Equatable {
+    public struct State: Equatable {
         // 🔄 TCA FEATURE STATES: Child feature integration
         var inventory = InventoryFeature.State() // ✅ COMPLETE: TCA inventory management
         var analytics = AnalyticsFeature.State() // ✅ COMPLETE: TCA analytics dashboard
@@ -36,13 +41,13 @@ struct RootFeature {
         // - Capture: Receipt/barcode scanning for documentation
         // - Analytics: Insights for insurance coverage gaps
         // - Settings: App configuration and export options
-        enum Tab: String, CaseIterable {
+        public enum Tab: String, CaseIterable {
             case inventory = "Inventory"
             case capture = "Capture"
             case analytics = "Analytics"
             case settings = "Settings"
 
-            var icon: String {
+            public var icon: String {
                 switch self {
                 case .inventory: "archivebox"
                 case .capture: "camera"
@@ -53,7 +58,7 @@ struct RootFeature {
         }
     }
 
-    enum Action {
+    public enum Action {
         case inventory(InventoryFeature.Action) // ✅ COMPLETE: TCA inventory actions
         case analytics(AnalyticsFeature.Action) // ✅ COMPLETE: TCA analytics actions
         case settings(SettingsFeature.Action) // ✅ COMPLETE: TCA settings actions
@@ -61,7 +66,7 @@ struct RootFeature {
         case onAppear
     }
 
-    var body: some ReducerOf<Self> {
+    public var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
             case .inventory:

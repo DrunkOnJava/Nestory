@@ -35,30 +35,9 @@
 
 import SwiftData
 import SwiftUI
+import ComposableArchitecture
 
-// MARK: - Mock Service for Initialization
-
-private struct MockInventoryService: InventoryService {
-    nonisolated func fetchItems() async throws -> [Item] { [] }
-    nonisolated func fetchItem(id _: UUID) async throws -> Item? { nil }
-    nonisolated func saveItem(_: Item) async throws {}
-    nonisolated func updateItem(_: Item) async throws {}
-    nonisolated func deleteItem(id _: UUID) async throws {}
-    nonisolated func searchItems(query _: String) async throws -> [Item] { [] }
-    nonisolated func fetchCategories() async throws -> [Category] { [] }
-    nonisolated func saveCategory(_: Category) async throws {}
-    nonisolated func assignItemToCategory(itemId _: UUID, categoryId _: UUID) async throws {}
-    nonisolated func fetchItemsByCategory(categoryId _: UUID) async throws -> [Item] { [] }
-
-    // Batch Operations
-    nonisolated func bulkImport(items _: [Item]) async throws {}
-    nonisolated func bulkUpdate(items _: [Item]) async throws {}
-    nonisolated func bulkDelete(itemIds _: [UUID]) async throws {}
-    nonisolated func bulkSave(items _: [Item]) async throws {}
-    nonisolated func bulkAssignCategory(itemIds _: [UUID], categoryId _: UUID) async throws {}
-
-    nonisolated func exportInventory(format _: ExportFormat) async throws -> Data { Data() }
-}
+// Note: MockInventoryService is now available from DependencyKeys
 
 struct InventoryListView: View {
     @Environment(\.modelContext) private var modelContext
@@ -69,8 +48,9 @@ struct InventoryListView: View {
     @State private var isSelectionMode = false
 
     init() {
-        // Initialize with placeholder, will be updated in onAppear
-        _viewModel = State(initialValue: InventoryListViewModel(inventoryService: MockInventoryService()))
+        // Initialize with dependency-injected service
+        @Dependency(\.inventoryService) var inventoryService
+        _viewModel = State(initialValue: InventoryListViewModel(inventoryService: inventoryService))
     }
 
     var body: some View {

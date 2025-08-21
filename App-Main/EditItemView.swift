@@ -223,7 +223,7 @@ struct EditItemView: View {
                 WarrantyDocumentsView(item: item)
             }
             .sheet(isPresented: $showingBarcodeScanner) {
-                BarcodeScannerView(item: item)
+                LegacyBarcodeScannerView(item: item)
                     .onDisappear {
                         // Update form fields if scanner populated them
                         if let newSerial = item.serialNumber {

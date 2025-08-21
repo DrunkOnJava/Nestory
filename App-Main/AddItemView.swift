@@ -169,7 +169,7 @@ struct AddItemView: View {
                 PhotoCaptureView(imageData: $imageData)
             }
             .sheet(isPresented: $showingBarcodeScanner) {
-                BarcodeScannerView(item: tempItem)
+                LegacyBarcodeScannerView(item: tempItem)
                     .onDisappear {
                         // Apply scanned values back to form
                         if let scannedSerial = tempItem.serialNumber {

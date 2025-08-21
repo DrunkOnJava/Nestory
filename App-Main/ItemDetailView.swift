@@ -35,11 +35,11 @@ struct ItemDetailView: View {
     @Dependency(\.notificationService) var notificationService
 
     private var warrantyTrackingService: LiveWarrantyTrackingService {
-        LiveWarrantyTrackingService(modelContext: modelContext, notificationService: notificationService)
+        LiveWarrantyTrackingService(modelContext: modelContext, notificationService: LiveNotificationService())
     }
 
     var body: some View {
-        ScrollView {
+        ScrollView(.vertical) {
             VStack(alignment: .leading, spacing: 20) {
                 // Item Image
                 if let imageData = item.imageData,
@@ -420,21 +420,8 @@ struct ItemDetailView: View {
     }
 }
 
-struct DetailRow: View {
-    let label: String
-    let value: String
-
-    var body: some View {
-        HStack {
-            Text(label)
-                .foregroundColor(.secondary)
-            Spacer()
-            Text(value)
-                .fontWeight(.medium)
-        }
-        .padding(.vertical, 2)
-    }
-}
+// DetailRow is now available from WarrantyTrackingComponents.swift
+// Removed local definition to avoid redeclaration conflict
 
 #Preview {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
