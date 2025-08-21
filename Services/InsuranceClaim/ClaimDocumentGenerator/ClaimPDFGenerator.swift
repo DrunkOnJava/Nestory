@@ -201,9 +201,9 @@ public struct ClaimPDFGenerator {
         currentY += 25
 
         let contactInfo = """
-        Phone: \(request.contactPhone ?? "Not provided")
-        Email: \(request.contactEmail ?? "Not provided")
-        Address: \(request.contactAddress ?? "Not provided")
+        Phone: \(request.contactInfo.phone)
+        Email: \(request.contactInfo.email)
+        Address: \(request.contactInfo.address)
         """
 
         contactInfo.draw(at: CGPoint(x: margin, y: currentY), withAttributes: detailAttributes)
@@ -256,28 +256,28 @@ public struct ClaimPDFGenerator {
         currentY += 25
 
         // Draw table rows
-        let maxItems = min(request.selectedItemIds.count, 15) // Limit for page space
+        let items = request.items
+        let maxItems = min(items.count, 15) // Limit for page space
         for i in 0..<maxItems {
-            if let item = getItemById(request.selectedItemIds[i], from: request.allItems) {
-                xOffset = margin
-                let rowData = [
-                    item.name,
-                    item.category?.name ?? "N/A",
-                    ClaimDocumentHelpers.formatCurrency(item.purchasePrice),
-                    "Claimed"
-                ]
+            let item = items[i]
+            xOffset = margin
+            let rowData = [
+                item.name,
+                item.category?.name ?? "N/A",
+                ClaimDocumentHelpers.formatCurrency(item.purchasePrice),
+                "Claimed"
+            ]
 
-                for (index, data) in rowData.enumerated() {
-                    let cellRect = CGRect(x: xOffset, y: currentY, width: columnWidths[index], height: 15)
-                    data.draw(in: cellRect, withAttributes: itemAttributes)
-                    xOffset += columnWidths[index]
-                }
-                currentY += 18
+            for (index, data) in rowData.enumerated() {
+                let cellRect = CGRect(x: xOffset, y: currentY, width: columnWidths[index], height: 15)
+                data.draw(in: cellRect, withAttributes: itemAttributes)
+                xOffset += columnWidths[index]
             }
+            currentY += 18
         }
 
-        if request.selectedItemIds.count > maxItems {
-            let remainingText = "... and \(request.selectedItemIds.count - maxItems) more items"
+        if items.count > maxItems {
+            let remainingText = "... and \(items.count - maxItems) more items"
             remainingText.draw(at: CGPoint(x: margin, y: currentY), withAttributes: itemAttributes)
             currentY += 20
         }
@@ -337,9 +337,7 @@ public struct ClaimPDFGenerator {
         "Claim Summary".draw(at: CGPoint(x: margin, y: currentY), withAttributes: sectionAttributes)
         currentY += 25
 
-        let selectedItems = request.selectedItemIds.compactMap { id in
-            getItemById(id, from: request.allItems)
-        }
+        let selectedItems = request.items
 
         let itemCount = "Total Items: \(selectedItems.count)"
         let totalValue = "Total Claimed Value: \(ClaimDocumentHelpers.formatCurrency(ClaimDocumentHelpers.calculateTotalValue(for: selectedItems)))"

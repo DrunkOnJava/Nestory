@@ -49,7 +49,7 @@ public struct ClaimDocumentCore {
         template: ClaimTemplate
     ) async throws -> Data {
         switch request.format {
-        case .standardPDF, .detailedPDF:
+        case .pdf, .standardPDF, .detailedPDF, .militaryFormat:
             try await pdfGenerator.generatePDF(request: request, template: template)
         case .structuredJSON:
             try jsonGenerator.generateJSON(request: request, template: template)

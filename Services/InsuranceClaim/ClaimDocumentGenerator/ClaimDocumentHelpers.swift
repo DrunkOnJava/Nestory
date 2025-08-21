@@ -201,6 +201,10 @@ public struct ItemStatistics {
 
 private extension Decimal {
     var isInteger: Bool {
-        return self.truncatingRemainder(dividingBy: 1) == 0
+        // Check if the decimal has no fractional part
+        var rounded = Decimal()
+        var original = self
+        NSDecimalRound(&rounded, &original, 0, .plain)
+        return self == rounded
     }
 }

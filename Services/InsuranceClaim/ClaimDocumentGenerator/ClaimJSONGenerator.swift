@@ -17,7 +17,7 @@ public struct ClaimJSONGenerator {
     ) throws -> Data {
         let claimData = ClaimJSONStructure(
             claim: ClaimJSONStructure.ClaimInfo(
-                id: request.id.uuidString,
+                id: UUID().uuidString,
                 type: request.claimType.rawValue,
                 insuranceCompany: request.insuranceCompany.rawValue,
                 policyNumber: request.policyNumber,
@@ -27,9 +27,9 @@ public struct ClaimJSONGenerator {
                 format: request.format.rawValue
             ),
             contact: ClaimJSONStructure.ContactInfo(
-                email: request.contactEmail,
-                phone: request.contactPhone,
-                address: request.contactAddress
+                email: request.contactInfo.email,
+                phone: request.contactInfo.phone,
+                address: request.contactInfo.address
             ),
             items: buildItemsJSON(request),
             summary: buildSummaryJSON(request),
@@ -50,48 +50,51 @@ public struct ClaimJSONGenerator {
     // MARK: - JSON Structure Builders
 
     private func buildItemsJSON(_ request: ClaimRequest) -> [ClaimJSONStructure.ClaimItem] {
-        return request.selectedItemIds.compactMap { itemId in
-            guard let item = request.allItems.first(where: { $0.id == itemId }) else {
-                return nil
-            }
-
-            return ClaimJSONStructure.ClaimItem(
-                id: item.id.uuidString,
-                name: item.name,
-                category: item.category?.name,
-                description: item.itemDescription,
-                purchasePrice: item.purchasePrice?.description,
-                purchaseDate: ClaimDocumentHelpers.formatDate(item.purchaseDate),
-                brand: item.brand,
-                model: item.model,
-                serialNumber: item.serialNumber,
-                condition: item.condition?.rawValue,
-                location: item.room?.name,
-                photos: item.photos?.map { photo in
-                    ClaimJSONStructure.PhotoInfo(
-                        id: photo.id?.uuidString,
-                        filename: photo.filename,
-                        url: photo.url,
-                        caption: photo.caption,
-                        timestamp: ClaimDocumentHelpers.formatDate(photo.timestamp)
-                    )
-                } ?? [],
-                documents: item.documents?.compactMap { doc in
-                    ClaimJSONStructure.DocumentInfo(
-                        id: doc.id?.uuidString,
-                        type: doc.type?.rawValue,
-                        filename: doc.filename,
-                        url: doc.url
-                    )
-                } ?? []
+        return request.items.map { item in
+            self.convertItemToJSON(item)
+        }
+    }
+    
+    private func convertItemToJSON(_ item: Item) -> ClaimJSONStructure.ClaimItem {
+        let photos = self.convertPhotosToJSON(item.photos)
+        let documents: [ClaimJSONStructure.DocumentInfo] = [] // Documents not available in current Item model
+        
+        return ClaimJSONStructure.ClaimItem(
+            id: item.id.uuidString,
+            name: item.name,
+            category: item.category?.name,
+            description: item.itemDescription,
+            purchasePrice: item.purchasePrice?.description,
+            purchaseDate: ClaimDocumentHelpers.formatDate(item.purchaseDate),
+            brand: item.brand,
+            model: item.modelNumber,
+            serialNumber: item.serialNumber,
+            condition: item.condition,
+            location: item.room?.name,
+            photos: photos,
+            documents: documents
+        )
+    }
+    
+    private func convertPhotosToJSON(_ photos: [Data]) -> [ClaimJSONStructure.PhotoInfo] {
+        return photos.enumerated().map { index, photoData in
+            ClaimJSONStructure.PhotoInfo(
+                id: UUID().uuidString,
+                filename: "photo_\(index).jpg",
+                url: nil,
+                caption: nil,
+                timestamp: ClaimDocumentHelpers.formatDate(Date())
             )
         }
     }
+    
+    private func convertDocumentsToJSON(_ documents: [Any]?) -> [ClaimJSONStructure.DocumentInfo] {
+        // Document type not available in current Item model
+        return []
+    }
 
     private func buildSummaryJSON(_ request: ClaimRequest) -> ClaimJSONStructure.Summary {
-        let selectedItems = request.selectedItemIds.compactMap { id in
-            request.allItems.first { $0.id == id }
-        }
+        let selectedItems = request.items
 
         return ClaimJSONStructure.Summary(
             totalItems: selectedItems.count,

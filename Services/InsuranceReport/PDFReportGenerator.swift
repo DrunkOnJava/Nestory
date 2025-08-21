@@ -21,8 +21,8 @@ public struct PDFReportGenerator {
     public func generatePDF(
         items: [Item],
         categories: [Category],
-        options: InsuranceReportService.ReportOptions,
-        metadata: InsuranceReportService.ReportMetadata,
+        options: ReportOptions,
+        metadata: ReportMetadata,
     ) throws -> Data {
         let format = UIGraphicsPDFRendererFormat()
         let renderer = UIGraphicsPDFRenderer(bounds: pageRect, format: format)
@@ -81,7 +81,7 @@ public struct PDFReportGenerator {
         startingAt yPosition: CGFloat,
         items: [Item],
         categories: [Category],
-        options: InsuranceReportService.ReportOptions,
+        options: ReportOptions,
         sectionDrawer: ReportSectionDrawer,
     ) -> CGFloat {
         var currentY = yPosition + 20
@@ -147,7 +147,7 @@ public struct PDFReportGenerator {
         in context: UIGraphicsPDFRendererContext,
         startingAt yPosition: CGFloat,
         items: [Item],
-        options: InsuranceReportService.ReportOptions,
+        options: ReportOptions,
         sectionDrawer: ReportSectionDrawer,
     ) -> CGFloat {
         var currentY = yPosition
@@ -173,7 +173,7 @@ public struct PDFReportGenerator {
         items: [Item],
         in context: UIGraphicsPDFRendererContext,
         at yPosition: CGFloat,
-        options: InsuranceReportService.ReportOptions,
+        options: ReportOptions,
         sectionDrawer: ReportSectionDrawer,
     ) -> CGFloat {
         var currentY = yPosition

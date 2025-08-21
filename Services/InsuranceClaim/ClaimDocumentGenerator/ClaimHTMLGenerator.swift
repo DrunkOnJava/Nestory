@@ -209,18 +209,16 @@ public struct ClaimHTMLGenerator {
         <div class="section">
             <h2 class="section-title">Contact Information</h2>
             <p>
-                <strong>Phone:</strong> \(request.contactPhone ?? "Not provided")<br>
-                <strong>Email:</strong> \(request.contactEmail ?? "Not provided")<br>
-                <strong>Address:</strong> \(request.contactAddress ?? "Not provided")
+                <strong>Phone:</strong> \(request.contactInfo.phone)<br>
+                <strong>Email:</strong> \(request.contactInfo.email)<br>
+                <strong>Address:</strong> \(request.contactInfo.address)
             </p>
         </div>
         """
     }
 
     private func generateItemsTable(request: ClaimRequest) -> String {
-        let selectedItems = request.selectedItemIds.compactMap { id in
-            request.allItems.first { $0.id == id }
-        }
+        let selectedItems = request.items
 
         let tableRows = selectedItems.map { item in
             """
@@ -228,7 +226,7 @@ public struct ClaimHTMLGenerator {
                 <td>\(item.name)</td>
                 <td>\(item.category?.name ?? "N/A")</td>
                 <td>\(ClaimDocumentHelpers.formatCurrency(item.purchasePrice))</td>
-                <td>\(item.condition?.rawValue ?? "N/A")</td>
+                <td>\(item.condition)</td>
                 <td>\(item.room?.name ?? "N/A")</td>
             </tr>
             """
@@ -256,9 +254,7 @@ public struct ClaimHTMLGenerator {
     }
 
     private func generateSummarySection(request: ClaimRequest) -> String {
-        let selectedItems = request.selectedItemIds.compactMap { id in
-            request.allItems.first { $0.id == id }
-        }
+        let selectedItems = request.items
 
         let totalValue = ClaimDocumentHelpers.calculateTotalValue(for: selectedItems)
         let itemCount = selectedItems.count

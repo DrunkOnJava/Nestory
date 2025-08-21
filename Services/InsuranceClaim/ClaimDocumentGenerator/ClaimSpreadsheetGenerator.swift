@@ -35,25 +35,23 @@ public struct ClaimSpreadsheetGenerator {
         // Add claim header information
         csvLines.append("# \(request.insuranceCompany.rawValue) Insurance Claim Export")
         csvLines.append("# Generated: \(ClaimDocumentHelpers.formatDate(request.createdAt))")
-        csvLines.append("# Claim ID: \(String(request.id.uuidString.prefix(8)))")
+        csvLines.append("# Claim ID: \(String(UUID().uuidString.prefix(8)))")
         csvLines.append("# Claim Type: \(request.claimType.rawValue)")
         
         if let policyNumber = request.policyNumber {
             csvLines.append("# Policy Number: \(policyNumber)")
         }
         
-        if let incidentDate = request.incidentDate {
-            csvLines.append("# Incident Date: \(ClaimDocumentHelpers.formatDate(incidentDate))")
-        }
+        csvLines.append("# Incident Date: \(ClaimDocumentHelpers.formatDate(request.incidentDate))")
 
         csvLines.append("") // Empty line
 
         // Add contact information section
         csvLines.append("# Contact Information")
         csvLines.append("Contact Type,Value")
-        csvLines.append("Email,\(csvEscape(request.contactEmail ?? "Not provided"))")
-        csvLines.append("Phone,\(csvEscape(request.contactPhone ?? "Not provided"))")
-        csvLines.append("Address,\(csvEscape(request.contactAddress ?? "Not provided"))")
+        csvLines.append("Email,\(csvEscape(request.contactInfo.email))")
+        csvLines.append("Phone,\(csvEscape(request.contactInfo.phone))")
+        csvLines.append("Address,\(csvEscape(request.contactInfo.address))")
         csvLines.append("") // Empty line
 
         // Add items header
@@ -61,9 +59,7 @@ public struct ClaimSpreadsheetGenerator {
         csvLines.append(buildItemsHeader())
 
         // Add items data
-        let selectedItems = request.selectedItemIds.compactMap { id in
-            request.allItems.first { $0.id == id }
-        }
+        let selectedItems = request.items
 
         for item in selectedItems {
             csvLines.append(buildItemRow(item))
@@ -106,20 +102,23 @@ public struct ClaimSpreadsheetGenerator {
     }
 
     private func buildItemRow(_ item: Item) -> String {
+        let id = item.id.uuidString
+        let name = item.name
+        let category = item.category?.name ?? ""
+        let description = item.itemDescription ?? ""
+        let brand = item.brand ?? ""
+        let model = item.modelNumber ?? ""
+        let serialNumber = item.serialNumber ?? ""
+        let purchasePrice = item.purchasePrice?.description ?? ""
+        let purchaseDate = ClaimDocumentHelpers.formatDate(item.purchaseDate)
+        let condition = item.condition
+        let location = item.room?.name ?? ""
+        let photoCount = String(item.photos.count)
+        let documentCount = "0" // Documents not available in current Item model
+        
         let fields = [
-            item.id.uuidString,
-            item.name,
-            item.category?.name ?? "",
-            item.itemDescription ?? "",
-            item.brand ?? "",
-            item.model ?? "",
-            item.serialNumber ?? "",
-            item.purchasePrice?.description ?? "",
-            ClaimDocumentHelpers.formatDate(item.purchaseDate),
-            item.condition?.rawValue ?? "",
-            item.room?.name ?? "",
-            String(item.photos?.count ?? 0),
-            String(item.documents?.count ?? 0)
+            id, name, category, description, brand, model, serialNumber,
+            purchasePrice, purchaseDate, condition, location, photoCount, documentCount
         ]
         return fields.map(csvEscape).joined(separator: ",")
     }
