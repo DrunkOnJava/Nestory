@@ -67,14 +67,14 @@ public struct SummaryCardsView: View {
 
 // MARK: - Summary Card Component
 
-struct SummaryCard: View {
+public struct SummaryCard: View {
     let title: String
     let value: String
     let subtitle: String?
     let icon: String
     let color: Color
 
-    init(title: String, value: String, subtitle: String? = nil, icon: String, color: Color) {
+    public init(title: String, value: String, subtitle: String? = nil, icon: String, color: Color) {
         self.title = title
         self.value = value
         self.subtitle = subtitle
@@ -82,7 +82,7 @@ struct SummaryCard: View {
         self.color = color
     }
 
-    var body: some View {
+    public var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Image(systemName: icon)

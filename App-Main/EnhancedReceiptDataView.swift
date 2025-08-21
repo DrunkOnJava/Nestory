@@ -139,6 +139,38 @@ struct EnhancedReceiptDataView: View {
 
 // MARK: - Supporting Views
 
+struct ConfidenceIndicatorView: View {
+    let confidence: Double
+    
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "gauge.badge.minus")
+                .foregroundColor(confidenceColor)
+                .font(.caption)
+            
+            Text("\(Int(confidence * 100))%")
+                .font(.caption)
+                .fontWeight(.medium)
+                .foregroundColor(confidenceColor)
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(confidenceColor.opacity(0.1))
+        .cornerRadius(6)
+    }
+    
+    private var confidenceColor: Color {
+        switch confidence {
+        case 0.8...:
+            return .green
+        case 0.6..<0.8:
+            return .orange
+        default:
+            return .red
+        }
+    }
+}
+
 struct ReceiptDataRow: View {
     let icon: String
     let label: String

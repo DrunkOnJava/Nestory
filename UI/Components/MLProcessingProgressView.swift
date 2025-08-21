@@ -137,10 +137,14 @@ struct MLProcessingProgressView: View {
 
 // MARK: - Confidence Indicator
 
-struct ConfidenceIndicatorView: View {
-    let confidence: Double
+public struct ConfidenceIndicatorView: View {
+    public let confidence: Double
+    
+    public init(confidence: Double) {
+        self.confidence = confidence
+    }
 
-    var body: some View {
+    public var body: some View {
         VStack(spacing: 8) {
             HStack {
                 Text("Processing Confidence")

@@ -414,41 +414,8 @@ struct ReceiptCaptureView: View {
         return result
     }
 
-    private func formatExtractedData(_ data: ReceiptOCRService.ReceiptData) -> String {
-        var result = "=== Extracted Receipt Data ===\n\n"
-
-        if let store = data.storeName {
-            result += "Store: \(store)\n"
-        }
-
-        if let date = data.date {
-            let formatter = DateFormatter()
-            formatter.dateStyle = .medium
-            result += "Date: \(formatter.string(from: date))\n"
-        }
-
-        if let total = data.totalAmount {
-            result += "Total: $\(total)\n"
-        }
-
-        if !data.items.isEmpty {
-            result += "\nItems Found:\n"
-            for item in data.items {
-                result += "• \(item.name)"
-                if let price = item.price {
-                    result += " - $\(price)"
-                }
-                if let qty = item.quantity {
-                    result += " (Qty: \(qty))"
-                }
-                result += "\n"
-            }
-        }
-
-        result += "\n--- Full Text ---\n\(data.fullText)"
-
-        return result
-    }
+    // Legacy formatExtractedData method removed - replaced by formatEnhancedReceiptData
+    // which properly handles the new EnhancedReceiptData structure
 
     private func applyExtractedData() {
         // Data is already applied via autoFillItemFromReceipt
