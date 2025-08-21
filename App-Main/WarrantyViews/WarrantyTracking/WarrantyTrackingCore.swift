@@ -177,16 +177,13 @@ public final class WarrantyTrackingCore: ObservableObject {
                 warrantyStatus = .expired
             } else {
                 let daysUntilExpiry = Calendar.current.dateComponents([.day], from: now, to: endDate).day ?? 0
-                    if daysUntilExpiry <= 30 {
-                        warrantyStatus = .expiringSoon
-                    } else if daysUntilExpiry <= 90 {
-                        warrantyStatus = .active
-                    } else {
-                        warrantyStatus = .active
-                    }
+                if daysUntilExpiry <= 30 {
+                    warrantyStatus = .expiringSoon
+                } else if daysUntilExpiry <= 90 {
+                    warrantyStatus = .active
+                } else {
+                    warrantyStatus = .active
                 }
-            } else {
-                warrantyStatus = .active
             }
         } else {
             warrantyStatus = .noWarranty

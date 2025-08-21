@@ -11,7 +11,7 @@ import SwiftData
 
 /// Protocol defining import/export capabilities for inventory data
 @MainActor
-public protocol ImportExportService: AnyObject {
+public protocol ImportExportService: AnyObject, Sendable {
     // MARK: - CSV Operations
 
     func importCSV(from url: URL, modelContext: ModelContext) async throws -> ImportResult

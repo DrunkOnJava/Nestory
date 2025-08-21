@@ -8,9 +8,10 @@ import SwiftData
 import UIKit
 import CloudKit
 
-private enum AuthServiceKey: DependencyKey {
+private enum AuthServiceKey: @preconcurrency DependencyKey {
     @MainActor
     static let liveValue: any AuthService = LiveAuthService()
+    @MainActor
     static let testValue: any AuthService = MockAuthService()
 }
 
@@ -49,13 +50,14 @@ private enum ExportServiceKey: DependencyKey {
     static let testValue: any ExportService = MockExportService()
 }
 
-private enum SyncServiceKey: DependencyKey {
+private enum SyncServiceKey: @preconcurrency DependencyKey {
     @MainActor
     static let liveValue: any SyncService = LiveSyncService()
+    @MainActor
     static let testValue: any SyncService = MockSyncService()
 }
 
-private enum AnalyticsServiceKey: DependencyKey {
+private enum AnalyticsServiceKey: @preconcurrency DependencyKey {
     @MainActor
     static var liveValue: any AnalyticsService {
         do {
@@ -68,6 +70,7 @@ private enum AnalyticsServiceKey: DependencyKey {
         }
     }
 
+    @MainActor
     static let testValue: any AnalyticsService = MockAnalyticsService()
 }
 
@@ -85,13 +88,14 @@ private enum CurrencyServiceKey: DependencyKey {
     static let testValue: any CurrencyService = MockCurrencyService()
 }
 
-private enum BarcodeScannerServiceKey: DependencyKey {
+private enum BarcodeScannerServiceKey: @preconcurrency DependencyKey {
     @MainActor
     static let liveValue: any BarcodeScannerService = LiveBarcodeScannerService()
+    @MainActor
     static let testValue: any BarcodeScannerService = MockBarcodeScannerService()
 }
 
-private enum NotificationServiceKey: DependencyKey {
+private enum NotificationServiceKey: @preconcurrency DependencyKey {
     @MainActor
     static var liveValue: any NotificationService {
         do {
@@ -103,10 +107,12 @@ private enum NotificationServiceKey: DependencyKey {
         }
     }
 
+    @MainActor
     static let testValue: any NotificationService = MockNotificationService()
 }
 
-private enum ImportExportServiceKey: DependencyKey {
+private enum ImportExportServiceKey: @preconcurrency DependencyKey {
+    @MainActor
     static var liveValue: any ImportExportService {
         do {
             return try LiveImportExportService()
@@ -117,20 +123,21 @@ private enum ImportExportServiceKey: DependencyKey {
         }
     }
 
+    @MainActor
     static let testValue: any ImportExportService = MockImportExportService()
 }
 
-private enum CloudBackupServiceKey: DependencyKey {
+private enum CloudBackupServiceKey: @preconcurrency DependencyKey {
     @MainActor
     static var liveValue: any CloudBackupService {
         LiveCloudBackupService()
     }
 
+    @MainActor
     static let testValue: any CloudBackupService = MockCloudBackupService()
 }
 
 private enum ReceiptOCRServiceKey: @preconcurrency DependencyKey {
-    @MainActor
     static var liveValue: any ReceiptOCRService {
         LiveReceiptOCRService()
     }
@@ -152,15 +159,17 @@ private enum InsuranceReportServiceKey: DependencyKey {
     static let testValue: any InsuranceReportService = MockInsuranceReportService()
 }
 
-private enum InsuranceClaimServiceKey: DependencyKey {
+private enum InsuranceClaimServiceKey: @preconcurrency DependencyKey {
     @MainActor
     static let liveValue: any InsuranceClaimService = LiveInsuranceClaimService()
+    @MainActor
     static let testValue: any InsuranceClaimService = MockInsuranceClaimService()
 }
 
-private enum ClaimPackageAssemblerServiceKey: DependencyKey {
+private enum ClaimPackageAssemblerServiceKey: @preconcurrency DependencyKey {
     @MainActor
     static let liveValue: any ClaimPackageAssemblerService = LiveClaimPackageAssemblerService()
+    @MainActor
     static let testValue: any ClaimPackageAssemblerService = MockClaimPackageAssemblerService()
 }
 
@@ -371,20 +380,20 @@ struct MockPhotoIntegrationService: PhotoIntegrationService, Sendable {
 }
 
 struct MockExportService: ExportService, Sendable {
-    func exportToCSV<T: Encodable>(_ data: [T]) async throws -> Data { 
-        Data() 
+    func exportToCSV<T: Encodable>(_ data: [T]) async throws -> Data {
+        Data()
     }
     
-    func exportToJSON<T: Encodable>(_ data: [T]) async throws -> Data { 
-        Data() 
+    func exportToJSON<T: Encodable>(_ data: [T]) async throws -> Data {
+        Data()
     }
     
-    func exportToExcel<T: Encodable>(_ data: [T]) async throws -> Data { 
-        Data() 
+    func exportToExcel<T: Encodable>(_ data: [T]) async throws -> Data {
+        Data()
     }
     
-    func exportToPDF<T: Encodable>(_ data: [T], template: PDFTemplate) async throws -> Data { 
-        Data() 
+    func exportToPDF<T: Encodable>(_ data: [T], template: PDFTemplate) async throws -> Data {
+        Data()
     }
     
     func exportCompleteBackup() async throws -> InventoryBackup {
@@ -530,15 +539,21 @@ struct MockReceiptOCRService: ReceiptOCRService, Sendable {
 
 struct MockInsuranceReportService: InsuranceReportService, Sendable {
     func generateInsuranceReport(
-        items: [Item], 
-        categories: [Category], 
+        items: [Item],
+        categories: [Category],
         options: ReportOptions
-    ) async throws -> Data {
-        return "Mock Insurance Report PDF Data for \(items.count) items".data(using: .utf8) ?? Data()
+    ) async throws -> InsuranceReportData {
+        return InsuranceReportData(
+            summary: "Mock insurance report summary for \(items.count) items",
+            content: "Mock Insurance Report PDF Data for \(items.count) items",
+            generatedDate: Date(),
+            policyHolder: "Mock Policy Holder",
+            policyNumber: "MOCK-12345"
+        )
     }
     
     func exportReport(
-        _ data: Data,
+        _ data: InsuranceReportData,
         filename: String
     ) async throws -> URL {
         let tempURL = URL(fileURLWithPath: "/tmp/\(filename).pdf")

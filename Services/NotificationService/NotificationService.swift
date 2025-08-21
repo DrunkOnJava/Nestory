@@ -12,7 +12,7 @@ import UserNotifications
 
 /// Protocol defining notification service capabilities for warranty tracking and reminders
 @MainActor
-public protocol NotificationService: AnyObject {
+public protocol NotificationService: AnyObject, Sendable {
     // MARK: - Authorization
 
     var isAuthorized: Bool { get }

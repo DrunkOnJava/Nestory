@@ -259,7 +259,7 @@ public enum AnalyticsError: Error, Equatable {
     case calculationError(String)
     case serviceUnavailable
 
-    static func == (lhs: AnalyticsError, rhs: AnalyticsError) -> Bool {
+    public static func == (lhs: AnalyticsError, rhs: AnalyticsError) -> Bool {
         switch (lhs, rhs) {
         case (.serviceUnavailable, .serviceUnavailable):
             true

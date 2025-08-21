@@ -37,7 +37,7 @@ import Foundation
 import SwiftData
 
 /// Protocol defining analytics capabilities for inventory data analysis
-public protocol AnalyticsService {
+public protocol AnalyticsService: Sendable {
     func calculateTotalValue(for items: [Item]) async -> Decimal
     func calculateCategoryBreakdown(for items: [Item]) async -> [CategoryBreakdown]
     func calculateValueTrends(for items: [Item], period: TrendPeriod) async -> [TrendPoint]

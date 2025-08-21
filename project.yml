@@ -38,11 +38,14 @@ settings:
     Debug:
       SWIFT_STRICT_CONCURRENCY: minimal
       SWIFT_TREAT_WARNINGS_AS_ERRORS: NO
-      OTHER_SWIFT_FLAGS: "-Xfrontend -disable-availability-checking -suppress-warnings"
+      OTHER_SWIFT_FLAGS: "-Xfrontend -disable-availability-checking -suppress-warnings -enable-experimental-feature Macros"
       DEBUG_INFORMATION_FORMAT: dwarf-with-dsym
+      SWIFT_MACRO_VALIDATION_MODE: disabled
     Release:
       SWIFT_STRICT_CONCURRENCY: complete
       DEBUG_INFORMATION_FORMAT: dwarf-with-dsym
+      OTHER_SWIFT_FLAGS: "-enable-experimental-feature Macros"
+      SWIFT_MACRO_VALIDATION_MODE: disabled
 
 packages:
   # TCA MIGRATION: Added for 6-layer architecture (ADR-0014)
@@ -200,4 +203,3 @@ schemes:
       config: Release
     archive:
       config: Release
-      
