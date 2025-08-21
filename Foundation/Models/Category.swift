@@ -63,3 +63,36 @@ extension Category: Equatable {
                lhs.itemCount == rhs.itemCount
     }
 }
+
+// MARK: - Codable Conformance for Export Operations
+extension Category: Codable {
+    private enum CodingKeys: String, CodingKey {
+        case id, name, icon, colorHex, itemCount, createdAt, updatedAt
+        // Note: Relationship properties excluded for export simplicity
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(name, forKey: .name)
+        try container.encode(icon, forKey: .icon)
+        try container.encode(colorHex, forKey: .colorHex)
+        try container.encode(itemCount, forKey: .itemCount)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encode(updatedAt, forKey: .updatedAt)
+    }
+    
+    public convenience init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let name = try container.decode(String.self, forKey: .name)
+        let icon = try container.decode(String.self, forKey: .icon)
+        let colorHex = try container.decode(String.self, forKey: .colorHex)
+        
+        self.init(name: name, icon: icon, colorHex: colorHex)
+        
+        self.id = try container.decode(UUID.self, forKey: .id)
+        self.itemCount = try container.decode(Int.self, forKey: .itemCount)
+        self.createdAt = try container.decode(Date.self, forKey: .createdAt)
+        self.updatedAt = try container.decode(Date.self, forKey: .updatedAt)
+    }
+}

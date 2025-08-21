@@ -77,6 +77,12 @@ public final class Warranty: @unchecked Sendable {
         return components.month ?? 0
     }
 
+    /// Backward compatibility for endDate references
+    public var endDate: Date {
+        get { expiresAt }
+        set { expiresAt = newValue }
+    }
+    
     /// Check if warranty is currently active
     public var isActive: Bool {
         let now = Date()
@@ -190,6 +196,7 @@ public enum WarrantyType: String, CaseIterable, Codable {
     case thirdParty = "third-party"
     case insurance
     case service
+    case store
 
     public var displayName: String {
         switch self {
@@ -199,6 +206,7 @@ public enum WarrantyType: String, CaseIterable, Codable {
         case .thirdParty: "Third-Party Warranty"
         case .insurance: "Insurance Coverage"
         case .service: "Service Contract"
+        case .store: "Store Warranty"
         }
     }
 
@@ -210,6 +218,7 @@ public enum WarrantyType: String, CaseIterable, Codable {
         case .thirdParty: "person.3.fill"
         case .insurance: "umbrella.fill"
         case .service: "wrench.and.screwdriver.fill"
+        case .store: "storefront.fill"
         }
     }
 }

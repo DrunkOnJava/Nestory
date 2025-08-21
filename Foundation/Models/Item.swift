@@ -72,6 +72,15 @@ public final class Item: @unchecked Sendable {
     // 🏠 LOCATION TRACKING: Where items are stored
     public var room: String? // Room location (Living Room, Office, etc.)
     public var specificLocation: String? // Specific location within room
+    
+    // 📍 COMPUTED LOCATION: Combined location string for display
+    public var location: String? {
+        guard let room = room else { return nil }
+        if let specific = specificLocation {
+            return "\(room) - \(specific)"
+        }
+        return room
+    }
 
     // 📄 DOCUMENT ATTACHMENTS: Supporting documentation
     public var manualPDFData: Data? // Product manual for reference
@@ -89,6 +98,19 @@ public final class Item: @unchecked Sendable {
     public var itemCondition: ItemCondition {
         get { ItemCondition(rawValue: condition) ?? .excellent }
         set { condition = newValue.rawValue }
+    }
+    
+    // 📸 COMPUTED PHOTO ACCESS: Compatibility with validation code
+    public var photos: [Data] {
+        var allPhotos: [Data] = []
+        if let imageData = imageData {
+            allPhotos.append(imageData)
+        }
+        if let receiptImageData = receiptImageData {
+            allPhotos.append(receiptImageData)
+        }
+        allPhotos.append(contentsOf: conditionPhotos)
+        return allPhotos
     }
 
     // ⏰ METADATA: Automatic lifecycle tracking
@@ -187,5 +209,74 @@ extension Item: Equatable {
                lhs.quantity == rhs.quantity &&
                lhs.category == rhs.category &&
                lhs.condition == rhs.condition
+    }
+}
+
+// MARK: - Codable Conformance for Export Operations  
+extension Item: Codable {
+    private enum CodingKeys: String, CodingKey {
+        case id, name, itemDescription, brand, modelNumber, serialNumber, barcode, notes
+        case quantity, purchasePrice, purchaseDate, currency, tags
+        case warrantyExpirationDate, warrantyProvider, warrantyNotes
+        case room, specificLocation, condition, conditionNotes, lastConditionUpdate
+        case createdAt, updatedAt
+        // Note: Data properties, relationships, and complex properties excluded for export simplicity
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(name, forKey: .name)
+        try container.encodeIfPresent(itemDescription, forKey: .itemDescription)
+        try container.encodeIfPresent(brand, forKey: .brand)
+        try container.encodeIfPresent(modelNumber, forKey: .modelNumber)
+        try container.encodeIfPresent(serialNumber, forKey: .serialNumber)
+        try container.encodeIfPresent(barcode, forKey: .barcode)
+        try container.encodeIfPresent(notes, forKey: .notes)
+        try container.encode(quantity, forKey: .quantity)
+        try container.encodeIfPresent(purchasePrice, forKey: .purchasePrice)
+        try container.encodeIfPresent(purchaseDate, forKey: .purchaseDate)
+        try container.encode(currency, forKey: .currency)
+        try container.encode(tags, forKey: .tags)
+        try container.encodeIfPresent(warrantyExpirationDate, forKey: .warrantyExpirationDate)
+        try container.encodeIfPresent(warrantyProvider, forKey: .warrantyProvider)
+        try container.encodeIfPresent(warrantyNotes, forKey: .warrantyNotes)
+        try container.encodeIfPresent(room, forKey: .room)
+        try container.encodeIfPresent(specificLocation, forKey: .specificLocation)
+        try container.encode(condition, forKey: .condition)
+        try container.encodeIfPresent(conditionNotes, forKey: .conditionNotes)
+        try container.encodeIfPresent(lastConditionUpdate, forKey: .lastConditionUpdate)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encode(updatedAt, forKey: .updatedAt)
+    }
+    
+    public convenience init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let name = try container.decode(String.self, forKey: .name)
+        let itemDescription = try container.decodeIfPresent(String.self, forKey: .itemDescription)
+        let quantity = try container.decode(Int.self, forKey: .quantity)
+        
+        self.init(name: name, itemDescription: itemDescription, quantity: quantity)
+        
+        self.id = try container.decode(UUID.self, forKey: .id)
+        self.brand = try container.decodeIfPresent(String.self, forKey: .brand)
+        self.modelNumber = try container.decodeIfPresent(String.self, forKey: .modelNumber)
+        self.serialNumber = try container.decodeIfPresent(String.self, forKey: .serialNumber)
+        self.barcode = try container.decodeIfPresent(String.self, forKey: .barcode)
+        self.notes = try container.decodeIfPresent(String.self, forKey: .notes)
+        self.purchasePrice = try container.decodeIfPresent(Decimal.self, forKey: .purchasePrice)
+        self.purchaseDate = try container.decodeIfPresent(Date.self, forKey: .purchaseDate)
+        self.currency = try container.decode(String.self, forKey: .currency)
+        self.tags = try container.decode([String].self, forKey: .tags)
+        self.warrantyExpirationDate = try container.decodeIfPresent(Date.self, forKey: .warrantyExpirationDate)
+        self.warrantyProvider = try container.decodeIfPresent(String.self, forKey: .warrantyProvider)
+        self.warrantyNotes = try container.decodeIfPresent(String.self, forKey: .warrantyNotes)
+        self.room = try container.decodeIfPresent(String.self, forKey: .room)
+        self.specificLocation = try container.decodeIfPresent(String.self, forKey: .specificLocation)
+        self.condition = try container.decode(String.self, forKey: .condition)
+        self.conditionNotes = try container.decodeIfPresent(String.self, forKey: .conditionNotes)
+        self.lastConditionUpdate = try container.decodeIfPresent(Date.self, forKey: .lastConditionUpdate)
+        self.createdAt = try container.decode(Date.self, forKey: .createdAt)
+        self.updatedAt = try container.decode(Date.self, forKey: .updatedAt)
     }
 }

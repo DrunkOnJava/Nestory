@@ -113,6 +113,26 @@ public final class Receipt: @unchecked Sendable {
     public var isReliable: Bool {
         confidence >= 0.7 && hasOCRData
     }
+    
+    // MARK: - Compatibility Properties
+    
+    /// Alias for vendor property (for compatibility with validation code)
+    public var merchantName: String {
+        get { vendor }
+        set { vendor = newValue; updatedAt = Date() }
+    }
+    
+    /// Total amount as Decimal (for compatibility with validation code)
+    public var totalAmount: Decimal? {
+        get { totalMoney?.amount }
+        set { 
+            if let amount = newValue {
+                totalMoney = Money(amount: amount, currencyCode: totalMoney?.currencyCode ?? "USD")
+            } else {
+                totalMoney = nil
+            }
+        }
+    }
 
     // MARK: - Methods
 

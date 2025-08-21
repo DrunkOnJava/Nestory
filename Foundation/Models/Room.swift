@@ -60,3 +60,31 @@ extension Room: Equatable {
                lhs.roomDescription == rhs.roomDescription
     }
 }
+
+// MARK: - Codable Conformance for Export Operations
+extension Room: Codable {
+    private enum CodingKeys: String, CodingKey {
+        case id, name, icon, roomDescription, floor
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(name, forKey: .name)
+        try container.encode(icon, forKey: .icon)
+        try container.encodeIfPresent(roomDescription, forKey: .roomDescription)
+        try container.encodeIfPresent(floor, forKey: .floor)
+    }
+    
+    public convenience init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let name = try container.decode(String.self, forKey: .name)
+        let icon = try container.decode(String.self, forKey: .icon)
+        let roomDescription = try container.decodeIfPresent(String.self, forKey: .roomDescription)
+        let floor = try container.decodeIfPresent(String.self, forKey: .floor)
+        
+        self.init(name: name, icon: icon, roomDescription: roomDescription, floor: floor)
+        
+        self.id = try container.decode(UUID.self, forKey: .id)
+    }
+}
