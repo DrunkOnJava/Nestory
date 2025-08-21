@@ -198,3 +198,157 @@ struct ItemStatusChart: View {
         }
     }
 }
+
+// MARK: - Enhanced Analytics Charts
+
+// MARK: - Category Breakdown Chart
+
+struct CategoryBreakdownChart: View {
+    let breakdown: [CategoryBreakdown]
+
+    var body: some View {
+        if breakdown.isEmpty {
+            Text("No category data available")
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else {
+            Chart(breakdown, id: \.categoryName) { data in
+                SectorMark(
+                    angle: .value("Value", data.totalValue),
+                    innerRadius: .ratio(0.5)
+                )
+                .foregroundStyle(by: .value("Category", data.categoryName))
+                .annotation(position: .overlay) {
+                    if data.percentage > 5 { // Only show percentage if it's significant
+                        Text("\(Int(data.percentage))%")
+                            .font(.caption)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                    }
+                }
+            }
+            .chartLegend(position: .bottom, alignment: .center, spacing: 8)
+        }
+    }
+}
+
+// MARK: - Value Trends Chart
+
+struct ValueTrendsChart: View {
+    let trends: [TrendPoint]
+    let period: TrendPeriod
+
+    var body: some View {
+        if trends.isEmpty {
+            Text("No trend data available")
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else {
+            Chart(trends, id: \.date) { trend in
+                LineMark(
+                    x: .value("Date", trend.date),
+                    y: .value("Value", trend.value)
+                )
+                .foregroundStyle(.blue)
+                .symbol(.circle)
+
+                AreaMark(
+                    x: .value("Date", trend.date),
+                    y: .value("Value", trend.value)
+                )
+                .foregroundStyle(
+                    .linearGradient(
+                        colors: [.blue.opacity(0.3), .blue.opacity(0.1)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+            }
+            .chartXAxis {
+                AxisMarks(values: .stride(by: xAxisStride)) { _ in
+                    AxisGridLine()
+                    AxisValueLabel(format: .dateTime.month(.abbreviated))
+                }
+            }
+            .chartYAxis {
+                AxisMarks { _ in
+                    AxisGridLine()
+                    AxisValueLabel(format: .currency(code: "USD"))
+                }
+            }
+        }
+    }
+
+    private var xAxisStride: Calendar.Component {
+        switch period {
+        case .weekly: .day
+        case .monthly: .month
+        case .yearly: .year
+        default: .month
+        }
+    }
+}
+
+// MARK: - Top Items Chart
+
+struct TopItemsChart: View {
+    let items: [Item]
+
+    var body: some View {
+        if items.isEmpty {
+            Text("No items available")
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else {
+            Chart(items, id: \.id) { item in
+                BarMark(
+                    x: .value("Value", item.purchasePrice ?? 0),
+                    y: .value("Item", item.name)
+                )
+                .foregroundStyle(.blue)
+            }
+            .chartXAxis {
+                AxisMarks { _ in
+                    AxisGridLine()
+                    AxisValueLabel(format: .currency(code: "USD"))
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Depreciation Chart
+
+struct DepreciationChart: View {
+    let reports: [DepreciationReport]
+
+    var displayReports: [DepreciationReport] {
+        Array(reports.prefix(10)) // Show top 10 most depreciated items
+    }
+
+    var body: some View {
+        if displayReports.isEmpty {
+            Text("No depreciation data available")
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else {
+            Chart(displayReports, id: \.itemId) { report in
+                BarMark(
+                    x: .value("Depreciation", report.totalDepreciation),
+                    y: .value("Item", report.itemName)
+                )
+                .foregroundStyle(.red)
+            }
+            .chartXAxis {
+                AxisMarks { _ in
+                    AxisGridLine()
+                    AxisValueLabel(format: .currency(code: "USD"))
+                }
+            }
+        }
+    }
+}

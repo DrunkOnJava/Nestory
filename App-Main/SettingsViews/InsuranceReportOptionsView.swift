@@ -4,8 +4,8 @@
 // Purpose: Insurance report options view for configuring report generation
 //
 
-import os.log
 import SwiftUI
+import os.log
 
 struct InsuranceReportOptionsView: View {
     let items: [Item]

@@ -6,6 +6,8 @@
 
 import SwiftUI
 
+// APPLE_FRAMEWORK_OPPORTUNITY: Replace with AppTrackingTransparency - Add ATTrackingManager for user consent on analytics tracking mentioned in privacy policy
+
 struct PrivacyPolicyView: View {
     @Environment(\.dismiss) private var dismiss
 

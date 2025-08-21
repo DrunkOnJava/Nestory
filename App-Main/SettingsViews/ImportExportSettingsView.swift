@@ -1,9 +1,14 @@
 //
 // Layer: App
 // Module: Settings
-// Purpose: Import and export functionality including insurance reports
+// Purpose: TCA-driven import and export functionality including insurance reports
 //
+// 🏗️ TCA PATTERN: Progressive dependency injection conversion
+// - Converting @StateObject to @Dependency for services with protocols
+// - ImportExportService: ✅ CONVERTED to TCA dependency injection
+// - InsuranceReportService, InsuranceExportService: ⏳ PENDING protocol creation
 
+import ComposableArchitecture
 import SwiftData
 import SwiftUI
 
@@ -14,7 +19,7 @@ struct ImportExportSettingsView: View {
     @Environment(\.modelContext) private var modelContext
 
     @StateObject private var insuranceReportService = InsuranceReportService()
-    @StateObject private var importExportService = LiveImportExportService()
+    @Dependency(\.importExportService) var importExportService
     @StateObject private var insuranceExportService = InsuranceExportService()
 
     // REMINDER: InsuranceReportService, ImportExportService, and InsuranceExportService are all wired here!
@@ -28,6 +33,7 @@ struct ImportExportSettingsView: View {
     @State private var showingImportResult = false
     @State private var importResult: ImportResult?
     @State private var showingInsuranceExportOptions = false
+    @State private var showingClaimSubmission = false
 
     var body: some View {
         Section("Import & Export") {
@@ -67,6 +73,12 @@ struct ImportExportSettingsView: View {
                 }
             }
             .disabled(items.isEmpty || insuranceExportService.isExporting)
+
+            // REMINDER: ClaimSubmissionView is wired here!
+            Button(action: { showingClaimSubmission = true }) {
+                Label("Submit Insurance Claim", systemImage: "paperplane.fill")
+            }
+            .disabled(items.isEmpty)
         }
         .sheet(isPresented: $showingExportOptions) {
             ExportOptionsView(items: items, categories: categories)
@@ -86,6 +98,9 @@ struct ImportExportSettingsView: View {
                 rooms: rooms,
                 exportService: insuranceExportService,
             )
+        }
+        .sheet(isPresented: $showingClaimSubmission) {
+            ClaimSubmissionView(modelContext: modelContext)
         }
         .fileImporter(
             isPresented: $showingImportPicker,
