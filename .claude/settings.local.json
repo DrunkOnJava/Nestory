@@ -63,7 +63,8 @@
       "Bash(xcrun simctl spawn:*)",
       "Bash(git stash show:*)",
       "Bash(git stash pop:*)",
-      "Bash(git merge:*)"
+      "Bash(git merge:*)",
+      "Bash(git pull:*)"
     ],
     "deny": [],
     "ask": [],
