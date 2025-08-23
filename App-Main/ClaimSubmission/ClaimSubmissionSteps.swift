@@ -77,7 +77,7 @@ public enum ClaimSubmissionSteps {
 
                 // Selection Summary
                 if !core.selectedItems.isEmpty {
-                    ItemSelectionControls(
+                    ClaimItemSelectionControls(
                         selectedCount: core.selectedItems.count,
                         onSelectAll: { core.selectAllItems(items) },
                         onClearAll: { core.clearAllItems() }

@@ -7,6 +7,9 @@
 import ComposableArchitecture
 import SwiftUI
 
+// Import the actual ItemDetailView from App-Main layer
+import SwiftData
+
 public struct InventoryView: View {
     @Bindable var store: StoreOf<InventoryFeature>
 
@@ -62,13 +65,9 @@ public struct InventoryView: View {
             }
         }
         .listStyle(.plain)
-        .searchable(
-            text: $store.searchText.sending(\.searchTextChanged),
-            prompt: "Search items, categories, or locations"
-        )
     }
 
-    var body: some View {
+    public var body: some View {
         NavigationStackStore(store.scope(state: \.path, action: \.path)) {
             mainContent
             .navigationTitle("Inventory")
@@ -88,17 +87,24 @@ public struct InventoryView: View {
                     }
                 }
             }
-            .onAppear {
-                store.send(.onAppear)
-            }
-            .alert($store.scope(state: \.alert, action: \.alert))
         } destination: { store in
-            switch store.case {
-            case let .itemDetail(store):
-                ItemDetailPlaceholderView(store: store)
-            case let .itemEdit(store):
-                ItemEditView(store: store)
+            switch store.state {
+            case .itemDetail:
+                ItemDetailPlaceholderView(store: store.scope(state: \.itemDetail, action: \.itemDetail))
+            case .itemEdit:
+                ItemEditView(store: store.scope(state: \.itemEdit, action: \.itemEdit))
             }
+        }
+        .searchable(
+            text: $store.searchText.sending(\.searchTextChanged),
+            prompt: "Search items, categories, or locations"
+        )
+        .alert(store: store.scope(state: \.$alert, action: \.alert))
+        .onAppear {
+            store.send(.onAppear)
+        }
+        .refreshable {
+            await store.send(.loadItems).finish()
         }
     }
 }
@@ -157,14 +163,143 @@ private struct EmptyInventoryView: View {
     }
 }
 
-// MARK: - Placeholder Child Views
+// MARK: - Child Views
 
 private struct ItemDetailPlaceholderView: View {
     let store: StoreOf<ItemDetailFeature>
+    
+    @Environment(\.modelContext) private var modelContext
 
     var body: some View {
-        Text("Item Detail - Coming Soon")
-            .navigationTitle("Item Details")
+        ScrollView(.vertical) {
+            VStack(alignment: .leading, spacing: 20) {
+                // Item Image
+                if let imageData = store.item.imageData,
+                   let uiImage = UIImage(data: imageData)
+                {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(maxHeight: 300)
+                        .cornerRadius(12)
+                        .padding(.horizontal)
+                } else {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.gray.opacity(0.2))
+                        .frame(height: 200)
+                        .overlay(
+                            VStack(spacing: 8) {
+                                Image(systemName: "photo")
+                                    .font(.system(size: 40))
+                                    .foregroundColor(.secondary)
+                                Text("No Image")
+                                    .foregroundColor(.secondary)
+                            }
+                        )
+                        .padding(.horizontal)
+                }
+
+                // Item Information
+                VStack(alignment: .leading, spacing: 16) {
+                    Group {
+                        Text(store.item.name)
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+
+                        if let description = store.item.itemDescription, !description.isEmpty {
+                            Text(description)
+                                .font(.body)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+
+                    // Purchase Information
+                    GroupBox("Purchase Details") {
+                        VStack(alignment: .leading, spacing: 8) {
+                            if let price = store.item.purchasePrice {
+                                HStack {
+                                    Text("Purchase Price")
+                                    Spacer()
+                                    Text(formatPrice(price))
+                                        .fontWeight(.semibold)
+                                }
+                            }
+                            
+                            if let date = store.item.purchaseDate {
+                                HStack {
+                                    Text("Purchase Date")
+                                    Spacer()
+                                    Text(date.formatted(date: .abbreviated, time: .omitted))
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                            
+                            if let brand = store.item.brand, !brand.isEmpty {
+                                HStack {
+                                    Text("Brand")
+                                    Spacer()
+                                    Text(brand)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                        }
+                    }
+
+                    // Location Information
+                    if let room = store.item.room, !room.isEmpty {
+                        GroupBox("Location") {
+                            HStack {
+                                Image(systemName: "location")
+                                    .foregroundColor(.secondary)
+                                Text(room)
+                                if let location = store.item.specificLocation, !location.isEmpty {
+                                    Text(" - \(location)")
+                                        .foregroundColor(.secondary)
+                                }
+                                Spacer()
+                            }
+                        }
+                    }
+
+                    // Documentation Status
+                    GroupBox("Documentation") {
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Circle()
+                                    .fill(store.item.hasCompleteDocumentation ? .green : .orange)
+                                    .frame(width: 12, height: 12)
+                                Text(store.item.hasCompleteDocumentation ? "Complete" : "Needs attention")
+                                    .fontWeight(.medium)
+                                Spacer()
+                            }
+                            
+                            if !store.item.hasCompleteDocumentation {
+                                Text("Missing: Image, Receipt, or Serial Number")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal)
+            }
+        }
+        .navigationTitle("Item Details")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button("Edit") {
+                    store.send(.editTapped)
+                }
+            }
+        }
+    }
+    
+    private func formatPrice(_ price: Decimal) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.currencyCode = "USD"
+        return formatter.string(from: price as NSNumber) ?? "$0.00"
     }
 }
 
@@ -253,10 +388,10 @@ struct ItemRow: View {
                 // Chevron
                 Image(systemName: "chevron.right")
                     .font(.caption)
-                    .foregroundColor(.quaternary)
+                    .foregroundColor(Color(UIColor.quaternaryLabel))
             }
             .padding(12)
-            .background(Color(.systemGray6))
+            .background(Color(UIColor.systemGray6))
             .cornerRadius(12)
         }
         .buttonStyle(.plain)
@@ -289,7 +424,7 @@ extension Item {
     var hasCompleteDocumentation: Bool {
         // Check for essential documentation elements for insurance purposes
         let hasImage = imageData != nil
-        let hasReceipt = receiptImageData != nil || !receipts.isEmpty
+        let hasReceipt = receiptImageData != nil || !(receipts?.isEmpty ?? true)
         let hasSerial = serialNumber != nil && !serialNumber!.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         let hasPurchaseInfo = purchasePrice != nil && purchaseDate != nil
 

@@ -22,10 +22,10 @@ public protocol InsuranceReportService: Sendable {
         items: [Item],
         categories: [Category],
         options: ReportOptions
-    ) async throws -> InsuranceReportData
+    ) async throws -> Data
     
     func exportReport(
-        _ data: InsuranceReportData,
+        _ data: Data,
         filename: String
     ) async throws -> URL
     
@@ -77,7 +77,7 @@ public final class LiveInsuranceReportService: InsuranceReportService, Observabl
         items: [Item],
         categories: [Category],
         options: ReportOptions
-    ) async throws -> InsuranceReportData {
+    ) async throws -> Data {
         guard !items.isEmpty else {
             throw ReportError.noItems
         }
@@ -109,7 +109,7 @@ public final class LiveInsuranceReportService: InsuranceReportService, Observabl
     // MARK: - Export Functions
 
     public func exportReport(
-        _ data: InsuranceReportData,
+        _ data: Data,
         filename: String = "HomeInventory_Insurance_Report",
     ) async throws -> URL {
         try exportManager.exportReport(data, filename: filename)
@@ -119,7 +119,7 @@ public final class LiveInsuranceReportService: InsuranceReportService, Observabl
         exportManager.shareReport(url)
     }
 
-    public func saveToDocuments(_ data: InsuranceReportData, filename: String) async throws -> URL {
+    public func saveToDocuments(_ data: Data, filename: String) async throws -> URL {
         try exportManager.saveToDocuments(data, filename: filename)
     }
 

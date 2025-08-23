@@ -49,24 +49,7 @@ public struct DamageTypeCard: View {
 }
 
 // MARK: - Information Display
-
-// Simple InfoRow component for displaying label-value pairs
-struct InfoRow: View {
-    let label: String
-    let value: String
-    
-    var body: some View {
-        HStack {
-            Text(label)
-                .font(.caption)
-                .foregroundColor(.secondary)
-            Spacer()
-            Text(value)
-                .font(.caption)
-                .fontWeight(.medium)
-        }
-    }
-}
+// InfoRow component is available from WarrantyViews/WarrantyTracking/Sheets/Components
 
 // MARK: - Progress Views
 

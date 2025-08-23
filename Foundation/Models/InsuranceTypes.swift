@@ -9,6 +9,7 @@ import Foundation
 public enum ClaimType: String, CaseIterable, Equatable, Sendable, Codable {
     case theft = "Theft"
     case fire = "Fire Damage"
+    case flood = "Flood Damage"
     case water = "Water Damage"
     case vandalism = "Vandalism"
     case naturalDisaster = "Natural Disaster"
@@ -23,7 +24,7 @@ public enum ClaimType: String, CaseIterable, Equatable, Sendable, Codable {
         switch self {
         case .theft, .burglary: "person.fill.xmark"
         case .fire: "flame.fill"
-        case .water: "drop.fill"
+        case .flood, .water: "drop.fill"
         case .vandalism: "hammer.fill"
         case .naturalDisaster: "tornado"
         case .accident: "exclamationmark.triangle.fill"
@@ -38,6 +39,8 @@ public enum ClaimType: String, CaseIterable, Equatable, Sendable, Codable {
             return ["Police Report", "List of Stolen Items", "Purchase Receipts", "Photos of Items"]
         case .fire:
             return ["Fire Department Report", "Photos of Damage", "Inventory List", "Repair Estimates"]
+        case .flood:
+            return ["Flood Zone Maps", "Photos of Damage", "Water Level Documentation", "FEMA Reports"]
         case .water:
             return ["Photos of Damage", "Source of Water Damage", "Repair Estimates", "Mitigation Records"]
         case .vandalism:
@@ -69,7 +72,7 @@ public enum InsuranceCompany: String, CaseIterable, Equatable, Sendable, Codable
     case amica = "Amica"
     case other = "Other"
     
-    public var displayName: String { rawValue }
+    // displayName is provided by Services/InsuranceClaim/ClaimTemplateManager.swift extension
     
     public var supportedClaimTypes: [ClaimType] {
         // All major insurers support all claim types

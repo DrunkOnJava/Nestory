@@ -45,6 +45,9 @@ public protocol InventoryService: Sendable {
     func saveCategory(_ category: Category) async throws // Create category
     func assignItemToCategory(itemId: UUID, categoryId: UUID) async throws // Link item to category
     func fetchItemsByCategory(categoryId: UUID) async throws -> [Item] // Filter by category
+    
+    // 🏠 ROOM OPERATIONS: Location management for items
+    func fetchRooms() async throws -> [Room] // Load all rooms
 
     // Batch Operations for Performance
     func bulkImport(items: [Item]) async throws
@@ -256,6 +259,21 @@ public struct LiveInventoryService: InventoryService, @unchecked Sendable {
             return items
         } catch {
             logger.error("Failed to fetch items by category: \(error.localizedDescription)")
+            throw InventoryError.fetchFailed(error.localizedDescription)
+        }
+    }
+
+    public func fetchRooms() async throws -> [Room] {
+        let descriptor = FetchDescriptor<Room>(
+            sortBy: [SortDescriptor(\.name)]
+        )
+
+        do {
+            let rooms = try modelContext.fetch(descriptor)
+            logger.debug("Fetched \(rooms.count) rooms")
+            return rooms
+        } catch {
+            logger.error("Failed to fetch rooms: \(error.localizedDescription)")
             throw InventoryError.fetchFailed(error.localizedDescription)
         }
     }

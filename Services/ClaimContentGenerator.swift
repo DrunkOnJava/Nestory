@@ -242,7 +242,7 @@ public final class ClaimContentGenerator {
         4. Total claimed value: $\(totalValue)
 
         Items with purchase documentation: \(items.count(where: { $0.purchasePrice != nil }))
-        Items with receipt images: \(items.count(where: { !$0.receipts.isEmpty || $0.receiptImageData != nil }))
+        Items with receipt images: \(items.count(where: { !($0.receipts?.isEmpty ?? true) || $0.receiptImageData != nil }))
 
         This attestation is made this \(DateFormatter.longStyle.string(from: Date())).
 

@@ -17,10 +17,10 @@ struct ReceiptsSection: View {
     var body: some View {
         GroupBox("Receipt Documentation") {
             VStack(spacing: 12) {
-                if !item.receipts.isEmpty {
+                if !(item.receipts?.isEmpty ?? true) {
                     // Show receipts list
                     VStack(spacing: 8) {
-                        ForEach(item.receipts.sorted(by: { $0.purchaseDate > $1.purchaseDate })) { receipt in
+                        ForEach((item.receipts ?? []).sorted(by: { $0.purchaseDate > $1.purchaseDate })) { receipt in
                             ReceiptRow(receipt: receipt) {
                                 selectedReceipt = receipt
                                 showingReceiptDetail = true

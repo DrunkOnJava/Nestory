@@ -29,7 +29,7 @@ public enum ClaimExportValidators {
         }
 
         if requirements.requiresReceipts {
-            let itemsWithoutReceipts = items.filter(\.receipts.isEmpty)
+            let itemsWithoutReceipts = items.filter { $0.receipts?.isEmpty ?? true }
             if !itemsWithoutReceipts.isEmpty {
                 validationErrors.append("\(itemsWithoutReceipts.count) items missing receipts")
             }

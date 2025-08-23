@@ -68,7 +68,7 @@ public final class LiveInsuranceClaimService: InsuranceClaimService, ObservableO
     }
 
     public func exportClaim(_ claim: GeneratedClaim, includePhotos: Bool = true) async throws -> URL {
-        try await core.exportClaim(claim, includePhotos: includePhotos)
+        try await core.exportClaim(claim)
     }
 
     public func createHTMLPackage(for claim: GeneratedClaim) async throws -> URL {

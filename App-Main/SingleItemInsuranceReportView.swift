@@ -140,29 +140,29 @@ struct SingleItemInsuranceReportView: View {
     }
 }
 
+// MARK: - Previews
+#if DEBUG
+private struct PreviewMockInsuranceReportService: InsuranceReportService {
+    func generateInsuranceReport(items: [Item], categories: [Category], options: ReportOptions) async throws -> Data {
+        Data()
+    }
+    
+    func exportReport(_ data: Data, filename: String) async throws -> URL {
+        URL(fileURLWithPath: "/tmp/mock.pdf")
+    }
+    
+    func shareReport(_ url: URL) async { }
+}
+
 #Preview {
     let item = Item(name: "MacBook Pro", itemDescription: "14-inch MacBook Pro", quantity: 1)
     item.purchasePrice = 2499.00
     item.currency = "$"
 
-    // Create a mock service for preview
-    struct MockInsuranceReportService: InsuranceReportService {
-        func generateInsuranceReport(items: [Item], categories: [Category], options: ReportOptions) async throws -> InsuranceReportData {
-            return InsuranceReportData(content: "Mock report", generatedDate: Date(), summary: "Mock", policyHolder: "Mock", policyNumber: "Mock")
-        }
-        
-        func exportReport(_ data: InsuranceReportData, filename: String) async throws -> URL {
-            return URL(fileURLWithPath: "/tmp/mock.pdf")
-        }
-        
-        func shareReport(_ url: URL) async {
-            // Mock implementation
-        }
-    }
-
     SingleItemInsuranceReportView(
         item: item,
-        insuranceReportService: MockInsuranceReportService()
+        insuranceReportService: PreviewMockInsuranceReportService()
     )
     .modelContainer(for: [Item.self, Category.self], inMemory: true)
 }
+#endif

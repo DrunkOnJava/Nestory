@@ -43,6 +43,25 @@ public final class DamageAssessmentService: ObservableObject, DamageAssessmentSe
         self.reportGenerator = DamageAssessmentReportGenerator()
         self.photoManager = DamagePhotoManager()
     }
+    
+    // MARK: - Mock Instance Factory
+    
+    public static func createMockInstance() -> DamageAssessmentService {
+        // Create a minimal in-memory ModelContext for the mock instance
+        do {
+            let config = ModelConfiguration(isStoredInMemoryOnly: true)
+            let container = try ModelContainer(for: Item.self, configurations: config)
+            let context = ModelContext(container)
+            return try DamageAssessmentService(modelContext: context)
+        } catch {
+            print("⚠️ Could not create mock DamageAssessmentService: \(error)")
+            print("🔄 Creating ultra-minimal fallback instance")
+            // Return a version that won't crash - use an empty container
+            let container = try! ModelContainer(for: Item.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+            let context = ModelContext(container)
+            return try! DamageAssessmentService(modelContext: context)
+        }
+    }
 
     // MARK: - Assessment Management
 
@@ -199,6 +218,7 @@ public final class DamageAssessmentService: ObservableObject, DamageAssessmentSe
 
 // MARK: - Supporting Classes
 
+@MainActor
 public class AssessmentTemplateProvider {
     public func getTemplate(for damageType: DamageType) -> AssessmentTemplate {
         switch damageType {
@@ -441,6 +461,7 @@ public class AssessmentTemplateProvider {
     }
 }
 
+@MainActor
 public class DamageAssessmentReportGenerator {
     public func generateReport(_ workflow: DamageAssessmentWorkflow) async throws -> Data {
         // This would generate a comprehensive PDF report
@@ -518,6 +539,7 @@ public class DamageAssessmentReportGenerator {
     }
 }
 
+@MainActor
 public class DamagePhotoManager {
     public func processPhoto(_ imageData: Data, description: String, type: DamagePhoto.PhotoType) -> DamagePhoto {
         DamagePhoto(imageData: imageData, description: description, photoType: type)

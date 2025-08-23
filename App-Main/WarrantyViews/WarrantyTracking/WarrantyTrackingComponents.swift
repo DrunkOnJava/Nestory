@@ -255,24 +255,17 @@ public struct WarrantyDetailsCard: View {
     }
     
     public var body: some View {
-        GroupBox {
+        GroupBox("Warranty Details") {
             VStack(alignment: .leading, spacing: 12) {
-                Text("Warranty Details")
-                    .font(.headline)
                 
                 VStack(spacing: 8) {
                     DetailRow(label: "Type", value: warranty.type.rawValue)
                     DetailRow(label: "Provider", value: warranty.provider ?? "Not specified")
                     
-                    if let startDate = warranty.startDate {
-                        DetailRow(label: "Start Date", value: DateFormatter.medium.string(from: startDate))
-                    }
+                    DetailRow(label: "Start Date", value: DateFormatter.medium.string(from: warranty.startDate))
+                    DetailRow(label: "End Date", value: DateFormatter.medium.string(from: warranty.endDate))
                     
-                    if let endDate = warranty.endDate {
-                        DetailRow(label: "End Date", value: DateFormatter.medium.string(from: endDate))
-                    }
-                    
-                    if let terms = warranty.terms, !terms.isEmpty {
+                    if let terms = warranty.coverageNotes, !terms.isEmpty {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Terms:")
                                 .font(.caption)
@@ -286,18 +279,17 @@ public struct WarrantyDetailsCard: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     
-                    if warranty.registrationRequired == true {
-                        HStack {
-                            Image(systemName: warranty.isRegistered == true ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
-                                .foregroundColor(warranty.isRegistered == true ? .green : .orange)
-                            
-                            Text(warranty.isRegistered == true ? "Registered" : "Registration Required")
-                                .font(.caption)
-                                .fontWeight(.medium)
-                                .foregroundColor(warranty.isRegistered == true ? .green : .orange)
-                            
-                            Spacer()
-                        }
+                    // Show registration status for all warranties
+                    HStack {
+                        Image(systemName: warranty.isRegistered ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                            .foregroundColor(warranty.isRegistered ? .green : .orange)
+                        
+                        Text(warranty.isRegistered ? "Registered" : "Registration Recommended")
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .foregroundColor(warranty.isRegistered ? .green : .orange)
+                        
+                        Spacer()
                     }
                 }
             }

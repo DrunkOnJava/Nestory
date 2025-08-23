@@ -27,7 +27,9 @@ ARCH_VERIFY_TIMEOUT = 60
 
 # Build optimization
 PARALLEL_JOBS = $(shell sysctl -n hw.ncpu)
-BUILD_FLAGS = -jobs $(PARALLEL_JOBS) -quiet
+BUILD_FLAGS = -jobs $(PARALLEL_JOBS) -quiet -parallelizeTargets -showBuildTimingSummary
+# Enhanced build performance flags
+FAST_BUILD_FLAGS = $(BUILD_FLAGS) -derivedDataPath $(DERIVED_DATA_PATH) -clonedSourcePackagesDirPath $(DERIVED_DATA_PATH)/SourcePackages
 
 # Colors for output
 RED = \033[0;31m
@@ -66,6 +68,15 @@ help: ## Show this help message
 	@echo "  $(GREEN)make f$(NC)                - Shortcut for 'make fast-build'"
 	@echo "  $(GREEN)make c$(NC)                - Shortcut for 'make check'"
 	@echo "  $(GREEN)make d$(NC)                - Shortcut for 'make doctor'"
+	@echo ""
+	@echo "$(YELLOW)Automation & Validation:$(NC)"
+	@echo "  $(GREEN)make validate-config$(NC)      - Validate project configuration consistency"
+	@echo "  $(GREEN)make monitor-modularization$(NC) - Monitor modularization progress"
+	@echo "  $(GREEN)make verify-enhanced-arch$(NC) - Enhanced architecture verification"
+	@echo "  $(GREEN)make automation-health$(NC)    - Check automation system health"
+	@echo "  $(GREEN)make comprehensive-check$(NC)  - Run ALL validation systems"
+	@echo "  $(GREEN)make health-report$(NC)        - Generate comprehensive health report"
+	@echo "  $(GREEN)make health-report-open$(NC)   - Generate health report and open in browser"
 	@echo ""
 	@echo "$(YELLOW)Development Workflow:$(NC)"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-20s$(NC) %s\n", $$1, $$2}'
@@ -121,6 +132,7 @@ build: gen check-tools clean-logs check-file-sizes ## Build the app (Debug confi
 		echo ""; \
 		$(MAKE) tree; \
 	fi
+
 
 .PHONY: build-for-simulator
 build-for-simulator: gen check-tools clean-logs check-file-sizes ## Build specifically for simulator usage
@@ -215,7 +227,7 @@ test-ui: gen ## Run UI tests only
 # ============================================================================
 
 .PHONY: check
-check: build test guard verify-wiring verify-no-stock tree ## Run all checks
+check: build test guard verify-wiring verify-no-stock check-file-sizes validate-config tree ## Run all checks
 	@echo "$(GREEN)✅ All checks passed!$(NC)"
 
 .PHONY: guard
@@ -338,17 +350,30 @@ clean-derived-data: ## Clean all Xcode derived data
 	@echo "$(GREEN)✅ Derived data cleaned!$(NC)"
 
 .PHONY: fast-build
-fast-build: clean-derived-data ## Fast parallel build with maximum optimization
-	@echo "$(YELLOW)⚡ Fast parallel build ($(PARALLEL_JOBS) jobs)...$(NC)"
+fast-build: clean-derived-data ## Fast parallel build with maximum optimization ($(PARALLEL_JOBS) jobs + caching)
+	@echo "$(YELLOW)⚡ Fast parallel build ($(PARALLEL_JOBS) jobs + enhanced caching)...$(NC)"
 	@timeout $(BUILD_TIMEOUT) xcodebuild -scheme $(ACTIVE_SCHEME) \
 		-destination '$(DESTINATION)' \
 		-configuration $(CONFIGURATION) \
-		-jobs $(PARALLEL_JOBS) \
-		-quiet -hideShellScriptEnvironment \
+		$(FAST_BUILD_FLAGS) \
+		-hideShellScriptEnvironment \
 		build 2>&1 | tee fast-$(BUILD_LOG) || \
 		{ echo "$(RED)❌ Fast build failed or timed out!$(NC)"; \
 		  echo "$(YELLOW)Check fast-$(BUILD_LOG) for details$(NC)"; exit 1; }
-	@echo "$(GREEN)✅ Fast build completed in parallel!$(NC)"
+	@echo "$(GREEN)⚡ Fast build completed with enhanced optimizations!$(NC)"
+
+.PHONY: build-benchmark
+build-benchmark: ## Compare build times between regular and fast builds
+	@echo "$(BLUE)🏁 Build Performance Benchmark$(NC)"
+	@echo "$(YELLOW)Running regular build...$(NC)"
+	@START=$$(date +%s); $(MAKE) build > /dev/null 2>&1; END=$$(date +%s); \
+	REGULAR_TIME=$$((END - START)); \
+	echo "Regular build: $${REGULAR_TIME}s"
+	@echo "$(YELLOW)Running fast build...$(NC)"
+	@START=$$(date +%s); $(MAKE) fast-build > /dev/null 2>&1; END=$$(date +%s); \
+	FAST_TIME=$$((END - START)); \
+	echo "Fast build: $${FAST_TIME}s"
+	@echo "$(GREEN)✅ Benchmark completed!$(NC)"
 
 .PHONY: file-report
 file-report: ## Generate detailed report of file sizes
@@ -432,6 +457,78 @@ new-service: ## Create a new service (usage: make new-service NAME=MyService)
 	@echo "}" >> Services/$(NAME).swift
 	@echo "$(GREEN)✅ Created Services/$(NAME).swift$(NC)"
 	@echo "$(YELLOW)⚠️  Remember to wire this service in the UI!$(NC)"
+
+.PHONY: validate-config
+validate-config: ## Validate project configuration consistency
+	@echo "$(YELLOW)⚙️ Validating project configuration...$(NC)"
+	@timeout 60 ./scripts/validate-configuration.sh || \
+		{ echo "$(RED)❌ Configuration validation failed!$(NC)"; exit 1; }
+	@echo "$(GREEN)✅ Configuration validation passed!$(NC)"
+
+.PHONY: monitor-modularization
+monitor-modularization: ## Monitor modularization progress and health
+	@echo "$(YELLOW)📊 Monitoring modularization progress...$(NC)"
+	@timeout 120 ./scripts/modularization-monitor.sh || \
+		{ echo "$(RED)❌ Modularization monitoring detected issues!$(NC)"; exit 1; }
+	@echo "$(GREEN)✅ Modularization health check passed!$(NC)"
+
+.PHONY: verify-enhanced-arch
+verify-enhanced-arch: ## Enhanced architecture verification with modular compliance
+	@echo "$(YELLOW)🏗️ Running enhanced architecture verification...$(NC)"
+	@timeout 120 ./scripts/architecture-verification.sh || \
+		{ echo "$(RED)❌ Enhanced architecture verification failed!$(NC)"; exit 1; }
+	@echo "$(GREEN)✅ Enhanced architecture verification passed!$(NC)"
+
+.PHONY: automation-health
+automation-health: ## Check health of automation systems
+	@echo "$(YELLOW)🔧 Checking automation system health...$(NC)"
+	@echo "Validating automation scripts..."
+	@if [ ! -x "./scripts/validate-configuration.sh" ]; then \
+		echo "$(RED)❌ Configuration validation script missing or not executable$(NC)"; \
+		exit 1; \
+	fi
+	@if [ ! -x "./scripts/modularization-monitor.sh" ]; then \
+		echo "$(RED)❌ Modularization monitor script missing or not executable$(NC)"; \
+		exit 1; \
+	fi
+	@if [ ! -x "./scripts/architecture-verification.sh" ]; then \
+		echo "$(RED)❌ Architecture verification script missing or not executable$(NC)"; \
+		exit 1; \
+	fi
+	@if [ ! -x "./DevTools/enhanced-pre-commit.sh" ]; then \
+		echo "$(RED)❌ Enhanced pre-commit script missing or not executable$(NC)"; \
+		exit 1; \
+	fi
+	@echo "$(GREEN)✅ All automation scripts are present and executable$(NC)"
+	@echo "Checking git hooks..."
+	@if [ -f ".git/hooks/pre-commit" ]; then \
+		echo "$(GREEN)✓$(NC) Pre-commit hook installed"; \
+	else \
+		echo "$(YELLOW)⚠️ Pre-commit hook not installed. Run 'make install-hooks'$(NC)"; \
+	fi
+	@echo "$(GREEN)✅ Automation health check completed!$(NC)"
+
+.PHONY: health-report
+health-report: ## Generate comprehensive codebase health report
+	@echo "$(YELLOW)📊 Generating comprehensive health report...$(NC)"
+	@timeout 300 ./scripts/codebase-health-report.sh || \
+		{ echo "$(RED)❌ Health report generation failed!$(NC)"; exit 1; }
+	@echo "$(GREEN)✅ Health report generated successfully!$(NC)"
+
+.PHONY: health-report-open
+health-report-open: ## Generate health report and open in browser
+	@echo "$(YELLOW)📊 Generating health report and opening in browser...$(NC)"
+	@timeout 300 ./scripts/codebase-health-report.sh --open || \
+		{ echo "$(RED)❌ Health report generation failed!$(NC)"; exit 1; }
+
+.PHONY: comprehensive-check
+comprehensive-check: validate-config monitor-modularization verify-enhanced-arch check-file-sizes verify-wiring ## Run all validation systems
+	@echo "$(BLUE)╔══════════════════════════════════════════════════════════════╗$(NC)"
+	@echo "$(BLUE)║              Comprehensive Validation Complete               ║$(NC)"
+	@echo "$(BLUE)╚══════════════════════════════════════════════════════════════╝$(NC)"
+	@echo ""
+	@echo "$(GREEN)✅ All validation systems passed!$(NC)"
+	@echo "$(BLUE)📊 Project is in excellent health$(NC)"
 
 .PHONY: screenshot
 screenshot: gen ## Capture app screenshots

@@ -31,16 +31,40 @@ public final class ClaimPackageAssemblyCore: ObservableObject {
     // MARK: - Dependencies
     
     private let assemblerService: ClaimPackageAssemblerService
+    private let contentGenerator: ClaimContentGenerator
+    private let documentProcessor: ClaimDocumentProcessor
+    private let packageCore: ClaimPackageCore
+    private let packageExporter: ClaimPackageExporter
     
     // Public access to dependencies for view layer
     public var assemblyService: ClaimPackageAssemblerService {
         assemblerService
     }
     
+    public var claimContentGenerator: ClaimContentGenerator {
+        contentGenerator
+    }
+    
+    public var claimDocumentProcessor: ClaimDocumentProcessor {
+        documentProcessor
+    }
+    
+    public var claimPackageCore: ClaimPackageCore {
+        packageCore
+    }
+    
+    public var claimPackageExporter: ClaimPackageExporter {
+        packageExporter
+    }
+    
     // MARK: - Initialization
     
     public init(assemblerService: ClaimPackageAssemblerService = LiveClaimPackageAssemblerService()) {
         self.assemblerService = assemblerService
+        self.contentGenerator = ClaimContentGenerator()
+        self.documentProcessor = ClaimDocumentProcessor()
+        self.packageCore = ClaimPackageCore()
+        self.packageExporter = ClaimPackageExporter()
     }
     
     // MARK: - Computed Properties
@@ -153,8 +177,94 @@ public final class ClaimPackageAssemblyCore: ObservableObject {
         }
     }
     
+    public func generateCoverLetter(for items: [Item]) async throws -> ClaimCoverLetter {
+        return try await contentGenerator.generateCoverLetter(
+            scenario: claimScenario,
+            items: items,
+            options: packageOptions
+        )
+    }
+    
+    public func collectDocumentation(for items: [Item]) async throws -> [ItemDocumentation] {
+        return try await documentProcessor.collectDocumentation(
+            items: items,
+            options: packageOptions
+        )
+    }
+    
     public func exportPackage() {
         showingExportOptions = true
+    }
+    
+    // MARK: - Package Export Actions
+    
+    public func exportAsZIP() async {
+        guard let package = generatedPackage else { return }
+        
+        Task {
+            do {
+                let zipURL = try await packageExporter.exportAsZIP(package: package)
+                await MainActor.run {
+                    // Share the ZIP file using UIActivityViewController
+                    shareFile(at: zipURL)
+                }
+            } catch {
+                await MainActor.run {
+                    self.errorAlert = ErrorAlert(message: "Export failed: \(error.localizedDescription)")
+                }
+            }
+        }
+    }
+    
+    public func exportAsPDF() async {
+        guard let package = generatedPackage else { return }
+        
+        Task {
+            do {
+                let pdfURL = try await packageExporter.exportAsPDF(package: package)
+                await MainActor.run {
+                    // Share the PDF file using UIActivityViewController
+                    shareFile(at: pdfURL)
+                }
+            } catch {
+                await MainActor.run {
+                    self.errorAlert = ErrorAlert(message: "PDF export failed: \(error.localizedDescription)")
+                }
+            }
+        }
+    }
+    
+    public func prepareForEmail() async {
+        guard let package = generatedPackage else { return }
+        
+        Task {
+            do {
+                let emailPackage = try await packageExporter.prepareForEmail(package: package)
+                await MainActor.run {
+                    // Open email composition with prepared package
+                    openEmailComposer(with: emailPackage)
+                }
+            } catch {
+                await MainActor.run {
+                    self.errorAlert = ErrorAlert(message: "Email preparation failed: \(error.localizedDescription)")
+                }
+            }
+        }
+    }
+    
+    // MARK: - Helper Methods
+    
+    private func shareFile(at url: URL) {
+        // This would trigger UIActivityViewController in the UI layer
+        // For now, we'll store the URL for the UI to handle
+        // The UI layer will implement the actual sharing
+        print("Ready to share file at: \(url)")
+    }
+    
+    private func openEmailComposer(with emailPackage: EmailPackage) {
+        // This would trigger MFMailComposeViewController in the UI layer
+        // For now, we'll store the email package for the UI to handle
+        print("Ready to compose email with package: \(emailPackage.subject)")
     }
     
     public func resetAssembly() {
@@ -173,7 +283,7 @@ public final class ClaimPackageAssemblyCore: ObservableObject {
 
 // MARK: - Supporting Types
 
-public struct ClaimPackageRequest {
+public struct ClaimPackageRequest: Sendable {
     public let selectedItemIds: [UUID]
     public let scenario: ClaimScenario
     public let options: ClaimPackageOptions

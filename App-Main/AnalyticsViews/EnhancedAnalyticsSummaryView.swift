@@ -38,7 +38,7 @@ struct EnhancedAnalyticsSummaryView: View {
                 Spacer()
 
                 // Top Category
-                if let topCategory = dashboardData.categoryBreakdown.first {
+                if let topCategory = dashboardData.categoryBreakdowns.first {
                     VStack(alignment: .trailing, spacing: 4) {
                         Text("Top Category")
                             .font(.caption)
@@ -61,7 +61,7 @@ struct EnhancedAnalyticsSummaryView: View {
     let sampleData = DashboardData(
         totalItems: 15,
         totalValue: 8500,
-        categoryBreakdown: [
+        categoryBreakdowns: [
             CategoryBreakdown(categoryName: "Electronics", itemCount: 10, totalValue: 5000, percentage: 45.5),
         ],
         topValueItemIds: [],

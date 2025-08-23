@@ -81,7 +81,7 @@ enum NotificationIdentifier {
 
 // MARK: - Notification Settings Keys
 
-enum NotificationSettings {
+enum NotificationDefaults {
     static let notificationsEnabled = "notificationsEnabled"
     static let warrantyNotificationsEnabled = "warrantyNotificationsEnabled"
     static let insuranceNotificationsEnabled = "insuranceNotificationsEnabled"

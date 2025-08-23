@@ -10,7 +10,7 @@ import SwiftData
 
 // MARK: - Progress Components
 
-public struct AssemblyProgressView: View {
+public struct AssemblyStepProgressView: View {
     let currentStep: AssemblyStep
     let progress: Double
     
@@ -240,7 +240,7 @@ public struct ClaimScenarioSetupView: View {
     public var body: some View {
         NavigationStack {
             Form {
-                Section("Claim Details") {
+                Section(content: {
                     Picker("Claim Type", selection: $scenario.type) {
                         ForEach(ClaimType.allCases, id: \.self) { type in
                             Text(type.displayName).tag(type)
@@ -248,20 +248,35 @@ public struct ClaimScenarioSetupView: View {
                     }
                     
                     DatePicker("Incident Date", selection: $scenario.incidentDate)
-                }
+                }, header: {
+                    Text("Claim Details")
+                })
                 
-                Section("Incident Description", content: {
+                Section(content: {
                     TextEditor(text: $scenario.description)
                         .frame(minHeight: 120)
-                }) {
+                }, header: {
+                    Text("Incident Description")
+                }, footer: {
                     Text("Provide a detailed description of what happened and how it affected your items.")
-                }
+                })
                 
-                Section("Additional Information") {
-                    TextField("Police Report Number", text: $scenario.policeReportNumber)
-                    TextField("Insurance Adjuster", text: $scenario.insuranceAdjuster)
-                    TextField("Reference Number", text: $scenario.referenceNumber)
-                }
+                Section(content: {
+                    TextField("Police Report Number", text: Binding<String>(
+                        get: { scenario.metadata["policeReportNumber"] ?? "" },
+                        set: { scenario.metadata["policeReportNumber"] = $0 }
+                    ))
+                    TextField("Insurance Adjuster", text: Binding<String>(
+                        get: { scenario.metadata["insuranceAdjuster"] ?? "" },
+                        set: { scenario.metadata["insuranceAdjuster"] = $0 }
+                    ))
+                    TextField("Reference Number", text: Binding<String>(
+                        get: { scenario.metadata["referenceNumber"] ?? "" },
+                        set: { scenario.metadata["referenceNumber"] = $0 }
+                    ))
+                }, header: {
+                    Text("Additional Information")
+                })
             }
             .navigationTitle("Claim Scenario")
             .navigationBarTitleDisplayMode(.inline)
@@ -294,46 +309,9 @@ public struct ClaimPackageOptionsView: View {
     public var body: some View {
         NavigationStack {
             Form {
-                Section("Documentation Level") {
-                    Picker("Detail Level", selection: $options.documentationLevel) {
-                        ForEach(DocumentationLevel.allCases, id: \.self) { level in
-                            VStack(alignment: .leading) {
-                                Text(level.displayName)
-                                Text(level.description)
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            .tag(level)
-                        }
-                    }
-                    .pickerStyle(.navigationLink)
-                }
-                
-                Section("Media Inclusion", content: {
-                    Toggle("Include Item Photos", isOn: $options.includePhotos)
-                    Toggle("Include Damage Photos", isOn: $options.includeDamagePhotos)
-                    Toggle("Include Receipt Images", isOn: $options.includeReceipts)
-                    Toggle("Include Warranty Documents", isOn: $options.includeWarranties)
-                })
-                
-                Section("Export Formats") {
-                    Picker("Primary Format", selection: $options.primaryFormat) {
-                        ForEach(ExportFormat.allCases, id: \.self) { format in
-                            Label(format.displayName, systemImage: format.icon)
-                                .tag(format)
-                        }
-                    }
-                    .pickerStyle(.navigationLink)
-                    
-                    Toggle("Generate PDF Backup", isOn: $options.includePDFBackup)
-                    Toggle("Generate CSV Inventory", isOn: $options.includeCSVInventory)
-                }
-                
-                Section("Organization") {
-                    Toggle("Group by Category", isOn: $options.groupByCategory)
-                    Toggle("Sort by Value", isOn: $options.sortByValue)
-                    Toggle("Include Item Indexes", isOn: $options.includeItemIndexes)
-                }
+                documentationLevelSection
+                mediaInclusionSection
+                exportFormatsSection
             }
             .navigationTitle("Package Options")
             .navigationBarTitleDisplayMode(.inline)
@@ -353,6 +331,55 @@ public struct ClaimPackageOptionsView: View {
             }
         }
     }
+    
+    @ViewBuilder
+    private var documentationLevelSection: some View {
+        Section(content: {
+            Picker("Detail Level", selection: $options.documentationLevel) {
+                ForEach(DocumentationLevel.allCases, id: \.self) { level in
+                    VStack(alignment: .leading) {
+                        Text(level.displayName)
+                        Text(level.description)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    .tag(level)
+                }
+            }
+            .pickerStyle(.navigationLink)
+        }, header: {
+            Text("Documentation Level")
+        })
+    }
+    
+    @ViewBuilder
+    private var mediaInclusionSection: some View {
+        Section(content: {
+            Toggle("Include Item Photos", isOn: $options.includePhotos)
+            Toggle("Include Receipt Images", isOn: $options.includeReceipts)
+            Toggle("Include Warranty Documents", isOn: $options.includeWarranties)
+            Toggle("Compress Photos", isOn: $options.compressPhotos)
+        }, header: {
+            Text("Media Inclusion")
+        })
+    }
+    
+    @ViewBuilder
+    private var exportFormatsSection: some View {
+        Section(content: {
+            Picker("Primary Format", selection: $options.primaryFormat) {
+                ForEach(ExportFormat.allCases, id: \.self) { format in
+                    Label(format.displayName, systemImage: format.icon)
+                        .tag(format)
+                }
+            }
+            .pickerStyle(.navigationLink)
+            
+            Toggle("Generate PDF Backup", isOn: $options.includePDFBackup)
+        }, header: {
+            Text("Export Formats")
+        })
+    }
 }
 
 // MARK: - Extensions for Display Names
@@ -365,6 +392,8 @@ extension ClaimScope {
         case .singleItem: "Single Item"
         case .multipleItems: "Multiple Items"
         case .roomBased: "Room/Area Based"
+        case .propertyDamage: "Property Damage"
+        case .fire: "Fire Damage"
         case .theft: "Theft"
         case .totalLoss: "Total Loss"
         }

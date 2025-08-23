@@ -37,7 +37,7 @@ struct EnhancedInsightsView: View {
                         )
 
                         // Category distribution insight
-                        if let topCategory = data.categoryBreakdown.first {
+                        if let topCategory = data.categoryBreakdowns.first {
                             InsightRow(
                                 icon: "crown.fill",
                                 text: "\(topCategory.categoryName) accounts for \(Int(topCategory.percentage))% of your value",
@@ -106,7 +106,7 @@ struct EnhancedInsightsView: View {
 
 #Preview {
     EnhancedInsightsView(
-        dashboardData: nil,
+        dashboardData: nil as DashboardData?,
         depreciationReports: []
     )
     .padding()

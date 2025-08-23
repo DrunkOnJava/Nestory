@@ -13,8 +13,6 @@
       "Bash(find:*)",
       "Bash(swiftlint:*)",
       "Bash(grep:*)",
-      "Bash(swift build:*)",
-      "Bash(swift build:*)",
       "Bash(swift package:*)",
       "Bash(mkdir:*)",
       "Bash(cat:*)",
@@ -56,7 +54,13 @@
       "Bash(gh pr:*)",
       "Bash(timeout 10 swift build:*)",
       "Bash(timeout 30 make build)",
-      "Bash(timeout 45 make build)"
+      "Bash(timeout 45 make build)",
+      "Bash(git checkout:*)",
+      "Bash(git push:*)",
+      "Bash(xcrun xcresulttool get:*)",
+      "Bash(xcrun xcresulttool metadata:*)",
+      "Bash(timeout 60 xcodebuild:*)",
+      "Bash(xcrun simctl spawn:*)"
     ],
     "deny": [],
     "ask": [],

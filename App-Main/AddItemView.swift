@@ -4,6 +4,7 @@
 
 import SwiftData
 import SwiftUI
+import os.log
 
 // APPLE_FRAMEWORK_OPPORTUNITY: Consider adding MapKit - Could add location-based organization of items (where purchased, where stored) with visual location tracking
 
@@ -27,6 +28,9 @@ struct AddItemView: View {
     @State private var showingPhotoCapture = false
     @State private var showingBarcodeScanner = false
     @State private var tempItem = Item(name: "")
+    @State private var detectedWarranty: WarrantyDetectionResult?
+    @State private var showingWarrantyDetection = false
+    @State private var isDetectingWarranty = false
 
     var body: some View {
         NavigationStack {
@@ -143,6 +147,40 @@ struct AddItemView: View {
                     }
                 }
 
+                // Warranty Detection Section
+                if !brand.isEmpty || !modelNumber.isEmpty || showPurchaseDetails {
+                    Section("Smart Warranty Detection") {
+                        Button(action: { 
+                            Task { await detectWarranty() } 
+                        }) {
+                            HStack {
+                                Image(systemName: isDetectingWarranty ? "gear.circle" : "shield.checkered")
+                                    .foregroundColor(.blue)
+                                    .symbolEffect(.variableColor, isActive: isDetectingWarranty)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(isDetectingWarranty ? "Detecting warranty..." : "Detect Warranty Info")
+                                        .foregroundColor(.blue)
+                                    Text("Analyze product details for warranty coverage")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .foregroundColor(.secondary)
+                                    .font(.caption)
+                            }
+                            .padding(.vertical, 4)
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(isDetectingWarranty)
+                        
+                        // Show detected warranty info
+                        if let detectedWarranty {
+                            WarrantyDetectionResultView(result: detectedWarranty)
+                        }
+                    }
+                }
+                
                 Section("Notes") {
                     TextEditor(text: $notes)
                         .frame(minHeight: 60)
@@ -225,10 +263,87 @@ struct AddItemView: View {
         dismiss()
     }
 
+    private func detectWarranty() async {
+        guard !brand.isEmpty || !modelNumber.isEmpty || showPurchaseDetails else { return }
+        
+        isDetectingWarranty = true
+        
+        do {
+            let warrantyEngine = WarrantyDetectionEngine(logger: Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.nestory.app", category: "WarrantyDetection"))
+            
+            let result = try await warrantyEngine.detectWarrantyFromProduct(
+                brand: brand.isEmpty ? nil : brand,
+                model: modelNumber.isEmpty ? nil : modelNumber,
+                serialNumber: serialNumber.isEmpty ? nil : serialNumber,
+                purchaseDate: showPurchaseDetails ? purchaseDate : nil
+            )
+            
+            await MainActor.run {
+                detectedWarranty = result
+                showingWarrantyDetection = true
+            }
+        } catch {
+            await MainActor.run {
+                detectedWarranty = nil
+            }
+        }
+        
+        isDetectingWarranty = false
+    }
+    
     private func setupDefaultCategories() {
         for defaultCategory in Category.createDefaultCategories() {
             modelContext.insert(defaultCategory)
         }
+    }
+}
+
+// MARK: - Supporting Views
+
+struct WarrantyDetectionResultView: View {
+    let result: WarrantyDetectionResult
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Image(systemName: "shield.fill")
+                    .foregroundColor(.green)
+                Text("Warranty Detected")
+                    .font(.headline)
+                    .foregroundColor(.green)
+                Spacer()
+                Text("\(Int(result.confidence * 100))% confidence")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            
+            VStack(alignment: .leading, spacing: 4) {
+                if case .detected(let provider, let duration, _) = result {
+                    HStack {
+                        Text("Provider:")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Text(provider)
+                            .font(.caption)
+                            .fontWeight(.medium)
+                        Spacer()
+                    }
+                    
+                    HStack {
+                        Text("Duration:")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Text("\(duration) months")
+                            .font(.caption)
+                            .fontWeight(.medium)
+                        Spacer()
+                    }
+                }
+            }
+        }
+        .padding()
+        .background(Color.green.opacity(0.1))
+        .cornerRadius(8)
     }
 }
 

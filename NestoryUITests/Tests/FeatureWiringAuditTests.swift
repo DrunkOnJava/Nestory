@@ -39,7 +39,7 @@ final class FeatureWiringAuditTests: NestoryUITestBase {
 
     func testCompleteFeatureWiringAudit() async throws {
         logProgress("🚀 Starting Comprehensive Feature Wiring Audit")
-        captureScreenshot("00_audit_start")
+        await captureScreenshot("00_audit_start")
 
         // Phase 1: Basic Navigation Verification
         try await verifyBasicNavigation()
@@ -57,7 +57,7 @@ final class FeatureWiringAuditTests: NestoryUITestBase {
         validateAuditResults()
 
         logProgress("✅ Feature Wiring Audit Completed Successfully")
-        captureScreenshot("99_audit_complete")
+        await captureScreenshot("99_audit_complete")
     }
 
     // MARK: - Phase 1: Basic Navigation Verification
@@ -81,7 +81,7 @@ final class FeatureWiringAuditTests: NestoryUITestBase {
             XCTAssertTrue(success, "\(tab.displayName) tab should be navigable")
 
             // Capture screenshot of each tab
-            captureScreenshot("01_tab_\(tab.rawValue.lowercased())")
+            await captureScreenshot("01_tab_\(tab.rawValue.lowercased())")
 
             // Brief pause for UI to settle
             try await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
@@ -115,7 +115,7 @@ final class FeatureWiringAuditTests: NestoryUITestBase {
 
         let success = NavigationHelper.navigateToTab(.analytics, in: app)
         if success {
-            captureScreenshot("02_analytics_service_access")
+            await captureScreenshot("02_analytics_service_access")
 
             // Verify analytics content exists
             let hasAnalyticsContent = app.staticTexts["Analytics"].exists ||
@@ -149,7 +149,7 @@ final class FeatureWiringAuditTests: NestoryUITestBase {
             return
         }
 
-        captureScreenshot("03_settings_main")
+        await captureScreenshot("03_settings_main")
 
         // Test Import/Export Services
         await auditImportExportServices()
@@ -165,7 +165,7 @@ final class FeatureWiringAuditTests: NestoryUITestBase {
         logProgress("📤 Auditing Import/Export Services")
 
         let success = NavigationHelper.navigateToSettingsSection(.importExport, in: app)
-        captureScreenshot("04_import_export_services")
+        await captureScreenshot("04_import_export_services")
 
         if success {
             // Check for import/export related elements
@@ -196,7 +196,7 @@ final class FeatureWiringAuditTests: NestoryUITestBase {
         _ = NavigationHelper.navigateToTab(.settings, in: app)
 
         let success = NavigationHelper.navigateToSettingsSection(.cloudBackup, in: app)
-        captureScreenshot("05_cloud_backup_service")
+        await captureScreenshot("05_cloud_backup_service")
 
         auditResults["CloudBackupService"] = ServiceAuditResult(
             serviceName: "CloudBackupService",
@@ -214,7 +214,7 @@ final class FeatureWiringAuditTests: NestoryUITestBase {
         _ = NavigationHelper.navigateToTab(.settings, in: app)
 
         let success = NavigationHelper.navigateToSettingsSection(.notifications, in: app)
-        captureScreenshot("06_notification_service")
+        await captureScreenshot("06_notification_service")
 
         auditResults["NotificationService"] = ServiceAuditResult(
             serviceName: "NotificationService",
@@ -230,7 +230,7 @@ final class FeatureWiringAuditTests: NestoryUITestBase {
 
         // Test Add Item flow to verify Receipt OCR and Barcode Scanner services
         let addItemSuccess = NavigationHelper.navigateToAddItem(in: app)
-        captureScreenshot("07_add_item_flow")
+        await captureScreenshot("07_add_item_flow")
 
         if addItemSuccess {
             // Look for camera/photo picker options (Receipt OCR integration)

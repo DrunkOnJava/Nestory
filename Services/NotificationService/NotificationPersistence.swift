@@ -298,10 +298,10 @@ public final class NotificationPersistence: @unchecked Sendable {
 
         let isValid = issues.isEmpty
         let result = ValidationResult(
-            isValid: isValid,
-            issues: issues,
-            warnings: warnings,
-            checkedAt: Date()
+            isComplete: isValid,
+            missingItems: issues,
+            totalValue: 0,
+            validationDate: Date()
         )
 
         logger.info("Validation completed: \(isValid ? "VALID" : "INVALID"), \(issues.count) issues, \(warnings.count) warnings")

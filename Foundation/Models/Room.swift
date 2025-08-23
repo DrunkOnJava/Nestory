@@ -9,7 +9,7 @@ import SwiftData
 
 @Model
 public final class Room: @unchecked Sendable {
-    @Attribute(.unique)
+    // CloudKit compatible: removed .unique constraint
     public var id: UUID
 
     public var name: String

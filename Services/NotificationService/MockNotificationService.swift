@@ -8,7 +8,7 @@ import Foundation
 import SwiftData
 import UserNotifications
 
-public final class MockNotificationService: NotificationService {
+public final class MockNotificationService: NotificationService, @unchecked Sendable {
     public var isAuthorized = false
     public var authorizationStatus: UNAuthorizationStatus = .notDetermined
 
@@ -17,7 +17,7 @@ public final class MockNotificationService: NotificationService {
     public var scheduledNotifications: [String] = []
     public var cancelledNotifications: [UUID] = []
 
-    public init() {}
+    nonisolated public init() {}
 
     // MARK: - Authorization
 
@@ -73,6 +73,14 @@ public final class MockNotificationService: NotificationService {
         intervalMonths _: Int = 12,
     ) async throws {
         scheduledNotifications.append("maintenance_\(item.id)")
+    }
+
+    public func scheduleNotification(
+        id: String,
+        content: UNNotificationContent,
+        trigger: UNNotificationTrigger
+    ) async throws {
+        scheduledNotifications.append("custom_\(id)")
     }
 
     // MARK: - Management
@@ -140,13 +148,16 @@ public final class MockNotificationService: NotificationService {
 
     // MARK: - Analytics & Persistence
 
-    public func getNotificationAnalytics() async throws -> NotificationAnalytics {
-        NotificationAnalytics(
+    public func getNotificationAnalytics() async throws -> NotificationAnalyticsData {
+        NotificationAnalyticsData(
+            totalScheduled: scheduledNotifications.count,
             totalDelivered: scheduledNotifications.count,
             totalInteracted: 0,
             averageResponseTime: 0,
-            weeklyDeliveryCount: scheduledNotifications.count,
-            optimalNotificationTime: Date()
+            mostEffectiveTime: Date(),
+            leastEffectiveTime: nil,
+            interactionRateByType: [:],
+            snoozePattersByType: [:]
         )
     }
 

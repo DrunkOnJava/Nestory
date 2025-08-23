@@ -7,6 +7,7 @@
 
 import XCTest
 
+@MainActor
 enum NavigationHelpers {
     /// Navigate to a specific tab
     static func navigateToTab(named tabName: String, in app: XCUIApplication) {

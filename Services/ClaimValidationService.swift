@@ -105,7 +105,7 @@ public final class ClaimValidationService: ObservableObject {
 
         // Check receipt requirements
         if requirements.requiresReceipts {
-            let itemsWithoutReceipts = items.filter(\.receipts.isEmpty)
+            let itemsWithoutReceipts = items.filter { $0.receipts?.isEmpty ?? true }
             if !itemsWithoutReceipts.isEmpty {
                 results.warnings.append(ValidationIssue(
                     severity: .warning,
@@ -265,7 +265,7 @@ public final class ClaimValidationService: ObservableObject {
 
                 var hasValidReceipt = false
 
-                for receipt in item.receipts {
+                for receipt in item.receipts ?? [] {
                     // In production, would perform OCR validation of receipt
                     if await validateReceiptContent(receipt, expectedPrice: purchasePrice) {
                         hasValidReceipt = true
@@ -274,7 +274,7 @@ public final class ClaimValidationService: ObservableObject {
                     }
                 }
 
-                if !hasValidReceipt, !item.receipts.isEmpty {
+                if !hasValidReceipt, !(item.receipts?.isEmpty ?? true) {
                     itemsWithReceiptIssues.append(item.id)
                 }
             }
@@ -463,7 +463,7 @@ public final class ClaimValidationService: ObservableObject {
         let totalValue = items.compactMap(\.purchasePrice).reduce(0, +)
 
         if totalValue > 50000, claimType == .fire {
-            let itemsWithoutReceipts = items.filter(\.receipts.isEmpty)
+            let itemsWithoutReceipts = items.filter { $0.receipts?.isEmpty ?? true }
             if Double(itemsWithoutReceipts.count) / Double(items.count) > 0.5 {
                 results.criticalIssues.append(ValidationIssue(
                     severity: .critical,

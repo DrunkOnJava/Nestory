@@ -188,8 +188,7 @@ struct NotificationAnalyticsView: View {
         errorMessage = nil
 
         do {
-            let notificationAnalytics = try await notificationService.getNotificationAnalytics()
-            analytics = try await notificationAnalytics.generateAnalytics()
+            analytics = try await notificationService.getNotificationAnalytics()
         } catch {
             errorMessage = "Failed to load analytics: \(error.localizedDescription)"
         }

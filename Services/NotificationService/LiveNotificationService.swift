@@ -7,7 +7,7 @@
 import Foundation
 import os.log
 import SwiftData
-import UserNotifications
+@preconcurrency import UserNotifications
 
 // APPLE_FRAMEWORK_OPPORTUNITY: Replace with Speech Framework - Add voice-activated item queries and hands-free inventory management using SFSpeechRecognizer
 
@@ -85,6 +85,25 @@ public final class LiveNotificationService: NotificationService, ObservableObjec
         let settings = await notificationActor.getSettingsData()
         authorizationStatus = settings.authorizationStatus
         isAuthorized = settings.authorizationStatus == .authorized
+    }
+
+    // MARK: - Core Notification Scheduling
+
+    public func scheduleNotification(
+        id: String,
+        content: UNNotificationContent,
+        trigger: UNNotificationTrigger
+    ) async throws {
+        // Create the request locally - the actor's @preconcurrency import handles Sendable
+        let request = UNNotificationRequest(
+            identifier: id,
+            content: content,
+            trigger: trigger
+        )
+        
+        // The NotificationActor uses @preconcurrency import for UserNotifications
+        // to properly handle non-Sendable types across actor boundaries
+        try await notificationActor.add(request)
     }
 
     // All notification operations have been moved to extension files:

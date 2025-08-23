@@ -8,6 +8,8 @@ import Foundation
 import SwiftData
 import UserNotifications
 
+// MARK: - Type Aliases
+
 // APPLE_FRAMEWORK_OPPORTUNITY: Replace with BackgroundTasks - Use BGTaskScheduler for system-managed background processing of notifications instead of manual scheduling
 
 /// Protocol defining notification service capabilities for warranty tracking and reminders
@@ -56,6 +58,12 @@ public protocol NotificationService: AnyObject, Sendable {
         intervalMonths: Int,
     ) async throws
 
+    func scheduleNotification(
+        id: String,
+        content: UNNotificationContent,
+        trigger: UNNotificationTrigger
+    ) async throws
+
     // MARK: - Management
 
     func getPendingNotifications() async -> [NotificationRequestData]
@@ -65,7 +73,7 @@ public protocol NotificationService: AnyObject, Sendable {
 
     // MARK: - Analytics & Persistence
 
-    func getNotificationAnalytics() async throws -> NotificationAnalytics
+    func getNotificationAnalytics() async throws -> NotificationAnalyticsData
     func getNotificationHistory(for itemId: UUID?) async throws -> [NotificationHistoryEntry]
     func markNotificationInteracted(_ identifier: String, action: NotificationAction) async throws
     func saveNotificationState() async throws

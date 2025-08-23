@@ -1,6 +1,6 @@
 # Project Structure
 
-_Last updated: 2025-08-21 14:50:09_
+_Last updated: 2025-08-23 03:23:19_
 
 ```
 [01;34m.[0m
@@ -34,26 +34,147 @@ _Last updated: 2025-08-21 14:50:09_
 │   │   ├── ScanOptionsView.swift
 │   │   └── ScanResultView.swift
 │   ├── [01;34mClaimPackageAssemblyView[0m
+│   │   ├── [01;34mComponents[0m
+│   │   │   ├── ClaimItemRow.swift
+│   │   │   └── ValidationCheckRow.swift
+│   │   ├── [01;34mSteps[0m
+│   │   │   ├── [01;34mAssembly[0m
+│   │   │   │   ├── AssemblyErrorView.swift
+│   │   │   │   ├── AssemblyProgressView.swift
+│   │   │   │   ├── AssemblyStepView.swift
+│   │   │   │   └── AssemblySuccessView.swift
+│   │   │   ├── [01;34mExport[0m
+│   │   │   │   ├── ExportReadyView.swift
+│   │   │   │   ├── ExportStepView.swift
+│   │   │   │   └── ExportUnavailableView.swift
+│   │   │   ├── [01;34mItemSelection[0m
+│   │   │   │   ├── ItemSelectionControls.swift
+│   │   │   │   └── ItemSelectionStepView.swift
+│   │   │   ├── [01;34mPackageOptions[0m
+│   │   │   │   ├── AdvancedOptionsSection.swift
+│   │   │   │   ├── DocumentationLevelSection.swift
+│   │   │   │   ├── ExportFormatSection.swift
+│   │   │   │   ├── IncludePhotosSection.swift
+│   │   │   │   └── PackageOptionsStepView.swift
+│   │   │   ├── [01;34mScenarioSetup[0m
+│   │   │   │   ├── AdvancedSetupSection.swift
+│   │   │   │   ├── ClaimTypeSection.swift
+│   │   │   │   ├── IncidentDetailsSection.swift
+│   │   │   │   ├── QuickStatsSection.swift
+│   │   │   │   └── ScenarioSetupStepView.swift
+│   │   │   └── [01;34mValidation[0m
+│   │   │       ├── PackageSummarySection.swift
+│   │   │       ├── ValidationChecksSection.swift
+│   │   │       ├── ValidationStepView.swift
+│   │   │       ├── ValidationWarningsCalculator.swift
+│   │   │       └── WarningsSection.swift
 │   │   ├── ClaimPackageAssemblyComponents.swift
 │   │   ├── ClaimPackageAssemblyCore.swift
-│   │   └── ClaimPackageAssemblySteps.swift
+│   │   ├── ClaimPackageAssemblyIndex.swift
+│   │   ├── ClaimPackageAssemblySteps.swift
+│   │   └── README.md
 │   ├── [01;34mClaimSubmission[0m
 │   │   ├── ClaimSubmissionComponents.swift
 │   │   ├── ClaimSubmissionCore.swift
 │   │   └── ClaimSubmissionSteps.swift
 │   ├── [01;34mDamageAssessmentViews[0m
+│   │   ├── [01;34mDamageAssessmentReport[0m
+│   │   │   ├── [01;34mActions[0m
+│   │   │   │   └── ReportActionsSection.swift
+│   │   │   ├── [01;34mComponents[0m
+│   │   │   │   └── ReportSupportingViews.swift
+│   │   │   ├── [01;34mSections[0m
+│   │   │   │   ├── AssessmentSummarySection.swift
+│   │   │   │   ├── ReportFeaturesSection.swift
+│   │   │   │   ├── ReportGenerationSection.swift
+│   │   │   │   ├── ReportHeaderView.swift
+│   │   │   │   └── ReportStatusSection.swift
+│   │   │   ├── [01;34mUtils[0m
+│   │   │   │   └── ReportActionManager.swift
+│   │   │   └── DamageAssessmentReportIndex.swift
+│   │   ├── [01;34mDamageSeverityAssessment[0m
+│   │   │   ├── [01;34mComponents[0m
+│   │   │   │   ├── DamageSeverityAssessmentHeader.swift
+│   │   │   │   ├── RepairabilityGuide.swift
+│   │   │   │   ├── RepairabilityHelpView.swift
+│   │   │   │   ├── SeverityCard.swift
+│   │   │   │   └── ValueImpactBar.swift
+│   │   │   ├── [01;34mSections[0m
+│   │   │   │   ├── AssessmentNotesSection.swift
+│   │   │   │   ├── CurrentSelectionSummarySection.swift
+│   │   │   │   ├── ProfessionalAssessmentSection.swift
+│   │   │   │   ├── RepairabilitySection.swift
+│   │   │   │   ├── SeveritySelectionSection.swift
+│   │   │   │   └── ValueImpactSection.swift
+│   │   │   └── [01;34mUtilities[0m
+│   │   │       └── AssessmentUtils.swift
+│   │   ├── [01;34mPhotoComparison[0m
+│   │   │   ├── [01;34mCamera[0m
+│   │   │   │   └── DamageCameraView.swift
+│   │   │   ├── [01;34mComponents[0m
+│   │   │   │   ├── PhotoActionButtons.swift
+│   │   │   │   ├── PhotoCard.swift
+│   │   │   │   ├── PhotoComparisonGrid.swift
+│   │   │   │   ├── PhotoComparisonHeader.swift
+│   │   │   │   ├── PhotoDescriptionInput.swift
+│   │   │   │   ├── PhotoGuidelines.swift
+│   │   │   │   ├── PhotoPlaceholderCard.swift
+│   │   │   │   └── PhotoTypeSelector.swift
+│   │   │   ├── [01;34mLogic[0m
+│   │   │   │   └── PhotoOperationsManager.swift
+│   │   │   ├── [01;34mTypes[0m
+│   │   │   │   └── PhotoType.swift
+│   │   │   ├── PhotoComparisonIndex.swift
+│   │   │   └── README.md
 │   │   ├── [01;34mRepairCostEstimation[0m
+│   │   │   ├── [01;34mCards[0m
+│   │   │   │   ├── AdditionalCostsCard.swift
+│   │   │   │   ├── CostSummaryCard.swift
+│   │   │   │   ├── LaborMaterialsCard.swift
+│   │   │   │   ├── ProfessionalEstimateCard.swift
+│   │   │   │   ├── QuickAssessmentCard.swift
+│   │   │   │   ├── RepairCostsCard.swift
+│   │   │   │   └── ReplacementCostCard.swift
+│   │   │   ├── [01;34mComponents[0m
+│   │   │   │   ├── AdditionalCostRow.swift
+│   │   │   │   ├── CostEstimationHeaderView.swift
+│   │   │   │   └── RepairCostRow.swift
+│   │   │   ├── [01;34mSections[0m
+│   │   │   │   ├── AdditionalCostsSection.swift
+│   │   │   │   ├── CostSummarySection.swift
+│   │   │   │   ├── LaborMaterialsSection.swift
+│   │   │   │   ├── ProfessionalEstimateSection.swift
+│   │   │   │   ├── QuickAssessmentSection.swift
+│   │   │   │   ├── RepairCostsSection.swift
+│   │   │   │   └── ReplacementCostSection.swift
 │   │   │   ├── RepairCostEstimationComponents.swift
 │   │   │   ├── RepairCostEstimationCore.swift
 │   │   │   └── RepairCostEstimationForms.swift
+│   │   ├── [01;34mReportSections[0m
 │   │   ├── BeforeAfterPhotoComparisonView.swift
 │   │   ├── DamageAssessmentComponents.swift
 │   │   ├── DamageAssessmentCore.swift
 │   │   ├── DamageAssessmentReportView.swift
+│   │   ├── DamageAssessmentReportView.swift.backup
 │   │   ├── DamageAssessmentSteps.swift
 │   │   ├── DamageAssessmentWorkflowView.swift
 │   │   ├── DamageSeverityAssessmentView.swift
 │   │   └── RepairCostEstimationView.swift
+│   ├── [01;34mInsuranceClaim[0m
+│   │   ├── [01;34mComponents[0m
+│   │   │   ├── ClaimTypeCard.swift
+│   │   │   └── SummaryRow.swift
+│   │   ├── [01;34mLogic[0m
+│   │   │   ├── ClaimDataPersistence.swift
+│   │   │   ├── ClaimGenerationCoordinator.swift
+│   │   │   └── ClaimValidation.swift
+│   │   ├── [01;34mSteps[0m
+│   │   │   ├── ClaimTypeStep.swift
+│   │   │   ├── ContactInformationStep.swift
+│   │   │   ├── IncidentDetailsStep.swift
+│   │   │   └── ReviewAndGenerateStep.swift
+│   │   ├── InsuranceClaimIndex.swift
+│   │   └── README.md
 │   ├── [01;34mItemConditionViews[0m
 │   │   ├── ConditionModels.swift
 │   │   ├── ConditionNotesView.swift
@@ -71,9 +192,11 @@ _Last updated: 2025-08-21 14:50:09_
 │   │   ├── AboutSupportSettingsView.swift
 │   │   ├── AppearanceSettingsView.swift
 │   │   ├── CloudBackupSettingsView.swift
+│   │   ├── CloudStorageOptionsView.swift
 │   │   ├── CurrencySettingsView.swift
 │   │   ├── DangerZoneSettingsView.swift
 │   │   ├── DataStorageSettingsView.swift
+│   │   ├── DeveloperToolsView.swift
 │   │   ├── ExportOptionsView.swift
 │   │   ├── GeneralSettingsView.swift
 │   │   ├── ImportExportSettingsView.swift
@@ -88,6 +211,32 @@ _Last updated: 2025-08-21 14:50:09_
 │   │   └── InventoryListViewModel.swift
 │   ├── [01;34mWarrantyViews[0m
 │   │   ├── [01;34mWarrantyTracking[0m
+│   │   │   ├── [01;34mSheets[0m
+│   │   │   │   ├── [01;34mAutoDetection[0m
+│   │   │   │   │   ├── AutoDetectionActionButtons.swift
+│   │   │   │   │   ├── AutoDetectionHeader.swift
+│   │   │   │   │   ├── AutoDetectResultSheet.swift
+│   │   │   │   │   ├── ConfidenceCard.swift
+│   │   │   │   │   └── DetectedInfoCard.swift
+│   │   │   │   ├── [01;34mComponents[0m
+│   │   │   │   │   └── InfoRow.swift
+│   │   │   │   ├── [01;34mExtension[0m
+│   │   │   │   │   ├── CurrentWarrantyCard.swift
+│   │   │   │   │   ├── ExtensionOptionCard.swift
+│   │   │   │   │   ├── ExtensionOptionsSection.swift
+│   │   │   │   │   ├── ExtensionPurchaseButton.swift
+│   │   │   │   │   ├── SelectedExtensionCard.swift
+│   │   │   │   │   └── WarrantyExtensionSheet.swift
+│   │   │   │   ├── [01;34mManualForm[0m
+│   │   │   │   │   ├── AdditionalDetailsSection.swift
+│   │   │   │   │   ├── BasicInformationSection.swift
+│   │   │   │   │   ├── CoveragePeriodSection.swift
+│   │   │   │   │   ├── ManualWarrantyFormSheet.swift
+│   │   │   │   │   └── WarrantyFormState.swift
+│   │   │   │   ├── [01;34mTypes[0m
+│   │   │   │   │   └── WarrantyExtension.swift
+│   │   │   │   ├── README.md
+│   │   │   │   └── WarrantyTrackingSheetsIndex.swift
 │   │   │   ├── WarrantyTrackingComponents.swift
 │   │   │   ├── WarrantyTrackingCore.swift
 │   │   │   └── WarrantyTrackingSheets.swift
@@ -103,10 +252,13 @@ _Last updated: 2025-08-21 14:50:09_
 │   ├── AddItemView.swift
 │   ├── AdvancedSearchView.swift
 │   ├── BarcodeScannerView.swift
+│   ├── CaptureView.swift
 │   ├── CategoriesView.swift
 │   ├── ClaimExportView.swift
 │   ├── ClaimPackageAssemblyView.swift
 │   ├── ClaimPreviewView.swift
+│   ├── ClaimsDashboardComponents.swift
+│   ├── ClaimsDashboardView.swift
 │   ├── ClaimSubmissionView.swift
 │   ├── EditItemView.swift
 │   ├── EnhancedReceiptDataView.swift
@@ -164,6 +316,15 @@ _Last updated: 2025-08-21 14:50:09_
 │   ├── [01;34mIcons[0m
 │   │   └── [01;35mAppIcon.png[0m
 │   └── [01;34mScreenshots[0m
+├── [01;34mBuild Nestory-Prod_2025-08-21T23-12-46.xcresult[0m
+│   ├── [01;34mData[0m
+│   │   ├── data.0~GFXXcyxcbzYnBO9L2RXnA6zyfOsVUS6550FeHMo8hyrNIRCXt1lxmG6YfMFzF61GBMuXUjLkkE_Xf76Etp5abA==
+│   │   ├── data.0~K5Q6HRt4Pr67KyOvy1fGcV6w44GkWgvcJM4loj9SeUG3YRuOJihe56c_flRY0yqH8Bd5tQueyfDCQ7vHwe8ApA==
+│   │   ├── data.0~zW6qUCHSMumkKZzjOn9Xelo3jixiPF7yGWyKn0vTcMKO8aB6vHWuimvETkzhM8mCRXpidRrxenEHrAHRaKJfKA==
+│   │   ├── refs.0~GFXXcyxcbzYnBO9L2RXnA6zyfOsVUS6550FeHMo8hyrNIRCXt1lxmG6YfMFzF61GBMuXUjLkkE_Xf76Etp5abA==
+│   │   ├── refs.0~K5Q6HRt4Pr67KyOvy1fGcV6w44GkWgvcJM4loj9SeUG3YRuOJihe56c_flRY0yqH8Bd5tQueyfDCQ7vHwe8ApA==
+│   │   └── refs.0~zW6qUCHSMumkKZzjOn9Xelo3jixiPF7yGWyKn0vTcMKO8aB6vHWuimvETkzhM8mCRXpidRrxenEHrAHRaKJfKA==
+│   └── Info.plist
 ├── [01;34mConfig[0m
 │   ├── [01;34mStoreKit[0m
 │   │   └── StoreKitConfiguration.storekit
@@ -197,6 +358,7 @@ _Last updated: 2025-08-21 14:50:09_
 │   │   │       └── main.swift
 │   │   ├── Package.resolved
 │   │   └── Package.swift
+│   ├── [01;32menhanced-pre-commit.sh[0m
 │   └── [01;32minstall_hooks.sh[0m
 ├── [01;34mfastlane[0m
 │   ├── [01;34mmetadata[0m
@@ -232,10 +394,41 @@ _Last updated: 2025-08-21 14:50:09_
 │   │   ├── ItemDetailFeature.swift
 │   │   └── ItemEditFeature.swift
 │   ├── [01;34mSearch[0m
+│   │   ├── [01;34mComponents[0m
+│   │   │   ├── [01;34mActions[0m
+│   │   │   │   └── SearchActions.swift
+│   │   │   ├── [01;34mEffects[0m
+│   │   │   │   └── SearchEffects.swift
+│   │   │   ├── [01;34mReducers[0m
+│   │   │   │   └── SearchReducer.swift
+│   │   │   ├── [01;34mState[0m
+│   │   │   │   └── SearchState.swift
+│   │   │   └── [01;34mUtils[0m
+│   │   │       └── SearchUtils.swift
 │   │   ├── SearchFeature.swift
-│   │   └── SearchView.swift
+│   │   ├── SearchResultComponents.swift
+│   │   ├── SearchSheetComponents.swift
+│   │   ├── SearchToolbarComponents.swift
+│   │   ├── SearchView.swift
+│   │   ├── SearchViewComponents.swift
+│   │   └── SearchViewModifiers.swift
 │   └── [01;34mSettings[0m
+│       ├── [01;34mComponents[0m
+│       │   ├── [01;34mActions[0m
+│       │   │   └── SettingsActions.swift
+│       │   ├── [01;34mReducers[0m
+│       │   │   └── SettingsReducer.swift
+│       │   ├── [01;34mState[0m
+│       │   │   └── SettingsState.swift
+│       │   ├── [01;34mTypes[0m
+│       │   │   └── SettingsTypes.swift
+│       │   ├── [01;34mUtils[0m
+│       │   │   └── SettingsUtils.swift
+│       │   ├── SettingsIndex.swift
+│       │   ├── SettingsReceiptComponents.swift
+│       │   └── SettingsViewComponents.swift
 │       ├── SettingsFeature.swift
+│       ├── SettingsFeature.swift.backup
 │       └── SettingsView.swift
 ├── [01;34mFoundation[0m
 │   ├── [01;34mCore[0m
@@ -260,22 +453,27 @@ _Last updated: 2025-08-21 14:50:09_
 │   │   ├── Slug.swift
 │   │   └── ValidationIssue.swift
 │   ├── [01;34mModels[0m
+│   │   ├── AnalyticsModels.swift
 │   │   ├── AuthTypes.swift
 │   │   ├── BackupMetadata.swift
 │   │   ├── Category.swift
 │   │   ├── ClaimInfo.swift
+│   │   ├── CorrespondenceTypes.swift
 │   │   ├── CostEstimation.swift
 │   │   ├── DocumentationLevel.swift
 │   │   ├── ExportFormat.swift
 │   │   ├── ExportTypes.swift
+│   │   ├── InsuranceReportData.swift
 │   │   ├── InsuranceTypes.swift
 │   │   ├── Item.swift
 │   │   ├── Receipt.swift
 │   │   ├── ReportMetadata.swift
 │   │   ├── ReportOptions.swift
 │   │   ├── Room.swift
+│   │   ├── SearchFilters.swift
 │   │   ├── ValidationResult.swift
-│   │   └── Warranty.swift
+│   │   ├── Warranty.swift
+│   │   └── WarrantyStatus.swift
 │   ├── [01;34mResources[0m
 │   │   └── Fixtures.json
 │   └── [01;34mUtils[0m
@@ -307,6 +505,7 @@ _Last updated: 2025-08-21 14:50:09_
 │   │   ├── LogSpecializedOperations.swift
 │   │   ├── MetricKitCollector.swift
 │   │   ├── PerformanceMonitor.swift
+│   │   ├── ServiceHealthManager.swift
 │   │   └── Signpost.swift
 │   ├── [01;34mNetwork[0m
 │   │   ├── Endpoint.swift
@@ -369,7 +568,9 @@ _Last updated: 2025-08-21 14:50:09_
 │       ├── ComprehensiveUIFlowTests.swift
 │       └── FeatureWiringAuditTests.swift
 ├── [01;34mScripts[0m
+│   ├── [01;32marchitecture-verification.sh[0m
 │   ├── [01;32mcheck-file-sizes.sh[0m
+│   ├── [01;32mcodebase-health-report.sh[0m
 │   ├── [01;32mconfigure_app_store_connect.rb[0m
 │   ├── [01;32mdev_cycle.sh[0m
 │   ├── [01;32mdev_stats.sh[0m
@@ -377,6 +578,7 @@ _Last updated: 2025-08-21 14:50:09_
 │   ├── [01;32mgenerate-project-config.swift[0m
 │   ├── [01;32mios_simulator_automation.applescript[0m
 │   ├── [01;32mmanage-file-size-overrides.sh[0m
+│   ├── [01;32mmodularization-monitor.sh[0m
 │   ├── move_models.sh
 │   ├── nestory_aliases.sh
 │   ├── [01;32moptimize_xcode_workflow.sh[0m
@@ -387,13 +589,14 @@ _Last updated: 2025-08-21 14:50:09_
 │   ├── [01;32mrun_simulator_automation.sh[0m
 │   ├── [01;32msetup_asc_credentials.sh[0m
 │   ├── [01;32mupdate_bundle_identifiers.sh[0m
+│   ├── [01;32mvalidate-configuration.sh[0m
 │   └── [01;32mverify_app_store_setup.sh[0m
 ├── [01;34mServices[0m
 │   ├── [01;34mAnalyticsService[0m
 │   │   ├── AnalyticsCurrencyOperations.swift
-│   │   ├── AnalyticsModels.swift
 │   │   ├── AnalyticsService.swift
 │   │   ├── AnalyticsServiceError.swift
+│   │   ├── AnalyticsServiceModels.swift
 │   │   ├── LiveAnalyticsService.swift
 │   │   └── MockAnalyticsService.swift
 │   ├── [01;34mAppStoreConnect[0m
@@ -421,6 +624,18 @@ _Last updated: 2025-08-21 14:50:09_
 │   │   ├── ClaimExportFormatters.swift
 │   │   ├── ClaimExportModels.swift
 │   │   └── ClaimExportValidators.swift
+│   ├── [01;34mClaimTracking[0m
+│   │   ├── [01;34mAnalytics[0m
+│   │   │   └── ClaimAnalyticsEngine.swift
+│   │   ├── [01;34mFollowUp[0m
+│   │   │   └── FollowUpManager.swift
+│   │   ├── [01;34mModels[0m
+│   │   │   └── ClaimTrackingModels.swift
+│   │   ├── [01;34mOperations[0m
+│   │   │   └── ClaimTrackingOperations.swift
+│   │   ├── [01;34mTimeline[0m
+│   │   │   └── ClaimTimelineManager.swift
+│   │   └── ClaimTrackingIndex.swift
 │   ├── [01;34mCloudBackupService[0m
 │   │   ├── BackupDataTransformer.swift
 │   │   ├── BackupModels.swift
@@ -454,8 +669,22 @@ _Last updated: 2025-08-21 14:50:09_
 │   │   │   ├── ClaimJSONGenerator.swift
 │   │   │   ├── ClaimPDFGenerator.swift
 │   │   │   └── ClaimSpreadsheetGenerator.swift
+│   │   ├── [01;34mTemplates[0m
+│   │   │   ├── [01;34mFields[0m
+│   │   │   ├── [01;34mGenerators[0m
+│   │   │   │   ├── AllstateTemplateGenerator.swift
+│   │   │   │   ├── GeicoTemplateGenerator.swift
+│   │   │   │   ├── GenericTemplateGenerator.swift
+│   │   │   │   └── StateFarmTemplateGenerator.swift
+│   │   │   ├── [01;34mLogos[0m
+│   │   │   ├── [01;34mSections[0m
+│   │   │   ├── [01;34mUtils[0m
+│   │   │   │   └── TemplateValidator.swift
+│   │   │   ├── ClaimTemplateIndex.swift
+│   │   │   └── ClaimTemplateTypes.swift
 │   │   ├── ClaimDocumentGenerator.swift
-│   │   └── ClaimTemplateManager.swift
+│   │   ├── ClaimTemplateManager.swift
+│   │   └── ClaimTemplateManager.swift.backup
 │   ├── [01;34mInsuranceExport[0m
 │   │   ├── DataFormatHelpers.swift
 │   │   ├── HTMLTemplateGenerator.swift
@@ -497,7 +726,22 @@ _Last updated: 2025-08-21 14:50:09_
 │   ├── [01;34mWarrantyService[0m
 │   │   └── WarrantyService.swift
 │   ├── [01;34mWarrantyTrackingService[0m
+│   │   ├── [01;34mOperations[0m
+│   │   │   ├── [01;34mAnalytics[0m
+│   │   │   │   └── WarrantyAnalyticsEngine.swift
+│   │   │   ├── [01;34mBulk[0m
+│   │   │   │   └── WarrantyBulkOperations.swift
+│   │   │   ├── [01;34mCache[0m
+│   │   │   │   └── WarrantyCacheManager.swift
+│   │   │   ├── [01;34mCore[0m
+│   │   │   │   └── WarrantyCoreOperations.swift
+│   │   │   ├── [01;34mDetection[0m
+│   │   │   │   └── WarrantyDetectionEngine.swift
+│   │   │   ├── [01;34mStatus[0m
+│   │   │   │   └── WarrantyStatusManager.swift
+│   │   │   └── WarrantyOperationsIndex.swift
 │   │   ├── LiveWarrantyTrackingService.swift
+│   │   ├── LiveWarrantyTrackingService.swift.backup
 │   │   └── WarrantyTrackingService.swift
 │   ├── ClaimContentGenerator.swift
 │   ├── ClaimDocumentProcessor.swift
@@ -507,16 +751,23 @@ _Last updated: 2025-08-21 14:50:09_
 │   ├── ClaimPackageCore.swift
 │   ├── ClaimPackageExporter.swift
 │   ├── ClaimTrackingService.swift
+│   ├── ClaimTrackingService.swift.backup
 │   ├── ClaimValidationService.swift
 │   ├── CloudStorageServices.swift
 │   ├── DependencyKeys.swift
+│   ├── DependencyUtilities.swift
+│   ├── DependencyValueExtensions.swift
 │   ├── InsuranceClaimCore.swift
 │   ├── InsuranceClaimModels.swift
 │   ├── InsuranceClaimService.swift
 │   ├── InsuranceClaimValidation.swift
 │   ├── InsuranceExportService.swift
 │   ├── InsuranceReportService.swift
-│   └── ReceiptOCRService.swift
+│   ├── MockServiceImplementations.swift
+│   ├── NotificationServiceCompatibility.swift
+│   ├── ReceiptOCRService.swift
+│   ├── ReliableMockInventoryService.swift
+│   └── ServiceDependencyKeys.swift
 ├── [01;34mSources[0m
 │   └── [01;34mNestoryGuards[0m
 │       └── NestoryGuards.swift
@@ -552,6 +803,7 @@ _Last updated: 2025-08-21 14:50:09_
 │   │   └── SettingsViewTests.swift
 │   ├── [01;34mUnit[0m
 │   │   ├── [01;34mFoundation[0m
+│   │   │   ├── CloudKitCompatibilityTests.swift
 │   │   │   ├── IdentifierTests.swift
 │   │   │   ├── ModelInvariantTests.swift
 │   │   │   ├── MoneyTests.swift
@@ -581,6 +833,7 @@ _Last updated: 2025-08-21 14:50:09_
 │   │   ├── InsuranceReportOptionsView.swift
 │   │   ├── ManualBarcodeEntryView.swift
 │   │   ├── MLProcessingProgressView.swift
+│   │   ├── ServiceHealthIndicator.swift
 │   │   └── SummaryCardsView.swift
 │   ├── [01;34mPerformance[0m
 │   │   └── UIPerformanceOptimizer.swift
@@ -594,26 +847,48 @@ _Last updated: 2025-08-21 14:50:09_
 │       ├── Extensions.swift
 │       ├── Theme.swift
 │       └── Typography.swift
+├── [01;32manalyze_architecture.sh[0m
 ├── APP_STORE_CONNECT_API.md
 ├── APP_STORE_SUBMISSION_GUIDE.md
 ├── APPLESCRIPT_IOS_SIMULATOR_NAVIGATION.md
 ├── ARCHAEOLOGICAL_LAYERS.md
 ├── ARCHITECTURE_NOTES.md
+├── architecture_report.md
 ├── ARCHITECTURE_STATUS.md
 ├── AuthKey_NWV654RNK3.p8
+├── AUTOMATION_SYSTEM.md
+├── Build Nestory-Dev_2025-08-21T23-51-02.txt
+├── Build Nestory-Dev_2025-08-22T02-30-40.txt
+├── Build Nestory-Dev_2025-08-22T03-11-00.txt
+├── Build Nestory-Dev_2025-08-22T04-47-37.txt
+├── Build Nestory-Dev_2025-08-22T06-19-48.txt
+├── Build Nestory-Dev_2025-08-22T07-17-10.txt
+├── Build Nestory-Dev_2025-08-22T09-24-12.txt
+├── Build Nestory-Dev_2025-08-22T12-53-20.txt
+├── Build Nestory-Dev_2025-08-22T16-06-39.txt
+├── Build Nestory-Dev_2025-08-22T16-27-30.txt
+├── Build Nestory-Dev_2025-08-22T16-53-38.txt
+├── Build Nestory-Dev_2025-08-22T19-25-50.txt
+├── Build Nestory-Dev_2025-08-22T22-11-24.txt
+├── Build Nestory-Prod_2025-08-21T23-12-46.txt
 ├── BUILD_INSTRUCTIONS.md
+├── [01;32mbuild_ios.sh[0m
 ├── BUILD_STATUS.md
 ├── build_with_swift6.sh
-├── build.sh
+├── [01;32mbuild.sh[0m
 ├── [01;32mcheck_environment.sh[0m
 ├── CLAIM_PACKAGE_SUMMARY.md
 ├── CLAUDE.md
+├── CLOUDKIT_MIGRATION_STRATEGY.md
 ├── CURRENT_CONTEXT.md
 ├── DECISIONS.md
+├── dependencies.dot
+├── [01;35mdependencies.png[0m
 ├── DEVELOPMENT_CHECKLIST.md
 ├── emergency_fix.sh
 ├── EMERGENCY_MODULARIZATION.md
 ├── EXPORT_COMPLIANCE.md
+├── fastlane_plugins_recommendations.md
 ├── [01;32mfix_build.sh[0m
 ├── Gemfile.lock
 ├── [01;32mgenerate_app_icons.sh[0m
@@ -635,7 +910,7 @@ _Last updated: 2025-08-21 14:50:09_
 ├── PROJECT_CONTEXT.md
 ├── project-uitests.yml
 ├── project.yml
-├── quick_build.sh
+├── [01;32mquick_build.sh[0m
 ├── README.md
 ├── RESONANCE.txt
 ├── run_app_final.sh
@@ -646,7 +921,9 @@ _Last updated: 2025-08-21 14:50:09_
 ├── SPEC_CHANGE.md
 ├── SPEC.json
 ├── SPEC.lock
+├── STATUS.md
 ├── SWIFT6_UITEST_MIGRATION.md
+├── tca_analysis.py
 ├── TCA_IMPLEMENTATION_STATUS.md
 ├── THIRD_PARTY_LICENSES.md
 ├── TODO.md
@@ -656,7 +933,7 @@ _Last updated: 2025-08-21 14:50:09_
 ├── verify_build.sh
 └── XCODE_FIX.md
 
-128 directories, 524 files
+197 directories, 732 files
 ```
 
 _📁 Directories:  | 📄 Files: 

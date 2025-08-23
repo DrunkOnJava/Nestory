@@ -19,101 +19,148 @@ struct SearchFilterView: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                // Categories Section
-                Section("Categories") {
-                    ForEach(categories) { category in
-                        CategoryFilterRow(
-                            category: category,
-                            isSelected: filters.selectedCategories.contains(category.id)
-                        ) {
-                            if filters.selectedCategories.contains(category.id) {
-                                filters.selectedCategories.remove(category.id)
-                            } else {
-                                filters.selectedCategories.insert(category.id)
-                            }
-                        }
+            formContent
+                .navigationTitle("Filters")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button("Done") { dismiss() }
                     }
                 }
-
-                // Price Range Section
-                Section("Price Range") {
-                    VStack {
-                        HStack {
-                            Text("$\(Int(filters.priceRange.lowerBound))")
-                            Spacer()
-                            Text("$\(Int(filters.priceRange.upperBound))")
-                        }
-                        .font(.caption)
-
-                        RangeSlider(
-                            value: $filters.priceRange,
-                            bounds: 0 ... 10000,
-                            step: 100
-                        )
+        }
+    }
+    
+    private var formContent: some View {
+        Form {
+            categoriesSection
+            priceRangeSection
+            documentationSection
+            quantitySection
+            roomsSection
+            resetSection
+        }
+    }
+    
+    private var categoriesSection: some View {
+        Section("Categories") {
+            ForEach(categories) { category in
+                CategoryFilterRow(
+                    category: category,
+                    isSelected: filters.selectedCategories.contains(category.id)
+                ) {
+                    if filters.selectedCategories.contains(category.id) {
+                        filters.selectedCategories.remove(category.id)
+                    } else {
+                        filters.selectedCategories.insert(category.id)
                     }
-                }
-
-                // Documentation Status Section
-                Section("Documentation Status") {
-                    Toggle("Has Photo", isOn: $filters.hasPhoto)
-                    Toggle("Has Receipt", isOn: $filters.hasReceipt)
-                    Toggle("Has Warranty", isOn: $filters.hasWarranty)
-                    Toggle("Has Serial Number", isOn: $filters.hasSerialNumber)
-                }
-
-                // Quantity Section
-                Section("Quantity Range") {
-                    Stepper(
-                        "Min: \(filters.minQuantity)",
-                        value: $filters.minQuantity,
-                        in: 0 ... filters.maxQuantity,
-                    )
-                    Stepper(
-                        "Max: \(filters.maxQuantity)",
-                        value: $filters.maxQuantity,
-                        in: filters.minQuantity ... 100,
-                    )
-                }
-
-                // Rooms Section
-                if !rooms.isEmpty {
-                    Section("Rooms") {
-                        ForEach(rooms) { room in
-                            RoomFilterRow(
-                                room: room,
-                                isSelected: filters.rooms.contains(room.name)
-                            ) {
-                                if filters.rooms.contains(room.name) {
-                                    filters.rooms.remove(room.name)
-                                } else {
-                                    filters.rooms.insert(room.name)
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // Reset Section
-                Section {
-                    Button(action: { filters.reset() }) {
-                        HStack {
-                            Image(systemName: "arrow.counterclockwise")
-                                .accessibilityLabel("Reset")
-                            Text("Reset All Filters")
-                        }
-                        .foregroundColor(.red)
-                    }
-                }
-            }
-            .navigationTitle("Filters")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") { dismiss() }
                 }
             }
         }
+    }
+    
+    private var priceRangeSection: some View {
+        Section("Price Range") {
+            VStack {
+                HStack {
+                    Text("$\(Int(filters.priceRange?.lowerBound ?? 0))")
+                    Spacer()
+                    Text("$\(Int(filters.priceRange?.upperBound ?? 10000))")
+                }
+                .font(.caption)
+
+                RangeSlider(
+                    value: Binding(
+                        get: { filters.priceRange ?? 0...10000 },
+                        set: { filters.priceRange = $0 }
+                    ),
+                    bounds: 0 ... 10000,
+                    step: 100
+                )
+            }
+        }
+    }
+    
+    private var documentationSection: some View {
+        Section("Documentation Status") {
+            Toggle("Has Photo", isOn: Binding(
+                get: { filters.hasPhoto ?? false },
+                set: { filters.hasPhoto = $0 }
+            ))
+            Toggle("Has Receipt", isOn: Binding(
+                get: { filters.hasReceipt ?? false },
+                set: { filters.hasReceipt = $0 }
+            ))
+            Toggle("Has Warranty", isOn: Binding(
+                get: { filters.hasWarranty ?? false },
+                set: { filters.hasWarranty = $0 }
+            ))
+            Toggle("Has Serial Number", isOn: Binding(
+                get: { filters.hasSerialNumber ?? false },
+                set: { filters.hasSerialNumber = $0 }
+            ))
+        }
+    }
+    
+    private var quantitySection: some View {
+        Section("Quantity Range") {
+            Stepper(
+                "Min: \(filters.minQuantity)",
+                value: $filters.minQuantity,
+                in: 0 ... filters.maxQuantity
+            )
+            Stepper(
+                "Max: \(filters.maxQuantity)",
+                value: $filters.maxQuantity,
+                in: filters.minQuantity ... 100
+            )
+        }
+    }
+    
+    @ViewBuilder
+    private var roomsSection: some View {
+        if !rooms.isEmpty {
+            Section("Rooms") {
+                ForEach(rooms) { room in
+                    RoomFilterRow(
+                        room: room,
+                        isSelected: filters.rooms.contains(room.name)
+                    ) {
+                        if filters.rooms.contains(room.name) {
+                            filters.rooms.remove(room.name)
+                        } else {
+                            filters.rooms.insert(room.name)
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    private var resetSection: some View {
+        Section {
+            Button(action: resetFilters) {
+                HStack {
+                    Image(systemName: "arrow.counterclockwise")
+                        .accessibilityLabel("Reset")
+                    Text("Reset All Filters")
+                }
+                .foregroundColor(.red)
+            }
+        }
+    }
+    
+    private func resetFilters() {
+        filters.selectedCategories = []
+        filters.priceRange = 0...10000
+        filters.hasPhoto = false
+        filters.hasReceipt = false
+        filters.hasWarranty = false
+        filters.hasSerialNumber = false
+        filters.minQuantity = 0
+        filters.maxQuantity = 100
+        filters.rooms = []
+        filters.dateRange = nil
+        filters.documentationCompleteOnly = false
     }
 }
 
@@ -257,4 +304,12 @@ struct RoomFilterRow: View {
         .accessibilityAddTraits(.isButton)
         .onTapGesture(perform: onTap)
     }
+}
+
+// MARK: - Preview
+
+#Preview {
+    SearchFilterView(
+        filters: .constant(SearchFilters())
+    )
 }

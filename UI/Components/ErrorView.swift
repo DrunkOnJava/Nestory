@@ -37,3 +37,14 @@ struct ErrorView: View {
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 }
+
+
+// MARK: - Preview
+
+#Preview {
+    ErrorView(
+        message: "Please try again later or contact support if the problem persists."
+    ) {
+        print("Retry tapped")
+    }
+}

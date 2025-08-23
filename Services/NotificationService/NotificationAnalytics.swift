@@ -113,7 +113,7 @@ public final class NotificationAnalytics: @unchecked Sendable {
             snoozePattersByType: snoozePattersByType
         )
 
-        logger.info("Generated analytics: \(analytics.interactionRate * 100, specifier: "%.1f")% interaction rate")
+        logger.info("Generated analytics: \(String(format: "%.1f", analytics.interactionRate * 100))% interaction rate")
         return analytics
     }
 

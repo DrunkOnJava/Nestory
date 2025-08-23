@@ -21,4 +21,13 @@ public protocol ImportExportService: AnyObject, Sendable {
 
     func importJSON(from url: URL, modelContext: ModelContext) async throws -> ImportResult
     func exportToJSON(items: [Item]) -> Data?
+
+    // MARK: - Comprehensive Export Operations
+
+    func exportData(
+        format: ExportFormat,
+        includeImages: Bool,
+        includeReceipts: Bool,
+        progressCallback: @escaping (Double) -> Void
+    ) async throws -> URL
 }

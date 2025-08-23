@@ -143,7 +143,7 @@ struct InsuranceReportOptionsView: View {
                 )
 
                 // Export and share
-                let url = try await insuranceReportService.exportReport(pdfData)
+                let url = try await insuranceReportService.exportReport(pdfData, filename: "HomeInventory_Insurance_Report")
                 await insuranceReportService.shareReport(url)
 
                 isGenerating = false

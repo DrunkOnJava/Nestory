@@ -9,6 +9,7 @@
 import XCTest
 
 /// Base class for all Nestory UI tests with Swift 6 concurrency compliance
+@MainActor
 class NestoryUITestBase: XCTestCase {
     // MARK: - Properties
 
@@ -50,17 +51,15 @@ class NestoryUITestBase: XCTestCase {
         // Configure test execution
         continueAfterFailure = false
 
-        // Setup app and dependencies using MainActor isolation
-        Task { @MainActor in
-            await setupApp()
-        }
+        // Setup app and dependencies on MainActor synchronously
+        setupApp()
 
         print("🚀 Test setup completed for: \(name)")
     }
 
     /// Setup application and dependencies with proper MainActor isolation
     @MainActor
-    private func setupApp() async {
+    private func setupApp() {
         // Initialize application
         let application = XCUIApplication()
 
@@ -91,10 +90,21 @@ class NestoryUITestBase: XCTestCase {
     }
 
     override func tearDownWithError() throws {
-        // Cleanup using MainActor isolation
-        Task { @MainActor in
-            await cleanupApp()
+        // Capture final screenshot if test failed
+        if let testRun, testRun.hasSucceeded == false {
+            // Best-effort failure screenshot before cleanup
+            let group = DispatchGroup()
+            group.enter()
+            Task { @MainActor in
+                await self.captureFailureScreenshot()
+                group.leave()
+            }
+            // Wait briefly for screenshot capture
+            _ = group.wait(timeout: .now() + 5)
         }
+
+        // Cleanup using MainActor isolation synchronously
+        cleanupApp()
 
         try super.tearDownWithError()
 
@@ -103,13 +113,7 @@ class NestoryUITestBase: XCTestCase {
 
     /// Cleanup application and dependencies with proper MainActor isolation
     @MainActor
-    private func cleanupApp() async {
-        // Capture final screenshot if test failed
-        if let testRun, testRun.hasSucceeded == false {
-            await captureFailureScreenshot()
-        }
-
-        // Cleanup
+    private func cleanupApp() {
         _screenshotManager = nil
         _app?.terminate()
         _app = nil
@@ -222,6 +226,7 @@ class NestoryUITestBase: XCTestCase {
     /// - Parameters:
     ///   - element: Element to check
     ///   - message: Custom failure message
+    @MainActor
     func assertExists(
         _ element: XCUIElement,
         _ message: String = "",
@@ -236,6 +241,7 @@ class NestoryUITestBase: XCTestCase {
     /// - Parameters:
     ///   - element: Element to check
     ///   - message: Custom failure message
+    @MainActor
     func assertHittable(
         _ element: XCUIElement,
         _ message: String = "",

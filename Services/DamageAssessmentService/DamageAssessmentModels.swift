@@ -174,6 +174,7 @@ public enum DamageSeverity: String, CaseIterable, Codable, Sendable {
     case minor = "Minor"
     case moderate = "Moderate"
     case major = "Major"
+    case severe = "Severe"
     case total = "Total Loss"
 
     public var color: String {
@@ -184,6 +185,8 @@ public enum DamageSeverity: String, CaseIterable, Codable, Sendable {
             "#FF9500" // Orange
         case .major:
             "#FF6B35" // Orange-red
+        case .severe:
+            "#CC0000" // Dark red
         case .total:
             "#FF3B30" // Red
         }
@@ -197,6 +200,8 @@ public enum DamageSeverity: String, CaseIterable, Codable, Sendable {
             "exclamationmark.triangle"
         case .major:
             "xmark.octagon"
+        case .severe:
+            "xmark.circle.fill"
         case .total:
             "multiply.circle.fill"
         }
@@ -210,6 +215,8 @@ public enum DamageSeverity: String, CaseIterable, Codable, Sendable {
             0.35 // 35% value reduction
         case .major:
             0.75 // 75% value reduction
+        case .severe:
+            0.90 // 90% value reduction
         case .total:
             1.0 // 100% value reduction (total loss)
         }
@@ -223,6 +230,8 @@ public enum DamageSeverity: String, CaseIterable, Codable, Sendable {
             "Functional damage, moderate repair needed"
         case .major:
             "Significant damage, extensive repair or replacement needed"
+        case .severe:
+            "Severe damage, near-total loss with minimal salvage value"
         case .total:
             "Complete loss, item cannot be repaired"
         }
@@ -290,8 +299,20 @@ public struct DamageAssessmentWorkflow: Codable, Sendable {
     public var completedSteps: Set<DamageAssessmentStep> = []
     public var stepData: [String: Data] = [:]
     public var assessment: DamageAssessment
+    public var affectedItems: [UUID] = []
     public let startedAt: Date
     public var updatedAt: Date
+    
+    // Photo documentation properties
+    public var photos: [DamagePhoto] = []
+    public var hasPhotoDocumentation: Bool {
+        !photos.isEmpty
+    }
+    
+    // Repair estimation property
+    public var hasRepairEstimate: Bool {
+        assessment.repairEstimate != nil
+    }
 
     public init(damageType: DamageType, assessment: DamageAssessment) {
         self.id = UUID()

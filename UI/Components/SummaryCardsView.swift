@@ -112,3 +112,16 @@ public struct SummaryCard: View {
         .cornerRadius(12)
     }
 }
+
+
+// MARK: - Preview
+
+#Preview {
+    SummaryCardsView(
+        totalItems: 247,
+        totalValue: 12450.75,
+        categoriesCount: 18,
+        averageValue: 689.50
+    )
+    .padding()
+}

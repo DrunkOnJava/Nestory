@@ -3,9 +3,17 @@
 // Module: CloudStorage
 // Purpose: Cloud storage integration for claim submissions and document backup
 //
+// SIMULATOR NOTE: Cloud storage operations disabled in simulator builds
+// as they require real device authentication and network access
 
 import Foundation
 import CloudKit
+
+#if targetEnvironment(simulator)
+// Simulator-safe mock implementations
+#else
+// Real device implementations
+#endif
 
 // MARK: - Cloud Storage Service Implementations
 
@@ -95,6 +103,46 @@ public struct iCloudDriveStorageService: CloudStorageService {
 
 // MARK: - Cloud Storage Manager
 
+#if targetEnvironment(simulator)
+// Simulator-safe CloudStorageManager that doesn't perform real uploads
+@MainActor
+public final class CloudStorageManager: ObservableObject {
+    @Published public var availableServices: [CloudStorageService] = []
+    @Published public var isUploading = false
+    @Published public var uploadProgress = 0.0
+
+    public init() {
+        setupAvailableServices()
+    }
+
+    private func setupAvailableServices() {
+        // Return empty services for simulator
+        availableServices = []
+    }
+
+    public func uploadToService(
+        _ service: CloudStorageService,
+        fileURL: URL,
+        fileName: String
+    ) async throws -> String {
+        // Simulator mock implementation
+        isUploading = true
+        uploadProgress = 0.0
+        defer {
+            isUploading = false
+            uploadProgress = 1.0
+        }
+
+        uploadProgress = 0.5
+        // Simulate upload delay
+        try await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+        uploadProgress = 1.0
+
+        return "simulator://mock-upload/\(fileName)"
+    }
+}
+#else
+// Real device CloudStorageManager with actual upload functionality
 @MainActor
 public final class CloudStorageManager: ObservableObject {
     @Published public var availableServices: [CloudStorageService] = []
@@ -129,6 +177,7 @@ public final class CloudStorageManager: ObservableObject {
 
         uploadProgress = 0.3
 
+        // Perform upload on real device
         let uploadURL = try await service.upload(fileURL: fileURL, fileName: fileName)
 
         uploadProgress = 1.0
@@ -136,6 +185,7 @@ public final class CloudStorageManager: ObservableObject {
         return uploadURL
     }
 }
+#endif
 
 // MARK: - Secure File Transfer Service
 

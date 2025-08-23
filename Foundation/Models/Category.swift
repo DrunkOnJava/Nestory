@@ -9,33 +9,34 @@ import SwiftData
 
 @Model
 public final class Category: @unchecked Sendable {
-    @Attribute(.unique)
-    public var id: UUID
+    // CloudKit compatible: removed .unique constraint
+    public var id: UUID = UUID()
 
-    public var name: String
-    public var icon: String
-    public var colorHex: String
-    public var itemCount: Int
+    public var name: String = ""
+    public var icon: String = "folder.fill"
+    public var colorHex: String = "#007AFF"
+    public var itemCount: Int = 0
 
-    public var createdAt: Date
-    public var updatedAt: Date
+    public var createdAt: Date = Date()
+    public var updatedAt: Date = Date()
 
     @Relationship(deleteRule: .nullify, inverse: \Item.category)
-    public var items: [Item]?
+    public var items: [Item]? // CloudKit compatible optional relationship
 
     public init(
         name: String,
         icon: String = "folder.fill",
         colorHex: String = "#007AFF"
     ) {
-        id = UUID()
+        // Override defaults with provided values
+        self.id = UUID()
         self.name = name
         self.icon = icon
         self.colorHex = colorHex
-        itemCount = 0
-        items = []
-        createdAt = Date()
-        updatedAt = Date()
+        self.itemCount = 0
+        self.items = []
+        self.createdAt = Date()
+        self.updatedAt = Date()
     }
 }
 

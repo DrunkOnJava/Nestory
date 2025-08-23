@@ -87,6 +87,11 @@ Nestory includes a comprehensive Makefile system to ensure consistency across de
 - `make lint` - Run SwiftLint
 - `make format` - Format code with SwiftFormat
 
+#### Build Performance
+- `make fast-build` - Optimized parallel build (10 cores + enhanced caching)
+- `make build-benchmark` - Compare regular vs fast build performance
+- `make clean-derived-data` - Clean build cache for fresh builds
+
 #### Utilities
 - `make new-service NAME=MyService` - Create a new service
 - `make new-feature NAME=MyFeature` - Create a new feature
@@ -100,6 +105,28 @@ Nestory includes a comprehensive Makefile system to ensure consistency across de
 - `make d` - Shortcut for `make doctor`
 
 **Note:** The Makefile enforces project standards including always using iPhone 16 Pro Max simulator and ensuring all services are properly wired to the UI.
+
+### ⚠️ Important: Build System
+
+**`swift build` is BLOCKED and will NOT work for this iOS app!**
+
+The Package.swift file intentionally causes an error to prevent confusion. If you try to run `swift build`, `swift test`, or other Swift Package Manager commands, you'll get a clear error message directing you to the proper commands.
+
+**For iOS app development, always use:**
+- `make run` - Build and run the full iOS app
+- `make build` - Build the full iOS app  
+- `make fast-build` - Optimized parallel build (⚡ faster)
+- `make test` - Run proper iOS tests
+- `xcodebuild` - Manual Xcode builds
+
+**Build Performance:** The project includes extensive build optimizations:
+- **Parallel compilation** with 10 CPU cores
+- **Enhanced caching** with dedicated derived data paths
+- **Swift batch mode** for faster compilation
+- **Target parallelization** for concurrent builds
+- **Incremental compilation** to only rebuild changed files
+
+The project uses XcodeGen + Xcode build system, not Swift Package Manager for the main application.
 
 ### First Launch
 

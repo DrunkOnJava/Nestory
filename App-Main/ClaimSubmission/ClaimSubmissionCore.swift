@@ -212,10 +212,10 @@ public final class ClaimSubmissionCore: ObservableObject {
         )
 
         // Update claim with upload information
-        await claimTrackingService.addCorrespondence(
-            to: claim,
+        await claimTrackingService.recordCorrespondence(
+            for: claim,
+            direction: .outgoing,
             type: .portal,
-            direction: .sent,
             subject: "Claim uploaded to \(service.name)",
             content: "Upload URL: \(uploadURL)"
         )

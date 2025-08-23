@@ -13,6 +13,7 @@ import UniformTypeIdentifiers
 /// Represents a claim submission record
 @Model
 public final class ClaimSubmission {
+    // CloudKit compatible: no unique constraint on ID
     public var id = UUID()
     var createdAt = Date()
     var updatedAt = Date()
@@ -86,7 +87,7 @@ public enum InsuranceClaimType: String, CaseIterable, Codable {
 }
 
 /// Methods for submitting claims
-public enum SubmissionMethod: String, CaseIterable, Codable {
+public enum SubmissionMethod: String, CaseIterable, Codable, Sendable {
     case email = "Email"
     case onlinePortal = "Online Portal"
     case mobileApp = "Mobile App"
@@ -106,22 +107,27 @@ public enum SubmissionMethod: String, CaseIterable, Codable {
 }
 
 /// Status of claim submission
-public enum ClaimStatus: String, CaseIterable, Codable {
+public enum ClaimStatus: String, CaseIterable, Codable, Sendable {
+    case draft = "Draft"
     case preparing = "Preparing"
     case submitted = "Submitted"
     case acknowledged = "Acknowledged"
+    case pendingDocuments = "Pending Documents"
     case underReview = "Under Review"
+    case scheduledInspection = "Scheduled Inspection"
     case approved = "Approved"
+    case settlementOffered = "Settlement Offered"
     case denied = "Denied"
     case settled = "Settled"
     case closed = "Closed"
 
     var color: String {
         switch self {
-        case .preparing: "orange"
+        case .draft, .preparing: "orange"
         case .submitted, .acknowledged: "blue"
-        case .underReview: "yellow"
-        case .approved, .settled: "green"
+        case .pendingDocuments, .underReview: "yellow"
+        case .scheduledInspection: "purple"
+        case .approved, .settlementOffered, .settled: "green"
         case .denied, .closed: "gray"
         }
     }
@@ -155,13 +161,7 @@ public struct CorrespondenceRecord: Codable, Identifiable {
     }
 }
 
-public enum CorrespondenceType: String, CaseIterable, Codable {
-    case email = "Email"
-    case phone = "Phone Call"
-    case letter = "Letter"
-    case portal = "Portal Message"
-    case sms = "SMS/Text"
-}
+// CorrespondenceType is imported from Foundation/Models/CorrespondenceTypes.swift
 
 public enum CommunicationDirection: String, Codable {
     case sent = "Sent"
@@ -263,18 +263,10 @@ public enum ClaimExportError: LocalizedError {
 
 // MARK: - Protocol Definitions
 
-public protocol CloudStorageService {
+public protocol CloudStorageService: Sendable {
     var name: String { get }
     func upload(fileURL: URL, fileName: String) async throws -> String
 }
 
 // MARK: - Extensions
-
-extension DateFormatter {
-    static let shortDateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .short
-        formatter.timeStyle = .none
-        return formatter
-    }()
-}
+// DateFormatter.shortDateFormatter is defined in Foundation/Utils/DateUtils.swift

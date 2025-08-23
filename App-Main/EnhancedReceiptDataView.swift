@@ -331,3 +331,32 @@ struct EnhancedReceiptDataView_Previews: PreviewProvider {
             .previewLayout(.sizeThatFits)
     }
 }
+
+
+// MARK: - Preview
+
+#Preview {
+    EnhancedReceiptDataView(
+        data: EnhancedReceiptData(
+            vendor: "Apple Store",
+            total: Decimal(1299.00),
+            tax: Decimal(61.00),
+            date: Date(),
+            items: [
+                ReceiptItem(name: "MacBook Air", price: Decimal(1199.00), quantity: 1),
+                ReceiptItem(name: "USB-C Cable", price: Decimal(39.00), quantity: 1),
+                ReceiptItem(name: "Tax", price: Decimal(61.00), quantity: 1)
+            ],
+            categories: ["Electronics", "Apple"],
+            confidence: 0.89,
+            rawText: "APPLE STORE\n123 Apple Street\nMacBook Air    $1199.00\nUSB-C Cable    $39.00\nTax            $61.00\nTOTAL         $1299.00",
+            boundingBoxes: [],
+            processingMetadata: ReceiptProcessingMetadata(
+                documentCorrectionApplied: true,
+                patternsMatched: ["vendor": true, "total": true, "date": true],
+                mlClassifierUsed: true
+            )
+        )
+    )
+    .padding()
+}

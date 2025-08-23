@@ -43,7 +43,7 @@ struct ClaimPackageAssemblyView: View {
         NavigationStack {
             VStack(spacing: 0) {
                 // Progress indicator
-                AssemblyProgressView(
+                AssemblyStepProgressView(
                     currentStep: currentStep,
                     progress: progressValue
                 )
@@ -115,9 +115,21 @@ struct ClaimPackageAssemblyView: View {
                 ItemSelectionStepView(
                     allItems: allItems,
                     selectedItems: core.selectedItems,
-                    onToggleItem: core.toggleItemSelection,
-                    onSelectAll: { core.selectAllItems(from: allItems) },
-                    onClearAll: core.clearAllSelections
+                    onToggleItem: { id in
+                        Task { @MainActor in
+                            core.toggleItemSelection(id)
+                        }
+                    },
+                    onSelectAll: {
+                        Task { @MainActor in
+                            core.selectAllItems(from: allItems)
+                        }
+                    },
+                    onClearAll: {
+                        Task { @MainActor in
+                            core.clearAllSelections()
+                        }
+                    }
                 )
             }
 
@@ -125,13 +137,21 @@ struct ClaimPackageAssemblyView: View {
             ScenarioSetupStepView(
                 scenario: $core.claimScenario,
                 selectedItemCount: core.selectedItems.count,
-                onAdvancedSetup: { core.showingScenarioSetup = true }
+                onAdvancedSetup: {
+                    Task { @MainActor in
+                        core.showingScenarioSetup = true
+                    }
+                }
             )
 
         case .packageOptions:
             PackageOptionsStepView(
                 options: $core.packageOptions,
-                onAdvancedOptions: { core.showingOptionsSetup = true }
+                onAdvancedOptions: {
+                    Task { @MainActor in
+                        core.showingOptionsSetup = true
+                    }
+                }
             )
 
         case .validation:
@@ -151,7 +171,11 @@ struct ClaimPackageAssemblyView: View {
         case .export:
             ExportStepView(
                 generatedPackage: core.generatedPackage,
-                onExportAction: core.exportPackage
+                onExportAction: {
+                    Task { @MainActor in
+                        core.exportPackage()
+                    }
+                }
             )
         }
     }

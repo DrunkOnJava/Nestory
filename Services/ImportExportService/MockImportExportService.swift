@@ -112,6 +112,46 @@ public final class MockImportExportService: ImportExportService {
 
         return mockJSONData
     }
+
+    // MARK: - Comprehensive Export Operations
+
+    public func exportData(
+        format: ExportFormat,
+        includeImages: Bool,
+        includeReceipts: Bool,
+        progressCallback: @escaping (Double) -> Void
+    ) async throws -> URL {
+        // Simulate progress
+        progressCallback(0.0)
+        
+        // Simulate processing time
+        try await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+        progressCallback(0.5)
+        
+        if shouldFailExport {
+            throw ImportError.invalidFormat("Mock export failure")
+        }
+        
+        // Create mock temporary file
+        let tempDir = FileManager.default.temporaryDirectory
+        let fileName = "mock_export_\(Int(Date().timeIntervalSince1970))"
+        let fileURL: URL
+        
+        switch format {
+        case .csv:
+            fileURL = tempDir.appendingPathComponent(fileName).appendingPathExtension("csv")
+            try mockCSVData?.write(to: fileURL)
+        case .json:
+            fileURL = tempDir.appendingPathComponent(fileName).appendingPathExtension("json")
+            try mockJSONData?.write(to: fileURL)
+        default:
+            fileURL = tempDir.appendingPathComponent(fileName).appendingPathExtension("txt")
+            try "Mock export data".data(using: .utf8)?.write(to: fileURL)
+        }
+        
+        progressCallback(1.0)
+        return fileURL
+    }
 }
 
 // MARK: - Test Helpers

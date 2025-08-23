@@ -27,17 +27,20 @@ import SwiftData
 import SwiftUI
 import Foundation
 
+// Import analytics models from Foundation layer
+import Nestory
+
 @Reducer
-public struct AnalyticsFeature {
+public struct AnalyticsFeature: Sendable {
     @ObservableState
-    public struct State {
+    public struct State: Equatable {
         // 📊 CORE STATE: Analytics dashboard state
         var items: [Item] = [] // Source data for analytics
         var categories: [Category] = [] // Category definitions
         var selectedTimeRange: TimeRange = .month // User-selected time filter
         var isLoading = false // Loading state for UI feedback
         var error: AnalyticsError? = nil // Error state for user display
-        @Presents var alert: AlertState<Alert>? // Error/info alerts
+        @Presents var alert: AlertState<Action.Alert>?
 
         // 📈 ANALYTICS DATA: Computed dashboard content
         var dashboardData: DashboardData? = nil // Enhanced analytics from service
@@ -83,7 +86,7 @@ public struct AnalyticsFeature {
             }
         }
 
-        public enum TimeRange: String, CaseIterable, Equatable {
+        public enum TimeRange: String, CaseIterable, Equatable, Sendable {
             case week = "Week"
             case month = "Month"
             case quarter = "Quarter"
@@ -92,21 +95,19 @@ public struct AnalyticsFeature {
         }
     }
 
-    public enum Action {
+    public enum Action: Sendable {
         case onAppear
         case loadAnalytics
         case loadItems([Item])
         case loadCategories([Category])
         case timeRangeChanged(State.TimeRange)
-        case analyticsLoaded(DashboardData)
-        case summaryCalculated(SummaryData)
-        case chartsDataCalculated(ChartsData)
-        case analyticsLoadingFailed(AnalyticsError)
+        case analyticsLoaded(DashboardData, SummaryData)
+        case dataLoadError(any Error)
         case refresh
         case alert(PresentationAction<Alert>)
         case trackEvent(AnalyticsEvent)
 
-        public enum Alert: Equatable {
+        public enum Alert: Equatable, Sendable {
             case dataLoadError
             case calculationError
         }
@@ -116,101 +117,78 @@ public struct AnalyticsFeature {
     @Dependency(\.inventoryService) var inventoryService
 
     public var body: some ReducerOf<Self> {
-        Reduce { state, action in
+        Reduce<State, Action> { state, action in
             switch action {
             case .onAppear:
-                return .run { send in
-                    // Load items and categories, then trigger analytics
-                    await send(.loadAnalytics)
-                }
+                return .send(.loadAnalytics)
 
             case .loadAnalytics:
                 state.isLoading = true
                 state.error = nil
-
-                return .run { [items = state.items] send in
+                return .run { send in
                     do {
-                        // Load source data if needed
-                        if items.isEmpty {
-                            let loadedItems = try await inventoryService.fetchItems()
-                            await send(.loadItems(loadedItems))
-                        }
-
-                        // Run analytics calculations in parallel
-                        async let dashboardTask = analyticsService.generateDashboard(for: items)
-                        async let summaryTask = calculateSummaryData(items)
-                        async let chartsTask = calculateChartsData(items)
-
-                        // Wait for all calculations
-                        let dashboard = try await dashboardTask
-                        let summary = await summaryTask
-                        let charts = await chartsTask
-
-                        await send(.analyticsLoaded(dashboard))
-                        await send(.summaryCalculated(summary))
-                        await send(.chartsDataCalculated(charts))
-
+                        let loadedItems = try await inventoryService.fetchItems()
+                        let loadedCategories = try await inventoryService.fetchCategories()
+                        await send(.loadItems(loadedItems))
+                        await send(.loadCategories(loadedCategories))
+                        
+                        let dashboardData = try await analyticsService.generateDashboard(for: loadedItems)
+                        let summaryData = await calculateSummaryData(loadedItems)
+                        
+                        await send(.analyticsLoaded(dashboardData, summaryData))
                     } catch {
-                        await send(.analyticsLoadingFailed(.dataLoadError(error)))
+                        await send(.dataLoadError(error))
                     }
                 }
 
-            case let .loadItems(items):
+            case .loadItems(let items):
                 state.items = items
                 return .none
 
-            case let .loadCategories(categories):
+            case .loadCategories(let categories):
                 state.categories = categories
                 return .none
 
-            case let .timeRangeChanged(range):
+            case .timeRangeChanged(let range):
                 state.selectedTimeRange = range
-                // Trigger recalculation with new time range
                 return .send(.loadAnalytics)
 
-            case let .analyticsLoaded(dashboard):
+            case .analyticsLoaded(let dashboardData, let summaryData):
+                state.dashboardData = dashboardData
+                state.summaryData = summaryData
                 state.isLoading = false
-                state.dashboardData = dashboard
                 return .none
 
-            case let .summaryCalculated(summary):
-                state.summaryData = summary
-                return .none
-
-            case let .chartsDataCalculated(charts):
-                state.chartsData = charts
-                return .none
-
-            case let .analyticsLoadingFailed(error):
+            case .dataLoadError(let error):
+                state.error = AnalyticsError.dataLoadError(error)
                 state.isLoading = false
-                state.error = error
                 state.alert = AlertState {
                     TextState("Analytics Error")
                 } actions: {
                     ButtonState(action: .dataLoadError) {
-                        TextState("Retry")
+                        TextState("OK")
                     }
                 } message: {
-                    TextState(error.localizedDescription)
+                    TextState("Failed to load analytics data")
                 }
                 return .none
 
             case .refresh:
                 return .send(.loadAnalytics)
 
-            case .alert(.presented(.dataLoadError)):
-                return .send(.loadAnalytics)
-                
-            case .alert(.presented(.calculationError)):
-                return .none
-                
-            case .alert:
-                return .none
-
-            case let .trackEvent(event):
+            case .trackEvent(let event):
                 return .run { _ in
                     await analyticsService.trackEvent(event)
                 }
+
+            case .alert(.presented(.dataLoadError)):
+                return .none
+
+            case .alert(.presented(.calculationError)):
+                return .none
+
+            case .alert(.dismiss):
+                return .none
             }
         }
         .ifLet(\.$alert, action: \.alert)
@@ -219,7 +197,7 @@ public struct AnalyticsFeature {
 
 // MARK: - Supporting Types
 
-public struct SummaryData: Equatable {
+public struct SummaryData: Equatable, Sendable {
     let totalItems: Int
     let totalValue: Decimal
     let categoriesCount: Int
@@ -228,26 +206,26 @@ public struct SummaryData: Equatable {
     let documentationScore: Double
 }
 
-public struct ChartsData: Equatable {
+public struct ChartsData: Equatable, Sendable {
     let categoryDistribution: [CategoryBreakdown]
     let valueByCategory: [CategoryValue]
     let recentActivity: [ActivityPoint]
     let statusOverview: ItemStatusSummary
 }
 
-public struct CategoryValue: Equatable {
+public struct CategoryValue: Equatable, Sendable {
     let categoryName: String
     let totalValue: Decimal
     let itemCount: Int
 }
 
-public struct ActivityPoint: Equatable {
+public struct ActivityPoint: Equatable, Sendable {
     let date: Date
     let itemsAdded: Int
     let valueAdded: Decimal
 }
 
-public struct ItemStatusSummary: Equatable {
+public struct ItemStatusSummary: Equatable, Sendable {
     let completeDocumentation: Int
     let incompleteDocumentation: Int
     let missingReceipts: Int
@@ -314,7 +292,7 @@ private func calculateSummaryData(_ items: [Item]) async -> SummaryData {
 private func calculateChartsData(_ items: [Item]) async -> ChartsData {
     // Category distribution
     let itemsByCategory = Dictionary(grouping: items) { $0.category }
-    let categoryBreakdowns = itemsByCategory.compactMap { category, categoryItems in
+    let categoryBreakdowns = itemsByCategory.compactMap { (category, categoryItems) -> CategoryBreakdown? in
         guard let category else { return nil }
         let totalValue = categoryItems.compactMap(\.purchasePrice).reduce(0, +)
         return CategoryBreakdown(
@@ -378,20 +356,6 @@ private func calculateChartsData(_ items: [Item]) async -> ChartsData {
     )
 }
 
-// MARK: - Equatable Conformance
-extension AnalyticsFeature.State: Equatable {
-    public static func == (lhs: AnalyticsFeature.State, rhs: AnalyticsFeature.State) -> Bool {
-        return lhs.items == rhs.items &&
-               lhs.categories == rhs.categories &&
-               lhs.selectedTimeRange == rhs.selectedTimeRange &&
-               lhs.isLoading == rhs.isLoading &&
-               lhs.error == rhs.error &&
-               lhs.dashboardData == rhs.dashboardData &&
-               lhs.summaryData == rhs.summaryData &&
-               lhs.chartsData == rhs.chartsData
-        // Note: @Presents properties handle their own equality
-    }
-}
 
 // MARK: - TCA Integration Notes
 

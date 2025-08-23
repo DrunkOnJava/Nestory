@@ -28,14 +28,3 @@ public struct InsuranceReportData: Sendable {
     }
 }
 
-public struct ReportMetadata: Sendable {
-    public let generatedDate: Date
-    public let itemCount: Int
-    public let totalValue: Decimal
-    
-    public init(generatedDate: Date, itemCount: Int, totalValue: Decimal) {
-        self.generatedDate = generatedDate
-        self.itemCount = itemCount
-        self.totalValue = totalValue
-    }
-}

@@ -34,6 +34,16 @@ settings:
     ENABLE_BITCODE: NO
     DEBUG_INFORMATION_FORMAT: dwarf-with-dsym
     ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+    # Build Performance Optimizations
+    SWIFT_COMPILATION_MODE: wholemodule
+    SWIFT_OPTIMIZATION_LEVEL: -Onone
+    ENABLE_MODULE_VERIFIER: NO
+    VALIDATE_PRODUCT: NO
+    # Swift Compiler Performance  
+    SWIFT_ENABLE_BATCH_MODE: YES
+    SWIFT_DISABLE_SAFETY_CHECKS: NO
+    # Parallel Processing
+    SWIFT_ENABLE_INCREMENTAL_COMPILATION: YES
   configs:
     Debug:
       SWIFT_STRICT_CONCURRENCY: minimal
@@ -41,11 +51,27 @@ settings:
       OTHER_SWIFT_FLAGS: "-Xfrontend -disable-availability-checking -suppress-warnings -enable-experimental-feature Macros"
       DEBUG_INFORMATION_FORMAT: dwarf-with-dsym
       SWIFT_MACRO_VALIDATION_MODE: disabled
+      # Debug Build Performance
+      SWIFT_COMPILATION_MODE: singlefile
+      SWIFT_OPTIMIZATION_LEVEL: -Onone
+      GCC_OPTIMIZATION_LEVEL: 0
+      SWIFT_ACTIVE_COMPILATION_CONDITIONS: DEBUG
+      ONLY_ACTIVE_ARCH: YES
+      # Skip time-consuming validations in debug
+      ENABLE_MODULE_VERIFIER: NO
+      VALIDATE_PRODUCT: NO
     Release:
       SWIFT_STRICT_CONCURRENCY: complete
       DEBUG_INFORMATION_FORMAT: dwarf-with-dsym
       OTHER_SWIFT_FLAGS: "-enable-experimental-feature Macros"
       SWIFT_MACRO_VALIDATION_MODE: disabled
+      # Release Build Performance  
+      SWIFT_COMPILATION_MODE: wholemodule
+      SWIFT_OPTIMIZATION_LEVEL: -O
+      GCC_OPTIMIZATION_LEVEL: s
+      # Enable all optimizations for release
+      ENABLE_MODULE_VERIFIER: YES
+      VALIDATE_PRODUCT: YES
 
 packages:
   # TCA MIGRATION: Added for 6-layer architecture (ADR-0014)
@@ -62,38 +88,87 @@ targets:
     deploymentTarget: 17.0
     
     sources:
-      - path: App-Main
-        excludes:
-          - "SearchView-Old.swift"
-      - path: Features
+      # FAIL-FAST BUILD ORDER: Foundation → Infrastructure → Services → UI → Features → App-Main
+      # This ensures architectural violations and critical errors are caught immediately
+      
+      # 🏗️ FOUNDATION LAYER (Build First - No Dependencies)
       - path: Foundation/Models
-      - path: Foundation/Core
+      - path: Foundation/Core  
       - path: Foundation/Utils
+      - path: Config/FeatureFlags.swift
+      - path: Config/EnvironmentConfiguration.swift
+      
+      # 🔧 INFRASTRUCTURE LAYER (Build Second - Foundation Dependencies Only)
       - path: Infrastructure/Storage
       - path: Infrastructure/Cache
-      - path: Infrastructure/Camera
       - path: Infrastructure/Security
       - path: Infrastructure/Actors
       - path: Infrastructure/Network
       - path: Infrastructure/Monitoring
+      - path: Infrastructure/Camera
       - path: Infrastructure/HotReload
         excludes:
           - "*.swift"
+          
+      # ⚙️ SERVICES LAYER (Build Third - Core Business Logic)
       - path: Services
+      - path: Services/ImportExportService  # Critical - causes many downstream failures
+      - path: Services/NotificationService  # Critical - complex concurrency issues
       - path: Services/BarcodeScannerService
       - path: Services/CloudBackupService
-      - path: Services/ImportExportService
       - path: Services/InsuranceExport
       - path: Services/InsuranceReport
-      - path: Services/NotificationService
       - path: Services/ReceiptOCR
       - path: Services/ClaimExport
       - path: Services/InsuranceClaim
       - path: Services/InsuranceClaim/ClaimDocumentGenerator
+      # Modularized Services (Post-Phase 1-4 Refactoring)
+      - path: Services/WarrantyTrackingService  # Modularized warranty tracking components
+      - path: Services/ClaimTracking  # Modularized claim tracking operations and models
+      - path: Services/InsuranceClaim/Templates/Sections  # Template section components
+      
+      # 🎨 UI LAYER (Build Fourth - Shared Components)
       - path: UI/UI-Core
       - path: UI/UI-Components
-      - path: Config/FeatureFlags.swift
-      - path: Config/EnvironmentConfiguration.swift
+      
+      # 🎯 FEATURES LAYER (Build Fifth - TCA State Management)
+      - path: Features
+      # Modularized Features (Post-Phase 1-4 Refactoring)
+      - path: Features/Settings/Components  # Modularized settings feature components
+      - path: Features/Search/Components  # Modularized search feature components
+      
+      # 📱 APP LAYER (Build Last - Depends on Everything)
+      - path: App-Main
+        excludes:
+          - "SearchView-Old.swift"
+          - "**/README.md"  # Exclude documentation files from build
+      # Modularized App-Main Components (Post-Phase 1-4 Refactoring)
+      # Damage Assessment Modular Components
+      - path: App-Main/DamageAssessmentViews/RepairCostEstimation/Cards
+      - path: App-Main/DamageAssessmentViews/RepairCostEstimation/Components
+      - path: App-Main/DamageAssessmentViews/RepairCostEstimation/Sections
+      - path: App-Main/DamageAssessmentViews/DamageAssessmentReport/Components
+      - path: App-Main/DamageAssessmentViews/DamageAssessmentReport/Sections
+      - path: App-Main/DamageAssessmentViews/ReportSections
+      - path: App-Main/DamageAssessmentViews/DamageSeverityAssessment/Components
+      - path: App-Main/DamageAssessmentViews/DamageSeverityAssessment/Sections
+      - path: App-Main/DamageAssessmentViews/PhotoComparison  # Phase 4: BeforeAfterPhotoComparisonView modularization
+        excludes:
+          - "README.md"
+      - path: App-Main/DamageAssessmentViews/PhotoComparison/Components
+      # Claim Package Assembly Modular Components
+      - path: App-Main/ClaimPackageAssemblyView/Steps  # Phase 4: ClaimPackageAssemblySteps modularization
+      - path: App-Main/ClaimSubmission
+      - path: App-Main/InsuranceClaim/Components
+      # Warranty Tracking Modular Components  
+      - path: App-Main/WarrantyViews/WarrantyTracking/Sheets  # Phase 4: WarrantyTrackingSheets modularization
+        excludes:
+          - "README.md"
+      - path: App-Main/WarrantyViews/WarrantyTracking/Sheets/AutoDetection
+      - path: App-Main/WarrantyViews/WarrantyTracking/Sheets/ManualForm
+      - path: App-Main/WarrantyViews/WarrantyTracking/Sheets/Extension
+      - path: App-Main/WarrantyViews/WarrantyTracking/Sheets/Types
+      - path: App-Main/WarrantyViews/WarrantyTracking/Sheets/Components
       
     resources:
       - path: App-Main/Assets.xcassets
@@ -106,6 +181,7 @@ targets:
         PRODUCT_NAME: Nestory
         PRODUCT_BUNDLE_IDENTIFIER: com.drunkonjava.nestory.dev
         INFOPLIST_FILE: App-Main/Info.plist
+        CODE_SIGN_ENTITLEMENTS: App-Main/Nestory.entitlements
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS: YES
         ENABLE_PREVIEWS: YES

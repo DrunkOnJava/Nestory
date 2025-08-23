@@ -189,7 +189,7 @@ public final class ClaimExportCore: ObservableObject {
         claim.updatedAt = Date()
 
         if let notes {
-            claim.notes += "\n\(DateFormatter.shortDateFormatter.string(from: Date())): \(notes)"
+            claim.notes += "\n\(DateUtils.shortDateFormatter.string(from: Date())): \(notes)"
         }
 
         // Add correspondence record for status change

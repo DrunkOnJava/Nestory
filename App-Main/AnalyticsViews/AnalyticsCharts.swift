@@ -37,26 +37,44 @@ struct ChartContainer<Content: View>: View {
 
 struct CategoryDistributionChart: View {
     let categories: [Category]
-    @Query private var items: [Item]
+    let items: [Item]
+
+    init(categories: [Category], items: [Item] = []) {
+        self.categories = categories
+        self.items = items
+    }
+
+    var categoryData: [(category: Category, count: Int)] {
+        categories.map { category in
+            let count = items.count { $0.category?.id == category.id }
+            return (category, count)
+        }
+        .filter { $0.count > 0 } // Only show categories with items
+    }
 
     var body: some View {
-        Chart {
-            ForEach(categories) { category in
-                let count = items.count { $0.category?.id == category.id }
+        if categoryData.isEmpty {
+            Text("No category data available")
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else {
+            Chart(categoryData, id: \.category.id) { data in
                 SectorMark(
-                    angle: .value("Count", count),
-                    innerRadius: .ratio(0.5),
+                    angle: .value("Count", data.count),
+                    innerRadius: .ratio(0.5)
                 )
-                .foregroundStyle(Color(hex: category.colorHex) ?? .blue)
+                .foregroundStyle(Color(hex: data.category.colorHex) ?? .blue)
                 .annotation(position: .overlay) {
-                    if !categories.isEmpty {
-                        Text("\(count)")
+                    if data.count > 0 {
+                        Text("\(data.count)")
                             .font(.caption)
                             .fontWeight(.bold)
                             .foregroundColor(.white)
                     }
                 }
             }
+            .chartLegend(position: .bottom, alignment: .center, spacing: 8)
         }
     }
 }
@@ -79,12 +97,25 @@ struct ValueByCategoryChart: View {
     }
 
     var body: some View {
-        Chart(categoryData, id: \.category.id) { data in
-            BarMark(
-                x: .value("Value", data.value),
-                y: .value("Category", data.category.name),
-            )
-            .foregroundStyle(Color(hex: data.category.colorHex) ?? .blue)
+        if categoryData.isEmpty {
+            Text("No value data available")
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else {
+            Chart(categoryData, id: \.category.id) { data in
+                BarMark(
+                    x: .value("Value", data.value),
+                    y: .value("Category", data.category.name)
+                )
+                .foregroundStyle(Color(hex: data.category.colorHex) ?? .blue)
+            }
+            .chartXAxis {
+                AxisMarks { _ in
+                    AxisGridLine()
+                    AxisValueLabel(format: .currency(code: "USD"))
+                }
+            }
         }
     }
 }

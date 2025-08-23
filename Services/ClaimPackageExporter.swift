@@ -8,7 +8,7 @@ import Foundation
 import SwiftData
 
 @MainActor
-public final class ClaimPackageExporter {
+public final class ClaimPackageExporter: ObservableObject {
     // MARK: - Dependencies
 
     private let documentProcessor: ClaimDocumentProcessor

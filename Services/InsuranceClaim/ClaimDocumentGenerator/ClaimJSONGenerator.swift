@@ -70,7 +70,7 @@ public struct ClaimJSONGenerator {
             model: item.modelNumber,
             serialNumber: item.serialNumber,
             condition: item.condition,
-            location: item.room?.name,
+            location: item.room,
             photos: photos,
             documents: documents
         )

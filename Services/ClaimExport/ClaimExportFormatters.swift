@@ -9,10 +9,10 @@ import SwiftData
 
 // MARK: - Format Export Operations
 
+@MainActor
 public final class ClaimExportFormatters {
     private let insuranceExportService: InsuranceExportService
 
-    @MainActor
     public init() {
         self.insuranceExportService = InsuranceExportService()
     }
@@ -162,7 +162,7 @@ public final class ClaimExportFormatters {
                 "purchasePrice": item.purchasePrice ?? 0,
                 "serialNumber": item.serialNumber ?? "",
                 "hasPhotos": item.imageData != nil || !item.conditionPhotos.isEmpty,
-                "hasReceipts": !item.receipts.isEmpty,
+                "hasReceipts": !(item.receipts?.isEmpty ?? true),
             ] },
         ]
 

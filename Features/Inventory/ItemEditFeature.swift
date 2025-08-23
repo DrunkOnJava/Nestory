@@ -10,15 +10,15 @@ import SwiftUI
 import Foundation
 
 @Reducer
-struct ItemEditFeature {
+public struct ItemEditFeature: Sendable {
     @ObservableState
-    struct State: Equatable {
+    public struct State: Sendable {
         var mode: EditMode = .create
         var item: Item
         var isLoading = false
         @Presents var alert: AlertState<Action>?
 
-        enum EditMode {
+        public enum EditMode: Equatable, Sendable {
             case create
             case edit
         }
@@ -27,41 +27,72 @@ struct ItemEditFeature {
             !item.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         }
 
-        init(mode: EditMode = .create, item: Item? = nil) {
+        public init(mode: EditMode = .create, item: Item? = nil) {
             self.mode = mode
             self.item = item ?? Item(name: "")
         }
     }
 
-    enum Action {
+    public enum Action: Sendable {
         case onAppear
         case saveTapped
         case cancelTapped
         case alert(PresentationAction<Never>)
-
         case updateName(String)
         case updateDescription(String)
+        case saveCompleted
+        case saveFailed(any Error)
     }
 
     @Dependency(\.inventoryService) var inventoryService
 
-    var body: some ReducerOf<Self> {
+    public var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
             case .onAppear:
                 return .none
+
             case .saveTapped:
                 guard state.isValid else { return .none }
                 state.isLoading = true
-                return .none
+                
+                return .run { [item = state.item] send in
+                    do {
+                        try await inventoryService.saveItem(item)
+                        await send(.saveCompleted)
+                    } catch {
+                        await send(.saveFailed(error))
+                    }
+                }
+
             case .cancelTapped:
                 return .none
-            case let .updateName(name):
+
+            case .updateName(let name):
                 state.item.name = name
                 return .none
-            case let .updateDescription(description):
+
+            case .updateDescription(let description):
                 state.item.itemDescription = description
                 return .none
+
+            case .saveCompleted:
+                state.isLoading = false
+                return .none
+
+            case .saveFailed(let error):
+                state.isLoading = false
+                state.alert = AlertState {
+                    TextState("Save Failed")
+                } actions: {
+                    ButtonState(role: .cancel) {
+                        TextState("OK")
+                    }
+                } message: {
+                    TextState("Failed to save item: \(error.localizedDescription)")
+                }
+                return .none
+
             case .alert:
                 return .none
             }
@@ -73,7 +104,7 @@ struct ItemEditFeature {
 // MARK: - Equatable Conformance
 
 extension ItemEditFeature.State: Equatable {
-    static func == (lhs: ItemEditFeature.State, rhs: ItemEditFeature.State) -> Bool {
+    public static func == (lhs: ItemEditFeature.State, rhs: ItemEditFeature.State) -> Bool {
         return lhs.mode == rhs.mode &&
                lhs.item == rhs.item &&
                lhs.isLoading == rhs.isLoading
@@ -82,4 +113,3 @@ extension ItemEditFeature.State: Equatable {
     }
 }
 
-extension ItemEditFeature.State.EditMode: Equatable {}

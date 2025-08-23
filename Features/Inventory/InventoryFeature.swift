@@ -27,7 +27,7 @@ import SwiftUI
 import Foundation
 
 @Reducer
-public struct InventoryFeature {
+public struct InventoryFeature: Sendable {
     @ObservableState
     public struct State: Equatable {
         // 📊 CORE STATE: Inventory management state
@@ -38,7 +38,7 @@ public struct InventoryFeature {
         var path = StackState<Path.State>() // TCA navigation stack
 
         // 🚨 ALERT STATE: Uses @Presents for proper TCA integration
-        @Presents var alert: AlertState<Action>?
+        @Presents var alert: AlertState<Action.Alert>?
 
         // 🔍 COMPUTED PROPERTIES: Derived state for UI consumption
         // Using computed properties keeps state minimal and derived values fresh
@@ -67,34 +67,44 @@ public struct InventoryFeature {
         }
     }
 
-    public enum Action {
+    public enum Action: Sendable {
         case onAppear
         case loadItems
         case itemsLoaded([Item])
-        case loadItemsFailed(Error)
+        case loadItemsFailed(any Error)
         case searchTextChanged(String)
         case categorySelected(String?)
         case addItemTapped
         case itemTapped(Item)
         case deleteItems(IndexSet)
         case deleteConfirmed(IndexSet)
-        case alert(PresentationAction<Never>)
+        case retryLoadingInBackground
+        case serviceHealthChanged(Bool)
+        case alert(PresentationAction<Alert>)
         case path(StackAction<Path.State, Path.Action>)
+        
+        public enum Alert: Equatable, Sendable {
+            case retryLoading
+            case deleteConfirmed(IndexSet)
+            case serviceDegrade
+            case networkError
+        }
     }
 
     @Reducer
-    struct Path {
-        enum State: Equatable {
+    public struct Path {
+        @ObservableState
+        public enum State: Equatable, Sendable {
             case itemDetail(ItemDetailFeature.State)
             case itemEdit(ItemEditFeature.State)
         }
 
-        enum Action {
+        public enum Action: Sendable {
             case itemDetail(ItemDetailFeature.Action)
             case itemEdit(ItemEditFeature.Action)
         }
 
-        var body: some ReducerOf<Self> {
+        public var body: some ReducerOf<Self> {
             Scope(state: \.itemDetail, action: \.itemDetail) {
                 ItemDetailFeature()
             }
@@ -106,8 +116,8 @@ public struct InventoryFeature {
 
     @Dependency(\.inventoryService) var inventoryService
 
-    var body: some ReducerOf<Self> {
-        Reduce { state, action in
+    public var body: some ReducerOf<Self> {
+        Reduce<State, Action> { state, action in
             switch action {
             case .onAppear:
                 return .send(.loadItems)
@@ -130,17 +140,44 @@ public struct InventoryFeature {
 
             case let .loadItemsFailed(error):
                 state.isLoading = false
+                
+                // Show appropriate error alert based on error type
                 state.alert = AlertState {
-                    TextState("Error Loading Items")
+                    TextState("Unable to Load Items")
                 } actions: {
-                    ButtonState(action: .send(.loadItems)) {
-                        TextState("Retry")
+                    ButtonState(action: .retryLoading) {
+                        TextState("Try Again")
                     }
                     ButtonState(role: .cancel) {
                         TextState("Cancel")
                     }
                 } message: {
-                    TextState("Failed to load inventory: \(error.localizedDescription)")
+                    TextState(error.localizedDescription)
+                }
+                
+                // Start automatic retry in background after delay
+                return .run { send in
+                    try await Task.sleep(nanoseconds: 5_000_000_000) // 5 seconds
+                    await send(.retryLoadingInBackground)
+                }
+            
+            case .retryLoadingInBackground:
+                // Silent retry without showing loading state
+                return .run { send in
+                    do {
+                        let items = try await inventoryService.fetchItems()
+                        await send(.itemsLoaded(items))
+                    } catch {
+                        // Silent failure - will retry again later
+                        try await Task.sleep(nanoseconds: 10_000_000_000) // 10 seconds
+                        await send(.retryLoadingInBackground)
+                    }
+                }
+            
+            case let .serviceHealthChanged(isHealthy):
+                if !isHealthy && !state.items.isEmpty {
+                    // Show non-intrusive notification about degraded service
+                    // Keep existing items visible
                 }
                 return .none
 
@@ -190,7 +227,21 @@ public struct InventoryFeature {
                     }
                 }
 
-            case .alert:
+            case .alert(.presented(.retryLoading)):
+                return .send(.loadItems)
+                
+            case .alert(.presented(.deleteConfirmed(let indexSet))):
+                return .send(.deleteConfirmed(indexSet))
+                
+            case .alert(.presented(.serviceDegrade)):
+                // Service degraded alert acknowledged
+                return .none
+                
+            case .alert(.presented(.networkError)):
+                // Network error alert acknowledged
+                return .none
+                
+            case .alert(.dismiss):
                 return .none
 
             case .path:
@@ -204,19 +255,6 @@ public struct InventoryFeature {
     }
 }
 
-// MARK: - Equatable Conformance
-
-extension InventoryFeature.State: Equatable {
-    static func == (lhs: InventoryFeature.State, rhs: InventoryFeature.State) -> Bool {
-        return lhs.items == rhs.items &&
-               lhs.searchText == rhs.searchText &&
-               lhs.selectedCategory == rhs.selectedCategory &&
-               lhs.isLoading == rhs.isLoading &&
-               lhs.path == rhs.path
-        // Note: alert is excluded from comparison as @Presents creates PresentationState
-        // which doesn't participate in meaningful state equality for TCA diffing
-    }
-}
 
 // MARK: - Models
 
@@ -230,3 +268,4 @@ extension InventoryFeature.State: Equatable {
 // - Protocol defined in Services layer with proper implementations
 // - DependencyKeys.swift contains live and test value configurations
 // - Follows async/throws patterns for robust error handling
+

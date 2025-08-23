@@ -56,7 +56,7 @@ public struct ItemSelectionRow: View {
     }
 }
 
-public struct ItemSelectionControls: View {
+public struct ClaimItemSelectionControls: View {
     let selectedCount: Int
     let onSelectAll: () -> Void
     let onClearAll: () -> Void

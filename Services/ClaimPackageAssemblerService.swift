@@ -165,6 +165,8 @@ public enum ClaimScope: String, CaseIterable, Sendable {
     case singleItem = "Single Item"
     case multipleItems = "Multiple Items"
     case roomBased = "Room/Area Based"
+    case propertyDamage = "Property Damage"
+    case fire = "Fire Damage"
     case theft = "Theft"
     case totalLoss = "Total Loss"
 
@@ -183,6 +185,8 @@ public struct ClaimPackageOptions: Sendable {
     public var compressPhotos = false
     public var generateAttestation = true
     public var documentationLevel: DocumentationLevel = .detailed
+    public var primaryFormat: ExportFormat = .pdf
+    public var includePDFBackup = true
 
     public init() {}
 }

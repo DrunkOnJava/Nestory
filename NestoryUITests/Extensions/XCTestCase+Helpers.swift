@@ -7,6 +7,7 @@
 
 import XCTest
 
+@MainActor
 extension XCTestCase {
     /// Deterministic tap with wait and hittable check
     func tap(_ element: XCUIElement, timeout: TimeInterval = 5,

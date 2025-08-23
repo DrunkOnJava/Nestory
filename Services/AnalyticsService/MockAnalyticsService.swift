@@ -6,9 +6,13 @@
 
 import Foundation
 
-public final class MockAnalyticsService: AnalyticsService {
+public final class MockAnalyticsService: AnalyticsService, @unchecked Sendable {
     // Mock data that can be configured for tests
-    public var mockTotalValue: Decimal = 1000.0
+    private var _mockTotalValue: Decimal = 1000.0
+    public var mockTotalValue: Decimal {
+        get { _mockTotalValue }
+        set { _mockTotalValue = newValue }
+    }
     public var mockCategoryBreakdown: [CategoryBreakdown] = []
     public var mockValueTrends: [TrendPoint] = []
     public var mockTopItems: [Item] = []
@@ -26,16 +30,16 @@ public final class MockAnalyticsService: AnalyticsService {
     public var lastTrackedEvent: AnalyticsEvent?
 
     public init() {
-        // Initialize with mock dashboard data
+        // Initialize with mock dashboard data using the private property directly
         mockDashboardData = DashboardData(
             totalItems: 0,
-            totalValue: mockTotalValue,
-            categoryBreakdown: mockCategoryBreakdown,
+            totalValue: _mockTotalValue,
+            categoryBreakdowns: mockCategoryBreakdown,
             topValueItemIds: [],
             recentItemIds: [],
             valueTrends: mockValueTrends,
             totalDepreciation: 0,
-            lastUpdated: Date(),
+            lastUpdated: Date()
         )
     }
 
@@ -104,7 +108,7 @@ extension MockAnalyticsService {
         mockDashboardData = DashboardData(
             totalItems: 18,
             totalValue: mockTotalValue,
-            categoryBreakdown: mockCategoryBreakdown,
+            categoryBreakdowns: mockCategoryBreakdown,
             topValueItemIds: [],
             recentItemIds: [],
             valueTrends: mockValueTrends,

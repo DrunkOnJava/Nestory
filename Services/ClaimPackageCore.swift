@@ -161,7 +161,7 @@ public final class ClaimPackageCore: ObservableObject {
             }
 
             // Check for receipts
-            if item.receipts.isEmpty, item.receiptImageData == nil {
+            if item.receipts?.isEmpty ?? true, item.receiptImageData == nil {
                 itemIssues.append("No receipt documentation")
             }
 
@@ -195,6 +195,14 @@ public final class ClaimPackageCore: ObservableObject {
             let hasPoliceReport = scenario.metadata["police_report"] != nil
             if !hasPoliceReport {
                 missing.append("Police report reference for theft claim")
+            }
+        case .propertyDamage:
+            if scenario.metadata["damage_assessment"] == nil {
+                missing.append("Property damage assessment documentation required")
+            }
+        case .fire:
+            if scenario.metadata["fire_report"] == nil {
+                missing.append("Fire department report required for fire damage claims")
             }
         case .singleItem, .multipleItems, .roomBased:
             break

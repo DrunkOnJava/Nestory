@@ -7,6 +7,7 @@
 import Foundation
 import SwiftData
 
+@MainActor
 public final class ClaimDocumentProcessor {
     // MARK: - Document Collection
 
@@ -48,9 +49,11 @@ public final class ClaimDocumentProcessor {
             receipts.append(receiptData)
         }
         // Add receipt data from Receipt model relationships
-        for receipt in item.receipts {
-            if let imageData = receipt.imageData {
-                receipts.append(imageData)
+        if let itemReceipts = item.receipts {
+            for receipt in itemReceipts {
+                if let imageData = receipt.imageData {
+                    receipts.append(imageData)
+                }
             }
         }
         return receipts

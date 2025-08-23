@@ -26,7 +26,7 @@ struct WarrantyTrackingView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView(.vertical) {
+            ScrollView(.vertical, showsIndicators: true) {
                 VStack(alignment: .leading, spacing: 20) {
                     // Current Warranty Status Card
                     WarrantyStatusCard(
@@ -74,46 +74,31 @@ struct WarrantyTrackingView: View {
             }
             .navigationTitle("Warranty Tracking")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Done") {
-                        dismiss()
-                    }
-                    .fontWeight(.semibold)
-                }
-
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Menu {
-                        Button(action: core.configureNotifications) {
-                            Label("Notifications", systemImage: "bell")
-                        }
-                        
-                        if core.hasWarranty {
-                            Button(action: core.extendWarranty) {
-                                Label("Extend Warranty", systemImage: "arrow.up.circle")
-                            }
-                            
-                            Button(role: .destructive, action: core.removeWarranty) {
-                                Label("Remove Warranty", systemImage: "trash")
-                            }
-                        }
-                    } label: {
-                        Image(systemName: "ellipsis.circle")
-                    }
-                }
-            }
         }
         .sheet(isPresented: $core.showingAutoDetectSheet) {
             if let result = core.detectionResult {
                 AutoDetectResultSheet(
                     detectionResult: result,
-                    onAccept: core.acceptDetectionResult,
-                    onReject: core.rejectDetectionResult
+                    onAccept: {
+                        Task { @MainActor in
+                            core.acceptDetectionResult()
+                        }
+                    },
+                    onReject: {
+                        Task { @MainActor in
+                            core.rejectDetectionResult()
+                        }
+                    }
                 )
             }
         }
         .sheet(isPresented: $core.showingWarrantyForm) {
-            ManualWarrantyFormSheet(item: $item)
+            ManualWarrantyFormSheet(item: Binding(
+                get: { item },
+                set: { newItem in
+                    // SwiftData handles the update automatically
+                }
+            ))
         }
         .sheet(isPresented: $core.showingExtensionOptions) {
             if let warranty = item.warranty {
@@ -121,7 +106,9 @@ struct WarrantyTrackingView: View {
                     currentWarranty: warranty,
                     onExtensionPurchased: { extensionInfo in
                         // Handle extension purchase
-                        core.showingExtensionOptions = false
+                        Task { @MainActor in
+                            core.showingExtensionOptions = false
+                        }
                     }
                 )
             }
@@ -146,13 +133,13 @@ struct WarrantyTrackingView: View {
     let container = try! ModelContainer(for: Item.self, configurations: config)
     let context = ModelContext(container)
     
-    // Create sample item
+    // Create and configure sample item outside the ViewBuilder
     let item = Item(name: "MacBook Pro")
     item.brand = "Apple"
     item.modelNumber = "MacBook Pro 16-inch"
     item.serialNumber = "ABC123DEF456"
     
-    WarrantyTrackingView(item: item, modelContext: context)
+    return WarrantyTrackingView(item: item, modelContext: context)
         .modelContainer(container)
         .environmentObject(LiveNotificationService())
 }

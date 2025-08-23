@@ -105,11 +105,16 @@ public final class WarrantyTrackingCore: ObservableObject {
     public func acceptDetectionResult() {
         guard let result = detectionResult else { return }
         
+        // Calculate dates from the suggested duration
+        let startDate = item.purchaseDate ?? Date()
+        let calendar = Calendar.current
+        let endDate = calendar.date(byAdding: .month, value: result.suggestedDuration ?? 12, to: startDate) ?? Date()
+        
         let warranty = Warranty(
-            provider: result.provider,
-            type: result.type,
-            startDate: result.startDate,
-            expiresAt: result.endDate,
+            provider: result.suggestedProvider ?? "Unknown",
+            type: .manufacturer, // Default to manufacturer warranty
+            startDate: startDate,
+            expiresAt: endDate,
             item: item
         )
         
@@ -174,15 +179,16 @@ public final class WarrantyTrackingCore: ObservableObject {
             let endDate = warranty.expiresAt
             let now = Date()
             if endDate < now {
-                warrantyStatus = .expired
+                let daysAgo = Calendar.current.dateComponents([.day], from: endDate, to: now).day ?? 0
+                warrantyStatus = .expired(daysAgo: daysAgo)
             } else {
                 let daysUntilExpiry = Calendar.current.dateComponents([.day], from: now, to: endDate).day ?? 0
                 if daysUntilExpiry <= 30 {
-                    warrantyStatus = .expiringSoon
+                    warrantyStatus = .expiringSoon(daysRemaining: daysUntilExpiry)
                 } else if daysUntilExpiry <= 90 {
-                    warrantyStatus = .active
+                    warrantyStatus = .active(daysRemaining: daysUntilExpiry)
                 } else {
-                    warrantyStatus = .active
+                    warrantyStatus = .active(daysRemaining: daysUntilExpiry)
                 }
             }
         } else {

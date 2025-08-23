@@ -179,7 +179,7 @@ public final class NotificationBackgroundProcessor: @unchecked Sendable {
             task.setTaskCompleted(success: true)
 
             let duration = Date().timeIntervalSince(startTime)
-            logger.info("Background notification processing completed in \(duration, specifier: "%.2f")s")
+            logger.info("Background notification processing completed in \(String(format: "%.2f", duration))s")
 
         } catch {
             logger.error("Background notification processing failed: \(error)")
@@ -256,7 +256,7 @@ public final class NotificationBackgroundProcessor: @unchecked Sendable {
         let validation = try await persistence.validateSystemIntegrity()
         if !validation.isValid {
             logger.warning("System integrity issues found, attempting repair")
-            try await repairSystemIntegrity(issues: validation.issues)
+            try await repairSystemIntegrity(issues: validation.missingItems)
         }
 
         // 3. Optimize notification schedule based on analytics
@@ -306,7 +306,7 @@ public final class NotificationBackgroundProcessor: @unchecked Sendable {
         let effectivenessReport = try await analytics.generateEffectivenessReport()
 
         // Log insights
-        logger.info("Analytics: \(currentAnalytics.interactionRate * 100, specifier: "%.1f")% interaction rate")
+        logger.info("Analytics: \(String(format: "%.1f", currentAnalytics.interactionRate * 100))% interaction rate")
         logger.info("Optimal timing: \(optimalHour):00 on weekday \(optimalDay)")
 
         // Store analytics insights for future use
@@ -366,7 +366,7 @@ public final class NotificationBackgroundProcessor: @unchecked Sendable {
         content.title = "Multiple Warranties Expiring"
         content.body = "\(items.count) items have warranties expiring soon. Tap to review."
         content.sound = .default
-        content.badge = items.count
+        content.badge = NSNumber(value: items.count)
 
         // Add summary data
         content.userInfo = [
@@ -405,7 +405,7 @@ public final class NotificationBackgroundProcessor: @unchecked Sendable {
             }
         }
 
-        logger.info("Background task started: \(backgroundTaskIdentifier.rawValue)")
+        logger.info("Background task started: \(self.backgroundTaskIdentifier.rawValue)")
     }
 
     /// End background task

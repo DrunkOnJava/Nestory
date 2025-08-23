@@ -40,11 +40,11 @@ import SwiftData
 @Model
 public final class Item: @unchecked Sendable {
     // 🆔 IDENTITY: Stable identifier across app lifecycle
-    @Attribute(.unique)
-    public var id: UUID
+    // CloudKit compatible: removed .unique constraint
+    public var id: UUID = UUID()
 
     // 📝 BASIC INFORMATION: Core identification data
-    public var name: String // Required: Primary display name
+    public var name: String = "" // Required: Primary display name
     public var itemDescription: String? // Optional: Detailed description for insurance
     public var brand: String? // Optional: Manufacturer (Apple, Samsung, etc.)
     public var modelNumber: String? // Optional: Specific model for replacement value
@@ -53,7 +53,7 @@ public final class Item: @unchecked Sendable {
     public var notes: String? // Optional: User notes and observations
 
     // 💰 FINANCIAL INFORMATION: Purchase and valuation data
-    public var quantity: Int // Required: How many items (usually 1)
+    public var quantity: Int = 1 // Required: How many items (usually 1)
     public var purchasePrice: Decimal? // Optional: Original cost for insurance basis
     public var purchaseDate: Date? // Optional: Age affects replacement value
     public var currency = "USD" // Default: User's preferred currency
@@ -114,13 +114,14 @@ public final class Item: @unchecked Sendable {
     }
 
     // ⏰ METADATA: Automatic lifecycle tracking
-    public var createdAt: Date // When item was first added
-    public var updatedAt: Date // Last modification timestamp
+    public var createdAt: Date = Date() // When item was first added
+    public var updatedAt: Date = Date() // Last modification timestamp
 
-    // 🔗 RELATIONSHIPS: Connected entities
+    // 🔗 RELATIONSHIPS: Connected entities (CloudKit compatible)
     public var category: Category? // Optional category classification
     public var warranty: Warranty? // Optional detailed warranty information
-    public var receipts: [Receipt] = [] // Associated purchase receipts
+    @Relationship(deleteRule: .cascade)
+    public var receipts: [Receipt]? // Associated purchase receipts (optional for CloudKit)
 
     public init(
         name: String,
@@ -128,21 +129,23 @@ public final class Item: @unchecked Sendable {
         quantity: Int = 1,
         category: Category? = nil
     ) {
-        id = UUID()
+        // Override defaults with provided values
+        self.id = UUID()
         self.name = name
         self.itemDescription = itemDescription
         self.quantity = quantity
         self.category = category
-        currency = "USD"
-        tags = []
-        createdAt = Date()
-        updatedAt = Date()
+        self.currency = "USD"
+        self.tags = []
+        self.receipts = []
+        self.createdAt = Date()
+        self.updatedAt = Date()
     }
 }
 
 // MARK: - Item Condition Enum
 
-public enum ItemCondition: String, CaseIterable, Codable {
+public enum ItemCondition: String, CaseIterable, Codable, Sendable {
     case excellent = "Excellent"
     case good = "Good"
     case fair = "Fair"

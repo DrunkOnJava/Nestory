@@ -189,11 +189,18 @@ public struct CurrentStepView: View {
             }
 
             // Step Content
-            StepContentBuilder.stepContentView(
-                for: workflow.currentStep,
-                workflow: workflow,
-                damageService: DamageAssessmentService(modelContext: ModelContext())
-            )
+            if let damageService = try? DamageAssessmentService(modelContext: ModelContext(
+                try! ModelContainer(for: Item.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+            )) {
+                StepContentBuilder.stepContentView(
+                    for: workflow.currentStep,
+                    workflow: workflow,
+                    damageService: damageService
+                )
+            } else {
+                Text("Unable to initialize damage assessment service")
+                    .foregroundColor(.secondary)
+            }
 
             // Complete Step Button
             Button(action: onCompleteStep) {

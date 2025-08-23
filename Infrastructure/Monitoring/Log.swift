@@ -211,7 +211,7 @@ public final class Log {
 }
 
 /// Foundation-compatible logger that bridges to Infrastructure logging
-private struct InfrastructureFoundationLogger: FoundationLogger {
+private struct InfrastructureFoundationLogger: FoundationLogger, @unchecked Sendable {
     private let log: Log
     private let category: Log.LogCategory
     

@@ -303,7 +303,7 @@ public final class LiveCloudBackupService: CloudBackupService, ObservableObject 
             itemsRestored: items.count,
             categoriesRestored: categories.count,
             roomsRestored: rooms.count,
-            backupDate: metadata.date,
+            backupDate: metadata.exportDate,
         )
     }
 

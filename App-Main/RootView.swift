@@ -14,37 +14,37 @@ public struct RootView: View {
     @Bindable var store: StoreOf<RootFeature>
 
     public var body: some View {
-        TabView(selection: $store.selectedTab) {
+        TabView(selection: $store.selectedTab.sending(\.tabSelected)) {
             ForEach(RootFeature.State.Tab.allCases, id: \.self) { tab in
-                Group {
-                    switch tab {
-                    case .inventory:
-                        InventoryView(
-                            store: store.scope(state: \.inventory, action: \.inventory)
-                        )
-
-                    case .capture:
-                        BarcodeScannerView()
-
-                    case .analytics:
-                        AnalyticsDashboardView(
-                            store: store.scope(state: \.analytics, action: \.analytics)
-                        )
-
-                    case .settings:
-                        SettingsView(
-                            store: store.scope(state: \.settings, action: \.settings)
-                        )
+                tabView(for: tab)
+                    .tabItem {
+                        Label(tab.rawValue, systemImage: tab.icon)
                     }
-                }
-                .tabItem {
-                    Label(tab.rawValue, systemImage: tab.icon)
-                }
-                .tag(tab)
+                    .tag(tab)
             }
         }
         .onAppear {
             store.send(.onAppear)
+        }
+    }
+    
+    @ViewBuilder
+    private func tabView(for tab: RootFeature.State.Tab) -> some View {
+        switch tab {
+        case .inventory:
+            InventoryView(
+                store: store.scope(state: \.inventory, action: \.inventory)
+            )
+        case .capture:
+            CaptureView()
+        case .analytics:
+            AnalyticsDashboardView(
+                store: store.scope(state: \.analytics, action: \.analytics)
+            )
+        case .settings:
+            SettingsView(
+                store: store.scope(state: \.settings, action: \.settings)
+            )
         }
     }
 }

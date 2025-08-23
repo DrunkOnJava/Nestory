@@ -227,7 +227,7 @@ public struct ClaimHTMLGenerator {
                 <td>\(item.category?.name ?? "N/A")</td>
                 <td>\(ClaimDocumentHelpers.formatCurrency(item.purchasePrice))</td>
                 <td>\(item.condition)</td>
-                <td>\(item.room?.name ?? "N/A")</td>
+                <td>\(item.room ?? "N/A")</td>
             </tr>
             """
         }.joined()

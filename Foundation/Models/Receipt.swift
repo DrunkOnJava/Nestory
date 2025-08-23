@@ -10,13 +10,13 @@ import SwiftData
 public final class Receipt: @unchecked Sendable {
     // MARK: - Properties
 
-    @Attribute(.unique)
-    public var id: UUID
+    // CloudKit compatible: removed .unique constraint
+    public var id: UUID = UUID()
 
-    public var vendor: String
+    public var vendor: String = ""
     public var total: Data? // Encoded Money
     public var tax: Data? // Encoded Money
-    public var purchaseDate: Date
+    public var purchaseDate: Date = Date()
     public var receiptNumber: String?
     public var paymentMethod: String?
     public var rawText: String? // OCR extracted text
@@ -26,13 +26,13 @@ public final class Receipt: @unchecked Sendable {
     public var categories: [String] = [] // Auto-detected categories (grocery, electronics, etc.)
 
     // Timestamps
-    public var createdAt: Date
-    public var updatedAt: Date
+    public var createdAt: Date = Date()
+    public var updatedAt: Date = Date()
 
     // MARK: - Relationships
 
     @Relationship(inverse: \Item.receipts)
-    public var item: Item?
+    public var item: Item? // CloudKit compatible optional relationship
 
     // MARK: - Initialization
 
@@ -42,13 +42,14 @@ public final class Receipt: @unchecked Sendable {
         purchaseDate: Date,
         item: Item? = nil
     ) {
-        id = UUID()
+        // Override defaults with provided values
+        self.id = UUID()
         self.vendor = vendor
         self.total = try? JSONEncoder().encode(total)
         self.purchaseDate = purchaseDate
         self.item = item
-        createdAt = Date()
-        updatedAt = Date()
+        self.createdAt = Date()
+        self.updatedAt = Date()
     }
 
     // MARK: - Computed Properties

@@ -176,7 +176,7 @@ struct ItemDetailView: View {
                             HStack {
                                 Image(systemName: warrantyStatus.icon)
                                     .font(.title2)
-                                    .foregroundColor(Color(hex: warrantyStatus.color))
+                                    .foregroundColor(Color(hex: warrantyStatus.color ?? "#007AFF"))
                                 VStack(alignment: .leading) {
                                     Text("Warranty Status")
                                         .font(.headline)
@@ -212,7 +212,7 @@ struct ItemDetailView: View {
                                     }
 
                                     ProgressView(value: progress)
-                                        .progressViewStyle(LinearProgressViewStyle(tint: Color(hex: warrantyStatus.color)))
+                                        .progressViewStyle(LinearProgressViewStyle(tint: .blue))
                                 }
                             } else if case let .expiringSoon(daysRemaining) = warrantyStatus {
                                 HStack {

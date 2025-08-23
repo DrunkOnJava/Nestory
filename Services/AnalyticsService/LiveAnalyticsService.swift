@@ -84,19 +84,23 @@ public struct LiveAnalyticsService: AnalyticsService, Sendable {
     }
 
     public nonisolated func calculateCategoryBreakdown(for items: [Item]) async -> [CategoryBreakdown] {
-        var categoryMap: [String: CategoryBreakdown] = [:]
+        // Use mutable temporary data structure
+        struct MutableCategoryData {
+            var itemCount: Int = 0
+            var totalValue: Decimal = 0
+        }
+        
+        var categoryMap: [String: MutableCategoryData] = [:]
 
+        // Calculate raw totals
         for item in items {
             let categoryName = item.category?.name ?? "Uncategorized"
 
-            var breakdown = categoryMap[categoryName] ?? CategoryBreakdown(
-                categoryName: categoryName,
-                itemCount: 0,
-                totalValue: 0,
-                percentage: 0,
-            )
+            if categoryMap[categoryName] == nil {
+                categoryMap[categoryName] = MutableCategoryData()
+            }
 
-            breakdown.itemCount += 1
+            categoryMap[categoryName]!.itemCount += 1
 
             if let purchasePrice = item.purchasePrice {
                 let itemValue = purchasePrice
@@ -106,31 +110,36 @@ public struct LiveAnalyticsService: AnalyticsService, Sendable {
                     if let convertedValue = try? await currencyService.convert(
                         amount: itemValue,
                         from: currencyCode,
-                        to: "USD",
+                        to: "USD"
                     ) {
-                        breakdown.totalValue += convertedValue
+                        categoryMap[categoryName]!.totalValue += convertedValue
                     } else {
-                        breakdown.totalValue += itemValue
+                        categoryMap[categoryName]!.totalValue += itemValue
                     }
                 } else {
-                    breakdown.totalValue += itemValue
+                    categoryMap[categoryName]!.totalValue += itemValue
                 }
             }
-
-            categoryMap[categoryName] = breakdown
         }
 
+        // Calculate total value for percentage calculations
         let totalValue = categoryMap.values.reduce(Decimal(0)) { $0 + $1.totalValue }
 
-        for key in categoryMap.keys {
-            if totalValue > 0 {
-                let categoryValue = categoryMap[key]!.totalValue
-                let percentage = Double(truncating: (categoryValue / totalValue * 100) as NSNumber)
-                categoryMap[key]?.percentage = percentage
-            }
+        // Create final immutable CategoryBreakdown structs
+        let breakdowns = categoryMap.map { categoryName, data in
+            let percentage = totalValue > 0 
+                ? Double(truncating: (data.totalValue / totalValue * 100) as NSNumber)
+                : 0.0
+            
+            return CategoryBreakdown(
+                categoryName: categoryName,
+                itemCount: data.itemCount,
+                totalValue: data.totalValue,
+                percentage: percentage
+            )
         }
 
-        return Array(categoryMap.values).sorted { $0.totalValue > $1.totalValue }
+        return breakdowns.sorted { $0.totalValue > $1.totalValue }
     }
 
     public nonisolated func calculateValueTrends(for items: [Item], period: TrendPeriod) async -> [TrendPoint] {
@@ -233,7 +242,7 @@ public struct LiveAnalyticsService: AnalyticsService, Sendable {
         var dashboard = DashboardData(
             totalItems: items.count,
             totalValue: value,
-            categoryBreakdown: categories,
+            categoryBreakdowns: categories,
             topValueItemIds: top.map(\.id),
             recentItemIds: Array(recentItems.map(\.id)),
             valueTrends: trends,
@@ -241,9 +250,7 @@ public struct LiveAnalyticsService: AnalyticsService, Sendable {
             lastUpdated: Date(),
         )
 
-        // Set non-Codable properties for immediate use
-        dashboard.topValueItems = top
-        dashboard.recentItems = Array(recentItems)
+        // Note: topValueItems and recentItems are computed properties based on IDs
 
         await cache.set(dashboard, for: cacheKey)
 
