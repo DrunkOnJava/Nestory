@@ -60,7 +60,10 @@
       "Bash(xcrun xcresulttool get:*)",
       "Bash(xcrun xcresulttool metadata:*)",
       "Bash(timeout 60 xcodebuild:*)",
-      "Bash(xcrun simctl spawn:*)"
+      "Bash(xcrun simctl spawn:*)",
+      "Bash(git stash show:*)",
+      "Bash(git stash pop:*)",
+      "Bash(git merge:*)"
     ],
     "deny": [],
     "ask": [],
