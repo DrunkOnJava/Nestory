@@ -60,6 +60,7 @@ help: ## Show this help message
 	@echo "  $(GREEN)make build$(NC)            - Build the app (Debug configuration)"
 	@echo "  $(GREEN)make fast-build$(NC)       - Parallel build with maximum speed ($(PARALLEL_JOBS) jobs)"
 	@echo "  $(GREEN)make test$(NC)             - Run all tests"
+	@echo "  $(GREEN)make test-wiring$(NC)      - Run comprehensive UI wiring validation"
 	@echo "  $(GREEN)make check$(NC)            - Run all checks (build, test, lint, arch)"
 	@echo ""
 	@echo "$(YELLOW)Quick Shortcuts:$(NC)"
@@ -221,6 +222,55 @@ test-ui: gen ## Run UI tests only
 		{ echo "$(RED)❌ UI tests failed or timed out after $(TEST_TIMEOUT)s!$(NC)"; \
 		  echo "$(YELLOW)Check ui-test-$(BUILD_LOG) for details$(NC)"; exit 1; }
 	@echo "$(GREEN)✅ UI tests completed!$(NC)"
+
+.PHONY: test-wiring
+test-wiring: gen ## Run comprehensive UI wiring tests to validate all navigation and integration
+	@echo "$(YELLOW)🔍 Running comprehensive UI wiring validation...$(NC)"
+	@mkdir -p ~/Desktop/NestoryUIWiringScreenshots
+	@timeout 300 xcodebuild test \
+		-scheme Nestory-UIWiring \
+		-destination '$(DESTINATION)' \
+		-only-testing:NestoryUITests/ComprehensiveUIWiringTest/testCompleteUIWiring \
+		$(BUILD_FLAGS) \
+		-resultBundlePath /tmp/nestory_wiring_test_results \
+		2>&1 | tee ui-wiring-$(BUILD_LOG) || \
+		{ echo "$(RED)❌ UI wiring tests failed or timed out after 300s!$(NC)"; \
+		  echo "$(YELLOW)Check ui-wiring-$(BUILD_LOG) for details$(NC)"; exit 1; }
+	@echo "$(GREEN)✅ UI wiring validation completed!$(NC)"
+	@echo "$(BLUE)📸 Screenshots and test results available at /tmp/nestory_wiring_test_results$(NC)"
+	@echo "$(YELLOW)🔍 Extracting screenshots...$(NC)"
+	@./Scripts/extract-ui-test-screenshots.sh /tmp/nestory_wiring_test_results.xcresult ~/Desktop/NestoryUIWiringScreenshots
+
+.PHONY: test-wiring-quick
+test-wiring-quick: gen ## Run quick UI screenshot validation for development
+	@echo "$(YELLOW)📸 Running quick UI wiring validation...$(NC)"
+	@timeout 120 xcodebuild test \
+		-scheme $(SCHEME_DEV) \
+		-destination '$(DESTINATION)' \
+		-only-testing:NestoryUITests/BasicScreenshotTest/testBasicAppScreenshots \
+		$(BUILD_FLAGS) \
+		-resultBundlePath /tmp/nestory_quick_test_results \
+		2>&1 | tee ui-quick-$(BUILD_LOG) || \
+		{ echo "$(RED)❌ Quick UI tests failed or timed out after 120s!$(NC)"; \
+		  echo "$(YELLOW)Check ui-quick-$(BUILD_LOG) for details$(NC)"; exit 1; }
+	@echo "$(GREEN)✅ Quick UI validation completed!$(NC)"
+	@./Scripts/extract-ui-test-screenshots.sh /tmp/nestory_quick_test_results.xcresult ~/Desktop/NestoryUIWiringScreenshots
+
+.PHONY: test-full-wiring
+test-full-wiring: gen ## Run complete UI wiring validation with all tests 
+	@echo "$(YELLOW)🔍 Running FULL UI wiring test suite...$(NC)"
+	@mkdir -p ~/Desktop/NestoryUIWiringScreenshots
+	@timeout 600 xcodebuild test \
+		-scheme Nestory-UIWiring \
+		-destination '$(DESTINATION)' \
+		$(BUILD_FLAGS) \
+		-resultBundlePath /tmp/nestory_full_wiring_results \
+		2>&1 | tee ui-full-wiring-$(BUILD_LOG) || \
+		{ echo "$(RED)❌ Full UI wiring suite failed or timed out after 600s!$(NC)"; \
+		  echo "$(YELLOW)Check ui-full-wiring-$(BUILD_LOG) for details$(NC)"; exit 1; }
+	@echo "$(GREEN)✅ Full UI wiring validation completed!$(NC)"
+	@echo "$(BLUE)📸 All test results available at /tmp/nestory_full_wiring_results$(NC)"
+	@./Scripts/extract-ui-test-screenshots.sh /tmp/nestory_full_wiring_results.xcresult ~/Desktop/NestoryUIWiringScreenshots
 
 # ============================================================================
 # CODE QUALITY & VERIFICATION
@@ -542,6 +592,64 @@ screenshot: gen ## Capture app screenshots
 		{ echo "$(RED)❌ Screenshot capture failed or timed out!$(NC)"; \
 		  echo "$(YELLOW)Check screenshot-$(BUILD_LOG) for details$(NC)"; exit 1; }
 	@echo "$(GREEN)✅ Screenshots captured!$(NC)"
+
+.PHONY: screenshots
+screenshots: gen ## Deterministic UI screenshot capture with extraction and verification
+	@bash Scripts/run-screenshots.sh
+
+.PHONY: screenshots-ci
+screenshots-ci: screenshots ## CI golden comparison for screenshot regression testing
+	@echo "$(YELLOW)🔍 Running perceptual diff against golden images...$(NC)"
+	@command -v compare >/dev/null || { echo "$(RED)ImageMagick 'compare' not found - install with: brew install imagemagick$(NC)"; exit 2; }
+	@# Find the latest extracted directory
+	@LATEST_DIR=$$(ls -dt $(HOME)/Desktop/NestoryUIWiringScreenshots/extracted_* 2>/dev/null | head -1); \
+	if [ -z "$$LATEST_DIR" ]; then \
+		echo "$(RED)❌ No extracted screenshots found$(NC)"; \
+		exit 1; \
+	fi; \
+	echo "$(BLUE)Comparing screenshots in: $$LATEST_DIR$(NC)"; \
+	mkdir -p diffs; \
+	FAILED=0; \
+	for file in $$LATEST_DIR/*.png; do \
+		base=$$(basename $$file); \
+		golden="golden/$$base"; \
+		if [ -f "$$golden" ]; then \
+			compare -metric AE "$$file" "$$golden" "diffs/$$base" 2> "diffs/$$base.txt" || { \
+				PIXELS=$$(cat "diffs/$$base.txt"); \
+				if [ "$$PIXELS" -gt 1000 ]; then \
+					echo "$(RED)✗ DIFF: $$base differs by $$PIXELS pixels (see diffs/$$base)$(NC)"; \
+					FAILED=1; \
+				else \
+					echo "$(YELLOW)⚠ Minor diff: $$base differs by $$PIXELS pixels (acceptable)$(NC)"; \
+				fi; \
+			}; \
+			echo "$(GREEN)✓ Checked: $$base$(NC)"; \
+		else \
+			echo "$(YELLOW)⚠ Missing golden for $$base - copying as new golden$(NC)"; \
+			mkdir -p golden; \
+			cp "$$file" "$$golden"; \
+		fi; \
+	done; \
+	if [ $$FAILED -eq 1 ]; then \
+		echo "$(RED)❌ Perceptual diffs failed - significant changes detected$(NC)"; \
+		exit 1; \
+	else \
+		echo "$(GREEN)✅ All screenshots match golden images (or are new)$(NC)"; \
+	fi
+
+.PHONY: update-golden
+update-golden: screenshots ## Update golden images from latest screenshot run
+	@echo "$(YELLOW)📸 Updating golden images...$(NC)"
+	@LATEST_DIR=$$(ls -dt $(HOME)/Desktop/NestoryUIWiringScreenshots/extracted_* 2>/dev/null | head -1); \
+	if [ -z "$$LATEST_DIR" ]; then \
+		echo "$(RED)❌ No extracted screenshots found - run 'make screenshots' first$(NC)"; \
+		exit 1; \
+	fi; \
+	echo "$(BLUE)Copying from: $$LATEST_DIR$(NC)"; \
+	mkdir -p golden; \
+	cp $$LATEST_DIR/*.png golden/; \
+	count=$$(ls -1 golden/*.png | wc -l); \
+	echo "$(GREEN)✅ Updated $$count golden images$(NC)"
 
 # ============================================================================
 # PROJECT MAINTENANCE

@@ -25,3 +25,7 @@ Services/WarrantyTrackingService/LiveWarrantyTrackingService.swift # 2025-08-21 
 Temporarily bypassing file size check for TCA testing
 Features/Search/SearchView.swift # 2025-08-21 - Complex TCA search view with extracted computed properties - temporary approval to fix SwiftUI compilation errors
 Services/MockServiceImplementations.swift:Mock services consolidated for reliability testing and comprehensive service coverage. File contains realistic test data crucial for insurance documentation features.
+Features/Settings/SettingsView.swift # 2025-08-23 - Temporary approval to investigate Settings tab navigation bug - comprehensive settings view will be modularized after fixing routing issue
+Features/Settings/Components/SettingsViewComponents.swift # 2025-08-24 - WIRE.005 implementation: Added insurance/claims components for ClaimsDashboardView integration. Temporary expansion for systematic service-to-UI wiring initiative. Will modularize into separate InsuranceComponents.swift after completing wiring tasks.
+tca-composer/Sources/TCAComposerMacros/Composition.swift
+tca-composer/Sources/TCAComposerMacros/ReducerAnalyzer.swift

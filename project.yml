@@ -229,6 +229,49 @@ schemes:
       config: Debug
       targets:
         - NestoryUITests
+      gatherCoverageData: true
+      parallelizable: false
+      commandLineArguments:
+        - --ui-testing
+        - --demo-data
+        - --comprehensive-testing
+    profile:
+      config: Debug
+    analyze:
+      config: Debug
+    archive:
+      config: Release
+
+  Nestory-UIWiring:
+    build:
+      targets:
+        Nestory: all
+    run:
+      config: Debug
+      environmentVariables:
+        CLOUDKIT_CONTAINER: iCloud.com.drunkonjava.nestory.dev
+        NESTORY_ENVIRONMENT: development
+        API_BASE_URL: https://api-dev.nestory.app
+        FX_API_ENDPOINT: https://fx-dev.nestory.app
+        UI_WIRING_TEST_MODE: "true"
+    test:
+      config: Debug
+      targets:
+        - name: NestoryUITests
+          parallelizable: false
+          randomExecutionOrder: false
+      gatherCoverageData: true
+      onlyTestIdentifiers:
+        - NestoryUITests/ComprehensiveUIWiringTest/testCompleteUIWiring
+        - NestoryUITests/BasicScreenshotTest/testBasicAppScreenshots
+      commandLineArguments:
+        - --ui-testing
+        - --demo-data  
+        - --comprehensive-testing
+        - --wiring-validation
+      environmentVariables:
+        UI_TEST_SCREENSHOT_DIR: ~/Desktop/NestoryUIWiringScreenshots
+        UI_TEST_ENABLE_VALIDATION: "true"
     profile:
       config: Debug
     analyze:
