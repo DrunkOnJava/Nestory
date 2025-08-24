@@ -55,13 +55,11 @@ extension Category {
     }
 }
 
-// MARK: - Equatable Conformance for TCA State Management
+// MARK: - TCA Compatibility
+
 extension Category: Equatable {
     public static func == (lhs: Category, rhs: Category) -> Bool {
-        return lhs.id == rhs.id &&
-               lhs.name == rhs.name &&
-               lhs.updatedAt == rhs.updatedAt &&
-               lhs.itemCount == rhs.itemCount
+        lhs.id == rhs.id && lhs.updatedAt == rhs.updatedAt
     }
 }
 

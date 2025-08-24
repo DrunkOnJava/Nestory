@@ -28,6 +28,7 @@ struct ItemDetailView: View {
     @State private var showingClaimPackage = false
     @State private var showingWarrantyTracking = false
     @State private var showingInsuranceClaim = false
+    @State private var showingWarrantyDashboard = false
     @State private var warrantyStatus: WarrantyStatus = .noWarranty
 
     @Dependency(\.insuranceReportService) var insuranceReportService
@@ -259,18 +260,27 @@ struct ItemDetailView: View {
                             }
 
                             // Enhanced Action buttons
-                            HStack(spacing: 8) {
-                                Button(action: { showingWarrantyTracking = true }) {
-                                    Label("Warranty Tracking", systemImage: "shield.lefthalf.filled")
-                                        .frame(maxWidth: .infinity)
-                                }
-                                .buttonStyle(.borderedProminent)
+                            VStack(spacing: 8) {
+                                HStack(spacing: 8) {
+                                    Button(action: { showingWarrantyTracking = true }) {
+                                        Label("Warranty Tracking", systemImage: "shield.lefthalf.filled")
+                                            .frame(maxWidth: .infinity)
+                                    }
+                                    .buttonStyle(.borderedProminent)
 
-                                Button(action: { showingWarrantyDocuments = true }) {
-                                    Label("Documents", systemImage: "doc.stack")
+                                    Button(action: { showingWarrantyDocuments = true }) {
+                                        Label("Documents", systemImage: "doc.stack")
+                                            .frame(maxWidth: .infinity)
+                                    }
+                                    .buttonStyle(.bordered)
+                                }
+                                
+                                Button(action: { showingWarrantyDashboard = true }) {
+                                    Label("Warranty Dashboard", systemImage: "chart.xyaxis.line")
                                         .frame(maxWidth: .infinity)
                                 }
                                 .buttonStyle(.bordered)
+                                .foregroundColor(.blue)
                             }
                         }
                         .padding(.vertical, 4)
@@ -320,11 +330,20 @@ struct ItemDetailView: View {
                                 Spacer()
                             }
 
-                            Button(action: { showingInsuranceClaim = true }) {
-                                Label("Generate Claim", systemImage: "doc.badge.plus")
-                                    .frame(maxWidth: .infinity)
+                            HStack(spacing: 8) {
+                                Button(action: { showingInsuranceClaim = true }) {
+                                    Label("Generate Claim", systemImage: "doc.badge.plus")
+                                        .frame(maxWidth: .infinity)
+                                }
+                                .buttonStyle(.borderedProminent)
+                                
+                                Button(action: { showingClaimPackage = true }) {
+                                    Label("Claim Package", systemImage: "folder.badge.plus")
+                                        .frame(maxWidth: .infinity)
+                                }
+                                .buttonStyle(.bordered)
+                                .foregroundColor(.orange)
                             }
-                            .buttonStyle(.borderedProminent)
                         }
                         .padding(.vertical, 4)
                     }
@@ -384,6 +403,9 @@ struct ItemDetailView: View {
         }
         .sheet(isPresented: $showingInsuranceClaim) {
             InsuranceClaimView(items: [item])
+        }
+        .sheet(isPresented: $showingWarrantyDashboard) {
+            WarrantyDashboardView()
         }
         .task {
             await loadWarrantyStatus()

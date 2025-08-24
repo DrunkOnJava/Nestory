@@ -160,7 +160,7 @@ public enum FilterType: String, CaseIterable, Sendable {
 }
 
 /// Warranty filter status options
-public enum WarrantyFilterStatus: String, CaseIterable, Codable, Sendable {
+public enum WarrantyFilterStatus: String, CaseIterable, Codable, Sendable, Equatable {
     case active
     case expiringSoon
     case expired

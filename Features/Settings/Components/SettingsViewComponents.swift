@@ -421,6 +421,83 @@ struct SettingsViewComponents {
     static func receiptProcessingDashboardView() -> some View {
         SettingsReceiptComponents.receiptProcessingDashboardView()
     }
+    
+    // MARK: - Insurance & Claims Components
+    
+    @MainActor
+    static func claimsDashboardView() -> some View {
+        // Wire to actual ClaimsDashboardView
+        ClaimsDashboardView()
+    }
+    
+    @MainActor
+    static func insuranceReportsView() -> some View {
+        // Wire to actual InsuranceExportOptionsView with required parameters
+        // TODO: Pass actual data from parent context when available
+        InsuranceExportOptionsView(
+            items: [],
+            categories: [],
+            rooms: [],
+            exportService: InsuranceExportService()
+        )
+    }
+    
+    @MainActor
+    static func claimTemplatesView() -> some View {
+        VStack(spacing: 20) {
+            Image(systemName: "doc.badge.gearshape")
+                .font(.system(size: 60))
+                .foregroundColor(.orange)
+            
+            VStack(spacing: 8) {
+                Text("Claim Templates")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                
+                Text("Pre-configured templates for common insurance claim types to streamline the claims process")
+                    .multilineTextAlignment(.center)
+                    .foregroundColor(.secondary)
+                    .padding(.horizontal)
+            }
+            
+            VStack(spacing: 16) {
+                SettingsFeatureCard(
+                    icon: "flame",
+                    title: "Fire Damage",
+                    description: "Template for fire-related damage claims",
+                    color: .red
+                )
+                
+                SettingsFeatureCard(
+                    icon: "drop.fill",
+                    title: "Water Damage",
+                    description: "Template for flood, leak, or water damage",
+                    color: .blue
+                )
+                
+                SettingsFeatureCard(
+                    icon: "exclamationmark.shield",
+                    title: "Theft & Burglary",
+                    description: "Template for stolen or missing items",
+                    color: .orange
+                )
+                
+                SettingsFeatureCard(
+                    icon: "plus.circle",
+                    title: "Custom Template",
+                    description: "Create your own template for specific needs",
+                    color: .green
+                )
+            }
+            
+            Text("Claim templates help ensure you collect all necessary information for faster claim processing")
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.top)
+        }
+        .padding()
+    }
 }
 
 private struct CloudStorageServiceRow: View {
@@ -460,5 +537,40 @@ private struct CloudStorageServiceRow: View {
             .cornerRadius(12)
         }
         .buttonStyle(PlainButtonStyle())
+    }
+}
+
+// MARK: - Supporting Components
+
+private struct SettingsFeatureCard: View {
+    let icon: String
+    let title: String
+    let description: String
+    let color: Color
+    
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: icon)
+                .font(.title2)
+                .foregroundColor(color)
+                .frame(width: 24)
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundColor(.primary)
+                
+                Text(description)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.leading)
+            }
+            
+            Spacer()
+        }
+        .padding()
+        .background(Color(.systemGray6))
+        .cornerRadius(8)
     }
 }

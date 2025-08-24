@@ -197,14 +197,10 @@ public final class Receipt: @unchecked Sendable {
     }
 }
 
-// MARK: - Equatable Conformance for TCA State Management
+// MARK: - TCA Compatibility
+
 extension Receipt: Equatable {
     public static func == (lhs: Receipt, rhs: Receipt) -> Bool {
-        return lhs.id == rhs.id &&
-               lhs.vendor == rhs.vendor &&
-               lhs.purchaseDate == rhs.purchaseDate &&
-               lhs.total == rhs.total &&
-               lhs.updatedAt == rhs.updatedAt &&
-               lhs.receiptNumber == rhs.receiptNumber
+        lhs.id == rhs.id && lhs.updatedAt == rhs.updatedAt
     }
 }

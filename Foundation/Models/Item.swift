@@ -203,15 +203,11 @@ public enum ItemCondition: String, CaseIterable, Codable, Sendable {
     }
 }
 
-// MARK: - Equatable Conformance for TCA State Management
+// MARK: - TCA Compatibility
+
 extension Item: Equatable {
     public static func == (lhs: Item, rhs: Item) -> Bool {
-        return lhs.id == rhs.id &&
-               lhs.name == rhs.name &&
-               lhs.updatedAt == rhs.updatedAt &&
-               lhs.quantity == rhs.quantity &&
-               lhs.category == rhs.category &&
-               lhs.condition == rhs.condition
+        lhs.id == rhs.id && lhs.updatedAt == rhs.updatedAt
     }
 }
 

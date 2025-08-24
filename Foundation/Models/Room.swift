@@ -51,13 +51,11 @@ public final class Room: @unchecked Sendable {
     }
 }
 
-// MARK: - Equatable Conformance for TCA State Management
+// MARK: - TCA Compatibility
+
 extension Room: Equatable {
     public static func == (lhs: Room, rhs: Room) -> Bool {
-        return lhs.id == rhs.id &&
-               lhs.name == rhs.name &&
-               lhs.floor == rhs.floor &&
-               lhs.roomDescription == rhs.roomDescription
+        lhs.id == rhs.id
     }
 }
 
