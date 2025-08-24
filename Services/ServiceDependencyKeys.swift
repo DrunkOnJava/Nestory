@@ -230,8 +230,27 @@ enum InsuranceClaimServiceKey: @preconcurrency DependencyKey {
     @MainActor
     static var liveValue: any InsuranceClaimService {
         do {
-            return LiveInsuranceClaimService()
+            // Create ModelContainer with explicit local-only configuration
+            let config = ModelConfiguration(isStoredInMemoryOnly: false, allowsSave: true)
+            let container = try ModelContainer(
+                for: Item.self, Category.self, Receipt.self, Warranty.self, ClaimSubmission.self,
+                configurations: config
+            )
+            // Create a new context to avoid MainActor issues
+            let context = ModelContext(container)
+            
+            // Record successful service creation
+            Task { @MainActor in
+                ServiceHealthManager.shared.recordSuccess(for: .insuranceClaim)
+            }
+            
+            return LiveInsuranceClaimService(modelContext: context)
         } catch {
+            // Record service failure for health monitoring
+            Task { @MainActor in
+                ServiceHealthManager.shared.recordFailure(for: .insuranceClaim, error: error)
+            }
+            
             print("⚠️ Failed to create InsuranceClaimService: \(error.localizedDescription)")
             print("🔄 Falling back to MockInsuranceClaimService for graceful degradation")
             return MockInsuranceClaimService()

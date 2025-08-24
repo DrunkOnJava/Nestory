@@ -260,3 +260,101 @@ class MockWarrantyTrackingService: WarrantyTrackingService, Sendable {
     func refreshAllWarrantyStatuses() async throws {}
     func updateWarrantiesFromReceipts() async throws -> Int { 0 }
 }
+
+struct MockDamageAssessmentService: DamageAssessmentServiceProtocol, Sendable {
+    func createAssessment(for item: Item, damageType: DamageType, incidentDescription: String) async throws -> DamageAssessmentWorkflow {
+        let assessment = DamageAssessment(
+            itemId: item.id,
+            damageType: damageType,
+            severity: .moderate,
+            incidentDescription: incidentDescription
+        )
+        
+        return DamageAssessmentWorkflow(
+            damageType: damageType,
+            assessment: assessment
+        )
+    }
+    
+    func updateAssessment(_ assessment: DamageAssessment) async throws {
+        // Mock implementation - no-op
+    }
+    
+    func completeWorkflowStep(_ workflow: inout DamageAssessmentWorkflow, step: DamageAssessmentStep) async throws {
+        workflow.completedSteps.insert(step)
+        workflow.updatedAt = Date()
+        workflow.currentStep = step
+    }
+    
+    func addPhoto(_ photo: DamagePhoto, to assessment: inout DamageAssessment) async throws {
+        // Add photo data to the appropriate category based on type
+        switch photo.photoType {
+        case .before:
+            assessment.beforePhotos.append(photo.imageData)
+        case .after:
+            assessment.afterPhotos.append(photo.imageData)
+        case .detail, .overview, .comparison:
+            assessment.detailPhotos.append(photo.imageData)
+        }
+        assessment.photoDescriptions.append(photo.description)
+    }
+    
+    func calculateDamageValue(for item: Item, severity: DamageSeverity) async throws -> Decimal {
+        // Mock calculation based on severity
+        let baseValue = item.purchasePrice ?? 0
+        switch severity {
+        case .minor:
+            return baseValue * 0.1
+        case .moderate:
+            return baseValue * 0.3
+        case .major:
+            return baseValue * 0.6
+        case .severe:
+            return baseValue * 0.9
+        case .total:
+            return baseValue
+        }
+    }
+    
+    func generateAssessmentReport(_ workflow: DamageAssessmentWorkflow) async throws -> Data {
+        // Mock PDF generation
+        let reportContent = "Mock Damage Assessment Report\nWorkflow ID: \(workflow.id)\nDamage Type: \(workflow.damageType.rawValue)"
+        return reportContent.data(using: String.Encoding.utf8) ?? Data()
+    }
+    
+    func getAssessmentTemplate(for damageType: DamageType) async throws -> AssessmentTemplate {
+        AssessmentTemplate(
+            damageType: damageType,
+            checklistItems: [
+                AssessmentTemplate.ChecklistItem(
+                    description: "Document damage location",
+                    category: "Initial Assessment",
+                    isRequired: true
+                ),
+                AssessmentTemplate.ChecklistItem(
+                    description: "Take photos from multiple angles",
+                    category: "Photo Documentation",
+                    isRequired: true
+                )
+            ],
+            photoRequirements: [
+                AssessmentTemplate.PhotoRequirement(
+                    description: "Clear front view of the damage",
+                    photoType: .overview,
+                    isRequired: true
+                ),
+                AssessmentTemplate.PhotoRequirement(
+                    description: "Detailed close-up of damage area",
+                    photoType: .detail,
+                    isRequired: true
+                )
+            ],
+            recommendedMeasurements: ["Length of damage", "Width of damage", "Depth if applicable"]
+        )
+    }
+    
+    func getActiveAssessments(for item: Item) async throws -> [DamageAssessmentWorkflow] {
+        // Return empty array for mock
+        []
+    }
+}

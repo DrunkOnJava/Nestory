@@ -90,7 +90,13 @@ struct NestoryApp: App {
                         schema: minimalSchema,
                         isStoredInMemoryOnly: true
                     )
-                    return try! ModelContainer(for: minimalSchema, configurations: [ultraMinimalConfig])
+                    // Last resort with proper error handling
+                    do {
+                        return try ModelContainer(for: minimalSchema, configurations: [ultraMinimalConfig])
+                    } catch {
+                        // Fatal error is appropriate here as the app cannot function without any storage
+                        fatalError("Critical: Unable to create any ModelContainer. Error: \(error)")
+                    }
                 }
             }
         }

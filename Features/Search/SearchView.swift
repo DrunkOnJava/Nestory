@@ -62,8 +62,7 @@ public struct SearchView: View {
             }
     }
 
-    @ViewBuilder
-    private var searchToolbar: some View {
+    private var searchToolbar: some ToolbarContent {
         ToolbarItem(placement: .navigationBarTrailing) {
             SearchToolbarMenu(store: store)
         }

@@ -199,4 +199,5 @@ public enum ServiceType: String, CaseIterable {
     case barcode = "Barcode Scanner"
     case receiptOCR = "Receipt OCR"
     case insuranceReport = "Insurance Reports"
+    case insuranceClaim = "Insurance Claims"
 }

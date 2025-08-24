@@ -57,9 +57,16 @@ public final class DamageAssessmentService: ObservableObject, DamageAssessmentSe
             print("⚠️ Could not create mock DamageAssessmentService: \(error)")
             print("🔄 Creating ultra-minimal fallback instance")
             // Return a version that won't crash - use an empty container
-            let container = try! ModelContainer(for: Item.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
-            let context = ModelContext(container)
-            return try! DamageAssessmentService(modelContext: context)
+            do {
+                let config = ModelConfiguration(isStoredInMemoryOnly: true)
+                let container = try ModelContainer(for: Item.self, configurations: config)
+                let context = ModelContext(container)
+                return try DamageAssessmentService(modelContext: context)
+            } catch {
+                print("❌ Critical: Unable to create any DamageAssessmentService")
+                // Fatal error is appropriate here as the service cannot function without storage
+                fatalError("Unable to create DamageAssessmentService: \(error)")
+            }
         }
     }
 

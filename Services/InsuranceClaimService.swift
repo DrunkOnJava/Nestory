@@ -40,10 +40,13 @@ public final class LiveInsuranceClaimService: InsuranceClaimService, ObservableO
     }
 
     // Convenience initializer for compatibility
-    public convenience init() {
+    public convenience init() throws {
         // Create a temporary in-memory context for backward compatibility
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
-        let container = try! ModelContainer(for: Item.self, configurations: config)
+        let container = try ModelContainer(
+            for: Item.self, Category.self, Receipt.self, Warranty.self, ClaimSubmission.self,
+            configurations: config
+        )
         let context = ModelContext(container)
         self.init(modelContext: context)
     }
