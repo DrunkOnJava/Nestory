@@ -89,15 +89,30 @@ public struct AnalyticsDashboardView: View {
                     averageValue: summaryData.averageValue
                 )
                 .padding(.horizontal)
-            } else {
-                let provider = dataProvider
+            } else if let dashboardData = store.dashboardData {
+                // Use TCA-managed analytics data from AnalyticsService
                 SummaryCardsView(
-                    totalItems: store.totalItems,
-                    totalValue: provider.totalValue,
-                    categoriesCount: provider.categoriesWithItems.count,
-                    averageValue: provider.averageValue
+                    totalItems: dashboardData.totalItems,
+                    totalValue: dashboardData.totalValue,
+                    categoriesCount: dashboardData.categoryBreakdowns.count,
+                    averageValue: dashboardData.totalItems > 0 ? 
+                        dashboardData.totalValue / Decimal(dashboardData.totalItems) : 0
                 )
                 .padding(.horizontal)
+            } else {
+                // Loading state or fallback
+                SummaryCardsView(
+                    totalItems: store.items.count,
+                    totalValue: 0,
+                    categoriesCount: store.categories.count,
+                    averageValue: 0
+                )
+                .padding(.horizontal)
+                .opacity(0.6)
+                .overlay(
+                    ProgressView()
+                        .scaleEffect(0.8)
+                )
             }
         }
     }
@@ -113,67 +128,11 @@ public struct AnalyticsDashboardView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
-                    // Time Range Picker
-                    timeRangePicker
-                        .padding(.horizontal)
-
-                    // Summary Cards (using TCA state)
-                    summaryCardsSection
-
-                    // Enhanced Analytics Summary (using TCA dashboard data)
-                    if let data = store.dashboardData {
-                        EnhancedAnalyticsSummaryView(dashboardData: data)
-                            .padding(.horizontal)
-                    } else if store.isLoading {
-                        ProgressView("Loading enhanced analytics...")
-                            .frame(height: 100)
-                            .padding(.horizontal)
-                    }
-
-                    // Charts Section
-                    VStack(alignment: .leading, spacing: 16) {
-                        // Category Distribution Chart (existing)
-                        ChartContainer(title: "Category Distribution") {
-                            let categories = dataProvider.categoriesWithItems
-                            CategoryDistributionChart(categories: categories, items: store.items)
-                        }
-
-                        // Value by Category Chart (using TCA state)
-                        ChartContainer(title: "Value by Category") {
-                            let categories = dataProvider.categoriesWithItems
-                            let items = store.filteredItems
-                            ValueByCategoryChart(categories: categories, items: items)
-                        }
-
-                        // Recent Activity Chart (using TCA state)
-                        ChartContainer(title: "Recent Activity") {
-                            let items = dataProvider.recentItems
-                            let timeRange = timeRangeMapping[store.selectedTimeRange] ?? .month
-                            RecentActivityChart(items: items, timeRange: timeRange)
-                        }
-
-                        // Item Status Overview (using TCA state)  
-                        ChartContainer(title: "Item Status Overview") {
-                            let items = store.filteredItems
-                            ItemStatusChart(items: items)
-                        }
-                        
-                        // Warranty Analytics Section
-                        warrantyAnalyticsSection
-                    }
-                    .padding(.horizontal)
-
-                    // Insights Section (using TCA state)
-                    InsightsView(dataProvider: dataProvider)
-                        .padding(.horizontal)
-
-                    if let data = store.dashboardData {
-                        EnhancedInsightsView(
-                            dashboardData: data,
-                            depreciationReports: []
-                        )
-                        .padding(.horizontal)
-                    }
+                    timeRangeSection
+                    summarySection
+                    enhancedAnalyticsSection
+                    chartsSection
+                    insightsSection
                 }
                 .padding(.vertical)
             }
@@ -187,6 +146,112 @@ public struct AnalyticsDashboardView: View {
             }
             .alert($store.scope(state: \.alert, action: \.alert))
         }
+    }
+    
+    private var timeRangeSection: some View {
+        timeRangePicker
+            .padding(.horizontal)
+    }
+    
+    private var summarySection: some View {
+        summaryCardsSection
+    }
+    
+    private var enhancedAnalyticsSection: some View {
+        Group {
+            if let data = store.dashboardData {
+                EnhancedAnalyticsSummaryView(dashboardData: data)
+                    .padding(.horizontal)
+            } else if store.isLoading {
+                ProgressView("Loading enhanced analytics...")
+                    .frame(height: 100)
+                    .padding(.horizontal)
+            }
+        }
+    }
+    
+    private var chartsSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            categoryDistributionChart
+            valueByCategoryChart
+            valueTrendsChart
+            itemStatusChart
+            warrantyAnalyticsSection
+        }
+        .padding(.horizontal)
+    }
+    
+    private var insightsSection: some View {
+        VStack(spacing: 20) {
+            InsightsView(dataProvider: dataProvider)
+                .padding(.horizontal)
+
+            if let data = store.dashboardData {
+                EnhancedInsightsView(
+                    dashboardData: data,
+                    depreciationReports: []
+                )
+                .padding(.horizontal)
+            }
+        }
+    }
+    
+    private var categoryDistributionChart: some View {
+        ChartContainer(title: "Category Distribution") {
+            if let dashboardData = store.dashboardData {
+                CategoryBreakdownChart(serviceData: dashboardData.categoryBreakdowns)
+            } else {
+                let categories = store.categories.filter { category in
+                    store.items.contains(where: { $0.category?.id == category.id })
+                }
+                CategoryDistributionChart(categories: categories, items: store.items)
+            }
+        }
+    }
+    
+    private var valueByCategoryChart: some View {
+        ChartContainer(title: "Value by Category") {
+            if let dashboardData = store.dashboardData {
+                let serviceCategories = dashboardData.categoryBreakdowns.compactMap { breakdown in
+                    store.categories.first { $0.name == breakdown.categoryName }
+                }
+                ValueByCategoryChart(categories: serviceCategories, items: store.filteredItems)
+            } else {
+                let categories = store.categories.filter { category in
+                    store.items.contains(where: { $0.category?.id == category.id })
+                }
+                ValueByCategoryChart(categories: categories, items: store.filteredItems)
+            }
+        }
+    }
+    
+    private var valueTrendsChart: some View {
+        ChartContainer(title: "Value Trends") {
+            if let dashboardData = store.dashboardData, !dashboardData.valueTrends.isEmpty {
+                ValueTrendsChart(trends: dashboardData.valueTrends, period: .monthly)
+            } else if store.isLoading {
+                ProgressView("Loading trend data...")
+                    .frame(height: 200)
+            } else {
+                Text("No trend data available")
+                    .foregroundColor(.secondary)
+                    .frame(height: 200)
+            }
+        }
+    }
+    
+    private var itemStatusChart: some View {
+        ChartContainer(title: "Item Status Overview") {
+            ItemStatusChart(items: store.filteredItems)
+        }
+    }
+}
+
+// MARK: - TCA Service Integration Helpers
+
+extension CategoryBreakdownChart {
+    init(serviceData categoryBreakdowns: [CategoryBreakdown]) {
+        self.breakdown = categoryBreakdowns
     }
 }
 

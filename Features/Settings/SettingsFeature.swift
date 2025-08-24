@@ -28,25 +28,48 @@ import SwiftData
 import SwiftUI
 import Foundation
 
+// Import SettingsTypes for AppTheme enum
+
 @Reducer
 public struct SettingsFeature: Sendable {
     
-    // MARK: - Type Aliases
+    @ObservableState
+    public struct State: Equatable {
+        public var selectedTheme: AppTheme = .system
+        public var selectedCurrency = "USD"
+        public var notificationsEnabled = true
+        public var isLoading = false
+        
+        public init() {}
+    }
     
-    public typealias State = SettingsState
-    public typealias Action = SettingsAction
-    
-    // MARK: - Dependencies
-    
-    @Dependency(\.notificationService) var notificationService
-    @Dependency(\.cloudBackupService) var cloudBackupService
-    @Dependency(\.importExportService) var importExportService
-    @Dependency(\.inventoryService) var inventoryService
-    
-    // MARK: - Reducer
+    public enum Action {
+        case onAppear
+        case themeChanged(AppTheme)
+        case currencyChanged(String)
+        case notificationsToggled(Bool)
+    }
     
     public var body: some ReducerOf<Self> {
-        SettingsReducer()
+        Reduce { state, action in
+            switch action {
+            case .onAppear:
+                // Simple initialization without complex service calls
+                return .none
+                
+            case .themeChanged(let theme):
+                state.selectedTheme = theme
+                return .none
+                
+            case .currencyChanged(let currency):
+                state.selectedCurrency = currency
+                return .none
+                
+            case .notificationsToggled(let enabled):
+                state.notificationsEnabled = enabled
+                return .none
+            }
+        }
     }
     
     public init() {}

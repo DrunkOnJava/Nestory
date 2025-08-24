@@ -90,7 +90,7 @@ public struct InventoryView: View {
         } destination: { store in
             switch store.state {
             case .itemDetail:
-                ItemDetailPlaceholderView(store: store.scope(state: \.itemDetail, action: \.itemDetail))
+                ItemDetailView(item: store.state.itemDetail.item)
             case .itemEdit:
                 ItemEditView(store: store.scope(state: \.itemEdit, action: \.itemEdit))
             }
@@ -304,11 +304,74 @@ private struct ItemDetailPlaceholderView: View {
 }
 
 private struct ItemEditView: View {
-    let store: StoreOf<ItemEditFeature>
+    @Bindable var store: StoreOf<ItemEditFeature>
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        Text("Item Edit - Coming Soon")
-            .navigationTitle("Edit Item")
+        NavigationStack {
+            Form {
+                Section("Basic Information") {
+                    TextField("Item Name", text: $store.item.name.sending(\.updateName), prompt: Text("Enter item name"))
+                    
+                    TextField("Description", text: Binding(
+                        get: { store.item.itemDescription ?? "" },
+                        set: { store.send(.updateDescription($0)) }
+                    ), prompt: Text("Optional description"), axis: .vertical)
+                        .lineLimit(3...6)
+                }
+                
+                Section("Details") {
+                    Stepper("Quantity: \(store.item.quantity)", value: Binding(
+                        get: { store.item.quantity },
+                        set: { newValue in 
+                            store.item.quantity = newValue
+                        }
+                    ), in: 1...999)
+                    
+                    TextField("Brand", text: Binding(
+                        get: { store.item.brand ?? "" },
+                        set: { newValue in 
+                            store.item.brand = newValue.isEmpty ? nil : newValue
+                        }
+                    ), prompt: Text("Optional brand"))
+                    
+                    TextField("Model Number", text: Binding(
+                        get: { store.item.modelNumber ?? "" },
+                        set: { newValue in 
+                            store.item.modelNumber = newValue.isEmpty ? nil : newValue
+                        }
+                    ), prompt: Text("Optional model"))
+                }
+                
+                if store.mode == .create {
+                    Section("Quick Setup") {
+                        Button("Add Basic Item") {
+                            store.send(.saveTapped)
+                        }
+                        .disabled(!store.isValid)
+                    }
+                }
+            }
+            .navigationTitle(store.mode == .create ? "Add Item" : "Edit Item")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Save") {
+                        store.send(.saveTapped)
+                    }
+                    .disabled(!store.isValid)
+                }
+            }
+            .onAppear {
+                store.send(.onAppear)
+            }
+        }
     }
 }
 
