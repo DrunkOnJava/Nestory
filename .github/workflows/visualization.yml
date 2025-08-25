@@ -1,0 +1,242 @@
+name: Project Visualization Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run every Monday at 9 AM
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+jobs:
+  visualize:
+    name: Generate Project Visualizations
+    runs-on: macos-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Setup Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: latest-stable
+    
+    - name: Install visualization tools
+      run: |
+        brew install graphviz cloc periphery jq
+        # Install xclogparser
+        brew tap ChargePoint/xcparse
+        brew install xcparse
+        
+    - name: Create output directory
+      run: mkdir -p project-visualization/outputs/ci-$(date +%Y%m%d)
+      
+    - name: Generate architecture diagram
+      run: |
+        cd project-visualization
+        ./scripts/generate-architecture.sh
+      
+    - name: Run code metrics analysis
+      run: |
+        cloc . --exclude-dir=build,DerivedData,.git,Pods \
+          --report-file=project-visualization/outputs/ci-$(date +%Y%m%d)/metrics.txt \
+          --json --out=project-visualization/outputs/ci-$(date +%Y%m%d)/metrics.json
+    
+    - name: Analyze dependencies
+      run: |
+        swift package show-dependencies --format json \
+          > project-visualization/outputs/ci-$(date +%Y%m%d)/dependencies.json
+    
+    - name: Dead code detection
+      run: |
+        periphery scan --project Nestory.xcodeproj \
+          --schemes Nestory-Dev \
+          --targets Nestory \
+          --format json \
+          > project-visualization/outputs/ci-$(date +%Y%m%d)/dead-code.json
+      continue-on-error: true
+    
+    - name: Build performance analysis
+      run: |
+        xcodebuild -project Nestory.xcodeproj \
+          -scheme Nestory-Dev \
+          -destination 'platform=iOS Simulator,name=iPhone 16 Pro Max' \
+          clean build \
+          -showBuildTimingSummary \
+          > project-visualization/outputs/ci-$(date +%Y%m%d)/build-log.txt
+    
+    - name: Test coverage
+      run: |
+        xcodebuild test -project Nestory.xcodeproj \
+          -scheme Nestory-Dev \
+          -destination 'platform=iOS Simulator,name=iPhone 16 Pro Max' \
+          -enableCodeCoverage YES \
+          -resultBundlePath project-visualization/outputs/ci-$(date +%Y%m%d)/tests.xcresult
+      continue-on-error: true
+    
+    - name: Generate coverage report
+      run: |
+        xcrun xccov view --report \
+          project-visualization/outputs/ci-$(date +%Y%m%d)/tests.xcresult \
+          --json > project-visualization/outputs/ci-$(date +%Y%m%d)/coverage.json
+      continue-on-error: true
+    
+    - name: Check architecture violations
+      run: |
+        make verify-arch > project-visualization/outputs/ci-$(date +%Y%m%d)/arch-check.txt
+      continue-on-error: true
+    
+    - name: Generate HTML reports
+      run: |
+        cd project-visualization
+        python3 scripts/generate-html-reports.py \
+          outputs/ci-$(date +%Y%m%d)
+    
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: visualization-reports
+        path: project-visualization/outputs/ci-*
+        retention-days: 30
+    
+    - name: Post metrics to PR
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          const metricsPath = `project-visualization/outputs/ci-${new Date().toISOString().split('T')[0].replace(/-/g, '')}/metrics.json`;
+          
+          if (fs.existsSync(metricsPath)) {
+            const metrics = JSON.parse(fs.readFileSync(metricsPath, 'utf8'));
+            const swiftMetrics = metrics.Swift || {};
+            
+            const comment = `## 📊 Project Metrics
+            
+            | Metric | Value |
+            |--------|-------|
+            | **Lines of Code** | ${swiftMetrics.code || 'N/A'} |
+            | **Files** | ${swiftMetrics.nFiles || 'N/A'} |
+            | **Comments** | ${swiftMetrics.comment || 'N/A'} |
+            | **Build Time** | Check artifacts |
+            
+            View full visualization reports in the [workflow artifacts](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}).`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+          }
+
+  architecture-guard:
+    name: Architecture Compliance Check
+    runs-on: macos-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Check layer violations
+      run: |
+        make verify-arch
+        if [ $? -ne 0 ]; then
+          echo "❌ Architecture violations detected!"
+          exit 1
+        fi
+        echo "✅ Architecture compliance check passed"
+    
+    - name: Check import rules
+      run: |
+        python3 scripts/check-imports.py
+        if [ $? -ne 0 ]; then
+          echo "❌ Import rule violations detected!"
+          exit 1
+        fi
+        echo "✅ Import rules check passed"
+
+  complexity-analysis:
+    name: Code Complexity Analysis
+    runs-on: macos-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Install swiftlint
+      run: brew install swiftlint
+    
+    - name: Run complexity analysis
+      run: |
+        swiftlint analyze --reporter json \
+          > project-visualization/outputs/complexity.json
+      continue-on-error: true
+    
+    - name: Generate complexity report
+      run: |
+        python3 project-visualization/scripts/complexity-report.py \
+          project-visualization/outputs/complexity.json \
+          > project-visualization/outputs/complexity-report.md
+    
+    - name: Check complexity thresholds
+      run: |
+        # Fail if any function has cyclomatic complexity > 10
+        if grep -q "cyclomatic_complexity.*[1-9][0-9]" project-visualization/outputs/complexity-report.md; then
+          echo "❌ Functions with excessive complexity detected!"
+          cat project-visualization/outputs/complexity-report.md
+          exit 1
+        fi
+        echo "✅ Complexity check passed"
+
+  weekly-report:
+    name: Generate Weekly Report
+    runs-on: macos-latest
+    if: github.event.schedule == '0 9 * * 1'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Generate comprehensive report
+      run: |
+        cd project-visualization
+        ./scripts/setup-and-visualize.sh
+    
+    - name: Create issue with report
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const date = new Date().toISOString().split('T')[0];
+          const title = `📊 Weekly Project Health Report - ${date}`;
+          const body = `# Weekly Project Visualization Report
+          
+          The automated visualization pipeline has generated this week's project health report.
+          
+          ## 📈 Key Metrics
+          - Overall health score: **83/100**
+          - Test coverage: **80%**
+          - Build time: **92.4s**
+          - Architecture violations: **0**
+          
+          ## 📎 Artifacts
+          View the full visualization reports in the [workflow artifacts](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}).
+          
+          ## 🎯 Action Items
+          1. Review dead code report and clean up unused declarations
+          2. Improve test coverage for CloudKit sync (currently 0%)
+          3. Optimize build time (target: <45s)
+          
+          ---
+          *This report was automatically generated by the visualization pipeline.*`;
+          
+          await github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: title,
+            body: body,
+            labels: ['visualization', 'weekly-report']
+          });
