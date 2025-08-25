@@ -1,0 +1,19 @@
+{
+  "timestamp": "2025-08-25T05:05:48Z",
+  "metrics": {
+    "codebase": {
+      "swift_files": 5916,
+      "swift_lines": 634088
+    },
+    "quality": {
+      "test_count": 394,
+      "test_coverage": 80
+    },
+    "performance": {
+      "build_time_seconds": 92.4
+    },
+    "health_score": {
+      "overall": 83
+    }
+  }
+}

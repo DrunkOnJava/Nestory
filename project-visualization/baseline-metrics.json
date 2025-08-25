@@ -1,0 +1,131 @@
+{
+  "timestamp": "2025-08-24T21:03:00Z",
+  "project": "Nestory",
+  "version": "1.0.1",
+  "metrics": {
+    "codebase": {
+      "total_files": 735,
+      "swift_files": 544,
+      "total_lines": 132545,
+      "swift_lines": 73579,
+      "comment_lines": 9414,
+      "test_files": 45,
+      "documentation_files": 56
+    },
+    "architecture": {
+      "layers": 6,
+      "layer_distribution": {
+        "App-Main": {
+          "files": 203,
+          "lines": 21273,
+          "percentage": 35
+        },
+        "Services": {
+          "files": 132,
+          "lines": 20872,
+          "percentage": 34
+        },
+        "Infrastructure": {
+          "files": 39,
+          "lines": 5868,
+          "percentage": 10
+        },
+        "Foundation": {
+          "files": 47,
+          "lines": 5047,
+          "percentage": 8
+        },
+        "Features": {
+          "files": 29,
+          "lines": 4846,
+          "percentage": 8
+        },
+        "UI": {
+          "files": 18,
+          "lines": 1842,
+          "percentage": 3
+        }
+      },
+      "violations": 0,
+      "circular_dependencies": 0
+    },
+    "quality": {
+      "test_coverage": 80,
+      "test_count": 537,
+      "passing_tests": 523,
+      "skipped_tests": 14,
+      "failing_tests": 0,
+      "coverage_by_layer": {
+        "Foundation": 85,
+        "Services": 78,
+        "Features": 72,
+        "Infrastructure": 65,
+        "UI": 45,
+        "App-Main": 40
+      }
+    },
+    "complexity": {
+      "average_cyclomatic": 5.8,
+      "max_cyclomatic": 18,
+      "high_complexity_functions": 3,
+      "medium_complexity_functions": 12,
+      "functions_analyzed": 468,
+      "target_average": 5.0
+    },
+    "performance": {
+      "build_time_seconds": 92.4,
+      "total_tasks": 1019,
+      "parallel_cores": 10,
+      "performance_score": 68,
+      "target_build_time": 45,
+      "build_phases": {
+        "linking": 5.91,
+        "swift_compilation": 4.29,
+        "app_intents": 3.06,
+        "code_signing": 1.24,
+        "resources": 0.49,
+        "other": 77.44
+      }
+    },
+    "dead_code": {
+      "unused_declarations": 87,
+      "unused_lines": 1247,
+      "potential_build_time_savings": 2.3,
+      "potential_binary_size_reduction_kb": 84,
+      "affected_files": 15
+    },
+    "dependencies": {
+      "external_dependencies": 2,
+      "internal_modules": 30,
+      "total_connections": 42,
+      "max_imports_per_file": 15,
+      "average_imports": 4.2
+    },
+    "health_score": {
+      "overall": 83,
+      "grade": "B+",
+      "architecture": 92,
+      "code_quality": 85,
+      "test_coverage": 72,
+      "documentation": 78,
+      "build_performance": 68
+    }
+  },
+  "recommendations": {
+    "immediate": [
+      "Remove 87 unused declarations (1,247 lines)",
+      "Add tests for CloudKit sync (0% coverage)",
+      "Refactor InventoryFeature.reducer (CC: 18)"
+    ],
+    "short_term": [
+      "Optimize build time to < 45 seconds",
+      "Increase UI test coverage from 45% to 70%",
+      "Split large files > 500 LOC"
+    ],
+    "long_term": [
+      "Modularize with Swift Package Manager",
+      "Implement performance testing suite",
+      "Create architecture decision records"
+    ]
+  }
+}
