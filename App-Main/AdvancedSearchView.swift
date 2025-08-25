@@ -148,7 +148,9 @@ struct AdvancedSearchView: View {
                     Section {
                         ForEach(viewModel.searchResults) { item in
                             NavigationLink(destination: ItemDetailView(item: item)) {
-                                SearchResultRow(item: item)
+                                SearchResultRow(item: item) {
+                                    // Navigation handled by NavigationLink wrapper
+                                }
                             }
                         }
                     } header: {
@@ -186,76 +188,6 @@ struct AdvancedSearchView: View {
     }
 }
 
-// MARK: - Search Result Row
-
-struct SearchResultRow: View {
-    let item: Item
-
-    var body: some View {
-        HStack(spacing: 12) {
-            // Item image or placeholder
-            Group {
-                if let imageData = item.imageData, let uiImage = UIImage(data: imageData) {
-                    Image(uiImage: uiImage)
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                } else {
-                    Image(systemName: "photo")
-                        .foregroundColor(.gray)
-                }
-            }
-            .frame(width: 50, height: 50)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text(item.name)
-                    .font(.headline)
-                    .lineLimit(1)
-
-                HStack {
-                    if let category = item.category {
-                        Label(category.name, systemImage: category.icon)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-
-                    Spacer()
-
-                    if let price = item.purchasePrice {
-                        Text(NumberFormatter.currency.string(from: NSDecimalNumber(decimal: price)) ?? "")
-                            .font(.caption)
-                            .fontWeight(.medium)
-                            .foregroundColor(.primary)
-                    }
-                }
-            }
-
-            Spacer()
-
-            // Documentation indicators
-            VStack(spacing: 2) {
-                if item.imageData != nil {
-                    Image(systemName: "photo.fill")
-                        .font(.caption2)
-                        .foregroundColor(.blue)
-                }
-
-                if item.receiptImageData != nil {
-                    Image(systemName: "receipt.fill")
-                        .font(.caption2)
-                        .foregroundColor(.green)
-                }
-
-                if item.warrantyExpirationDate != nil {
-                    Image(systemName: "shield.fill")
-                        .font(.caption2)
-                        .foregroundColor(.orange)
-                }
-            }
-        }
-        .padding(.vertical, 4)
-    }
-}
 
 // MARK: - Advanced Filter Sheet
 
@@ -363,27 +295,6 @@ struct AdvancedFilterSheet: View {
 
 // MARK: - Mock Service
 
-private struct MockInventoryService: InventoryService {
-    func fetchItems() async throws -> [Item] { [] }
-    func fetchItem(id _: UUID) async throws -> Item? { nil }
-    func saveItem(_: Item) async throws {}
-    func updateItem(_: Item) async throws {}
-    func deleteItem(id _: UUID) async throws {}
-    func searchItems(query _: String) async throws -> [Item] { [] }
-    func fetchCategories() async throws -> [Category] { [] }
-    func saveCategory(_: Category) async throws {}
-    func assignItemToCategory(itemId _: UUID, categoryId _: UUID) async throws {}
-    func fetchItemsByCategory(categoryId _: UUID) async throws -> [Item] { [] }
-
-    // Batch Operations
-    func bulkImport(items _: [Item]) async throws {}
-    func bulkUpdate(items _: [Item]) async throws {}
-    func bulkDelete(itemIds _: [UUID]) async throws {}
-    func bulkSave(items _: [Item]) async throws {}
-    func bulkAssignCategory(itemIds _: [UUID], categoryId _: UUID) async throws {}
-
-    func exportInventory(format _: ExportFormat) async throws -> Data { Data() }
-}
 
 // MARK: - Extensions
 

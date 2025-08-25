@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import os.log
 
 // MARK: - Retry Strategy Protocol
 
@@ -13,7 +12,8 @@ public protocol RetryStrategy: Sendable {
     /// Executes an operation with retry logic
     func execute<T: Sendable>(
         operation: @escaping @Sendable () async throws -> T,
-        shouldRetry: @escaping @Sendable (Error) -> Bool
+        shouldRetry: @escaping @Sendable (Error) -> Bool,
+        logger: FoundationLogger?
     ) async throws -> T
 
     /// Maximum number of retry attempts
@@ -31,8 +31,6 @@ public struct ExponentialBackoffRetry: RetryStrategy, Sendable {
     public let maxDelay: TimeInterval
     public let jitterFactor: Double
 
-    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory.dev", category: "RetryStrategy")
-
     public init(
         maxRetries: Int = 3,
         baseDelay: TimeInterval = 1.0,
@@ -47,7 +45,8 @@ public struct ExponentialBackoffRetry: RetryStrategy, Sendable {
 
     public func execute<T: Sendable>(
         operation: @escaping @Sendable () async throws -> T,
-        shouldRetry: @escaping @Sendable (Error) -> Bool = { _ in true }
+        shouldRetry: @escaping @Sendable (Error) -> Bool = { _ in true },
+        logger: FoundationLogger? = nil
     ) async throws -> T {
         var lastError: Error?
 
@@ -55,7 +54,7 @@ public struct ExponentialBackoffRetry: RetryStrategy, Sendable {
             do {
                 let result = try await operation()
                 if attempt > 0 {
-                    logger.info("Operation succeeded on attempt \(attempt + 1)")
+                    logger?.info("Operation succeeded on attempt \(attempt + 1)")
                 }
                 return result
             } catch {
@@ -63,18 +62,18 @@ public struct ExponentialBackoffRetry: RetryStrategy, Sendable {
 
                 // Don't retry on the last attempt
                 if attempt == maxRetries {
-                    logger.error("Operation failed after \(maxRetries + 1) attempts: \(error)")
+                    logger?.error("Operation failed after \(maxRetries + 1) attempts: \(error)")
                     break
                 }
 
                 // Check if we should retry this error
                 if !shouldRetry(error) {
-                    logger.info("Error is not retryable: \(error)")
+                    logger?.info("Error is not retryable: \(error)")
                     throw error
                 }
 
                 let delay = calculateDelay(for: attempt)
-                logger.info("Operation failed on attempt \(attempt + 1), retrying in \(delay)s: \(error)")
+                logger?.info("Operation failed on attempt \(attempt + 1), retrying in \(delay)s: \(error)")
 
                 try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
             }
@@ -99,8 +98,6 @@ public struct LinearBackoffRetry: RetryStrategy, Sendable {
     public let maxRetries: Int
     public let baseDelay: TimeInterval
 
-    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory.dev", category: "RetryStrategy")
-
     public init(maxRetries: Int = 3, baseDelay: TimeInterval = 2.0) {
         self.maxRetries = maxRetries
         self.baseDelay = baseDelay
@@ -108,7 +105,8 @@ public struct LinearBackoffRetry: RetryStrategy, Sendable {
 
     public func execute<T: Sendable>(
         operation: @escaping @Sendable () async throws -> T,
-        shouldRetry: @escaping @Sendable (Error) -> Bool = { _ in true }
+        shouldRetry: @escaping @Sendable (Error) -> Bool = { _ in true },
+        logger: FoundationLogger? = nil
     ) async throws -> T {
         var lastError: Error?
 
@@ -116,24 +114,24 @@ public struct LinearBackoffRetry: RetryStrategy, Sendable {
             do {
                 let result = try await operation()
                 if attempt > 0 {
-                    logger.info("Operation succeeded on attempt \(attempt + 1)")
+                    logger?.info("Operation succeeded on attempt \(attempt + 1)")
                 }
                 return result
             } catch {
                 lastError = error
 
                 if attempt == maxRetries {
-                    logger.error("Operation failed after \(maxRetries + 1) attempts: \(error)")
+                    logger?.error("Operation failed after \(maxRetries + 1) attempts: \(error)")
                     break
                 }
 
                 if !shouldRetry(error) {
-                    logger.info("Error is not retryable: \(error)")
+                    logger?.info("Error is not retryable: \(error)")
                     throw error
                 }
 
                 let delay = baseDelay * Double(attempt + 1)
-                logger.info("Operation failed on attempt \(attempt + 1), retrying in \(delay)s: \(error)")
+                logger?.info("Operation failed on attempt \(attempt + 1), retrying in \(delay)s: \(error)")
 
                 try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
             }
@@ -160,17 +158,18 @@ public actor CircuitBreaker {
     private var successCount = 0
     private var lastFailureTime: Date?
     private var state: State = .closed
-
-    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory.dev", category: "CircuitBreaker")
+    private let logger: FoundationLogger?
 
     public init(
         failureThreshold: Int = 5,
         recoveryTimeout: TimeInterval = 60.0,
-        successThreshold: Int = 2
+        successThreshold: Int = 2,
+        logger: FoundationLogger? = nil
     ) {
         self.failureThreshold = failureThreshold
         self.recoveryTimeout = recoveryTimeout
         self.successThreshold = successThreshold
+        self.logger = logger
     }
 
     public func execute<T: Sendable>(
@@ -212,11 +211,11 @@ public actor CircuitBreaker {
             if let lastFailure = lastFailureTime,
                Date().timeIntervalSince(lastFailure) >= recoveryTimeout
             {
-                logger.info("Circuit breaker transitioning to half-open")
+                logger?.info("Circuit breaker transitioning to half-open")
                 state = .halfOpen
                 successCount = 0
             } else {
-                logger.warning("Circuit breaker is open, rejecting request")
+                logger?.warning("Circuit breaker is open, rejecting request")
                 throw ServiceError.serviceUnavailable(service: "CircuitBreaker")
             }
 
@@ -236,7 +235,7 @@ public actor CircuitBreaker {
 
         case .halfOpen:
             if self.successCount >= successThreshold {
-                logger.info("Circuit breaker transitioning to closed after \(self.successCount) successes")
+                logger?.info("Circuit breaker transitioning to closed after \(self.successCount) successes")
                 state = .closed
                 self.failureCount = 0
                 self.successCount = 0
@@ -257,12 +256,12 @@ public actor CircuitBreaker {
         switch state {
         case .closed:
             if self.failureCount >= failureThreshold {
-                logger.warning("Circuit breaker opening after \(self.failureCount) failures")
+                logger?.warning("Circuit breaker opening after \(self.failureCount) failures")
                 state = .open
             }
 
         case .halfOpen:
-            logger.warning("Circuit breaker reopening due to failure in half-open state")
+            logger?.warning("Circuit breaker reopening due to failure in half-open state")
             state = .open
 
         case .open:
@@ -272,7 +271,7 @@ public actor CircuitBreaker {
     }
 
     public func reset() {
-        logger.info("Circuit breaker manually reset")
+        logger?.info("Circuit breaker manually reset")
         state = .closed
         failureCount = 0
         successCount = 0
@@ -306,15 +305,16 @@ public struct CircuitBreakerMetrics: Sendable {
 public actor ServiceOperationExecutor {
     private let retryStrategy: RetryStrategy
     private let circuitBreaker: CircuitBreaker?
-
-    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory.dev", category: "ServiceOperationExecutor")
+    private let logger: FoundationLogger?
 
     public init(
         retryStrategy: RetryStrategy = ExponentialBackoffRetry(),
-        enableCircuitBreaker: Bool = true
+        enableCircuitBreaker: Bool = true,
+        logger: FoundationLogger? = nil
     ) {
         self.retryStrategy = retryStrategy
-        circuitBreaker = enableCircuitBreaker ? CircuitBreaker() : nil
+        self.logger = logger
+        circuitBreaker = enableCircuitBreaker ? CircuitBreaker(logger: logger) : nil
     }
 
     /// Execute an operation with retry and circuit breaker protection
@@ -341,6 +341,7 @@ public actor ServiceOperationExecutor {
         return try await retryStrategyCapture.execute(
             operation: wrappedOperation,
             shouldRetry: shouldRetry,
+            logger: logger
         )
     }
 
@@ -368,6 +369,7 @@ public actor ServiceOperationExecutor {
         return try await customRetry.execute(
             operation: wrappedOperation,
             shouldRetry: shouldRetry,
+            logger: logger
         )
     }
 
@@ -390,6 +392,7 @@ public actor ServiceOperationExecutor {
 public func performWithRetry<T>(
     operation: @escaping @Sendable () async throws -> T,
     maxRetries: Int = 3,
+    logger: FoundationLogger? = nil,
     shouldRetry: @escaping @Sendable (Error) -> Bool = { error in
         if let serviceError = error as? ServiceError {
             return serviceError.isRetryable
@@ -398,7 +401,7 @@ public func performWithRetry<T>(
     }
 ) async throws -> T {
     let retryStrategy = ExponentialBackoffRetry(maxRetries: maxRetries)
-    return try await retryStrategy.execute(operation: operation, shouldRetry: shouldRetry)
+    return try await retryStrategy.execute(operation: operation, shouldRetry: shouldRetry, logger: logger)
 }
 
 /// Execute an operation with circuit breaker protection

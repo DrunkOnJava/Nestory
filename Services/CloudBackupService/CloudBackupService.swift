@@ -9,7 +9,7 @@ import SwiftData
 
 /// Protocol defining cloud backup capabilities for inventory data
 @MainActor
-public protocol CloudBackupService: AnyObject {
+public protocol CloudBackupService: AnyObject, Sendable {
     // MARK: - Published Properties
 
     var isBackingUp: Bool { get }

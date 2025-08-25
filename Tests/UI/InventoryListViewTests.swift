@@ -65,12 +65,12 @@ final class InventoryListViewTests: XCTestCase {
 
         let item1 = Item(name: "MacBook Pro")
         item1.category = category
-        item1.purchasePrice = Money(amount: 2999.99, currency: .usd)
+        item1.purchasePrice = Money(amount: 2999.99, currencyCode: "USD")
         context.insert(item1)
 
         let item2 = Item(name: "iPhone")
         item2.category = category
-        item2.purchasePrice = Money(amount: 999.99, currency: .usd)
+        item2.purchasePrice = Money(amount: 999.99, currencyCode: "USD")
         context.insert(item2)
 
         try context.save()
@@ -232,7 +232,7 @@ final class InventoryListViewTests: XCTestCase {
         item.itemDescription = "2023 M3 Max, 64GB RAM"
         item.category = category
         item.room = room
-        item.purchasePrice = Money(amount: 3999.99, currency: .usd)
+        item.purchasePrice = Money(amount: 3999.99, currencyCode: "USD")
         item.condition = .excellent
         item.serialNumber = "ABC123"
         context.insert(item)

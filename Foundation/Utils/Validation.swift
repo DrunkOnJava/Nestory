@@ -1,4 +1,5 @@
 // Layer: Foundation
+// APPLE_FRAMEWORK_OPPORTUNITY: Replace with Foundation - Use NSDataDetector and NSRegularExpression for more robust email and data validation
 
 import Foundation
 

@@ -3,66 +3,125 @@
 // Module: Models
 // Purpose: Core Item model for inventory
 //
+// 🏗️ FOUNDATION LAYER PATTERN: Pure Domain Model
+// - Contains ONLY domain data and invariants (NO business logic)
+// - NO imports except Swift stdlib and SwiftData (architectural rule)
+// - Represents core entities in our insurance documentation domain
+// - Immutable value semantics where possible
+//
+// 🎯 INSURANCE DOCUMENTATION FOCUS: Personal belongings tracking
+// - Comprehensive metadata for insurance claim preparation
+// - Condition tracking for accurate valuation
+// - Warranty integration for coverage planning
+// - Receipt association for purchase verification
+// - Document attachment for complete documentation
+//
+// 📊 DATA ARCHITECTURE: SwiftData persistent model
+// - @Model for automatic persistence and relationships
+// - @Attribute(.unique) for stable identity
+// - Sendable compliance for Swift 6 concurrency
+// - Computed properties for type-safe enum access
+//
+// 📋 FOUNDATION STANDARDS:
+// - All properties have sensible defaults
+// - Required initializer for essential properties only
+// - Automatic timestamps (createdAt, updatedAt)
+// - Clear property grouping with comments
+//
+// 🍎 APPLE FRAMEWORK OPPORTUNITIES (Phase 3):
+// - Contacts: Vendor/store contact integration
+// - SharedWithYou: System-level sharing support
+// - JournalingSuggestions: Memory and journaling integration
+//
 
 import Foundation
 import SwiftData
 
 @Model
 public final class Item: @unchecked Sendable {
-    @Attribute(.unique)
-    public var id: UUID
+    // 🆔 IDENTITY: Stable identifier across app lifecycle
+    // CloudKit compatible: removed .unique constraint
+    public var id: UUID = UUID()
 
-    public var name: String
-    public var itemDescription: String?
-    public var brand: String?
-    public var modelNumber: String?
-    public var serialNumber: String?
-    public var notes: String?
+    // 📝 BASIC INFORMATION: Core identification data
+    public var name: String = "" // Required: Primary display name
+    public var itemDescription: String? // Optional: Detailed description for insurance
+    public var brand: String? // Optional: Manufacturer (Apple, Samsung, etc.)
+    public var modelNumber: String? // Optional: Specific model for replacement value
+    public var serialNumber: String? // Optional: Critical for insurance claims
+    public var barcode: String? // Optional: For product lookup integration
+    public var notes: String? // Optional: User notes and observations
 
-    public var quantity: Int
-    public var purchasePrice: Decimal?
-    public var purchaseDate: Date?
-    public var currency = "USD"
+    // 💰 FINANCIAL INFORMATION: Purchase and valuation data
+    public var quantity: Int = 1 // Required: How many items (usually 1)
+    public var purchasePrice: Decimal? // Optional: Original cost for insurance basis
+    public var purchaseDate: Date? // Optional: Age affects replacement value
+    public var currency = "USD" // Default: User's preferred currency
 
-    public var tags: [String] = []
-    public var imageData: Data?
-    public var receiptImageData: Data?
-    public var extractedReceiptText: String?
+    // 🏷️ ORGANIZATION: Categorization and searchability
+    public var tags: [String] = [] // User-defined tags for flexible organization
+    public var imageData: Data? // Primary item photo for identification
+    public var receiptImageData: Data? // Receipt photo for purchase verification
+    public var extractedReceiptText: String? // OCR-extracted text from receipt
 
-    // Warranty tracking
-    public var warrantyExpirationDate: Date?
-    public var warrantyProvider: String?
-    public var warrantyNotes: String?
+    // 🛡️ WARRANTY TRACKING: Protection planning
+    public var warrantyExpirationDate: Date? // When warranty coverage ends
+    public var warrantyProvider: String? // Who provides warranty service
+    public var warrantyNotes: String? // Warranty terms and conditions
 
-    // Location/Room assignment
-    public var room: String?
-    public var specificLocation: String?
+    // 🏠 LOCATION TRACKING: Where items are stored
+    public var room: String? // Room location (Living Room, Office, etc.)
+    public var specificLocation: String? // Specific location within room
+    
+    // 📍 COMPUTED LOCATION: Combined location string for display
+    public var location: String? {
+        guard let room = room else { return nil }
+        if let specific = specificLocation {
+            return "\(room) - \(specific)"
+        }
+        return room
+    }
 
-    // Document attachments
-    public var manualPDFData: Data?
-    public var documentAttachments: [Data] = []
-    public var documentNames: [String] = []
+    // 📄 DOCUMENT ATTACHMENTS: Supporting documentation
+    public var manualPDFData: Data? // Product manual for reference
+    public var documentAttachments: [Data] = [] // Additional supporting documents
+    public var documentNames: [String] = [] // Human-readable names for documents
+// DEAD CODE: // DEAD CODE: 
+    // 🔍 CONDITION DOCUMENTATION: Current state assessment
+    public var condition = "excellent" // String storage (SwiftData enum limitation)
+    public var conditionNotes: String? // Detailed condition description
+    public var conditionPhotos: [Data] = [] // Photos showing current condition
+    public var conditionPhotoDescriptions: [String] = [] // Captions for condition photos
+    public var lastConditionUpdate: Date? // When condition was last assessed
 
-    // Condition documentation
-    public var condition = "excellent" // SwiftData doesn't support enum defaults
-    public var conditionNotes: String?
-    public var conditionPhotos: [Data] = []
-    public var conditionPhotoDescriptions: [String] = []
-    public var lastConditionUpdate: Date?
-
-    // Computed property for type-safe condition
+    // 🔄 TYPE-SAFE CONDITION ACCESS: Computed property for enum safety
     public var itemCondition: ItemCondition {
         get { ItemCondition(rawValue: condition) ?? .excellent }
         set { condition = newValue.rawValue }
     }
+    
+    // 📸 COMPUTED PHOTO ACCESS: Compatibility with validation code
+    public var photos: [Data] {
+        var allPhotos: [Data] = []
+        if let imageData = imageData {
+            allPhotos.append(imageData)
+        }
+        if let receiptImageData = receiptImageData {
+            allPhotos.append(receiptImageData)
+        }
+        allPhotos.append(contentsOf: conditionPhotos)
+        return allPhotos
+    }
 
-    public var createdAt: Date
-    public var updatedAt: Date
+    // ⏰ METADATA: Automatic lifecycle tracking
+    public var createdAt: Date = Date() // When item was first added
+    public var updatedAt: Date = Date() // Last modification timestamp
 
-    // Relationships
-    public var category: Category?
-    public var warranty: Warranty?
-    public var receipts: [Receipt] = []
+    // 🔗 RELATIONSHIPS: Connected entities (CloudKit compatible)
+    public var category: Category? // Optional category classification
+    public var warranty: Warranty? // Optional detailed warranty information
+    @Relationship(deleteRule: .cascade)
+    public var receipts: [Receipt]? // Associated purchase receipts (optional for CloudKit)
 
     public init(
         name: String,
@@ -70,21 +129,23 @@ public final class Item: @unchecked Sendable {
         quantity: Int = 1,
         category: Category? = nil
     ) {
-        id = UUID()
+        // Override defaults with provided values
+        self.id = UUID()
         self.name = name
         self.itemDescription = itemDescription
         self.quantity = quantity
         self.category = category
-        currency = "USD"
-        tags = []
-        createdAt = Date()
-        updatedAt = Date()
+        self.currency = "USD"
+        self.tags = []
+        self.receipts = []
+        self.createdAt = Date()
+        self.updatedAt = Date()
     }
 }
 
 // MARK: - Item Condition Enum
 
-public enum ItemCondition: String, CaseIterable, Codable {
+public enum ItemCondition: String, CaseIterable, Codable, Sendable {
     case excellent = "Excellent"
     case good = "Good"
     case fair = "Fair"
@@ -139,5 +200,82 @@ public enum ItemCondition: String, CaseIterable, Codable {
         case .damaged:
             "Requires assessment"
         }
+    }
+}
+
+// MARK: - TCA Compatibility
+
+extension Item: Equatable {
+    public static func == (lhs: Item, rhs: Item) -> Bool {
+        lhs.id == rhs.id && lhs.updatedAt == rhs.updatedAt
+    }
+}
+
+// MARK: - Codable Conformance for Export Operations  
+extension Item: Codable {
+    private enum CodingKeys: String, CodingKey {
+        case id, name, itemDescription, brand, modelNumber, serialNumber, barcode, notes
+        case quantity, purchasePrice, purchaseDate, currency, tags
+        case warrantyExpirationDate, warrantyProvider, warrantyNotes
+        case room, specificLocation, condition, conditionNotes, lastConditionUpdate
+        case createdAt, updatedAt
+        // Note: Data properties, relationships, and complex properties excluded for export simplicity
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(name, forKey: .name)
+        try container.encodeIfPresent(itemDescription, forKey: .itemDescription)
+        try container.encodeIfPresent(brand, forKey: .brand)
+        try container.encodeIfPresent(modelNumber, forKey: .modelNumber)
+        try container.encodeIfPresent(serialNumber, forKey: .serialNumber)
+        try container.encodeIfPresent(barcode, forKey: .barcode)
+        try container.encodeIfPresent(notes, forKey: .notes)
+        try container.encode(quantity, forKey: .quantity)
+        try container.encodeIfPresent(purchasePrice, forKey: .purchasePrice)
+        try container.encodeIfPresent(purchaseDate, forKey: .purchaseDate)
+        try container.encode(currency, forKey: .currency)
+        try container.encode(tags, forKey: .tags)
+        try container.encodeIfPresent(warrantyExpirationDate, forKey: .warrantyExpirationDate)
+        try container.encodeIfPresent(warrantyProvider, forKey: .warrantyProvider)
+        try container.encodeIfPresent(warrantyNotes, forKey: .warrantyNotes)
+        try container.encodeIfPresent(room, forKey: .room)
+        try container.encodeIfPresent(specificLocation, forKey: .specificLocation)
+        try container.encode(condition, forKey: .condition)
+        try container.encodeIfPresent(conditionNotes, forKey: .conditionNotes)
+        try container.encodeIfPresent(lastConditionUpdate, forKey: .lastConditionUpdate)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encode(updatedAt, forKey: .updatedAt)
+    }
+    
+    public convenience init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let name = try container.decode(String.self, forKey: .name)
+        let itemDescription = try container.decodeIfPresent(String.self, forKey: .itemDescription)
+        let quantity = try container.decode(Int.self, forKey: .quantity)
+        
+        self.init(name: name, itemDescription: itemDescription, quantity: quantity)
+        
+        self.id = try container.decode(UUID.self, forKey: .id)
+        self.brand = try container.decodeIfPresent(String.self, forKey: .brand)
+        self.modelNumber = try container.decodeIfPresent(String.self, forKey: .modelNumber)
+        self.serialNumber = try container.decodeIfPresent(String.self, forKey: .serialNumber)
+        self.barcode = try container.decodeIfPresent(String.self, forKey: .barcode)
+        self.notes = try container.decodeIfPresent(String.self, forKey: .notes)
+        self.purchasePrice = try container.decodeIfPresent(Decimal.self, forKey: .purchasePrice)
+        self.purchaseDate = try container.decodeIfPresent(Date.self, forKey: .purchaseDate)
+        self.currency = try container.decode(String.self, forKey: .currency)
+        self.tags = try container.decode([String].self, forKey: .tags)
+        self.warrantyExpirationDate = try container.decodeIfPresent(Date.self, forKey: .warrantyExpirationDate)
+        self.warrantyProvider = try container.decodeIfPresent(String.self, forKey: .warrantyProvider)
+        self.warrantyNotes = try container.decodeIfPresent(String.self, forKey: .warrantyNotes)
+        self.room = try container.decodeIfPresent(String.self, forKey: .room)
+        self.specificLocation = try container.decodeIfPresent(String.self, forKey: .specificLocation)
+        self.condition = try container.decode(String.self, forKey: .condition)
+        self.conditionNotes = try container.decodeIfPresent(String.self, forKey: .conditionNotes)
+        self.lastConditionUpdate = try container.decodeIfPresent(Date.self, forKey: .lastConditionUpdate)
+        self.createdAt = try container.decode(Date.self, forKey: .createdAt)
+        self.updatedAt = try container.decode(Date.self, forKey: .updatedAt)
     }
 }

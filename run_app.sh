@@ -48,15 +48,25 @@ log_info "Building for iPhone 16 Pro Max..."
 log_info "Available simulators:"
 xcrun simctl list devices available | grep iPhone
 
-# Try to build with iPhone 16 Pro Max, fallback to iPhone 15 Pro Max if not available
+# Try to build with iPhone 16 Pro Max, fallback hierarchy prioritizing newer devices
 DEVICE="iPhone 16 Pro Max"
 if ! xcrun simctl list devices available | grep -q "iPhone 16 Pro Max"; then
-    log_info "iPhone 16 Pro Max not found, trying iPhone 15 Pro Max..."
+    log_info "iPhone 16 Pro Max not found, trying iPhone 16 Plus..."
+    DEVICE="iPhone 16 Plus"
+fi
+
+if ! xcrun simctl list devices available | grep -q "$DEVICE"; then
+    log_info "$DEVICE not found, trying iPhone 16..."
+    DEVICE="iPhone 16"
+fi
+
+if ! xcrun simctl list devices available | grep -q "$DEVICE"; then
+    log_info "$DEVICE not found, trying iPhone 15 Pro Max..."
     DEVICE="iPhone 15 Pro Max"
 fi
 
 if ! xcrun simctl list devices available | grep -q "$DEVICE"; then
-    log_info "$DEVICE not found, using generic iOS Simulator..."
+    log_info "$DEVICE not found, using iPhone 15 as last resort..."
     DEVICE="iPhone 15"
 fi
 

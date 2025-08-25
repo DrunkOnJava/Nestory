@@ -54,6 +54,10 @@
     <string>Nestory needs permission to save photos to your library</string>
     <key>NSFaceIDUsageDescription</key>
     <string>Nestory uses Face ID to secure your inventory data</string>
+    <key>UIBackgroundModes</key>
+    <array>
+        <string>remote-notification</string>
+    </array>
     <key>BGTaskSchedulerPermittedIdentifiers</key>
     <array>
         <string>$(PRODUCT_BUNDLE_IDENTIFIER).sync</string>

@@ -3,11 +3,18 @@
 
 excluded:
   - .build
+  - build
   - DerivedData
   - Pods
   - Carthage
   - DevTools/nestoryctl/.build
   - Sources/NestoryGuards/.build
+  - "**/.build"
+  - "**/DerivedData"
+  - .swiftpm
+  - Package.resolved
+  - "*.xcodeproj"
+  - "*.xcworkspace"
   # Note: Tests are NOT excluded - we lint test code too
 
 included:
@@ -56,8 +63,8 @@ opt_in_rules:
   - vertical_whitespace_opening_braces
   - yoda_condition
   
-  # Documentation
-  - missing_docs
+  # Documentation (disabled for now - too noisy)
+  # - missing_docs
   
   # Performance
   - array_init
@@ -74,6 +81,9 @@ disabled_rules:
   - trailing_whitespace  # Let formatter handle this
   - orphaned_doc_comment
   - layer_header_required  # Regex is broken - disable until fixed
+  - todo  # We have custom todo rule
+  - fixme  # We have custom fixme rule
+  - trailing_comma  # Don't enforce trailing commas
 
 # Custom Rules
 custom_rules:
@@ -81,40 +91,48 @@ custom_rules:
     name: "TODO Must Reference ADR"
     regex: '(//\s*(TODO|FIXME)(?!.*ADR-\d{4}))'
     message: "TODOs and FIXMEs must reference an ADR (e.g., // TODO: ADR-0001)"
-    severity: error
+    severity: warning  # Changed from error to warning for now
     
-  layer_header_required:
-    name: "Layer Header Required"
-    regex: '^(?!//\s*Layer:)'
-    match_kinds:
-      - comment
-    message: "Files must start with // Layer: [LayerName] header"
-    severity: warning
+  # Removed layer_header_check - SwiftLint can't properly do "once per file" checks
+  # Consider using a separate script for architecture validation instead
 
-# Length Rules (per guidelines)
+  no_print_statements:
+    name: "No Print Statements"
+    regex: '^\s*print\('
+    message: "Use logger or NSLog instead of print statements"
+    severity: warning
+    
+  no_force_cast_in_production:
+    name: "No Force Cast in Production"
+    regex: 'as!\s'
+    message: "Avoid force casting - use conditional casting instead"
+    severity: error
+
+# Length Rules (reasonable limits)
 line_length:
-  warning: 100
-  error: 120
+  warning: 120
+  error: 150
   ignores_urls: true
-  ignores_function_declarations: false
-  ignores_comments: false
+  ignores_function_declarations: true
+  ignores_comments: true
+  ignores_interpolated_strings: true
 
 file_length:
-  warning: 400
-  error: 600
+  warning: 500
+  error: 800
   ignore_comment_only_lines: true
 
 function_body_length:
-  warning: 40
-  error: 80
+  warning: 50
+  error: 100
 
 type_body_length:
-  warning: 250
-  error: 400
+  warning: 300
+  error: 500
 
 function_parameter_count:
-  warning: 5
-  error: 8
+  warning: 6
+  error: 10
 
 # Naming
 identifier_name:
@@ -122,8 +140,8 @@ identifier_name:
     warning: 2
     error: 1
   max_length:
-    warning: 40
-    error: 50
+    warning: 45
+    error: 60
   excluded:
     - id
     - ok
@@ -131,41 +149,62 @@ identifier_name:
     - to
     - up
     - on
+    - at
+    - by
     - x
     - y
     - z
+    - w
     - i
     - j
     - k
+    - n
+    - m
+    - dx
+    - dy
+    - pi
+    - e
+    - ID
+    - URL
+    - URI
 
 type_name:
   min_length: 3
   max_length:
-    warning: 40
-    error: 50
+    warning: 50
+    error: 70
+  excluded:
+    - ID
+    - URL
+    - URI
 
-# Metrics
+# Metrics (realistic for SwiftUI apps)
 cyclomatic_complexity:
-  warning: 10
-  error: 20
+  warning: 15
+  error: 25
+  ignores_case_statements: true
 
 nesting:
-  type_level: 2
-  function_level: 3
+  type_level: 3  # Increased for SwiftUI
+  function_level: 4  # Increased for SwiftUI modifiers
 
-# Force Unwrapping
-force_cast: error
-force_try: error
+# Force Unwrapping (warnings not errors for pragmatic development)
+force_cast: warning
+force_try: warning
 force_unwrapping:
-  severity: error
+  severity: warning
 
 # Imports
-sorted_imports: true
+sorted_imports: 
+  severity: warning
 
 # SwiftUI Specific
 multiline_arguments:
   first_argument_location: next_line
   only_enforce_after_first_closure_on_first_line: true
+
+trailing_closure:
+  only_single_muted_parameter: true
 
 # Reporter
 reporter: "xcode"

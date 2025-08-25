@@ -34,17 +34,7 @@ public enum BackupStatus: Equatable {
 
 // MARK: - Backup Metadata
 
-public struct BackupMetadata {
-    public let date: Date
-    public let itemCount: Int
-    public let deviceName: String
-
-    public init(date: Date, itemCount: Int, deviceName: String) {
-        self.date = date
-        self.itemCount = itemCount
-        self.deviceName = deviceName
-    }
-}
+// Note: BackupMetadata is now defined in Foundation/Models/BackupMetadata.swift
 
 // MARK: - Restore Result
 

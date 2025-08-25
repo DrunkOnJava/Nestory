@@ -9,10 +9,33 @@
 import Foundation
 import PDFKit
 import SwiftData
+
+// APPLE_FRAMEWORK_OPPORTUNITY: Replace with AppleArchive - Compress insurance claim packages for efficient transfer
+// APPLE_FRAMEWORK_OPPORTUNITY: Replace with MessageUI - Email insurance reports directly with PDF attachments
+// APPLE_FRAMEWORK_OPPORTUNITY: Replace with FileProvider - Cloud storage integration for insurance document backup
 import SwiftUI
 
+// MARK: - InsuranceReportService Protocol
+
+public protocol InsuranceReportService: Sendable {
+    func generateInsuranceReport(
+        items: [Item],
+        categories: [Category],
+        options: ReportOptions
+    ) async throws -> Data
+    
+    func exportReport(
+        _ data: Data,
+        filename: String
+    ) async throws -> URL
+    
+    func shareReport(_ url: URL) async
+}
+
+// MARK: - Live Implementation
+
 @MainActor
-public final class InsuranceReportService: ObservableObject {
+public final class LiveInsuranceReportService: InsuranceReportService, ObservableObject {
     // MARK: - Types
 
     public enum ReportError: LocalizedError {
@@ -32,40 +55,7 @@ public final class InsuranceReportService: ObservableObject {
         }
     }
 
-    public struct ReportOptions {
-        public var includePhotos = true
-        public var includeReceipts = true
-        public var includeDepreciation = false
-        public var groupByRoom = true
-        public var includeSerialNumbers = true
-        public var includePurchaseInfo = true
-        public var includeTotalValue = true
-
-        public init() {}
-    }
-
-    public struct ReportMetadata {
-        public let generatedDate: Date
-        public let totalItems: Int
-        public let totalValue: Decimal
-        public let reportId: UUID
-        public let propertyAddress: String?
-        public let policyNumber: String?
-
-        public init(
-            totalItems: Int,
-            totalValue: Decimal,
-            propertyAddress: String? = nil,
-            policyNumber: String? = nil
-        ) {
-            generatedDate = Date()
-            self.totalItems = totalItems
-            self.totalValue = totalValue
-            reportId = UUID()
-            self.propertyAddress = propertyAddress
-            self.policyNumber = policyNumber
-        }
-    }
+    // Note: ReportOptions and ReportMetadata are now defined in Foundation/Models/
 
     // MARK: - Properties
 
@@ -86,7 +76,7 @@ public final class InsuranceReportService: ObservableObject {
     public func generateInsuranceReport(
         items: [Item],
         categories: [Category],
-        options: ReportOptions = ReportOptions(),
+        options: ReportOptions
     ) async throws -> Data {
         guard !items.isEmpty else {
             throw ReportError.noItems
@@ -98,7 +88,7 @@ public final class InsuranceReportService: ObservableObject {
                     let totalValue = dataFormatter.calculateTotalValue(items: items)
                     let metadata = ReportMetadata(
                         totalItems: items.count,
-                        totalValue: totalValue,
+                        totalValue: totalValue
                     )
 
                     let pdfData = try pdfGenerator.generatePDF(

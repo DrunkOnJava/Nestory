@@ -27,39 +27,8 @@ public enum SearchSortOption: String, CaseIterable {
     }
 }
 
-// MARK: - Search Filters
-
-public struct SearchFilters {
-    var selectedCategories: Set<UUID> = []
-    var priceRange: ClosedRange<Double> = 0 ... 10000
-    var hasPhoto = false
-    var hasReceipt = false
-    var hasWarranty = false
-    var hasSerialNumber = false
-    var minQuantity = 0
-    var maxQuantity = 100
-    var rooms: Set<String> = []
-
-    var isActive: Bool {
-        !selectedCategories.isEmpty ||
-            priceRange != 0 ... 10000 ||
-            hasPhoto || hasReceipt || hasWarranty || hasSerialNumber ||
-            minQuantity > 0 || maxQuantity < 100 ||
-            !rooms.isEmpty
-    }
-
-    mutating func reset() {
-        selectedCategories = []
-        priceRange = 0 ... 10000
-        hasPhoto = false
-        hasReceipt = false
-        hasWarranty = false
-        hasSerialNumber = false
-        minQuantity = 0
-        maxQuantity = 100
-        rooms = []
-    }
-}
+// NOTE: SearchFilters is now defined in Features/Search/SearchFeature.swift
+// to avoid duplication and ensure proper TCA integration
 
 // MARK: - Search History
 

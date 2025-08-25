@@ -1,8 +1,11 @@
 // Layer: Infrastructure
+// APPLE_FRAMEWORK_OPPORTUNITY: Replace with URLSession - Use URLSessionDataTask and URLSessionDownloadTask for better HTTP/2, connection pooling, and background downloading
 // Module: Infrastructure/Network
 // Purpose: Generic network client with retry logic and error handling
 
 import Foundation
+
+// APPLE_FRAMEWORK_OPPORTUNITY: Replace with URLSession - Already using URLSession but could leverage newer async/await APIs and URLSessionWebSocketTask
 
 /// Network client for API communication
 public actor NetworkClient {
@@ -34,6 +37,7 @@ public actor NetworkClient {
         configuration.httpAdditionalHeaders = headers
 
         session = URLSession(configuration: configuration)
+        // APPLE_FRAMEWORK_OPPORTUNITY: Replace with URLSession - Consider using URLSessionDelegate for more advanced connection management
     }
 
     // MARK: - Public Methods

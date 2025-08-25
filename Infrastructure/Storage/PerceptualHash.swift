@@ -89,6 +89,7 @@ public final class PerceptualHash: @unchecked Sendable {
     }
 
     private nonisolated func performDCT(_ image: CIImage) throws -> [[Float]] {
+        // APPLE_FRAMEWORK_OPPORTUNITY: Replace with Accelerate Framework - Use vDSP_DCT functions for hardware-accelerated discrete cosine transform computations
         let width = resizeSize
         let height = resizeSize
 

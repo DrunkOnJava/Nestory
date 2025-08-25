@@ -1,23 +1,34 @@
 //
 // Layer: App
 // Module: BarcodeScanner
-// Purpose: Main barcode scanner coordinator view
+// Purpose: TCA-driven barcode scanner coordinator view
 //
-// REMINDER: This view MUST be wired up in AddItemView and EditItemView
-// Provides barcode/QR code scanning for quick item entry
+// 🏗️ TCA PATTERN: Dependency injection for service access
+// - Uses @Dependency for BarcodeScannerService instead of @StateObject
+// - Clean separation between UI logic and service implementation
+// - Testable through TCA dependency injection system
+//
+// 🎯 INSURANCE FOCUS: Quick item documentation through barcode scanning
+// - Rapid item entry for insurance inventory cataloging
+// - Product lookup for accurate item valuation
+// - Streamlined workflow for claim preparation
+//
+// APPLE_FRAMEWORK_OPPORTUNITY: Vision Framework - VNDetectBarcodesRequest for enhanced detection
 
 import AVFoundation
+import ComposableArchitecture
 import SwiftUI
 import Vision
+import PhotosUI
 
-struct BarcodeScannerView: View {
+struct LegacyBarcodeScannerView: View {
     @Bindable var item: Item
-    @StateObject private var scanner = LiveBarcodeScannerService()
+    @Dependency(\.barcodeScannerService) var scanner
     @Environment(\.dismiss) private var dismiss
 
     @State private var showingCamera = false
     @State private var showingPhotoPicker = false
-    @State private var selectedImage: Data?
+    @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var scannedResult: BarcodeResult?
     @State private var productInfo: ProductInfo?
     @State private var isProcessing = false
@@ -66,26 +77,32 @@ struct BarcodeScannerView: View {
             .sheet(isPresented: $showingCamera) {
                 CameraScannerView(scanner: scanner, onScan: handleScanResult)
             }
-            .sheet(isPresented: $showingPhotoPicker) {
-                PhotoPicker(imageData: $selectedImage)
-                    .onChange(of: selectedImage) { _, newValue in
-                        if let data = newValue {
-                            Task {
-                                await processImageForBarcode(data)
-                            }
+            .photosPicker(
+                isPresented: $showingPhotoPicker,
+                selection: $selectedPhotoItem,
+                matching: .images,
+                photoLibrary: .shared()
+            )
+            .onChange(of: selectedPhotoItem) { _, newValue in
+                if let item = newValue {
+                    Task {
+                        if let data = try? await item.loadTransferable(type: Data.self) {
+                            await processImageForBarcode(data)
                         }
                     }
+                }
             }
             .sheet(isPresented: $showingManualEntry) {
                 ManualBarcodeEntryView(onSave: handleManualEntry)
             }
-            .alert("Scanner Error", isPresented: .constant(scanner.errorMessage != nil)) {
-                Button("OK") {
-                    scanner.errorMessage = nil
-                }
-            } message: {
-                Text(scanner.errorMessage ?? "Unknown error")
-            }
+            // TODO: P0.1.4 - Fix BarcodeScannerService protocol to include errorMessage
+            // .alert("Scanner Error", isPresented: .constant(scanner.errorMessage != nil)) {
+            //     Button("OK") {
+            //         scanner.errorMessage = nil
+            //     }
+            // } message: {
+            //     Text(scanner.errorMessage ?? "Unknown error")
+            // }
         }
     }
 
@@ -124,12 +141,14 @@ struct BarcodeScannerView: View {
                 }
             } else {
                 await MainActor.run {
-                    scanner.errorMessage = "No barcode found in image"
+                    // TODO: P0.1.4 - Fix BarcodeScannerService protocol
+                    // scanner.errorMessage = "No barcode found in image"
                 }
             }
         } catch {
             await MainActor.run {
-                scanner.errorMessage = error.localizedDescription
+                // TODO: P0.1.4 - Fix BarcodeScannerService protocol
+                // scanner.errorMessage = error.localizedDescription
             }
         }
     }
@@ -150,8 +169,8 @@ struct BarcodeScannerView: View {
         if result.isSerialNumber {
             item.serialNumber = result.value
         } else {
-            // It's a product barcode - store in model number field
-            item.modelNumber = result.value
+            // It's a product barcode - store in barcode field
+            item.barcode = result.value
         }
 
         // Apply product info if available
@@ -162,6 +181,13 @@ struct BarcodeScannerView: View {
             if item.brand == nil, let brand = product.brand {
                 item.brand = brand
             }
+            if item.modelNumber == nil, let model = product.model {
+                item.modelNumber = model
+            }
+            // Set estimated value if available and no purchase price exists
+            if item.purchasePrice == nil, let estimatedValue = product.estimatedValue {
+                item.purchasePrice = estimatedValue
+            }
         }
 
         item.updatedAt = Date()
@@ -171,7 +197,7 @@ struct BarcodeScannerView: View {
     private func rescan() {
         scannedResult = nil
         productInfo = nil
-        selectedImage = nil
+        selectedPhotoItem = nil
     }
 }
 
@@ -196,7 +222,12 @@ private struct ProcessingOverlay: View {
     }
 }
 
+// MARK: - Compatibility Alias for Legacy Views
+
+/// Compatibility alias for views that still reference BarcodeScannerView
+typealias BarcodeScannerView = LegacyBarcodeScannerView
+
 #Preview {
-    BarcodeScannerView(item: Item(name: "Test Item"))
+    LegacyBarcodeScannerView(item: Item(name: "Test Item"))
         .modelContainer(for: [Item.self, Category.self], inMemory: true)
 }

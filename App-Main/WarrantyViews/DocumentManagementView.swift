@@ -4,14 +4,16 @@
 // Purpose: Manage document attachments for items
 //
 
-import os.log
+// App layer - no direct logging imports
 import SwiftUI
 import UniformTypeIdentifiers
+import os.log
 
 struct DocumentManagementView: View {
     @Bindable var item: Item
     @State private var showingDocumentPicker = false
-    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory.dev", category: "DocumentManagement")
+    // Logging handled by service layer
+    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.nestory.app", category: "DocumentManagement")
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {

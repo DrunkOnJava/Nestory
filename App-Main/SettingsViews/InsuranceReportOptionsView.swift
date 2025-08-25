@@ -4,8 +4,8 @@
 // Purpose: Insurance report options view for configuring report generation
 //
 
-import os.log
 import SwiftUI
+import os.log
 
 struct InsuranceReportOptionsView: View {
     let items: [Item]
@@ -124,7 +124,7 @@ struct InsuranceReportOptionsView: View {
 
         Task {
             do {
-                let options = InsuranceReportService.ReportOptions()
+                let options = ReportOptions()
                 // Configure options based on toggles
                 var mutableOptions = options
                 mutableOptions.includePhotos = includePhotos
@@ -143,7 +143,7 @@ struct InsuranceReportOptionsView: View {
                 )
 
                 // Export and share
-                let url = try await insuranceReportService.exportReport(pdfData)
+                let url = try await insuranceReportService.exportReport(pdfData, filename: "HomeInventory_Insurance_Report")
                 await insuranceReportService.shareReport(url)
 
                 isGenerating = false
@@ -161,7 +161,7 @@ struct InsuranceReportOptionsView: View {
     InsuranceReportOptionsView(
         items: [],
         categories: [],
-        insuranceReportService: InsuranceReportService(),
+        insuranceReportService: try! LiveInsuranceReportService(),
         isGenerating: .constant(false),
     )
 }

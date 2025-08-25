@@ -3,7 +3,7 @@
 [![Swift](https://img.shields.io/badge/Swift-6.0-orange.svg)](https://swift.org)
 [![Platform](https://img.shields.io/badge/Platform-iOS%2017.0%2B-blue.svg)](https://developer.apple.com/ios/)
 [![SwiftData](https://img.shields.io/badge/SwiftData-✓-green.svg)](https://developer.apple.com/documentation/swiftdata)
-[![Architecture](https://img.shields.io/badge/Architecture-4--Layer-purple.svg)](./SPEC.json)
+[![Architecture](https://img.shields.io/badge/Architecture-6--Layer%20TCA-purple.svg)](./SPEC.json)
 [![TestFlight](https://img.shields.io/badge/TestFlight-Build%203-success.svg)](https://testflight.apple.com)
 [![License](https://img.shields.io/badge/License-MIT-lightgrey.svg)](LICENSE)
 
@@ -59,7 +59,7 @@ This app is specifically designed for:
 
 3. **Build and Run**
    ```bash
-   make run      # Build and run on iPhone 16 Plus simulator
+   make run      # Build and run on iPhone 16 Pro Max simulator
    # OR
    make open     # Open in Xcode for manual configuration
    ```
@@ -69,7 +69,7 @@ This app is specifically designed for:
 Nestory includes a comprehensive Makefile system to ensure consistency across development sessions:
 
 #### Primary Commands
-- `make run` - Build and run app on iPhone 16 Plus simulator
+- `make run` - Build and run app on iPhone 16 Pro Max simulator
 - `make build` - Build the app (Debug configuration)
 - `make test` - Run all tests
 - `make check` - Run all verification checks (build, test, lint, architecture)
@@ -87,11 +87,16 @@ Nestory includes a comprehensive Makefile system to ensure consistency across de
 - `make lint` - Run SwiftLint
 - `make format` - Format code with SwiftFormat
 
+#### Build Performance
+- `make fast-build` - Optimized parallel build (10 cores + enhanced caching)
+- `make build-benchmark` - Compare regular vs fast build performance
+- `make clean-derived-data` - Clean build cache for fresh builds
+
 #### Utilities
 - `make new-service NAME=MyService` - Create a new service
 - `make new-feature NAME=MyFeature` - Create a new feature
 - `make clean` - Clean build artifacts
-- `make reset-simulator` - Reset iPhone 16 Plus simulator
+- `make reset-simulator` - Reset iPhone 16 Pro Max simulator
 
 #### Quick Access
 - `make r` - Shortcut for `make run`
@@ -99,7 +104,29 @@ Nestory includes a comprehensive Makefile system to ensure consistency across de
 - `make c` - Shortcut for `make check`
 - `make d` - Shortcut for `make doctor`
 
-**Note:** The Makefile enforces project standards including always using iPhone 16 Plus simulator and ensuring all services are properly wired to the UI.
+**Note:** The Makefile enforces project standards including always using iPhone 16 Pro Max simulator and ensuring all services are properly wired to the UI.
+
+### ⚠️ Important: Build System
+
+**`swift build` is BLOCKED and will NOT work for this iOS app!**
+
+The Package.swift file intentionally causes an error to prevent confusion. If you try to run `swift build`, `swift test`, or other Swift Package Manager commands, you'll get a clear error message directing you to the proper commands.
+
+**For iOS app development, always use:**
+- `make run` - Build and run the full iOS app
+- `make build` - Build the full iOS app  
+- `make fast-build` - Optimized parallel build (⚡ faster)
+- `make test` - Run proper iOS tests
+- `xcodebuild` - Manual Xcode builds
+
+**Build Performance:** The project includes extensive build optimizations:
+- **Parallel compilation** with 10 CPU cores
+- **Enhanced caching** with dedicated derived data paths
+- **Swift batch mode** for faster compilation
+- **Target parallelization** for concurrent builds
+- **Incremental compilation** to only rebuild changed files
+
+The project uses XcodeGen + Xcode build system, not Swift Package Manager for the main application.
 
 ### First Launch
 
@@ -110,27 +137,31 @@ On first launch, the app will:
 
 ## 🏗️ Architecture
 
-Nestory follows a strict 4-layer architecture for maintainability and scalability:
+Nestory follows a strict **6-layer TCA (The Composable Architecture)** for sophisticated state management and maintainability:
 
 ```
 ┌─────────────────────────────────────┐
-│           App-Main Layer             │  Views, navigation, entry points
+│              App Layer               │  TCA Store setup, root coordination
 ├─────────────────────────────────────┤
-│      UI Layer  │   Services Layer    │  Reusable UI   │  Business logic
+│            Features Layer            │  TCA Reducers, business logic coordination
 ├─────────────────────────────────────┤
-│        Infrastructure Layer          │  Technical adapters, caching, security
+│               UI Layer               │  Reusable SwiftUI components (pure)
 ├─────────────────────────────────────┤
-│         Foundation Layer             │  Models, value types, extensions
+│            Services Layer            │  Protocol-first domain APIs & TCA dependencies
+├─────────────────────────────────────┤
+│         Infrastructure Layer         │  Technical adapters, caching, security
+├─────────────────────────────────────┤
+│           Foundation Layer           │  Models, value types, extensions
 └─────────────────────────────────────┘
 ```
 
-**Key Principles:**
-- ✅ Unidirectional dependencies (top → bottom only)
-- ✅ Services use `@MainActor` and `ObservableObject` patterns
-- ✅ SwiftData models in Foundation layer with proper relationships
-- ✅ Protocol-first service design for testability
-- ✅ Swift 6 strict concurrency compliance
-- ✅ Comprehensive caching and performance optimization
+**Key TCA Principles:**
+- ✅ Unidirectional data flow (State → View → Action → Reducer → State)
+- ✅ TCA @Reducer patterns with @Dependency injection
+- ✅ SwiftData models with TCA state management integration
+- ✅ Protocol-first service design for TCA testability
+- ✅ Swift 6 strict concurrency with TCA @MainActor compliance
+- ✅ NavigationStackStore for TCA-driven navigation
 
 ## 📈 Current State
 

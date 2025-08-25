@@ -47,8 +47,8 @@ extension LiveNotificationService {
 
                 // Get notification days from settings or use defaults
                 let notificationDays = UserDefaults.standard.array(
-                    forKey: NotificationSettings.warrantyNotificationDays,
-                ) as? [Int] ?? NotificationSettings.defaultNotificationDays
+                    forKey: NotificationDefaults.warrantyNotificationDays,
+                ) as? [Int] ?? NotificationDefaults.defaultNotificationDays
 
                 var scheduledCount = 0
                 var lastError: Error?

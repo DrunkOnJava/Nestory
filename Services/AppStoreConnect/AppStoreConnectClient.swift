@@ -141,6 +141,7 @@ public final class AppStoreConnectClient: ObservableObject {
             throw APIError.invalidConfiguration
         }
 
+        // APPLE_FRAMEWORK_OPPORTUNITY: Replace with CryptoKit - Already using for JWT signing but could add SecureEnclave support
         let privateKey = try P256.Signing.PrivateKey(rawRepresentation: privateKeyData)
         let signature = try privateKey.signature(for: Data(message.utf8))
 
@@ -169,6 +170,7 @@ public final class AppStoreConnectClient: ObservableObject {
 
         var urlRequest = URLRequest(url: configuration.baseURL.appendingPathComponent(request.path))
         urlRequest.httpMethod = request.method.rawValue
+        // APPLE_FRAMEWORK_OPPORTUNITY: Replace with AuthenticationServices - Could use ASWebAuthenticationSession for OAuth flows or enhance JWT generation with Security framework
         urlRequest.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
 

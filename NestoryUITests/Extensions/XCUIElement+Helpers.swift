@@ -7,12 +7,8 @@
 
 import XCTest
 
+@MainActor
 extension XCUIElement {
-    /// Wait for element to exist with custom timeout
-    func waitForExistence(timeout: TimeInterval = 5) -> Bool {
-        waitForExistence(timeout: timeout)
-    }
-
     /// Tap element if it exists
     func tapIfExists() {
         if exists {
@@ -69,6 +65,7 @@ extension XCUIElement {
     }
 }
 
+@MainActor
 extension XCUIApplication {
     /// Dismiss keyboard if visible
     func dismissKeyboard() {

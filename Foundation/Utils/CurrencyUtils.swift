@@ -1,4 +1,5 @@
 // Layer: Foundation
+// APPLE_FRAMEWORK_OPPORTUNITY: Replace with Foundation - Use NumberFormatter.Style.currency for proper localized currency formatting instead of custom string manipulation
 // Module: Foundation/Utils
 // Purpose: Currency formatting and parsing utilities
 
@@ -163,6 +164,7 @@ public enum CurrencyUtils {
 
     /// Convert between currencies
     public static func convert(_ amount: Decimal, from _: String, to: String, rate: Decimal) -> Decimal {
+        // APPLE_FRAMEWORK_OPPORTUNITY: Replace with Foundation - Use NumberFormatter with region-specific currency conversion support and NSMeasurement for unit conversions
         let converted = amount * rate
         return round(converted, for: to)
     }

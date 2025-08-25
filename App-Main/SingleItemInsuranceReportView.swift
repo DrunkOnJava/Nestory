@@ -107,7 +107,7 @@ struct SingleItemInsuranceReportView: View {
             defer { isGenerating = false }
 
             do {
-                var options = InsuranceReportService.ReportOptions()
+                var options = ReportOptions()
                 options.includePhotos = includePhotos
                 options.includeReceipts = includeReceipts
                 options.includeDepreciation = false
@@ -140,14 +140,29 @@ struct SingleItemInsuranceReportView: View {
     }
 }
 
+// MARK: - Previews
+#if DEBUG
+private struct PreviewMockInsuranceReportService: InsuranceReportService {
+    func generateInsuranceReport(items: [Item], categories: [Category], options: ReportOptions) async throws -> Data {
+        Data()
+    }
+    
+    func exportReport(_ data: Data, filename: String) async throws -> URL {
+        URL(fileURLWithPath: "/tmp/mock.pdf")
+    }
+    
+    func shareReport(_ url: URL) async { }
+}
+
 #Preview {
     let item = Item(name: "MacBook Pro", itemDescription: "14-inch MacBook Pro", quantity: 1)
     item.purchasePrice = 2499.00
     item.currency = "$"
 
-    return SingleItemInsuranceReportView(
+    SingleItemInsuranceReportView(
         item: item,
-        insuranceReportService: InsuranceReportService(),
+        insuranceReportService: PreviewMockInsuranceReportService()
     )
     .modelContainer(for: [Item.self, Category.self], inMemory: true)
 }
+#endif

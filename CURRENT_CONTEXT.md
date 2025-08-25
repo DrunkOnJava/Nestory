@@ -1,47 +1,65 @@
 # Nestory Project Context
-Generated: Tue Aug 19 09:10:28 EDT 2025
+Generated: Thu Aug 21 06:06:56 EDT 2025
 
 ## CRITICAL REMINDERS
 - **App Type**: Personal home inventory for INSURANCE DOCUMENTATION
 - **NOT**: Business inventory or stock management
-- **Simulator**: ALWAYS use iPhone 16 Plus (per CLAUDE.md)
+- **Simulator**: ALWAYS use iPhone 16 Pro Max (per CLAUDE.md)
 - **Architecture**: App → Services → Infrastructure → Foundation
 - **Focus**: Insurance claims, warranties, receipts, disaster documentation
 
 ## Build & Run Commands
 ```bash
-make run          # Build and run on iPhone 16 Plus
+make run          # Build and run on iPhone 16 Pro Max
 make build        # Build only
 make check        # Run all verification checks
 make doctor       # Diagnose setup issues
 ```
 
 ## Active Services
-- BarcodeScannerService.swift
-- CloudBackupService.swift
-- ImportExportService.swift
+- ClaimContentGenerator.swift
+- ClaimDocumentProcessor.swift
+- ClaimEmailService.swift
+- ClaimExportService.swift
+- ClaimPackageAssemblerService.swift
+- ClaimPackageCore.swift
+- ClaimPackageExporter.swift
+- ClaimTrackingService.swift
+- ClaimValidationService.swift
+- CloudStorageServices.swift
+- DependencyKeys.swift
+- InsuranceClaimCore.swift
+- InsuranceClaimModels.swift
+- InsuranceClaimService.swift
+- InsuranceClaimValidation.swift
 - InsuranceExportService.swift
 - InsuranceReportService.swift
-- NotificationService.swift
 - ReceiptOCRService.swift
 
 ## UI Views
 - AddItemView.swift
-- AnalyticsDashboardView.swift
+- AdvancedSearchView.swift
 - BarcodeScannerView.swift
 - CategoriesView.swift
-- ContentView.swift
+- ClaimExportView.swift
+- ClaimPackageAssemblyView.swift
+- ClaimPreviewView.swift
+- ClaimSubmissionView.swift
 - EditItemView.swift
+- EnhancedReceiptDataView.swift
+- InsuranceClaimView.swift
 - InsuranceExportOptionsView.swift
 - InventoryListView.swift
 - ItemConditionView.swift
 - ItemDetailView.swift
+- LiveReceiptScannerView.swift
 - ManualBarcodeEntryView.swift
 - PhotoCaptureView.swift
 - ReceiptCaptureView.swift
-- SearchView.swift
-- SettingsView.swift
+- ReceiptDetailView.swift
+- RootView.swift
 - SingleItemInsuranceReportView.swift
+- WarrantyDashboardView.swift
 - WarrantyDocumentsView.swift
 
 ## Models
@@ -52,12 +70,23 @@ make doctor       # Diagnose setup issues
 - Warranty.swift
 
 ## Wiring Status
-✓ BarcodeScannerService - wired
-✗ CloudBackupService - NOT WIRED
-✗ ImportExportService - NOT WIRED
+✗ ClaimContentGenerator - NOT WIRED
+✗ ClaimDocumentProcessor - NOT WIRED
+✗ ClaimEmailService - NOT WIRED
+✗ ClaimExportService - NOT WIRED
+✗ ClaimPackageAssemblerService - NOT WIRED
+✗ ClaimPackageCore - NOT WIRED
+✗ ClaimPackageExporter - NOT WIRED
+✓ ClaimTrackingService - wired
+✗ ClaimValidationService - NOT WIRED
+✗ CloudStorageServices - NOT WIRED
+✗ DependencyKeys - NOT WIRED
+✗ InsuranceClaimCore - NOT WIRED
+✗ InsuranceClaimModels - NOT WIRED
+✗ InsuranceClaimService - NOT WIRED
+✗ InsuranceClaimValidation - NOT WIRED
 ✓ InsuranceExportService - wired
 ✓ InsuranceReportService - wired
-✓ NotificationService - wired
 ✓ ReceiptOCRService - wired
 
 ## Key Project Rules
@@ -70,98 +99,27 @@ make doctor       # Diagnose setup issues
 
 ## Recent TODOs
 ./Archive/TCA-Migration/Features.backup/Inventory/InventoryFeature.swift:            // TODO: Implement with SwiftData
+./Features/Search/SearchFeature.swift:    // TODO: P0.1.4 - Add searchHistoryService to DependencyKeys.swift
+./App-Main/BarcodeScannerView.swift:            // TODO: P0.1.4 - Fix BarcodeScannerService protocol to include errorMessage
+./App-Main/BarcodeScannerView.swift:                    // TODO: P0.1.4 - Fix BarcodeScannerService protocol
+./App-Main/BarcodeScannerView.swift:                // TODO: P0.1.4 - Fix BarcodeScannerService protocol
 
 ## Git Status
  M .claude/settings.local.json
- M .swiftlint.yml
- D App-Main.backup/RootFeature.swift
- D App-Main.backup/RootView.swift
- M App-Main/AddItemView.swift
- M App-Main/ContentView.swift
- M App-Main/InventoryListView.swift
- M App-Main/ItemDetailView.swift
- M App-Main/NestoryApp.swift
- M App-Main/SettingsViews/CloudBackupSettingsView.swift
- M App-Main/SettingsViews/ExportOptionsView.swift
- M App-Main/SettingsViews/ImportExportSettingsView.swift
- M App-Main/SettingsViews/InsuranceReportOptionsView.swift
- M App-Main/SettingsViews/NotificationSettingsView.swift
- M App-Main/WarrantyViews/DocumentManagementView.swift
- M App-Main/WarrantyViews/WarrantyManagementView.swift
  M CURRENT_CONTEXT.md
- M DECISIONS.md
- D Features.backup/Inventory/InventoryFeature.swift
- D Features.backup/Inventory/InventoryView.swift
- D Features.backup/Inventory/ItemDetailFeature.swift
- D Features.backup/Inventory/ItemEditFeature.swift
- M Foundation/Core/NonEmptyString.swift
- M Foundation/Core/Slug.swift
- D Foundation/Models.backup/Category.swift
- D Foundation/Models.backup/CurrencyRate.swift
- D Foundation/Models.backup/Location.swift
- D Foundation/Models.backup/MaintenanceTask.swift
- D Foundation/Models.backup/PhotoAsset.swift
- D Foundation/Models.backup/Receipt.swift
- D Foundation/Models.backup/SchemaVersion.swift
- D Foundation/Models.backup/ShareGroup.swift
- D Foundation/Models.backup/Warranty.swift
- M Foundation/Models/Item.swift
- D Foundation/Models/Item.swift.backup
- M Infrastructure/Cache/MemoryCache.swift
- M Infrastructure/Monitoring/Log.swift
- M Infrastructure/Network/NetworkClient.swift
- M Makefile
- D Services.backup/AnalyticsService/AnalyticsService.swift
- D Services.backup/Authentication/AuthError.swift
- D Services.backup/Authentication/AuthService.swift
- D Services.backup/CurrencyService/CurrencyService.swift
- D Services.backup/ExportService/ExportService.swift
- D Services.backup/InventoryService/InventoryService.swift
- D Services.backup/InventoryService/PhotoIntegration.swift
- D Services.backup/SyncService/BGTaskRegistrar.swift
- D Services.backup/SyncService/ConflictResolver.swift
- D Services.backup/SyncService/SyncService.swift
- M Services/AppStoreConnect/AppMetadataService.swift
- M Services/AppStoreConnect/AppStoreConnectClient.swift
- M Services/AppStoreConnect/AppStoreConnectConfiguration.swift
- M Services/AppStoreConnect/AppStoreConnectOrchestrator.swift
- M Services/AppStoreConnect/AppVersionService.swift
- M Services/AppStoreConnect/MediaUploadService.swift
- M Services/CloudBackupService.swift
- D Services/DependencyKeys.swift.backup
- M Services/InsuranceExport/SpreadsheetExporter.swift
- M Services/InsuranceExport/XMLExporter.swift
- M Services/InsuranceExportService.swift
- M Services/InsuranceReport/ReportExportManager.swift
- M Services/InsuranceReport/ReportSectionDrawer.swift
- M Services/InsuranceReportService.swift
- M Services/NotificationService.swift
+ M Features/Analytics/AnalyticsFeature.swift
+ M Services/ClaimExport/ClaimExportCore.swift
+ M Services/ClaimExport/ClaimExportValidators.swift
+ M Services/ClaimExportService.swift
+ M Services/ClaimPackageAssemblerService.swift
+ M Services/DependencyKeys.swift
+ M Services/InsuranceClaimModels.swift
  M TREE.md
- M Tests/Services/AnalyticsServiceTests.swift
- M UI/Components/ExportOptionsView.swift
- M UI/Components/InsuranceReportOptionsView.swift
- M UI/UI-Components/EmptyStateView.swift
- M project.yml
- M tools/dev/injection_coordinator.sh
-?? .file-size-override
-?? App-Main/SingleItemInsuranceReportView.swift
-?? Archive/
-?? Foundation/Core/Constants/
-?? Foundation/Models/Receipt.swift
-?? Foundation/Models/Warranty.swift
-?? Infrastructure/Actors/
-?? Infrastructure/HotReload/
-?? Services/AnalyticsService/
-?? Services/AppStoreConnect/AppStoreConnectTypes.swift
-?? Services/AppStoreConnect/AppVersionModels.swift
-?? Services/AppStoreConnect/AppVersionOperations.swift
-?? Services/AppStoreConnect/MediaUploadModels.swift
-?? Services/AppStoreConnect/MediaUploadOperations.swift
-?? Services/CurrencyService/
-?? Services/InventoryService/
-?? Tests/Services/CloudBackupServiceTests.swift
-?? Tests/Services/NotificationServiceTests.swift
-?? tools/dev/install_injection.sh
+ D Tests/UI/ContentViewTests.swift
+?? Services/AuthService/
+?? Services/Dependencies/
+?? Services/ExportService/
+?? Services/SyncService/
 
 ## Last Commit
-25a34b8 fix: critical CloudKit crash in Settings tab
+8ed8815 feat: complete TCA migration and project cleanup with automated build artifact management

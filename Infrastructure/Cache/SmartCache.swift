@@ -7,6 +7,8 @@
 import Foundation
 import os.log
 
+// APPLE_FRAMEWORK_OPPORTUNITY: Replace with NSURLCache - Use NSURLCache's built-in disk and memory caching with automatic size management and HTTP-aware cache policies
+
 // Bundle-based configuration access
 
 /// Smart cache with predictive loading, automatic eviction, and performance optimization

@@ -23,7 +23,7 @@ fi
 echo "🔨 Building app..."
 xcodebuild \
     -scheme Nestory-Dev \
-    -destination "platform=iOS Simulator,name=iPhone 15" \
+    -destination "platform=iOS Simulator,name=iPhone 16 Pro Max" \
     -configuration Debug \
     CODE_SIGNING_ALLOWED=NO \
     COMPILER_INDEX_STORE_ENABLE=NO \
@@ -41,14 +41,14 @@ if [ $? -eq 0 ]; then
         echo "📱 Installing and running app..."
         
         # Boot simulator
-        xcrun simctl boot "iPhone 15" 2>/dev/null || true
+        xcrun simctl boot "iPhone 16 Pro Max" 2>/dev/null || true
         open -a Simulator
         
         # Wait for boot
         sleep 2
         
         # Install and launch
-        DEVICE_ID=$(xcrun simctl list devices | grep "iPhone 15" | grep -E -o "[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}" | head -1)
+        DEVICE_ID=$(xcrun simctl list devices | grep "iPhone 16 Pro Max" | grep -E -o "[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}" | head -1)
         
         xcrun simctl install "$DEVICE_ID" "$APP_PATH"
         xcrun simctl launch "$DEVICE_ID" "${PRODUCT_BUNDLE_IDENTIFIER:-com.drunkonjava.nestory}"

@@ -8,6 +8,8 @@ import Foundation
 import PDFKit
 import UIKit
 
+// APPLE_FRAMEWORK_OPPORTUNITY: Replace with PDFKit - Already using PDFKit but could leverage PDFDocument for more advanced features
+
 @MainActor
 public struct PDFReportGenerator {
     private let pageRect = CGRect(x: 0, y: 0, width: 612, height: 792) // Letter size
@@ -19,8 +21,8 @@ public struct PDFReportGenerator {
     public func generatePDF(
         items: [Item],
         categories: [Category],
-        options: InsuranceReportService.ReportOptions,
-        metadata: InsuranceReportService.ReportMetadata,
+        options: ReportOptions,
+        metadata: ReportMetadata,
     ) throws -> Data {
         let format = UIGraphicsPDFRendererFormat()
         let renderer = UIGraphicsPDFRenderer(bounds: pageRect, format: format)
@@ -79,7 +81,7 @@ public struct PDFReportGenerator {
         startingAt yPosition: CGFloat,
         items: [Item],
         categories: [Category],
-        options: InsuranceReportService.ReportOptions,
+        options: ReportOptions,
         sectionDrawer: ReportSectionDrawer,
     ) -> CGFloat {
         var currentY = yPosition + 20
@@ -145,7 +147,7 @@ public struct PDFReportGenerator {
         in context: UIGraphicsPDFRendererContext,
         startingAt yPosition: CGFloat,
         items: [Item],
-        options: InsuranceReportService.ReportOptions,
+        options: ReportOptions,
         sectionDrawer: ReportSectionDrawer,
     ) -> CGFloat {
         var currentY = yPosition
@@ -171,7 +173,7 @@ public struct PDFReportGenerator {
         items: [Item],
         in context: UIGraphicsPDFRendererContext,
         at yPosition: CGFloat,
-        options: InsuranceReportService.ReportOptions,
+        options: ReportOptions,
         sectionDrawer: ReportSectionDrawer,
     ) -> CGFloat {
         var currentY = yPosition

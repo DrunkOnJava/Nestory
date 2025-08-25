@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import os.log
 
 // Using Foundation Bundle for configuration access
 
@@ -14,11 +13,19 @@ import os.log
 public actor ErrorLogger {
     public static let shared = ErrorLogger()
 
-    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory", category: "ErrorLogger")
+    private let logger: FoundationLogger?
     private var errorHistory: [LoggedError] = []
     private let maxHistorySize = 1000
 
-    private init() {}
+    private init(logger: FoundationLogger? = nil) {
+        self.logger = logger
+    }
+
+    /// Configure the logger with an Infrastructure-provided implementation
+    public func setLogger(_: FoundationLogger) {
+        // Note: Can't modify the shared instance logger after init
+        // This would be better implemented with dependency injection
+    }
 
     /// Log an error with comprehensive context
     public func logError(
@@ -48,20 +55,22 @@ public actor ErrorLogger {
 
         // Log based on severity
         let severity = determineSeverity(for: error)
+        let message = "[\(category.rawValue)]: \(error.localizedDescription) at \(source):\(line)"
+
         switch severity {
         case .critical:
-            logger.critical("CRITICAL ERROR [\(category.rawValue)]: \(error.localizedDescription) at \(source):\(line)")
+            logger?.error("CRITICAL ERROR \(message)")
         case .error:
-            logger.error("ERROR [\(category.rawValue)]: \(error.localizedDescription) at \(source):\(line)")
+            logger?.error("ERROR \(message)")
         case .warning:
-            logger.warning("WARNING [\(category.rawValue)]: \(error.localizedDescription) at \(source):\(line)")
+            logger?.warning("WARNING \(message)")
         case .info:
-            logger.info("INFO [\(category.rawValue)]: \(error.localizedDescription) at \(source):\(line)")
+            logger?.info("INFO \(message)")
         }
 
         // Log additional context if available
         if !userContext.isEmpty {
-            logger.debug("Error context: \(userContext)")
+            logger?.info("Error context: \(userContext)")
         }
     }
 
@@ -81,7 +90,7 @@ public actor ErrorLogger {
     /// Clear error history
     public func clearHistory() {
         errorHistory.removeAll()
-        logger.info("Error history cleared")
+        logger?.info("Error history cleared")
     }
 
     /// Generate error report for support

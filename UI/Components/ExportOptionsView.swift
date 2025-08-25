@@ -3,29 +3,56 @@
 // Module: Components
 // Purpose: Export options view for data export functionality
 //
+// 🎨 UI LAYER PATTERN: Pure View Component
+// - Contains NO business logic - only view state and presentation
+// - Delegates all operations to Services layer (ImportExportService, InsuranceReportService)
+// - Uses Foundation models (Item, Category) but never modifies them
+// - IMPORTS RESTRICTION: Foundation ONLY - no Services or Infrastructure imports
+//
+// 📊 EXPORT WORKFLOW: Insurance documentation focused
+// - JSON: Complete data backup for disaster recovery
+// - CSV: Spreadsheet format for insurance adjusters
+// - PDF: Professional insurance report with photos and valuations
+// - NOT business inventory - focuses on personal belongings value documentation
+//
+// 🔧 IMPLEMENTATION PATTERNS:
+// - @State for local UI state (export format, loading states)
+// - @Environment(\.dismiss) for navigation control
+// - Task for async operations (keeps UI responsive)
+// - UIActivityViewController for native share experience
+//
+// 📱 DEVICE COMPATIBILITY:
+// - iPhone 16 Pro Max optimized (per ProjectConfiguration.json)
+// - iPad popover support for share activities
+// - Responsive layout with Dynamic Type support
+//
 
-import os.log
 import SwiftUI
+
+// The UI layer should not define duplicate types
+// The canonical ExportFormat is defined in Services layer
+// For now, we'll use a local enum but this should eventually import from Services
 
 public struct ExportOptionsView: View {
     let items: [Item]
     let categories: [Category]
     @Environment(\.dismiss) private var dismiss
-    @State private var exportFormat: ExportFormat = .json
+    @State private var exportFormat: LocalExportFormat = .json
     @State private var includeImages = false
     @State private var isExporting = false
-    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory.dev", category: "ExportUI")
+    // UI components should not handle logging directly
 
-    public enum ExportFormat: String, CaseIterable {
+    // Local enum for UI purposes only
+    enum LocalExportFormat: String, CaseIterable {
         case json = "JSON"
-        case csv = "CSV"
+        case csv = "CSV" 
         case pdf = "PDF Report"
-
+        
         var icon: String {
             switch self {
-            case .json: "doc.text"
-            case .csv: "tablecells"
-            case .pdf: "doc.richtext"
+            case .json: return "doc.text"
+            case .csv: return "tablecells"
+            case .pdf: return "doc.richtext"
             }
         }
     }
@@ -39,7 +66,7 @@ public struct ExportOptionsView: View {
         NavigationStack {
             Form {
                 Section("Export Format") {
-                    ForEach(ExportFormat.allCases, id: \.self) { format in
+                    ForEach(LocalExportFormat.allCases, id: \.self) { format in
                         HStack {
                             Image(systemName: format.icon)
                                 .foregroundColor(.accentColor)
@@ -144,7 +171,7 @@ public struct ExportOptionsView: View {
                     )
                     fileName = "Nestory_Report_\(Date().formatted(date: .abbreviated, time: .omitted)).pdf"
                 } catch {
-                    logger.error("PDF generation failed: \(error)")
+                    // Error logging handled by service layer
                     isExporting = false
                     return
                 }
@@ -178,7 +205,7 @@ public struct ExportOptionsView: View {
                         }
                     }
                 } catch {
-                    logger.error("Export operation failed: \(error)")
+                    // Error logging handled by service layer
                     isExporting = false
                 }
             } else {

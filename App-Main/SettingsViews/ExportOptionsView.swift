@@ -4,8 +4,8 @@
 // Purpose: Export options view for data export functionality
 //
 
-import os.log
 import SwiftUI
+import os.log
 
 struct ExportOptionsView: View {
     let items: [Item]
@@ -134,13 +134,13 @@ struct ExportOptionsView: View {
                 exportData = importExportService.exportToJSON(items: items)
                 fileName = "Nestory_Export_\(Date().formatted(date: .abbreviated, time: .omitted)).json"
             case .pdf:
-                // Use InsuranceReportService for PDF
-                let reportService = InsuranceReportService()
+                // Use LiveInsuranceReportService for PDF
+                let reportService = LiveInsuranceReportService()
                 do {
                     exportData = try await reportService.generateInsuranceReport(
                         items: items,
                         categories: categories,
-                        options: InsuranceReportService.ReportOptions(),
+                        options: ReportOptions()
                     )
                     fileName = "Nestory_Report_\(Date().formatted(date: .abbreviated, time: .omitted)).pdf"
                 } catch {

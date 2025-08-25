@@ -1,0 +1,6 @@
+digraph DependenciesGraph {
+node [shape = box]
+"/Users/griffin/Projects/Nestory" [label="nestory\n/Users/griffin/Projects/Nestory\nunspecified"]
+"https://github.com/apple/swift-syntax.git" [label="swift-syntax\nhttps://github.com/apple/swift-syntax.git\n509.0.0"]
+"/Users/griffin/Projects/Nestory" -> "https://github.com/apple/swift-syntax.git"
+}

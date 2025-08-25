@@ -1,15 +1,20 @@
 //
 // Layer: App
 // Module: Settings
-// Purpose: iCloud backup and restore functionality
+// Purpose: TCA-driven iCloud backup and restore functionality
 //
+// 🏗️ TCA PATTERN: Dependency injection for service access
+// - Uses @Dependency for CloudBackupService instead of @StateObject
+// - Clean separation between UI logic and service implementation
+// - Testable through TCA dependency injection system
+// - REMINDER: CloudBackupService properly wired for disaster recovery backup!
 
+import ComposableArchitecture
 import SwiftData
 import SwiftUI
 
 struct CloudBackupSettingsView: View {
-    @StateObject private var cloudBackup = LiveCloudBackupService()
-    // REMINDER: CloudBackupService is properly wired here for disaster recovery backup!
+    @Dependency(\.cloudBackupService) var cloudBackup
     @Query private var items: [Item]
     @Query private var categories: [Category]
     @Query private var rooms: [Room]

@@ -226,6 +226,7 @@ public struct LivePhotoIntegrationService: PhotoIntegrationService, Sendable {
         }
     }
 
+    // APPLE_FRAMEWORK_OPPORTUNITY: Replace with AVFoundation - Already using AVFoundation but could add AVCaptureDevice.DiscoverySession for advanced camera selection
     private func requestCameraPermission() async -> Bool {
         switch AVCaptureDevice.authorizationStatus(for: .video) {
         case .authorized:
@@ -237,6 +238,7 @@ public struct LivePhotoIntegrationService: PhotoIntegrationService, Sendable {
         }
     }
 
+    // APPLE_FRAMEWORK_OPPORTUNITY: Replace with Photos - Already using Photos but could enhance with PHPhotoLibraryChangeObserver for real-time photo library monitoring
     private func requestPhotoLibraryPermission() async -> Bool {
         let status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
 
@@ -271,7 +273,7 @@ private class PhotoCaptureDelegate: NSObject, AVCapturePhotoCaptureDelegate {
     }
 }
 
-public struct ProcessedPhoto: @unchecked Sendable {
+public struct ProcessedPhoto: @unchecked Sendable, Equatable {
     public let original: UIImage
     public let thumbnail: UIImage
     public let perceptualHash: UInt64
@@ -280,10 +282,19 @@ public struct ProcessedPhoto: @unchecked Sendable {
     public let metadata: ImageMetadata
 }
 
-public struct DetectedObject: Sendable {
+public struct DetectedObject: Sendable, Equatable {
     public let confidence: Float
     public let boundingBox: CGRect
     public let label: String
+}
+
+extension ProcessedPhoto {
+    public static func == (lhs: ProcessedPhoto, rhs: ProcessedPhoto) -> Bool {
+        return lhs.perceptualHash == rhs.perceptualHash &&
+               lhs.extractedText == rhs.extractedText &&
+               lhs.detectedObjects == rhs.detectedObjects &&
+               lhs.metadata == rhs.metadata
+    }
 }
 
 public enum PhotoError: LocalizedError, Sendable {

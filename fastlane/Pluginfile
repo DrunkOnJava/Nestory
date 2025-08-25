@@ -2,4 +2,21 @@
 #
 # Ensure this file is checked in to source control!
 
+# App icon generation and management
 gem 'fastlane-plugin-appicon'
+
+# Testing and quality
+gem 'fastlane-plugin-test_center'      # Advanced testing workflows
+gem 'fastlane-plugin-trainer'          # Convert xcodebuild output to JUnit
+
+# Build and deployment
+gem 'fastlane-plugin-versioning'       # Automated version management
+gem 'fastlane-plugin-badge'            # Add badges to app icons
+gem 'fastlane-plugin-changelog'        # Automated changelog generation
+
+# Code quality
+gem 'fastlane-plugin-xcov'             # Code coverage reports
+gem 'fastlane-plugin-swiftlint'        # SwiftLint integration
+
+# Utilities
+gem 'fastlane-plugin-clean_testflight_testers' # Manage TestFlight testers

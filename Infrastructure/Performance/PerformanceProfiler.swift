@@ -8,6 +8,8 @@ import Foundation
 import os.log
 import os.signpost
 
+// APPLE_FRAMEWORK_OPPORTUNITY: Replace with MetricKit - Use MXMetricKit for system-level performance metrics collection and crash diagnostics
+
 /// Advanced performance profiling with automatic bottleneck detection
 public actor PerformanceProfiler {
     public static let shared = PerformanceProfiler()

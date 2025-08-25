@@ -1,9 +1,12 @@
 // Layer: Infrastructure
+// APPLE_FRAMEWORK_OPPORTUNITY: Replace with QuickLookThumbnailing - Use QLThumbnailGenerator for system-consistent thumbnail generation of various file types
 
 import CoreGraphics
 import Foundation
 import os.log
 import UIKit
+
+// APPLE_FRAMEWORK_OPPORTUNITY: Replace with Core Image - Use CIFilter for hardware-accelerated thumbnail generation
 
 public final class Thumbnailer: @unchecked Sendable {
     private let thumbnailSize: CGFloat = 150

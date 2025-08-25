@@ -1,0 +1,79 @@
+//
+// Layer: Services  
+// Module: Dependencies
+// Purpose: Core service dependency keys (Auth, Inventory, Analytics)
+//
+
+import ComposableArchitecture
+import Foundation
+import SwiftData
+
+// MARK: - Core Services
+
+private enum AuthServiceKey: DependencyKey {
+    static let liveValue: any AuthService = LiveAuthService()
+    static let testValue: any AuthService = MockAuthService()
+}
+
+private enum InventoryServiceKey: @preconcurrency DependencyKey {
+    @MainActor
+    static var liveValue: any InventoryService {
+        do {
+            let container = try ModelContainer(for: Item.self, Category.self)
+            return try LiveInventoryService(modelContext: container.mainContext)
+        } catch {
+            fatalError("Failed to create InventoryService: \(error)")
+        }
+    }
+
+    static let testValue: any InventoryService = MockInventoryService()
+}
+
+private enum AnalyticsServiceKey: DependencyKey {
+    static var liveValue: any AnalyticsService {
+        do {
+            let currencyService = try LiveCurrencyService()
+            return try LiveAnalyticsService(currencyService: currencyService)
+        } catch {
+            fatalError("Failed to create AnalyticsService: \(error)")
+        }
+    }
+
+    static let testValue: any AnalyticsService = MockAnalyticsService()
+}
+
+private enum CurrencyServiceKey: DependencyKey {
+    static var liveValue: any CurrencyService {
+        do {
+            return try LiveCurrencyService()
+        } catch {
+            fatalError("Failed to create CurrencyService: \(error)")
+        }
+    }
+
+    static let testValue: any CurrencyService = MockCurrencyService()
+}
+
+// MARK: - Core Service Extensions
+
+extension DependencyValues {
+    var authService: any AuthService {
+        get { self[AuthServiceKey.self] }
+        set { self[AuthServiceKey.self] = newValue }
+    }
+    
+    var inventoryService: any InventoryService {
+        get { self[InventoryServiceKey.self] }
+        set { self[InventoryServiceKey.self] = newValue }
+    }
+    
+    var analyticsService: any AnalyticsService {
+        get { self[AnalyticsServiceKey.self] }
+        set { self[AnalyticsServiceKey.self] = newValue }
+    }
+    
+    var currencyService: any CurrencyService {
+        get { self[CurrencyServiceKey.self] }
+        set { self[CurrencyServiceKey.self] = newValue }
+    }
+}

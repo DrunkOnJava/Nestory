@@ -4,8 +4,10 @@
 // Purpose: Comprehensive service error types with recovery strategies
 //
 
-import CloudKit
 import Foundation
+
+// Note: CloudKit-specific error handling moved to Infrastructure layer
+// Foundation layer cannot import CloudKit
 
 /// Comprehensive service errors with standardized recovery strategies
 public enum ServiceError: LocalizedError, Equatable {
@@ -390,36 +392,7 @@ extension ServiceError {
 // MARK: - Convenience Factory Methods
 
 extension ServiceError {
-    /// Create a ServiceError from a CloudKit error
-    public static func fromCloudKitError(_ error: Error) -> ServiceError {
-        guard let ckError = error as? CKError else {
-            return .wrapped(error: error, context: "CloudKit")
-        }
-
-        switch ckError.code {
-        case .networkUnavailable, .networkFailure:
-            return .cloudKitUnavailable
-        case .quotaExceeded:
-            return .cloudKitQuotaExceeded
-        case .changeTokenExpired:
-            return .cloudKitAccountChanged
-        case .serverResponseLost, .serviceUnavailable:
-            return .serviceUnavailable(service: "CloudKit")
-        case .requestRateLimited:
-            return .rateLimited(retryAfter: 60) // Default to 60 seconds
-        case .partialFailure:
-            if let partialErrors = ckError.userInfo[CKPartialErrorsByItemIDKey] as? [AnyHashable: Error] {
-                let failures = partialErrors.values.map(\.localizedDescription)
-                let successCount = max(0, (ckError.userInfo[CKErrorRetryAfterKey] as? Int) ?? 0)
-                return .cloudKitPartialFailure(successCount: successCount, failures: failures)
-            }
-            return .cloudKitSyncConflict(details: ckError.localizedDescription)
-        case .serverRecordChanged, .batchRequestFailed:
-            return .cloudKitSyncConflict(details: ckError.localizedDescription)
-        default:
-            return .wrapped(error: ckError, context: "CloudKit")
-        }
-    }
+    // Note: CloudKit-specific error conversion moved to Infrastructure layer
 
     /// Create a ServiceError from a URL/network error
     public static func fromNetworkError(_ error: Error) -> ServiceError {
@@ -453,6 +426,56 @@ extension ServiceError {
             }
         }
         return .wrapped(error: error, context: "FileSystem")
+    }
+
+    /// Create a ServiceError from a CloudKit error
+    /// Since Foundation layer cannot import CloudKit, this accepts any Error and maps common patterns
+    public static func fromCloudKitError(_ error: Error) -> ServiceError {
+        let nsError = error as NSError
+        
+        // Map common CloudKit error codes (without importing CloudKit)
+        switch nsError.code {
+        case 1: // CKErrorInternalError
+            return .wrapped(error: error, context: "CloudKit")
+        case 2: // CKErrorPartialFailure
+            return .cloudKitPartialFailure(successCount: 0, failures: [nsError.localizedDescription])
+        case 3: // CKErrorNetworkUnavailable
+            return .cloudKitUnavailable
+        case 4: // CKErrorNetworkFailure
+            return .networkUnavailable
+        case 6: // CKErrorUnknownItem
+            return .notFound(resource: "CloudKit record")
+        case 7: // CKErrorInvalidArguments
+            return .invalidInput(field: "CloudKit parameter", value: nsError.localizedDescription)
+        case 9: // CKErrorPermissionFailure
+            return .permissionDenied(resource: "CloudKit")
+        case 11: // CKErrorNotAuthenticated
+            return .unauthorized
+        case 25: // CKErrorQuotaExceeded
+            return .cloudKitQuotaExceeded
+        case 26: // CKErrorZoneBusy
+            return .serviceUnavailable(service: "CloudKit")
+        case 34: // CKErrorAccountTemporarilyUnavailable
+            return .cloudKitUnavailable
+        case 35: // CKErrorServiceUnavailable
+            return .cloudKitUnavailable
+        case 36: // CKErrorRequestRateLimited
+            return .rateLimited(retryAfter: 60.0)
+        default:
+            // Check for specific CloudKit error domain patterns
+            if nsError.domain.contains("CKError") {
+                if nsError.localizedDescription.lowercased().contains("quota") {
+                    return .cloudKitQuotaExceeded
+                } else if nsError.localizedDescription.lowercased().contains("network") {
+                    return .cloudKitUnavailable
+                } else if nsError.localizedDescription.lowercased().contains("account") {
+                    return .cloudKitAccountChanged
+                } else {
+                    return .wrapped(error: error, context: "CloudKit")
+                }
+            }
+            return .wrapped(error: error, context: "CloudKit")
+        }
     }
 }
 

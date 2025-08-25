@@ -19,10 +19,10 @@ if [ ! -d "Nestory.xcodeproj" ]; then
 fi
 
 # Build with explicit settings
-echo "🏗️ Building for iPhone 15..."
+echo "🏗️ Building for iPhone 16 Pro Max..."
 xcodebuild \
     -scheme Nestory-Dev \
-    -destination "platform=iOS Simulator,name=iPhone 15" \
+    -destination "platform=iOS Simulator,name=iPhone 16 Pro Max" \
     -configuration Debug \
     -quiet \
     clean build | xcpretty
@@ -36,11 +36,11 @@ if [ $? -eq 0 ]; then
     echo ""
     echo "To run in Xcode:"
     echo "  1. Open: open Nestory.xcodeproj"
-    echo "  2. Select iPhone 15 simulator"
+    echo "  2. Select iPhone 16 Pro Max simulator"
     echo "  3. Press Cmd+R"
     echo ""
     echo "Or run directly:"
-    echo "  xcodebuild -scheme Nestory-Dev -destination 'platform=iOS Simulator,name=iPhone 15' run"
+    echo "  xcodebuild -scheme Nestory-Dev -destination 'platform=iOS Simulator,name=iPhone 16 Pro Max' run"
 else
     echo ""
     echo "❌ Build failed. See errors above."

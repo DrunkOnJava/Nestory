@@ -1,6 +1,12 @@
 # Nestory Project Makefile
 # This Makefile serves as the single source of truth for all project operations
 # ensuring consistency across different chat sessions and context windows
+#
+# 🏗️ ARCHITECTURE DECISION: TCA MIGRATION (August 20, 2025)
+# - Migrated from 4-layer to 6-layer TCA architecture 
+# - Added ComposableArchitecture dependency for sophisticated state management
+# - All future features MUST use TCA patterns (Reducers, Actions, Dependencies)
+# - See ADR-0014 in DECISIONS.md for full rationale
 
 # ============================================================================
 # CONFIGURATION
@@ -21,7 +27,9 @@ ARCH_VERIFY_TIMEOUT = 60
 
 # Build optimization
 PARALLEL_JOBS = $(shell sysctl -n hw.ncpu)
-BUILD_FLAGS = -jobs $(PARALLEL_JOBS) -quiet
+BUILD_FLAGS = -jobs $(PARALLEL_JOBS) -quiet -parallelizeTargets -showBuildTimingSummary
+# Enhanced build performance flags
+FAST_BUILD_FLAGS = $(BUILD_FLAGS) -derivedDataPath $(DERIVED_DATA_PATH) -clonedSourcePackagesDirPath $(DERIVED_DATA_PATH)/SourcePackages
 
 # Colors for output
 RED = \033[0;31m
@@ -48,10 +56,11 @@ help: ## Show this help message
 	@echo "$(BLUE)╚══════════════════════════════════════════════════════════════╝$(NC)"
 	@echo ""
 	@echo "$(YELLOW)Primary Commands:$(NC)"
-	@echo "  $(GREEN)make run$(NC)              - Build and run app in iPhone 16 Plus simulator"
+	@echo "  $(GREEN)make run$(NC)              - Build and run app in iPhone 16 Pro Max simulator"
 	@echo "  $(GREEN)make build$(NC)            - Build the app (Debug configuration)"
 	@echo "  $(GREEN)make fast-build$(NC)       - Parallel build with maximum speed ($(PARALLEL_JOBS) jobs)"
 	@echo "  $(GREEN)make test$(NC)             - Run all tests"
+	@echo "  $(GREEN)make test-wiring$(NC)      - Run comprehensive UI wiring validation"
 	@echo "  $(GREEN)make check$(NC)            - Run all checks (build, test, lint, arch)"
 	@echo ""
 	@echo "$(YELLOW)Quick Shortcuts:$(NC)"
@@ -61,14 +70,25 @@ help: ## Show this help message
 	@echo "  $(GREEN)make c$(NC)                - Shortcut for 'make check'"
 	@echo "  $(GREEN)make d$(NC)                - Shortcut for 'make doctor'"
 	@echo ""
+	@echo "$(YELLOW)Automation & Validation:$(NC)"
+	@echo "  $(GREEN)make validate-config$(NC)      - Validate project configuration consistency"
+	@echo "  $(GREEN)make monitor-modularization$(NC) - Monitor modularization progress"
+	@echo "  $(GREEN)make verify-enhanced-arch$(NC) - Enhanced architecture verification"
+	@echo "  $(GREEN)make automation-health$(NC)    - Check automation system health"
+	@echo "  $(GREEN)make comprehensive-check$(NC)  - Run ALL validation systems"
+	@echo "  $(GREEN)make health-report$(NC)        - Generate comprehensive health report"
+	@echo "  $(GREEN)make health-report-open$(NC)   - Generate health report and open in browser"
+	@echo ""
 	@echo "$(YELLOW)Development Workflow:$(NC)"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-20s$(NC) %s\n", $$1, $$2}'
 	@echo ""
 	@echo "$(YELLOW)Project Guidelines:$(NC)"
-	@echo "  • $(BLUE)ALWAYS$(NC) use iPhone 16 Plus simulator"
+	@echo "  • $(BLUE)ALWAYS$(NC) use iPhone 16 Pro Max simulator"
 	@echo "  • $(BLUE)ALWAYS$(NC) wire up new features in UI"
 	@echo "  • $(BLUE)NO$(NC) 'low stock' references (insurance focus)"
 	@echo "  • $(BLUE)NO$(NC) orphaned code - everything must be accessible"
+	@echo "  • $(RED)TCA REQUIRED$(NC) - All new features must use TCA patterns"
+	@echo "  • $(RED)ARCHITECTURE$(NC) - App→Features→UI→Services→Infrastructure→Foundation"
 	@echo ""
 	@echo "$(RED)Remember:$(NC) This is for personal belongings insurance documentation!"
 
@@ -77,8 +97,8 @@ help: ## Show this help message
 # ============================================================================
 
 .PHONY: run
-run: build-for-simulator ## Build and run app in iPhone 16 Plus simulator
-	@echo "$(YELLOW)🚀 Installing and launching Nestory on iPhone 16 Plus...$(NC)"
+run: build-for-simulator ## Build and run app in iPhone 16 Pro Max simulator
+	@echo "$(YELLOW)🚀 Installing and launching Nestory on iPhone 16 Pro Max...$(NC)"
 	@echo "Booting simulator..."
 	@xcrun simctl boot "$(SIMULATOR_NAME)" 2>/dev/null || true
 	@echo "Installing app..."
@@ -91,7 +111,7 @@ run: build-for-simulator ## Build and run app in iPhone 16 Plus simulator
 
 .PHONY: build
 build: gen check-tools clean-logs check-file-sizes ## Build the app (Debug configuration)
-	@echo "$(YELLOW)🔨 Building Nestory for iPhone 16 Plus...$(NC)"
+	@echo "$(YELLOW)🔨 Building Nestory for iPhone 16 Pro Max...$(NC)"
 	@timeout $(BUILD_TIMEOUT) xcodebuild -scheme $(ACTIVE_SCHEME) \
 		-destination '$(DESTINATION)' \
 		-configuration $(CONFIGURATION) \
@@ -113,6 +133,7 @@ build: gen check-tools clean-logs check-file-sizes ## Build the app (Debug confi
 		echo ""; \
 		$(MAKE) tree; \
 	fi
+
 
 .PHONY: build-for-simulator
 build-for-simulator: gen check-tools clean-logs check-file-sizes ## Build specifically for simulator usage
@@ -202,12 +223,61 @@ test-ui: gen ## Run UI tests only
 		  echo "$(YELLOW)Check ui-test-$(BUILD_LOG) for details$(NC)"; exit 1; }
 	@echo "$(GREEN)✅ UI tests completed!$(NC)"
 
+.PHONY: test-wiring
+test-wiring: gen ## Run comprehensive UI wiring tests to validate all navigation and integration
+	@echo "$(YELLOW)🔍 Running comprehensive UI wiring validation...$(NC)"
+	@mkdir -p ~/Desktop/NestoryUIWiringScreenshots
+	@timeout 300 xcodebuild test \
+		-scheme Nestory-UIWiring \
+		-destination '$(DESTINATION)' \
+		-only-testing:NestoryUITests/ComprehensiveUIWiringTest/testCompleteUIWiring \
+		$(BUILD_FLAGS) \
+		-resultBundlePath /tmp/nestory_wiring_test_results \
+		2>&1 | tee ui-wiring-$(BUILD_LOG) || \
+		{ echo "$(RED)❌ UI wiring tests failed or timed out after 300s!$(NC)"; \
+		  echo "$(YELLOW)Check ui-wiring-$(BUILD_LOG) for details$(NC)"; exit 1; }
+	@echo "$(GREEN)✅ UI wiring validation completed!$(NC)"
+	@echo "$(BLUE)📸 Screenshots and test results available at /tmp/nestory_wiring_test_results$(NC)"
+	@echo "$(YELLOW)🔍 Extracting screenshots...$(NC)"
+	@./Scripts/extract-ui-test-screenshots.sh /tmp/nestory_wiring_test_results.xcresult ~/Desktop/NestoryUIWiringScreenshots
+
+.PHONY: test-wiring-quick
+test-wiring-quick: gen ## Run quick UI screenshot validation for development
+	@echo "$(YELLOW)📸 Running quick UI wiring validation...$(NC)"
+	@timeout 120 xcodebuild test \
+		-scheme $(SCHEME_DEV) \
+		-destination '$(DESTINATION)' \
+		-only-testing:NestoryUITests/BasicScreenshotTest/testBasicAppScreenshots \
+		$(BUILD_FLAGS) \
+		-resultBundlePath /tmp/nestory_quick_test_results \
+		2>&1 | tee ui-quick-$(BUILD_LOG) || \
+		{ echo "$(RED)❌ Quick UI tests failed or timed out after 120s!$(NC)"; \
+		  echo "$(YELLOW)Check ui-quick-$(BUILD_LOG) for details$(NC)"; exit 1; }
+	@echo "$(GREEN)✅ Quick UI validation completed!$(NC)"
+	@./Scripts/extract-ui-test-screenshots.sh /tmp/nestory_quick_test_results.xcresult ~/Desktop/NestoryUIWiringScreenshots
+
+.PHONY: test-full-wiring
+test-full-wiring: gen ## Run complete UI wiring validation with all tests 
+	@echo "$(YELLOW)🔍 Running FULL UI wiring test suite...$(NC)"
+	@mkdir -p ~/Desktop/NestoryUIWiringScreenshots
+	@timeout 600 xcodebuild test \
+		-scheme Nestory-UIWiring \
+		-destination '$(DESTINATION)' \
+		$(BUILD_FLAGS) \
+		-resultBundlePath /tmp/nestory_full_wiring_results \
+		2>&1 | tee ui-full-wiring-$(BUILD_LOG) || \
+		{ echo "$(RED)❌ Full UI wiring suite failed or timed out after 600s!$(NC)"; \
+		  echo "$(YELLOW)Check ui-full-wiring-$(BUILD_LOG) for details$(NC)"; exit 1; }
+	@echo "$(GREEN)✅ Full UI wiring validation completed!$(NC)"
+	@echo "$(BLUE)📸 All test results available at /tmp/nestory_full_wiring_results$(NC)"
+	@./Scripts/extract-ui-test-screenshots.sh /tmp/nestory_full_wiring_results.xcresult ~/Desktop/NestoryUIWiringScreenshots
+
 # ============================================================================
 # CODE QUALITY & VERIFICATION
 # ============================================================================
 
 .PHONY: check
-check: build test guard verify-wiring verify-no-stock tree ## Run all checks
+check: build test guard verify-wiring verify-no-stock check-file-sizes validate-config tree ## Run all checks
 	@echo "$(GREEN)✅ All checks passed!$(NC)"
 
 .PHONY: guard
@@ -272,7 +342,14 @@ verify-wiring: ## Verify all features are wired to UI
 	@for service in Services/*.swift; do \
 		if [ -f "$$service" ]; then \
 			basename=$$(basename $$service .swift); \
-			if ! grep -r "$$basename" App-Main/ > /dev/null 2>&1; then \
+			if [ "$$basename" = "CloudStorageServices" ]; then \
+				if ! grep -r "CloudStorageManager" App-Main/ > /dev/null 2>&1; then \
+					echo "$(RED)❌ $$basename not wired in UI!$(NC)"; \
+					exit 1; \
+				else \
+					echo "$(GREEN)✓$(NC) $$basename is wired"; \
+				fi \
+			elif ! grep -r "$$basename" App-Main/ > /dev/null 2>&1; then \
 				echo "$(RED)❌ $$basename not wired in UI!$(NC)"; \
 				exit 1; \
 			else \
@@ -323,17 +400,30 @@ clean-derived-data: ## Clean all Xcode derived data
 	@echo "$(GREEN)✅ Derived data cleaned!$(NC)"
 
 .PHONY: fast-build
-fast-build: clean-derived-data ## Fast parallel build with maximum optimization
-	@echo "$(YELLOW)⚡ Fast parallel build ($(PARALLEL_JOBS) jobs)...$(NC)"
+fast-build: clean-derived-data ## Fast parallel build with maximum optimization ($(PARALLEL_JOBS) jobs + caching)
+	@echo "$(YELLOW)⚡ Fast parallel build ($(PARALLEL_JOBS) jobs + enhanced caching)...$(NC)"
 	@timeout $(BUILD_TIMEOUT) xcodebuild -scheme $(ACTIVE_SCHEME) \
 		-destination '$(DESTINATION)' \
 		-configuration $(CONFIGURATION) \
-		-jobs $(PARALLEL_JOBS) \
-		-quiet -hideShellScriptEnvironment \
+		$(FAST_BUILD_FLAGS) \
+		-hideShellScriptEnvironment \
 		build 2>&1 | tee fast-$(BUILD_LOG) || \
 		{ echo "$(RED)❌ Fast build failed or timed out!$(NC)"; \
 		  echo "$(YELLOW)Check fast-$(BUILD_LOG) for details$(NC)"; exit 1; }
-	@echo "$(GREEN)✅ Fast build completed in parallel!$(NC)"
+	@echo "$(GREEN)⚡ Fast build completed with enhanced optimizations!$(NC)"
+
+.PHONY: build-benchmark
+build-benchmark: ## Compare build times between regular and fast builds
+	@echo "$(BLUE)🏁 Build Performance Benchmark$(NC)"
+	@echo "$(YELLOW)Running regular build...$(NC)"
+	@START=$$(date +%s); $(MAKE) build > /dev/null 2>&1; END=$$(date +%s); \
+	REGULAR_TIME=$$((END - START)); \
+	echo "Regular build: $${REGULAR_TIME}s"
+	@echo "$(YELLOW)Running fast build...$(NC)"
+	@START=$$(date +%s); $(MAKE) fast-build > /dev/null 2>&1; END=$$(date +%s); \
+	FAST_TIME=$$((END - START)); \
+	echo "Fast build: $${FAST_TIME}s"
+	@echo "$(GREEN)✅ Benchmark completed!$(NC)"
 
 .PHONY: file-report
 file-report: ## Generate detailed report of file sizes
@@ -418,6 +508,78 @@ new-service: ## Create a new service (usage: make new-service NAME=MyService)
 	@echo "$(GREEN)✅ Created Services/$(NAME).swift$(NC)"
 	@echo "$(YELLOW)⚠️  Remember to wire this service in the UI!$(NC)"
 
+.PHONY: validate-config
+validate-config: ## Validate project configuration consistency
+	@echo "$(YELLOW)⚙️ Validating project configuration...$(NC)"
+	@timeout 60 ./scripts/validate-configuration.sh || \
+		{ echo "$(RED)❌ Configuration validation failed!$(NC)"; exit 1; }
+	@echo "$(GREEN)✅ Configuration validation passed!$(NC)"
+
+.PHONY: monitor-modularization
+monitor-modularization: ## Monitor modularization progress and health
+	@echo "$(YELLOW)📊 Monitoring modularization progress...$(NC)"
+	@timeout 120 ./scripts/modularization-monitor.sh || \
+		{ echo "$(RED)❌ Modularization monitoring detected issues!$(NC)"; exit 1; }
+	@echo "$(GREEN)✅ Modularization health check passed!$(NC)"
+
+.PHONY: verify-enhanced-arch
+verify-enhanced-arch: ## Enhanced architecture verification with modular compliance
+	@echo "$(YELLOW)🏗️ Running enhanced architecture verification...$(NC)"
+	@timeout 120 ./scripts/architecture-verification.sh || \
+		{ echo "$(RED)❌ Enhanced architecture verification failed!$(NC)"; exit 1; }
+	@echo "$(GREEN)✅ Enhanced architecture verification passed!$(NC)"
+
+.PHONY: automation-health
+automation-health: ## Check health of automation systems
+	@echo "$(YELLOW)🔧 Checking automation system health...$(NC)"
+	@echo "Validating automation scripts..."
+	@if [ ! -x "./scripts/validate-configuration.sh" ]; then \
+		echo "$(RED)❌ Configuration validation script missing or not executable$(NC)"; \
+		exit 1; \
+	fi
+	@if [ ! -x "./scripts/modularization-monitor.sh" ]; then \
+		echo "$(RED)❌ Modularization monitor script missing or not executable$(NC)"; \
+		exit 1; \
+	fi
+	@if [ ! -x "./scripts/architecture-verification.sh" ]; then \
+		echo "$(RED)❌ Architecture verification script missing or not executable$(NC)"; \
+		exit 1; \
+	fi
+	@if [ ! -x "./DevTools/enhanced-pre-commit.sh" ]; then \
+		echo "$(RED)❌ Enhanced pre-commit script missing or not executable$(NC)"; \
+		exit 1; \
+	fi
+	@echo "$(GREEN)✅ All automation scripts are present and executable$(NC)"
+	@echo "Checking git hooks..."
+	@if [ -f ".git/hooks/pre-commit" ]; then \
+		echo "$(GREEN)✓$(NC) Pre-commit hook installed"; \
+	else \
+		echo "$(YELLOW)⚠️ Pre-commit hook not installed. Run 'make install-hooks'$(NC)"; \
+	fi
+	@echo "$(GREEN)✅ Automation health check completed!$(NC)"
+
+.PHONY: health-report
+health-report: ## Generate comprehensive codebase health report
+	@echo "$(YELLOW)📊 Generating comprehensive health report...$(NC)"
+	@timeout 300 ./scripts/codebase-health-report.sh || \
+		{ echo "$(RED)❌ Health report generation failed!$(NC)"; exit 1; }
+	@echo "$(GREEN)✅ Health report generated successfully!$(NC)"
+
+.PHONY: health-report-open
+health-report-open: ## Generate health report and open in browser
+	@echo "$(YELLOW)📊 Generating health report and opening in browser...$(NC)"
+	@timeout 300 ./scripts/codebase-health-report.sh --open || \
+		{ echo "$(RED)❌ Health report generation failed!$(NC)"; exit 1; }
+
+.PHONY: comprehensive-check
+comprehensive-check: validate-config monitor-modularization verify-enhanced-arch check-file-sizes verify-wiring ## Run all validation systems
+	@echo "$(BLUE)╔══════════════════════════════════════════════════════════════╗$(NC)"
+	@echo "$(BLUE)║              Comprehensive Validation Complete               ║$(NC)"
+	@echo "$(BLUE)╚══════════════════════════════════════════════════════════════╝$(NC)"
+	@echo ""
+	@echo "$(GREEN)✅ All validation systems passed!$(NC)"
+	@echo "$(BLUE)📊 Project is in excellent health$(NC)"
+
 .PHONY: screenshot
 screenshot: gen ## Capture app screenshots
 	@echo "$(YELLOW)📸 Capturing screenshots...$(NC)"
@@ -430,6 +592,64 @@ screenshot: gen ## Capture app screenshots
 		{ echo "$(RED)❌ Screenshot capture failed or timed out!$(NC)"; \
 		  echo "$(YELLOW)Check screenshot-$(BUILD_LOG) for details$(NC)"; exit 1; }
 	@echo "$(GREEN)✅ Screenshots captured!$(NC)"
+
+.PHONY: screenshots
+screenshots: gen ## Deterministic UI screenshot capture with extraction and verification
+	@bash Scripts/run-screenshots.sh
+
+.PHONY: screenshots-ci
+screenshots-ci: screenshots ## CI golden comparison for screenshot regression testing
+	@echo "$(YELLOW)🔍 Running perceptual diff against golden images...$(NC)"
+	@command -v compare >/dev/null || { echo "$(RED)ImageMagick 'compare' not found - install with: brew install imagemagick$(NC)"; exit 2; }
+	@# Find the latest extracted directory
+	@LATEST_DIR=$$(ls -dt $(HOME)/Desktop/NestoryUIWiringScreenshots/extracted_* 2>/dev/null | head -1); \
+	if [ -z "$$LATEST_DIR" ]; then \
+		echo "$(RED)❌ No extracted screenshots found$(NC)"; \
+		exit 1; \
+	fi; \
+	echo "$(BLUE)Comparing screenshots in: $$LATEST_DIR$(NC)"; \
+	mkdir -p diffs; \
+	FAILED=0; \
+	for file in $$LATEST_DIR/*.png; do \
+		base=$$(basename $$file); \
+		golden="golden/$$base"; \
+		if [ -f "$$golden" ]; then \
+			compare -metric AE "$$file" "$$golden" "diffs/$$base" 2> "diffs/$$base.txt" || { \
+				PIXELS=$$(cat "diffs/$$base.txt"); \
+				if [ "$$PIXELS" -gt 1000 ]; then \
+					echo "$(RED)✗ DIFF: $$base differs by $$PIXELS pixels (see diffs/$$base)$(NC)"; \
+					FAILED=1; \
+				else \
+					echo "$(YELLOW)⚠ Minor diff: $$base differs by $$PIXELS pixels (acceptable)$(NC)"; \
+				fi; \
+			}; \
+			echo "$(GREEN)✓ Checked: $$base$(NC)"; \
+		else \
+			echo "$(YELLOW)⚠ Missing golden for $$base - copying as new golden$(NC)"; \
+			mkdir -p golden; \
+			cp "$$file" "$$golden"; \
+		fi; \
+	done; \
+	if [ $$FAILED -eq 1 ]; then \
+		echo "$(RED)❌ Perceptual diffs failed - significant changes detected$(NC)"; \
+		exit 1; \
+	else \
+		echo "$(GREEN)✅ All screenshots match golden images (or are new)$(NC)"; \
+	fi
+
+.PHONY: update-golden
+update-golden: screenshots ## Update golden images from latest screenshot run
+	@echo "$(YELLOW)📸 Updating golden images...$(NC)"
+	@LATEST_DIR=$$(ls -dt $(HOME)/Desktop/NestoryUIWiringScreenshots/extracted_* 2>/dev/null | head -1); \
+	if [ -z "$$LATEST_DIR" ]; then \
+		echo "$(RED)❌ No extracted screenshots found - run 'make screenshots' first$(NC)"; \
+		exit 1; \
+	fi; \
+	echo "$(BLUE)Copying from: $$LATEST_DIR$(NC)"; \
+	mkdir -p golden; \
+	cp $$LATEST_DIR/*.png golden/; \
+	count=$$(ls -1 golden/*.png | wc -l); \
+	echo "$(GREEN)✅ Updated $$count golden images$(NC)"
 
 # ============================================================================
 # PROJECT MAINTENANCE
@@ -457,9 +677,41 @@ clean-logs: ## Clean build logs
 	@rm -f release-*.log
 	@rm -f fast-*.log
 
+.PHONY: clean-all
+clean-all: ## Comprehensive cleanup of all build artifacts and system files
+	@echo "$(YELLOW)🧹 Comprehensive project cleanup...$(NC)"
+	@echo "  Removing build artifacts..."
+	@rm -rf .build build */build
+	@rm -rf DerivedData
+	@rm -rf ~/Library/Developer/Xcode/DerivedData/$(PROJECT_NAME)-*
+	@echo "  Removing system files..."
+	@find . -name ".DS_Store" -delete 2>/dev/null || true
+	@find . -name "*.log" -delete 2>/dev/null || true
+	@find . -name "Thumbs.db" -delete 2>/dev/null || true
+	@echo "  Cleaning cache directories..."
+	@find . -type d -name "*cache*" -exec rm -rf {} + 2>/dev/null || true
+	@echo "  Running git clean..."
+	@git clean -fd 2>/dev/null || true
+	@if [ -f "$(PROJECT_FILE)/project.pbxproj" ]; then \
+		xcodebuild clean 2>/dev/null || true; \
+	fi
+	@echo "$(GREEN)✅ Comprehensive cleanup complete!$(NC)"
+
+.PHONY: deep-clean
+deep-clean: clean-all ## Deep clean including system-wide Xcode caches
+	@echo "$(YELLOW)🔥 Deep cleaning system caches...$(NC)"
+	@echo "  Removing global Xcode DerivedData..."
+	@rm -rf ~/Library/Developer/Xcode/DerivedData
+	@echo "  Removing Xcode caches..."
+	@rm -rf ~/Library/Caches/com.apple.dt.Xcode
+	@rm -rf ~/Library/Developer/CoreSimulator/Caches
+	@echo "  Removing iOS Simulator cache..."
+	@xcrun simctl shutdown all 2>/dev/null || true
+	@echo "$(GREEN)✅ Deep clean complete!$(NC)"
+
 .PHONY: reset-simulator
-reset-simulator: ## Reset iPhone 16 Plus simulator
-	@echo "$(YELLOW)🔄 Resetting iPhone 16 Plus simulator...$(NC)"
+reset-simulator: ## Reset iPhone 16 Pro Max simulator
+	@echo "$(YELLOW)🔄 Resetting iPhone 16 Pro Max simulator...$(NC)"
 	@xcrun simctl shutdown "$(SIMULATOR_NAME)" 2>/dev/null || true
 	@xcrun simctl erase "$(SIMULATOR_NAME)" 2>/dev/null || true
 	@echo "$(GREEN)✅ Simulator reset!$(NC)"
@@ -549,8 +801,8 @@ doctor: ## Diagnose project setup issues
 	@echo ""
 	@echo "$(YELLOW)Simulator:$(NC)"
 	@xcrun simctl list devices | grep -q "$(SIMULATOR_NAME)" && \
-		echo "$(GREEN)✓$(NC) iPhone 16 Plus simulator available" || \
-		echo "$(RED)✗$(NC) iPhone 16 Plus simulator not found"
+		echo "$(GREEN)✓$(NC) iPhone 16 Pro Max simulator available" || \
+		echo "$(RED)✗$(NC) iPhone 16 Pro Max simulator not found"
 	@echo ""
 	@echo "$(YELLOW)Services Wiring Status:$(NC)"
 	@for service in Services/*.swift; do \
@@ -614,13 +866,13 @@ context: tree ## Generate context for new chat sessions
 	@echo "## CRITICAL REMINDERS" >> CURRENT_CONTEXT.md
 	@echo "- **App Type**: Personal home inventory for INSURANCE DOCUMENTATION" >> CURRENT_CONTEXT.md
 	@echo "- **NOT**: Business inventory or stock management" >> CURRENT_CONTEXT.md
-	@echo "- **Simulator**: ALWAYS use iPhone 16 Plus (per CLAUDE.md)" >> CURRENT_CONTEXT.md
+	@echo "- **Simulator**: ALWAYS use iPhone 16 Pro Max (per CLAUDE.md)" >> CURRENT_CONTEXT.md
 	@echo "- **Architecture**: App → Services → Infrastructure → Foundation" >> CURRENT_CONTEXT.md
 	@echo "- **Focus**: Insurance claims, warranties, receipts, disaster documentation" >> CURRENT_CONTEXT.md
 	@echo "" >> CURRENT_CONTEXT.md
 	@echo "## Build & Run Commands" >> CURRENT_CONTEXT.md
 	@echo '```bash' >> CURRENT_CONTEXT.md
-	@echo "make run          # Build and run on iPhone 16 Plus" >> CURRENT_CONTEXT.md
+	@echo "make run          # Build and run on iPhone 16 Pro Max" >> CURRENT_CONTEXT.md
 	@echo "make build        # Build only" >> CURRENT_CONTEXT.md
 	@echo "make check        # Run all verification checks" >> CURRENT_CONTEXT.md
 	@echo "make doctor       # Diagnose setup issues" >> CURRENT_CONTEXT.md
@@ -688,8 +940,8 @@ open: ## Open project in Xcode
 	fi
 
 .PHONY: simulator
-simulator: ## Open iOS Simulator with iPhone 16 Plus
-	@echo "$(YELLOW)📱 Opening Simulator with iPhone 16 Plus...$(NC)"
+simulator: ## Open iOS Simulator with iPhone 16 Pro Max
+	@echo "$(YELLOW)📱 Opening Simulator with iPhone 16 Pro Max...$(NC)"
 	@open -a Simulator
 	@xcrun simctl boot "$(SIMULATOR_NAME)" 2>/dev/null || true
 

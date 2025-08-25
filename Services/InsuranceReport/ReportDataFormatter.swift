@@ -39,7 +39,7 @@ public struct ReportDataFormatter {
 
     public func generateItemDetails(
         item: Item,
-        options: InsuranceReportService.ReportOptions,
+        options: ReportOptions,
     ) -> [String] {
         var details: [String] = []
 

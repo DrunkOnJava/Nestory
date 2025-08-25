@@ -4,12 +4,13 @@
 // Purpose: Notification settings for alerts and reminders
 //
 
-import os.log
+// App layer - no direct logging imports
 import SwiftUI
 import UserNotifications
+import os.log
 
 struct NotificationSettingsView: View {
-    @StateObject private var notificationService = LiveNotificationService()
+    @EnvironmentObject private var notificationService: LiveNotificationService
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory.dev", category: "NotificationSettings")
     @AppStorage("notificationsEnabled") private var notificationsEnabled = true
     @AppStorage("warrantyNotificationsEnabled") private var warrantyNotificationsEnabled = true
@@ -133,6 +134,22 @@ struct NotificationSettingsView: View {
 
                     Button {
                         Task {
+                            await performSmartRescheduling()
+                        }
+                    } label: {
+                        HStack {
+                            Label("Smart Optimize Schedule", systemImage: "wand.and.rays")
+                            Spacer()
+                            if isSchedulingNotifications {
+                                ProgressView()
+                                    .scaleEffect(0.8)
+                            }
+                        }
+                    }
+                    .disabled(isSchedulingNotifications)
+
+                    Button {
+                        Task {
                             await testNotification()
                         }
                     } label: {
@@ -145,6 +162,20 @@ struct NotificationSettingsView: View {
                         }
                     } label: {
                         Label("Clear All Scheduled Notifications", systemImage: "bell.slash")
+                    }
+                }
+
+                Section("Advanced Features") {
+                    NavigationLink {
+                        NotificationAnalyticsView()
+                    } label: {
+                        Label("View Analytics", systemImage: "chart.bar")
+                    }
+
+                    NavigationLink {
+                        NotificationFrequencyView()
+                    } label: {
+                        Label("Notification Frequency", systemImage: "slider.horizontal.3")
                     }
                 }
 
@@ -267,6 +298,19 @@ struct NotificationSettingsView: View {
         } catch {
             logger.error("Failed to send test notification: \(error)")
         }
+    }
+
+    private func performSmartRescheduling() async {
+        isSchedulingNotifications = true
+
+        do {
+            try await notificationService.rescheduleNotificationsWithPriority()
+            logger.info("Smart rescheduling completed successfully")
+        } catch {
+            logger.error("Smart rescheduling failed: \(error)")
+        }
+
+        isSchedulingNotifications = false
     }
 }
 

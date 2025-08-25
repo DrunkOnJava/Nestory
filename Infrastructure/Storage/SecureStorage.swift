@@ -1,6 +1,35 @@
 // Layer: Infrastructure
 // Module: Infrastructure/Storage
 // Purpose: Secure storage wrapper with encryption support
+//
+// 🏗️ INFRASTRUCTURE LAYER PATTERN: Technical Adapter
+// - Handles technical concerns (encryption, file I/O, keychain)
+// - NO business logic (that belongs in Services layer)
+// - ONLY imports Foundation (architectural rule from SPEC.json)
+// - Provides technical capability for Services to consume
+//
+// 🔐 SECURITY ARCHITECTURE: Multi-tier protection strategy
+// - Small data (<4KB): Encrypted + stored in iOS Keychain
+// - Large data (>4KB): Encrypted + stored in protected files + keychain reference
+// - Uses AES-256-GCM encryption (industry standard)
+// - Automatic key rotation support through keychain-stored master key
+//
+// 🎯 INSURANCE FOCUS: Protects sensitive personal data
+// - Receipt photos and financial information
+// - Serial numbers and purchase prices
+// - Personal identification details
+// - Insurance policy numbers and claim data
+//
+// 📋 INFRASTRUCTURE STANDARDS:
+// - Swift 6 actor isolation for thread safety
+// - Result types for comprehensive error handling
+// - Async/await for file operations
+// - Atomic file operations to prevent corruption
+//
+// 🍎 APPLE FRAMEWORK OPPORTUNITIES (Phase 3):
+// - LocalAuthentication: Add biometric protection for sensitive operations
+// - CryptoKit enhancement: Leverage secure enclave for key storage
+//
 
 import CryptoKit
 import Foundation
@@ -140,6 +169,7 @@ public struct KeychainWrapper {
     public init() {}
 
     /// Store data in keychain
+    // APPLE_FRAMEWORK_OPPORTUNITY: Replace with Security - Already using Security framework optimally for keychain operations
     public func setData(_ data: Data, for key: String) throws {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,

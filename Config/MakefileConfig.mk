@@ -1,5 +1,9 @@
 # Auto-generated scheme configuration from ProjectConfiguration.json
 # DO NOT EDIT MANUALLY - Run 'make generate-config' to update
+#
+# 🏗️ TCA ARCHITECTURE: Updated for ComposableArchitecture migration (Aug 2025)
+# - iPhone 16 Pro Max is the standard target device
+# - All new features must use TCA patterns (Reducers, Actions, Dependencies)
 
 # Project Settings
 PROJECT_NAME = Nestory
@@ -9,10 +13,10 @@ SCHEME_PROD = Nestory-Prod
 WORKSPACE = Nestory.xcworkspace
 PROJECT_FILE = Nestory.xcodeproj
 
-# CRITICAL: Always use iPhone 16 Plus for consistency
-SIMULATOR_NAME = iPhone 16 Plus
+# CRITICAL: Always use iPhone 16 Pro Max for consistency
+SIMULATOR_NAME = iPhone 16 Pro Max
 SIMULATOR_OS = iOS Simulator
-DESTINATION = platform=iOS Simulator,name=iPhone 16 Plus
+DESTINATION = platform=iOS Simulator,name=iPhone 16 Pro Max
 
 # Build Timeouts
 BUILD_TIMEOUT = 300

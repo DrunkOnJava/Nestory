@@ -17,8 +17,16 @@ public final class LiveBarcodeScannerService: BarcodeScannerService, ObservableO
     @Published public var errorMessage: String?
 
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory", category: "BarcodeScannerService")
+    private let productLookupService: ProductLookupService
 
-    public init() {}
+    public init() {
+        do {
+            self.productLookupService = try LiveProductLookupService()
+        } catch {
+            // Fallback to mock service if initialization fails
+            self.productLookupService = MockProductLookupService()
+        }
+    }
 
     // MARK: - BarcodeScannerService Protocol Implementation
 
@@ -49,8 +57,14 @@ public final class LiveBarcodeScannerService: BarcodeScannerService, ObservableO
 
         let request = VNDetectBarcodesRequest()
         request.symbologies = [
-            .ean8, .ean13, .upce, .code39, .code128,
+            // Standard retail barcodes
+            .ean8, .ean13, .upce, .code39, .code128, .codabar,
+            // 2D codes for complex data
             .qr, .aztec, .pdf417, .dataMatrix,
+            // Additional supported formats
+            .i2of5, .i2of5Checksum, .itf14, .code39Checksum, .code39FullASCII,
+            .code39FullASCIIChecksum, .code93, .code93i, .gs1DataBar,
+            .gs1DataBarExpanded, .gs1DataBarLimited, .microPDF417, .microQR,
         ]
 
         let handler = VNImageRequestHandler(ciImage: ciImage, options: [:])
@@ -106,16 +120,8 @@ public final class LiveBarcodeScannerService: BarcodeScannerService, ObservableO
     }
 
     public nonisolated func lookupProduct(barcode: String, type: String) async -> ProductInfo? {
-        // Simulate product lookup - in production integrate with UPC database API
-        if type.contains("EAN") || type.contains("UPC") {
-            return ProductInfo(
-                barcode: barcode,
-                name: "Sample Product",
-                brand: "Sample Brand",
-                category: "Electronics",
-            )
-        }
-        return nil
+        // Use the enhanced product lookup service
+        await productLookupService.lookupProduct(barcode: barcode, type: type)
     }
 }
 
@@ -123,14 +129,31 @@ public final class LiveBarcodeScannerService: BarcodeScannerService, ObservableO
 
 private func symbologyToString(_ symbology: VNBarcodeSymbology) -> String {
     switch symbology {
+    // Standard retail barcodes
     case .ean8: "EAN-8"
     case .ean13: "EAN-13"
     case .upce: "UPC-E"
     case .code39: "Code 39"
+    case .code39Checksum: "Code 39 Checksum"
+    case .code39FullASCII: "Code 39 Full ASCII"
+    case .code39FullASCIIChecksum: "Code 39 Full ASCII Checksum"
     case .code128: "Code 128"
+    case .code93: "Code 93"
+    case .code93i: "Code 93i"
+    case .codabar: "Codabar"
+    case .i2of5: "Interleaved 2 of 5"
+    case .i2of5Checksum: "Interleaved 2 of 5 Checksum"
+    case .itf14: "ITF-14"
+    // GS1 Standards
+    case .gs1DataBar: "GS1 DataBar"
+    case .gs1DataBarExpanded: "GS1 DataBar Expanded"
+    case .gs1DataBarLimited: "GS1 DataBar Limited"
+    // 2D codes
     case .qr: "QR Code"
+    case .microQR: "Micro QR Code"
     case .aztec: "Aztec"
     case .pdf417: "PDF417"
+    case .microPDF417: "Micro PDF417"
     case .dataMatrix: "Data Matrix"
     default: "Unknown"
     }

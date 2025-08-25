@@ -36,10 +36,10 @@
 /// let testValue = TestConstants.Money.small
 /// ```
 
-@_exported import struct CoreGraphics.CGFloat
-@_exported import struct Foundation.TimeInterval
-
 import Foundation
+
+// Note: Foundation layer cannot import system frameworks like CoreGraphics
+// Any CGFloat values should be defined as Double and cast when needed in upper layers
 
 // Note: Individual constant categories are imported directly where needed
 // This file provides common cross-cutting constants and app-wide metadata

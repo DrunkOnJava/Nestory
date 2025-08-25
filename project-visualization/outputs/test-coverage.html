@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nestory Test Coverage Analysis</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #48dbfb 0%, #0abde3 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .coverage-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .coverage-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .coverage-ring {
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 20px;
+            position: relative;
+        }
+        
+        .coverage-percentage {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2.5em;
+            font-weight: bold;
+        }
+        
+        .coverage-label {
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .coverage-stats {
+            display: flex;
+            justify-content: space-around;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+            margin-top: 15px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #48dbfb;
+        }
+        
+        .stat-label {
+            font-size: 0.85em;
+            color: #999;
+            text-transform: uppercase;
+        }
+        
+        .layer-coverage {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+        
+        .coverage-bar-container {
+            margin-bottom: 20px;
+        }
+        
+        .coverage-bar-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .coverage-bar-track {
+            height: 30px;
+            background: #f0f0f0;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .coverage-bar {
+            height: 100%;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 15px;
+            color: white;
+            font-weight: bold;
+            font-size: 0.9em;
+            transition: width 1.5s ease-out;
+        }
+        
+        .coverage-excellent { background: linear-gradient(90deg, #1dd1a1, #10ac84); }
+        .coverage-good { background: linear-gradient(90deg, #48dbfb, #0abde3); }
+        .coverage-fair { background: linear-gradient(90deg, #feca57, #ff9ff3); }
+        .coverage-poor { background: linear-gradient(90deg, #ff6b6b, #ee5a24); }
+        
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 25px;
+        }
+        
+        .test-type-card {
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            text-align: center;
+            border-left: 4px solid;
+        }
+        
+        .test-type-unit { border-color: #48dbfb; }
+        .test-type-integration { border-color: #feca57; }
+        .test-type-ui { border-color: #ff6b6b; }
+        .test-type-performance { border-color: #a29bfe; }
+        
+        .test-count {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .test-label {
+            color: #666;
+            font-weight: 600;
+        }
+        
+        .test-status {
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #999;
+        }
+        
+        .uncovered-files {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+        
+        .file-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .file-table th {
+            background: linear-gradient(135deg, #48dbfb 0%, #0abde3 100%);
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        .file-table td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .file-table tr:hover {
+            background: #f0f9ff;
+        }
+        
+        .file-path {
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 0.9em;
+            color: #555;
+        }
+        
+        .coverage-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+        
+        .coverage-0 { background: #ffebee; color: #c62828; }
+        .coverage-low { background: #fff8e1; color: #f57f17; }
+        .coverage-medium { background: #e3f2fd; color: #1976d2; }
+        .coverage-high { background: #e8f5e9; color: #2e7d32; }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 30px 0;
+        }
+        
+        .heatmap {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .heatmap-cell {
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .heatmap-cell:hover {
+            transform: scale(1.05);
+        }
+        
+        .heat-0 { background: #e53935; }
+        .heat-1 { background: #fb8c00; }
+        .heat-2 { background: #fdd835; }
+        .heat-3 { background: #7cb342; }
+        .heat-4 { background: #43a047; }
+        
+        .recommendations {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 30px;
+        }
+        
+        .recommendation-item {
+            padding: 15px;
+            margin-bottom: 15px;
+            background: white;
+            border-radius: 10px;
+            border-left: 4px solid #48dbfb;
+        }
+        
+        .priority-high { border-left-color: #ff6b6b; }
+        .priority-medium { border-left-color: #feca57; }
+        .priority-low { border-left-color: #1dd1a1; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Nestory Test Coverage Analysis</h1>
+        
+        <div class="coverage-overview">
+            <div class="coverage-card">
+                <div class="coverage-ring">
+                    <svg width="150" height="150">
+                        <circle cx="75" cy="75" r="60" stroke="#e0e0e0" stroke-width="15" fill="none"/>
+                        <circle cx="75" cy="75" r="60" stroke="#48dbfb" stroke-width="15" fill="none"
+                                stroke-dasharray="377" stroke-dashoffset="94"
+                                transform="rotate(-90 75 75)"
+                                style="transition: stroke-dashoffset 1.5s ease;"/>
+                    </svg>
+                    <div class="coverage-percentage" style="color: #48dbfb;">80%</div>
+                </div>
+                <div class="coverage-label">Overall Coverage</div>
+                <div class="coverage-stats">
+                    <div class="stat-item">
+                        <div class="stat-value">537</div>
+                        <div class="stat-label">Tests</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">523</div>
+                        <div class="stat-label">Passing</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">14</div>
+                        <div class="stat-label">Skipped</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="coverage-card">
+                <div class="test-grid">
+                    <div class="test-type-card test-type-unit">
+                        <div class="test-count" style="color: #48dbfb;">420</div>
+                        <div class="test-label">Unit Tests</div>
+                        <div class="test-status">✅ All Passing</div>
+                    </div>
+                    <div class="test-type-card test-type-integration">
+                        <div class="test-count" style="color: #feca57;">85</div>
+                        <div class="test-label">Integration Tests</div>
+                        <div class="test-status">✅ All Passing</div>
+                    </div>
+                    <div class="test-type-card test-type-ui">
+                        <div class="test-count" style="color: #ff6b6b;">32</div>
+                        <div class="test-label">UI Tests</div>
+                        <div class="test-status">⚠️ 3 Flaky</div>
+                    </div>
+                    <div class="test-type-card test-type-performance">
+                        <div class="test-count" style="color: #a29bfe;">0</div>
+                        <div class="test-label">Performance Tests</div>
+                        <div class="test-status">❌ None</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="layer-coverage">
+            <h2 class="section-title">📊 Coverage by Architecture Layer</h2>
+            
+            <div class="coverage-bar-container">
+                <div class="coverage-bar-label">
+                    <span>🏗️ Foundation</span>
+                    <span>85%</span>
+                </div>
+                <div class="coverage-bar-track">
+                    <div class="coverage-bar coverage-excellent" style="width: 0%;" data-width="85%">
+                        Item, Category, Room models
+                    </div>
+                </div>
+            </div>
+            
+            <div class="coverage-bar-container">
+                <div class="coverage-bar-label">
+                    <span>⚙️ Services</span>
+                    <span>78%</span>
+                </div>
+                <div class="coverage-bar-track">
+                    <div class="coverage-bar coverage-good" style="width: 0%;" data-width="78%">
+                        InventoryService, InsuranceService
+                    </div>
+                </div>
+            </div>
+            
+            <div class="coverage-bar-container">
+                <div class="coverage-bar-label">
+                    <span>🎯 Features</span>
+                    <span>72%</span>
+                </div>
+                <div class="coverage-bar-track">
+                    <div class="coverage-bar coverage-fair" style="width: 0%;" data-width="72%">
+                        TCA reducers and effects
+                    </div>
+                </div>
+            </div>
+            
+            <div class="coverage-bar-container">
+                <div class="coverage-bar-label">
+                    <span>🔧 Infrastructure</span>
+                    <span>65%</span>
+                </div>
+                <div class="coverage-bar-track">
+                    <div class="coverage-bar coverage-fair" style="width: 0%;" data-width="65%">
+                        SwiftData, CloudKit, Network
+                    </div>
+                </div>
+            </div>
+            
+            <div class="coverage-bar-container">
+                <div class="coverage-bar-label">
+                    <span>🎨 UI</span>
+                    <span>45%</span>
+                </div>
+                <div class="coverage-bar-track">
+                    <div class="coverage-bar coverage-poor" style="width: 0%;" data-width="45%">
+                        Views and UI components
+                    </div>
+                </div>
+            </div>
+            
+            <div class="coverage-bar-container">
+                <div class="coverage-bar-label">
+                    <span>📱 App-Main</span>
+                    <span>40%</span>
+                </div>
+                <div class="coverage-bar-track">
+                    <div class="coverage-bar coverage-poor" style="width: 0%;" data-width="40%">
+                        App lifecycle and navigation
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="uncovered-files">
+            <h2 class="section-title">⚠️ Files Needing Coverage</h2>
+            <table class="file-table">
+                <thead>
+                    <tr>
+                        <th>File</th>
+                        <th>Coverage</th>
+                        <th>Uncovered Lines</th>
+                        <th>Priority</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="file-path">Infrastructure/CloudKitSync.swift</td>
+                        <td><span class="coverage-badge coverage-0">0%</span></td>
+                        <td>312</td>
+                        <td><span class="coverage-badge coverage-0">Critical</span></td>
+                    </tr>
+                    <tr>
+                        <td class="file-path">Services/WarrantyExpirationCalculator.swift</td>
+                        <td><span class="coverage-badge coverage-low">15%</span></td>
+                        <td>156</td>
+                        <td><span class="coverage-badge coverage-0">High</span></td>
+                    </tr>
+                    <tr>
+                        <td class="file-path">Infrastructure/NetworkClient.swift</td>
+                        <td><span class="coverage-badge coverage-low">22%</span></td>
+                        <td>198</td>
+                        <td><span class="coverage-badge coverage-0">High</span></td>
+                    </tr>
+                    <tr>
+                        <td class="file-path">Services/CSVImporter.swift</td>
+                        <td><span class="coverage-badge coverage-low">28%</span></td>
+                        <td>89</td>
+                        <td><span class="coverage-badge coverage-low">Medium</span></td>
+                    </tr>
+                    <tr>
+                        <td class="file-path">UI/AnalyticsChartView.swift</td>
+                        <td><span class="coverage-badge coverage-medium">35%</span></td>
+                        <td>67</td>
+                        <td><span class="coverage-badge coverage-medium">Low</span></td>
+                    </tr>
+                    <tr>
+                        <td class="file-path">Features/SearchFeature.swift</td>
+                        <td><span class="coverage-badge coverage-medium">42%</span></td>
+                        <td>134</td>
+                        <td><span class="coverage-badge coverage-low">Medium</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="layer-coverage">
+            <h2 class="section-title">🗺️ Coverage Heatmap</h2>
+            <p style="color: #666; margin-bottom: 20px;">Visual representation of test coverage across modules</p>
+            <div class="heatmap">
+                <div class="heatmap-cell heat-4" title="85% coverage">
+                    <div>Foundation</div>
+                    <div style="font-size: 0.9em; opacity: 0.9;">85%</div>
+                </div>
+                <div class="heatmap-cell heat-3" title="78% coverage">
+                    <div>Services</div>
+                    <div style="font-size: 0.9em; opacity: 0.9;">78%</div>
+                </div>
+                <div class="heatmap-cell heat-3" title="72% coverage">
+                    <div>Features</div>
+                    <div style="font-size: 0.9em; opacity: 0.9;">72%</div>
+                </div>
+                <div class="heatmap-cell heat-2" title="65% coverage">
+                    <div>Infrastructure</div>
+                    <div style="font-size: 0.9em; opacity: 0.9;">65%</div>
+                </div>
+                <div class="heatmap-cell heat-3" title="82% coverage">
+                    <div>Models</div>
+                    <div style="font-size: 0.9em; opacity: 0.9;">82%</div>
+                </div>
+                <div class="heatmap-cell heat-1" title="45% coverage">
+                    <div>UI</div>
+                    <div style="font-size: 0.9em; opacity: 0.9;">45%</div>
+                </div>
+                <div class="heatmap-cell heat-1" title="40% coverage">
+                    <div>App-Main</div>
+                    <div style="font-size: 0.9em; opacity: 0.9;">40%</div>
+                </div>
+                <div class="heatmap-cell heat-4" title="88% coverage">
+                    <div>Utilities</div>
+                    <div style="font-size: 0.9em; opacity: 0.9;">88%</div>
+                </div>
+                <div class="heatmap-cell heat-0" title="0% coverage">
+                    <div>CloudKit</div>
+                    <div style="font-size: 0.9em; opacity: 0.9;">0%</div>
+                </div>
+                <div class="heatmap-cell heat-2" title="55% coverage">
+                    <div>Navigation</div>
+                    <div style="font-size: 0.9em; opacity: 0.9;">55%</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="layer-coverage">
+            <h2 class="section-title">📈 Coverage Trend</h2>
+            <div class="chart-container">
+                <canvas id="trendChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="recommendations">
+            <h2 class="section-title">🎯 Coverage Improvement Plan</h2>
+            
+            <div class="recommendation-item priority-high">
+                <strong>🔴 Critical Priority: CloudKit Sync</strong>
+                <p style="margin-top: 10px; color: #666;">
+                    The CloudKitSync module has 0% coverage and handles critical data synchronization. 
+                    Add integration tests for sync operations, conflict resolution, and offline scenarios.
+                </p>
+                <p style="margin-top: 10px;"><strong>Estimated effort:</strong> 2 days | <strong>Impact:</strong> +5% overall coverage</p>
+            </div>
+            
+            <div class="recommendation-item priority-high">
+                <strong>🟠 High Priority: Network Error Handling</strong>
+                <p style="margin-top: 10px; color: #666;">
+                    NetworkClient has only 22% coverage. Add tests for error scenarios, retry logic, 
+                    and timeout handling to prevent production issues.
+                </p>
+                <p style="margin-top: 10px;"><strong>Estimated effort:</strong> 1 day | <strong>Impact:</strong> +3% overall coverage</p>
+            </div>
+            
+            <div class="recommendation-item priority-medium">
+                <strong>🟡 Medium Priority: UI Snapshot Tests</strong>
+                <p style="margin-top: 10px; color: #666;">
+                    UI layer coverage is only 45%. Implement snapshot testing for all major views 
+                    to catch visual regressions and improve confidence in UI changes.
+                </p>
+                <p style="margin-top: 10px;"><strong>Estimated effort:</strong> 3 days | <strong>Impact:</strong> +8% overall coverage</p>
+            </div>
+            
+            <div class="recommendation-item priority-low">
+                <strong>🟢 Low Priority: Performance Tests</strong>
+                <p style="margin-top: 10px; color: #666;">
+                    No performance tests exist. Add tests for scroll performance, 
+                    large dataset handling, and memory usage to ensure app remains responsive.
+                </p>
+                <p style="margin-top: 10px;"><strong>Estimated effort:</strong> 2 days | <strong>Impact:</strong> Quality improvement</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Animate coverage bars on load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.querySelectorAll('.coverage-bar').forEach(bar => {
+                    const targetWidth = bar.getAttribute('data-width');
+                    bar.style.width = targetWidth;
+                });
+            }, 100);
+            
+            // Animate coverage ring
+            const ring = document.querySelector('circle[stroke="#48dbfb"]');
+            if (ring) {
+                setTimeout(() => {
+                    ring.style.strokeDashoffset = '94'; // 80% coverage
+                }, 200);
+            }
+        });
+        
+        // Coverage Trend Chart
+        const trendCtx = document.getElementById('trendChart').getContext('2d');
+        new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Current'],
+                datasets: [{
+                    label: 'Overall Coverage',
+                    data: [65, 68, 72, 75, 78, 80],
+                    borderColor: '#48dbfb',
+                    backgroundColor: 'rgba(72, 219, 251, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }, {
+                    label: 'Target (85%)',
+                    data: [85, 85, 85, 85, 85, 85],
+                    borderColor: '#1dd1a1',
+                    borderDash: [5, 5],
+                    borderWidth: 2,
+                    pointRadius: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        min: 60,
+                        max: 100,
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.parsed.y + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

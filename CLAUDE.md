@@ -2,720 +2,246 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-### Strategic Context for Claude Code CLI - Nestory Project
+## 📱 PROJECT CONTEXT
 
-## 📱 PROJECT OVERVIEW
+**Nestory** is a **personal home inventory app for insurance documentation** - NOT a business inventory system.
+Built for homeowners/renters to catalog belongings for insurance claims, warranty tracking, and disaster recovery.
 
-**CRITICAL**: Nestory is a **personal home inventory app for insurance documentation**, NOT a business inventory/stock management system. 
+**Critical Rules:**
+- NO "low stock" or "out of stock" references (personal belongings, not business inventory)
+- Focus on documentation completeness (missing photos, receipts, serial numbers)
+- Everything oriented toward insurance and disaster preparedness
 
-The app helps homeowners and renters catalog their belongings for:
-- Insurance claims after disasters (fire, flood, theft)
-- Warranty tracking and expiration alerts
-- Receipt storage and purchase documentation
-- Estate planning and value tracking
-- Personal organization (NOT stock levels)
+## 📊 PROJECT METADATA
 
-### Current Implementation Status
-- ✅ Core inventory management with photos
-- ✅ Category system with SwiftData relationships
-- ✅ Insurance PDF report generation (InsuranceReportService)
-- ✅ Receipt OCR with automatic data extraction (ReceiptOCRService)
-- ✅ CSV/JSON import/export (ImportExportService)
-- ✅ Analytics dashboard with value insights
-- ✅ Advanced search with documentation tracking
-- ✅ Swift 6 strict concurrency compliance
-- ✅ Documentation status indicators (NOT stock indicators)
+### Technical Stack
+- **Language**: Swift 6.0 (strict concurrency in Release, minimal in Debug)
+- **Minimum iOS**: 17.0
+- **UI Framework**: SwiftUI
+- **State Management**: The Composable Architecture (TCA) v1.15.0+
+- **Persistence**: SwiftData with CloudKit sync
+- **Target Device**: iPhone 16 Pro Max (simulator standard)
+- **Build System**: XcodeGen + Makefile automation
+- **Testing**: XCTest (80% coverage minimum)
 
-### Key Implementation Details
-- **NO "low stock" or "out of stock" references** - This is for personal belongings
-- **Focus on documentation completeness** - Missing photos, receipts, serial numbers
-- **Insurance-first features** - Everything oriented toward disaster preparedness
+### Project Configuration
+- **Bundle ID**: `com.drunkonjava.nestory` (prod)
+  - Dev: `com.drunkonjava.nestory.dev`
+  - Staging: `com.drunkonjava.nestory.staging`
+- **Team ID**: `2VXBQV4XC9`
+- **Current Version**: 1.0.1 (Build 4)
+- **Xcode Version**: 15.0+
+- **Code Signing**: Automatic
+- **Swift Compilation**: Whole module optimization
 
-## 🎯 PRIME DIRECTIVES
-1. **SPEC.json is LAW** - Never modify. All architecture decisions flow from it.
-2. **Build incrementally** - Complete small working features, not partial large ones.
-3. **ALWAYS WIRE UP IMPLEMENTATIONS** - Every service/feature MUST be accessible from the UI. No orphaned code!
-4. **No placeholders** - Every `TODO` or `FIXME` must reference `ADR-\d+` or be rejected.
-5. **Test everything** - 80% coverage minimum. No untested code ships.
-6. **Fail fast** - If uncertain about architecture compliance, run `nestoryctl arch-verify` immediately.
-7. **ALWAYS USE iPhone 16 Plus** - When building/testing in simulator, always use "iPhone 16 Plus" as the target device.
+### Core Dependencies
+- **ComposableArchitecture**: State management & architecture
+- **SwiftData**: Local persistence
+- **CloudKit**: Cloud sync & backup
+- **Vision Framework**: Receipt OCR
+- **PDFKit**: Insurance report generation
+- **AVFoundation**: Camera/photo capture
+- **StoreKit 2**: Future monetization
 
-## 📐 ARCHITECTURE (IMMUTABLE)
+### Data Models (SwiftData)
+- **Item**: Core inventory item with photos, value, location
+- **Category**: Item categorization system
+- **Room**: Location organization
+- **Warranty**: Warranty tracking with expiration
+- **Receipt**: Purchase documentation with OCR
+- **ClaimSubmission**: Insurance claim records
+- **DamageAssessment**: Damage documentation workflows
+
+### Services Architecture
+- **InventoryService**: Core CRUD operations
+- **InsuranceReportService**: PDF generation
+- **ReceiptOCRService**: Receipt scanning & extraction
+- **AnalyticsService**: Value insights & statistics
+- **NotificationService**: Warranty expiration alerts
+- **ImportExportService**: CSV/JSON data management
+- **CloudBackupService**: CloudKit sync management
+- **DamageAssessmentService**: Damage documentation workflows
+- **WarrantyTrackingService**: Warranty lifecycle management
+
+### Performance SLOs
+- **Cold Start P95**: < 1800ms
+- **DB Read P95**: < 250ms (50 items)
+- **Scroll Jank**: < 3%
+- **Crash-Free Rate**: > 99.8%
+- **Build Time**: ~30s (fast-build with 10 cores)
+
+## 🏗️ ARCHITECTURE
+
+### 6-Layer TCA Architecture (STRICT)
 ```
-App → Services → Infrastructure → Foundation
-     ↘ UI ↗
-```
-**Current Implementation Note**: The project currently uses a **4-layer architecture** without a separate Features layer. Services are accessed directly from App-Main views using `@StateObject` patterns.
-
-- **App-Main**: Main views and entry points. Imports UI+Services+Foundation.
-- **Services**: Domain APIs with @MainActor and ObservableObject. Import Infrastructure+Foundation ONLY.
-- **UI**: Shared components. Import Foundation ONLY. NO business logic.
-- **Infrastructure**: Technical adapters (Cache, Network, Security). Import Foundation ONLY.
-- **Foundation**: Pure types/models (Item, Category, Money). NO imports except Swift stdlib.
-
-### Instant Violation Check
-```swift
-// ILLEGAL: App-Main → Infrastructure
-import NetworkClient // ❌ Must go through Services
-
-// ILLEGAL: UI → Services  
-import InventoryService // ❌ UI components must be pure
-
-// LEGAL: App-Main → Services
-@StateObject private var inventoryService = InventoryService() // ✅
-
-// LEGAL: Services → Infrastructure
-import NetworkClient // ✅ Services can use infrastructure
+App → Features → UI → Services → Infrastructure → Foundation
+        ↘     ↗
 ```
 
-## 🏗️ CODE GENERATION RULES
+**Layer Import Rules (SPEC.json is LAW):**
+- **App**: Can import Features, UI, Services, Infrastructure, Foundation, ComposableArchitecture
+- **Features**: Can import UI, Services, Foundation, ComposableArchitecture ONLY
+- **UI**: Can import Foundation ONLY (pure components, NO business logic)
+- **Services**: Can import Infrastructure, Foundation ONLY
+- **Infrastructure**: Can import Foundation ONLY
+- **Foundation**: NO imports except Swift stdlib
 
-### File Headers (MANDATORY)
+### File Header Template (MANDATORY)
 ```swift
 //
-// Layer: Foundation|Infrastructure|Services|UI|Features|App
+// Layer: [Foundation|Infrastructure|Services|UI|Features|App]
 // Module: [ModuleName]
 // Purpose: [One line description]
 //
-
-import [ONLY_ALLOWED_IMPORTS]
 ```
 
-### SwiftData Models Pattern
-```swift
-@Model
-final class Item {
-    // Required properties with defaults
-    var id = UUID()
-    var createdAt = Date()
-    var updatedAt = Date()
-    
-    // Optional relationships
-    var category: Category?
-    
-    // Required init for non-optionals
-    init(name: String) {
-        self.name = name
-    }
-}
-```
+## 🛠️ ESSENTIAL COMMANDS
 
-### Current Service Pattern (No TCA)
-```swift
-// Services use @MainActor and ObservableObject patterns
-@MainActor
-public final class InventoryService: ObservableObject {
-    @Published public var items: [Item] = []
-    @Published public var isLoading = false
-    
-    private let modelContext: ModelContext
-    private let cache: Cache<UUID, Item>
-    
-    public init(modelContext: ModelContext) throws {
-        self.modelContext = modelContext
-        self.cache = try Cache(name: "inventory")
-    }
-    
-    public func fetchItems() async throws -> [Item] {
-        isLoading = true
-        defer { isLoading = false }
-        
-        let descriptor = FetchDescriptor<Item>(
-            sortBy: [SortDescriptor(\.updatedAt, order: .reverse)]
-        )
-        let items = try modelContext.fetch(descriptor)
-        self.items = items
-        return items
-    }
-}
-```
-
-### Protocol-First Service Design
-```swift
-// Define protocol for testability
-public protocol InventoryServiceProtocol: Sendable {
-    func fetchItems() async throws -> [Item]
-    func saveItem(_ item: Item) async throws
-    func searchItems(query: String) async throws -> [Item]
-}
-
-// Live implementation with SwiftData
-public struct LiveInventoryService: InventoryServiceProtocol {
-    private let modelContext: ModelContext
-    private let cache: Cache<UUID, Item>
-    
-    public init(modelContext: ModelContext) throws {
-        self.modelContext = modelContext
-        self.cache = try Cache(name: "inventory")
-    }
-    
-    public func fetchItems() async throws -> [Item] {
-        let descriptor = FetchDescriptor<Item>()
-        return try modelContext.fetch(descriptor)
-    }
-}
-```
-
-## ⚡ PERFORMANCE CONTRACTS
-```swift
-// ALWAYS measure critical paths
-let signpost = OSSignposter()
-let state = signpost.beginInterval("fetch_items")
-defer { signpost.endInterval("fetch_items", state) }
-
-// ALWAYS batch database operations
-try await database.transaction { context in
-    items.forEach { context.insert($0) }
-}
-
-// ALWAYS use lazy loading for lists
-LazyVStack {
-    ForEach(items) { item in
-        ItemRow(item: item)
-            .onAppear { loadMoreIfNeeded(item) }
-    }
-}
-```
-
-## 🔒 SECURITY PATTERNS
-```swift
-// ALWAYS use Keychain for secrets
-let secret = try Keychain.load("api_key") ?? Secrets.fallback
-
-// ALWAYS encrypt sensitive data
-let encrypted = try CryptoBox.encrypt(data, using: key)
-
-// ALWAYS validate inputs
-guard let validated = NonEmptyString(rawValue: input) else {
-    throw ValidationError.empty
-}
-```
-
-## 🧪 TEST REQUIREMENTS
-
-### Unit Test Pattern
-```swift
-@MainActor
-final class InventoryServiceTests: XCTestCase {
-    var liveService: LiveInventoryService!
-    var modelContainer: ModelContainer!
-    var modelContext: ModelContext!
-
-    override func setUp() async throws {
-        super.setUp()
-        
-        // Create in-memory model container for testing
-        let config = ModelConfiguration(isStoredInMemoryOnly: true)
-        modelContainer = try ModelContainer(
-            for: Item.self, Category.self,
-            configurations: config
-        )
-        modelContext = ModelContext(modelContainer)
-        liveService = try LiveInventoryService(modelContext: modelContext)
-    }
-
-    func testFetchItems() async throws {
-        let item = Item(name: "Test Item")
-        modelContext.insert(item)
-        try modelContext.save()
-        
-        let items = try await liveService.fetchItems()
-        XCTAssertEqual(items.count, 1)
-        XCTAssertEqual(items.first?.name, "Test Item")
-    }
-}
-```
-
-### UI Test Pattern
-```swift
-// Run single UI test with:
-// xcodebuild test -scheme Nestory-Dev -destination 'platform=iOS Simulator,name=iPhone 16 Plus' -only-testing:NestoryUITests/testInventoryFlow
-
-@MainActor
-final class InventoryUITests: XCTestCase {
-    var app: XCUIApplication!
-    
-    override func setUp() {
-        continueAfterFailure = false
-        app = XCUIApplication()
-        app.launch()
-    }
-    
-    func testInventoryFlow() {
-        // Navigate to inventory tab
-        app.tabBars.buttons["Inventory"].tap()
-        
-        // Test add item button
-        app.navigationBars.buttons["Add Item"].tap()
-        
-        // Fill out form
-        let nameField = app.textFields["Item Name"]
-        nameField.tap()
-        nameField.typeText("Test Item")
-        
-        // Save item
-        app.buttons["Save"].tap()
-        
-        // Verify item appears
-        XCTAssertTrue(app.staticTexts["Test Item"].exists)
-    }
-}
-```
-
-## 🚨 ERROR HANDLING
-
-### Always Graceful Degradation
-```swift
-// NEVER crash on missing credentials
-let apiKey = ProcessInfo.processInfo.environment["API_KEY"] ?? "DEMO_KEY"
-
-// NEVER show raw errors to users
-do {
-    try await performOperation()
-} catch {
-    logger.error("Operation failed: \(error)")
-    state.alert = .init(title: "Something went wrong", 
-                        message: "Please try again")
-}
-
-// ALWAYS provide offline fallbacks
-if !networkAvailable {
-    return cachedData ?? .empty
-}
-```
-
-## 🛠️ MAKEFILE SYSTEM
-
-### Purpose
-The Makefile serves as the **single source of truth** for all project operations, ensuring consistency across different chat sessions and context windows.
-
-### Key Commands for Every Session
-
+### Development Workflow
 ```bash
-# Start of session
-make doctor      # Verify project setup
-make context     # Generate CURRENT_CONTEXT.md for session continuity
+# Build and run (always iPhone 16 Pro Max)
+make run          # Build and launch in simulator
+make build        # Build only
+make fast-build   # Optimized parallel build
 
-# Development workflow  
-make run         # ALWAYS builds and runs on iPhone 16 Plus
-make build       # Build with consistent settings
-make check       # Run ALL verification checks
+# Testing
+make test         # Run all tests
+make test-unit    # Unit tests only
+make test-ui      # UI tests on iPhone 16 Plus
+swift test --filter [TestName]  # Run specific test
 
-# Testing (critical)
-make test        # Run Swift Package Manager tests
-make test-xcode  # Run Xcode tests (includes UI tests)
-make test-ui     # Run UI tests only on iPhone 16 Plus
-swift test --filter InventoryServiceTests  # Run single test suite
+# Architecture Verification
+make verify-arch  # Check layer compliance
+make verify-wiring # Ensure all services wired to UI
+make check        # Run ALL checks (build, test, lint, arch)
 
-# Verify compliance
-make verify-wiring      # Ensure all services are wired to UI
-make verify-no-stock    # Check for inappropriate inventory references
-make verify-arch        # Verify architecture compliance
+# Quick Shortcuts
+make r  # run
+make b  # build
+make c  # check
+make d  # doctor (diagnose issues)
 
-# Code quality
-make lint        # Run SwiftLint
-make format      # Run SwiftFormat
-
-# Quick shortcuts
-make r           # Shortcut for run
-make b           # Shortcut for build
-make c           # Shortcut for check
-make d           # Shortcut for doctor
+# Utilities
+make context      # Generate CURRENT_CONTEXT.md for session continuity
+make stats        # Project statistics
+make todo         # List all TODOs
+make clean        # Clean build artifacts
 ```
 
-### Development Tools
-
+### UI Testing Commands
 ```bash
-# Create new components
-make new-service NAME=MyService    # Create properly formatted service
-make new-feature NAME=MyFeature    # Create feature scaffold
-
-# Project maintenance
-make stats       # Show project statistics
-make todo        # List all TODOs
-make clean       # Clean build artifacts
-make fix         # Emergency rebuild when things go wrong
+# Run specific UI test
+xcodebuild test -scheme Nestory-Dev \
+  -destination 'platform=iOS Simulator,name=iPhone 16 Pro Max' \
+  -only-testing:NestoryUITests/[TestClass]/[testMethod]
 ```
 
-### Critical Enforcement
+## 🎯 CRITICAL IMPLEMENTATION RULES
 
-The Makefile **automatically enforces**:
-- ✅ iPhone 16 Plus simulator usage (no more simulator confusion!)
-- ✅ All services must be wired to UI (catches orphaned code)
-- ✅ No business inventory references (insurance focus only)
-- ✅ Architecture layer compliance
-- ✅ Proper service template with @MainActor and ObservableObject
+1. **ALWAYS WIRE UP IMPLEMENTATIONS** - Every service/feature MUST be accessible from UI
+2. **NO ORPHANED CODE** - Everything must be reachable from user interaction
+3. **TCA DEPENDENCY INJECTION** - All services use `@Dependency` in Features
+4. **SWIFTDATA MODELS** - Always include defaults and handle CloudKit compatibility
+5. **ERROR HANDLING** - Never use force unwraps (try!), always graceful degradation
+6. **SIMULATOR TARGET** - ALWAYS use iPhone 16 Pro Max for consistency
 
-### Context Preservation
-
-**ALWAYS run at session start:**
-```bash
-make context
-```
-
-This generates `CURRENT_CONTEXT.md` containing:
-- Current wiring status
-- Active services and views
-- Project rules and reminders
-- Git status
-- Recent TODOs
-
-Share this file when starting new chat sessions to maintain continuity!
-
-## 🚀 DEPLOYMENT & CI/CD
-
-### Current Status
-- **Production Ready**: TestFlight build 3 successfully deployed
-- **App Store Connect**: Full API integration with automated workflows
-- **FastLane**: Complete CI/CD pipeline configured
-
-### Deployment Commands
-```bash
-# Fastlane deployment (requires credentials)
-bundle exec fastlane beta              # Build and upload to TestFlight
-bundle exec fastlane release           # Submit to App Store
-bundle exec fastlane screenshots       # Generate App Store screenshots
-
-# Local testing
-make archive                           # Create .xcarchive for distribution
-make screenshot                        # Capture UI test screenshots
-```
-
-### App Store Connect Integration
-The project includes sophisticated App Store Connect automation:
-- **AppStoreConnectOrchestrator**: High-level workflow management
-- **AppMetadataService**: Metadata and version management  
-- **MediaUploadService**: Screenshot and asset upload
-- **EncryptionDeclarationService**: Export compliance automation
-
-### Build Configuration
-- **Project Generation**: Uses XcodeGen with project.yml
-- **Swift 6**: Strict concurrency in Release, minimal in Debug  
-- **Simulator Target**: iPhone 16 Plus (enforced by Makefile)
-- **Deployment Target**: iOS 17.0+
-
-## 📋 SESSION BEHAVIOR
-
-### Start Every Response With
-1. Run `make doctor` to verify setup
-2. Check what layer/module we're in
-3. Verify allowed imports for that layer
-4. Read relevant parts of SPEC.json
-
-### Before Writing Code
-1. State the layer explicitly: "Creating in Services layer..."
-2. List allowed imports: "Can import: Infrastructure, Foundation"
-3. Identify the pattern: "Using Service protocol pattern..."
-
-### After Writing Code
-1. Show the file header with Layer tag
-2. Confirm no illegal imports
-3. **CRITICAL: Show exactly how to wire this up in the UI**
-4. Run `make verify-wiring` to ensure it's accessible
-5. Suggest the verification command: `make check`
-
-## ⚠️ IMPLEMENTATION CHECKLIST
-
-**EVERY new feature/service MUST have:**
-- [ ] Service/Logic implementation
-- [ ] UI component/view
-- [ ] **WIRED UP in existing navigation** (Tab, Sheet, Navigation Link, Button)
-- [ ] Accessible from user interaction
-- [ ] Build verification after wiring
-
-**Example: Receipt OCR was created but NOT wired up initially:**
-```swift
-// ❌ WRONG: Created ReceiptOCRService and ReceiptCaptureView
-// But no way for users to access it!
-
-// ✅ RIGHT: Added to ItemDetailView
-GroupBox("Receipt Documentation") {
-    Button("Add Receipt") { 
-        showingReceiptCapture = true  // WIRED UP!
-    }
-}
-.sheet(isPresented: $showingReceiptCapture) {
-    ReceiptCaptureView(item: item)  // ACCESSIBLE!
-}
-```
-
-## 🔧 QUICK PATTERNS
-
-### Need to Share Data?
-```swift
-// Use Services, not direct Feature→Feature
-// Feature A → Service → Feature B
-```
-
-### Need Service Integration?
-```swift
-// Use @StateObject in views
-struct InventoryListView: View {
-    @StateObject private var inventoryService = InventoryService()
-    
-    var body: some View {
-        List(inventoryService.items) { item in
-            ItemRow(item: item)
-        }
-        .task {
-            try? await inventoryService.fetchItems()
-        }
-    }
-}
-```
-
-### Need Navigation?
-```swift
-// Use @State for sheet/navigation presentation
-struct ContentView: View {
-    @State private var showingAddItem = false
-    @State private var selectedItem: Item?
-    
-    var body: some View {
-        NavigationStack {
-            // Content here
-        }
-        .sheet(isPresented: $showingAddItem) {
-            AddItemView()
-        }
-        .sheet(item: $selectedItem) { item in
-            ItemDetailView(item: item)
-        }
-    }
-}
-```
-
-### Need Async Image Loading?
-```swift
-// Use AsyncImage with cache
-AsyncImage(url: url) { image in
-    image.resizable().aspectRatio(contentMode: .fit)
-} placeholder: {
-    ProgressView()
-}
-.onAppear { ImageCache.prefetch(url) }
-```
-
-## 🔌 WIRING CHECKLIST - NEVER SKIP THIS!
+## 📋 SERVICE WIRING CHECKLIST
 
 When implementing ANY new feature:
+1. Create Service/Logic ✓
+2. Create View/UI ✓
+3. **WIRE IT UP** ← Most important!
+4. Test in Simulator ✓
 
-1. **Create the Service/Logic** ✓
-2. **Create the View/UI** ✓  
-3. **WIRE IT UP** ⚠️ **← MOST IMPORTANT STEP**
-4. **Test in Simulator** ✓
+### Where to Wire Features
 
-### Where to Wire Features:
-
-| Feature Type | Wire Location | How to Wire |
-|-------------|---------------|-------------|
+| Feature Type | Wire Location | How |
+|-------------|---------------|-----|
 | Item-specific | ItemDetailView | Add button/section with sheet/navigation |
 | Global utility | SettingsView | Add to Import/Export section |
-| Browse/Search | SearchView | Add filter or search syntax |
+| Search feature | SearchView | Add filter or syntax |
 | Analytics | AnalyticsDashboardView | Add chart/insight |
-| Category | CategoriesView | Add management option |
-| New major feature | ContentView | Add new tab |
+| New major feature | ContentView/RootView | Add new tab |
 
-### Wiring Examples:
+## 🔧 TCA PATTERNS
 
+### Feature Pattern
 ```swift
-// ALWAYS add @State for presentation
-@State private var showingFeature = false
-
-// ALWAYS add trigger in UI
-Button("Access Feature") {
-    showingFeature = true
+@Reducer
+struct MyFeature {
+    @ObservableState
+    struct State: Equatable { /* ... */ }
+    
+    enum Action { /* ... */ }
+    
+    @Dependency(\.myService) var myService
+    
+    var body: some ReducerOf<Self> {
+        Reduce { state, action in
+            // Handle actions
+        }
+    }
 }
+```
 
-// ALWAYS add presentation modifier
-.sheet(isPresented: $showingFeature) {
-    YourFeatureView()
+### Service Dependency
+```swift
+// In ServiceDependencyKeys.swift
+enum MyServiceKey: @preconcurrency DependencyKey {
+    static var liveValue: any MyService {
+        do {
+            return try LiveMyService()
+        } catch {
+            print("⚠️ Failed to create MyService: \(error)")
+            return MockMyService() // Graceful degradation
+        }
+    }
 }
 ```
 
-## ⛔ NEVER DO THIS
+## 🚨 COMMON PITFALLS TO AVOID
 
-### Never Cross Features
+1. **Cross-layer imports** - Features importing Infrastructure (must go through Services)
+2. **Force unwraps** - Replace try! with proper error handling
+3. **Missing wiring** - Creating features without UI access points
+4. **Stock references** - This is for personal items, not business inventory
+5. **Hardcoded secrets** - Use ProcessInfo.environment or Keychain
+6. **Skipping verification** - Always run `make verify-arch` after changes
+
+## 📊 PROJECT STATUS
+
+### Current Implementation
+- ✅ **Core Inventory**: Item management with photos
+- ✅ **Insurance Reports**: PDF generation for claims
+- ✅ **Receipt OCR**: Automatic data extraction
+- ✅ **Analytics Dashboard**: Value insights & statistics
+- ✅ **Search System**: Advanced filters & syntax
+- ✅ **Import/Export**: CSV/JSON data management
+- ✅ **Warranty Tracking**: Expiration alerts
+- ✅ **CloudKit Sync**: Backup & multi-device support
+
+### Deployment Status
+- **TestFlight**: Build 3 (active)
+- **App Store**: Not yet submitted
+- **CI/CD**: Fastlane configured
+- **Architecture Compliance**: Enforced via nestoryctl
+
+### Quality Metrics
+- **Test Coverage**: Target 80% minimum
+- **SwiftLint Rules**: 95+ active rules
+- **Architecture Violations**: 0 tolerance
+- **Documentation**: All public APIs documented
+
+## 🔍 QUICK ARCHITECTURE CHECK
+
 ```swift
-// ❌ WRONG
-import Analytics // from inside Inventory
+// ❌ ILLEGAL
+import NetworkClient  // in Features layer
+import InventoryService  // in UI layer
 
-// ✅ RIGHT
-@Dependency(\.analyticsService) var analytics
+// ✅ LEGAL
+@Dependency(\.inventoryService) var service  // in Features
+import Foundation  // in any layer
 ```
 
-### Never Expose Infrastructure
-```swift
-// ❌ WRONG - Feature using URLSession
-let (data, _) = try await URLSession.shared.data(from: url)
-
-// ✅ RIGHT - Feature using Service
-let data = try await networkService.fetch(from: url)
-```
-
-### Never Skip Tests
-```swift
-// ❌ WRONG
-// TODO: Add tests later
-
-// ✅ RIGHT
-// Tests in Tests/Unit/[Module]/[Feature]Tests.swift
-```
-
-### Never Hardcode Secrets
-```swift
-// ❌ WRONG
-let apiKey = "sk-abc123xyz789"
-
-// ✅ RIGHT
-let apiKey = ProcessInfo.processInfo.environment["API_KEY"] ?? "DEMO"
-```
-
-## 🎓 DECISION FLOWCHART
-
-```mermaid
-graph TD
-    A[Need to add feature?] --> B{Which layer?}
-    B -->|New screen| C[Features/]
-    B -->|Shared UI| D[UI/]
-    B -->|Business logic| E[Services/]
-    B -->|Technical| F[Infrastructure/]
-    B -->|Data model| G[Foundation/]
-    
-    C --> H{Check imports}
-    D --> H
-    E --> H
-    F --> H
-    G --> H
-    
-    H -->|Valid| I[Write code]
-    H -->|Invalid| J[Run arch-verify]
-    
-    I --> K[Write tests]
-    K --> L[Run nestoryctl check]
-```
-
-## 🚀 PHASE-SPECIFIC HINTS
-
-### Phase A (Foundation)
-- Focus on value objects and invariants
-- SwiftData models are immutable schema after v1
-- Every model needs init with required fields
-
-### Phase B (Infrastructure)
-- All IO must be abstracted
-- Circuit breakers on all network calls
-- File operations need proper error handling
-
-### Phase C (Services)
-- Protocol-first design
-- Every service needs mock for tests
-- TCA dependency keys go in single file
-
-### Phase D (Inventory)
-- This makes the app runnable - must be complete
-- Include all CRUD operations
-- Performance test with 500+ items
-
-### Phase E (Capture)
-- Vision framework for OCR
-- AVFoundation for camera
-- Graceful fallback if no camera access
-
-### Phase F (Analytics)
-- Use Swift Charts, not third-party
-- Memoize expensive calculations
-- Export must handle large datasets
-
-### Phase G (Sharing)
-- CloudKit zones per share
-- Role enforcement in Service layer
-- Offline queue for pending invites
-
-### Phase H (Monetization)
-- StoreKit 2 only, no legacy
-- Products from local config for testing
-- Entitlements drive feature gates
-
-## 📊 QUALITY METRICS
-
-### Every File Must
-- [ ] Compile without warnings
-- [ ] Have 80%+ test coverage
-- [ ] Include layer header comment
-- [ ] Pass SwiftLint rules
-- [ ] Handle errors gracefully
-
-### Every Feature Must
-- [ ] Work offline (degraded is OK)
-- [ ] Support iPhone + iPad
-- [ ] Support Dark Mode
-- [ ] Support Dynamic Type
-- [ ] Include VoiceOver labels
-
-### Every Commit Must
-- [ ] Pass `nestoryctl check`
-- [ ] Include conventional message
-- [ ] Update PROJECT_CONTEXT.md
-- [ ] Not break existing tests
-
-## 💡 POWER MOVES
-
-### Instant Architecture Check
-```bash
-alias noch="./DevTools/nestoryctl/.build/release/nestoryctl check"
-```
-
-### Quick Feature Scaffold
-```swift
-// Generate in correct folder structure
-Features/[Name]/
-├── [Name]Feature.swift      # TCA Reducer
-├── [Name]View.swift         # SwiftUI View  
-├── [Name]Models.swift       # Local types
-└── [Name]DI.swift          # Dependencies
-```
-
-### Test Coverage Report
-```bash
-swift test --enable-code-coverage
-xcrun llvm-cov report .build/debug/*.xctest/Contents/MacOS/* \
-    -instr-profile .build/debug/codecov/default.profdata
-```
-
-### Performance Baseline Update
-```bash
-swift test --filter Performance
-# If acceptable: update Tests/Performance/baselines.json
-# Document why in DECISIONS.md
-```
-
-## 🎯 SUCCESS CRITERIA
-
-You know you're doing it right when:
-1. **No architecture violations** - `arch-verify` always passes
-2. **Tests pass first try** - Well-structured code tests easily  
-3. **Features are independent** - Can develop in parallel
-4. **Performance is predictable** - Baselines rarely need updates
-5. **Code reviews are boring** - Patterns are consistent
-
-## 🔄 CONTINUOUS LOOP
-
-```bash
-while developing; do
-    read SPEC.json
-    check layer rules
-    write code
-    run tests
-    run nestoryctl check
-    commit
-done
-```
-
----
-
-**Remember**: You're building production-grade iOS architecture. Every decision matters. Every pattern compounds. Build it right the first time.
-
-**Your primary job**: Transform requirements into compliant, tested, performant code that respects the 6-layer architecture without exception.
-
-**When in doubt**: Check SPEC.json → Run arch-verify → Ask for clarification → Then proceed.
+Remember: SPEC.json defines the architecture. When uncertain, check allowed imports there.

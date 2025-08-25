@@ -17,6 +17,7 @@ extension Log {
         /// Optional session identifier
         public let sessionId: String?
         /// Optional device identifier
+        // APPLE_FRAMEWORK_OPPORTUNITY: Replace with DeviceCheck - Use DCDevice.current.generateToken() for secure device identification instead of custom device ID
         public let deviceId: String?
         /// Optional application version
         public let appVersion: String?

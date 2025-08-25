@@ -10,6 +10,7 @@ import XCTest
 
 // MARK: - Element Query Extensions
 
+@MainActor
 extension XCUIApplication {
     /// Find tab bar button with enhanced error handling
     /// - Parameter name: Tab name to find
@@ -67,6 +68,7 @@ extension XCUIApplication {
 
 // MARK: - Element Interaction Extensions
 
+@MainActor
 extension XCUIElement {
     /// Enhanced tap with retry and validation
     /// - Parameters:
@@ -177,19 +179,14 @@ struct WaitHelpers {
         _ elements: [XCUIElement],
         timeout: TimeInterval = 10.0,
     ) -> Bool {
-        let group = DispatchGroup()
-        var results: [Bool] = Array(repeating: false, count: elements.count)
-
-        for (index, element) in elements.enumerated() {
-            group.enter()
-            DispatchQueue.global().async {
-                results[index] = element.waitForExistence(timeout: timeout)
-                group.leave()
+        let start = Date()
+        repeat {
+            if elements.allSatisfy({ $0.exists }) {
+                return true
             }
-        }
-
-        let result = group.wait(timeout: .now() + timeout)
-        return result == .success && results.allSatisfy(\.self)
+            Thread.sleep(forTimeInterval: 0.1)
+        } while Date().timeIntervalSince(start) < timeout
+        return false
     }
 
     /// Wait for element to disappear
@@ -324,7 +321,6 @@ struct DebugHelpers {
         print("""
         📱 App State:
         - State: \(app.state.rawValue)
-        - PID: \(app.processID)
         - Launch Arguments: \(app.launchArguments)
         - Launch Environment: \(app.launchEnvironment)
         """)
@@ -338,14 +334,23 @@ struct DebugHelpers {
     }
 }
 
-// MARK: - Performance Helpers
+// Convenience global wrappers expected by tests
+@MainActor
+func measureTime<T: Sendable>(_ operation: () throws -> T) rethrows -> (result: T, time: TimeInterval) {
+    try PerformanceHelpers.measureTime(operation)
+}
+
+@MainActor
+func measureAsyncTime<T: Sendable>(_ operation: () async throws -> T) async rethrows -> (result: T, time: TimeInterval) {
+    try await PerformanceHelpers.measureAsyncTime(operation)
+}
 
 @MainActor
 struct PerformanceHelpers {
     /// Measure time for UI operation
     /// - Parameter operation: Operation to measure
     /// - Returns: Time taken in seconds
-    static func measureTime<T>(_ operation: () throws -> T) rethrows -> (result: T, time: TimeInterval) {
+    static func measureTime<T: Sendable>(_ operation: () throws -> T) rethrows -> (result: T, time: TimeInterval) {
         let startTime = CFAbsoluteTimeGetCurrent()
         let result = try operation()
         let timeElapsed = CFAbsoluteTimeGetCurrent() - startTime
@@ -355,7 +360,7 @@ struct PerformanceHelpers {
     /// Measure async operation time
     /// - Parameter operation: Async operation to measure
     /// - Returns: Time taken in seconds
-    static func measureAsyncTime<T>(_ operation: () async throws -> T) async rethrows -> (result: T, time: TimeInterval) {
+    static func measureAsyncTime<T: Sendable>(_ operation: () async throws -> T) async rethrows -> (result: T, time: TimeInterval) {
         let startTime = CFAbsoluteTimeGetCurrent()
         let result = try await operation()
         let timeElapsed = CFAbsoluteTimeGetCurrent() - startTime

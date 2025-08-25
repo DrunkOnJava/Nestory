@@ -10,28 +10,33 @@ import SwiftData
 public final class Warranty: @unchecked Sendable {
     // MARK: - Properties
 
-    @Attribute(.unique)
-    public var id: UUID
+    // CloudKit compatible: removed .unique constraint
+    public var id: UUID = UUID()
 
-    public var provider: String
-    public var warrantyType: String // "manufacturer", "extended", "dealer", "third-party"
-    public var startDate: Date
-    public var expiresAt: Date
+    public var provider: String = ""
+    public var warrantyType: String = "manufacturer" // "manufacturer", "extended", "dealer", "third-party"
+    public var startDate: Date = Date()
+    public var expiresAt: Date = Date()
     public var coverageNotes: String?
     public var claimPhone: String?
     public var claimEmail: String?
     public var claimWebsite: String?
     public var policyNumber: String?
     public var documentFileName: String?
+    
+    // Registration tracking
+    public var isRegistered: Bool = false
+    public var registrationDate: Date?
+    public var confirmationNumber: String?
 
     // Timestamps
-    public var createdAt: Date
-    public var updatedAt: Date
+    public var createdAt: Date = Date()
+    public var updatedAt: Date = Date()
 
     // MARK: - Relationships
 
     @Relationship(inverse: \Item.warranty)
-    public var item: Item?
+    public var item: Item? // CloudKit compatible optional relationship
 
     // MARK: - Initialization
 
@@ -42,14 +47,15 @@ public final class Warranty: @unchecked Sendable {
         expiresAt: Date,
         item: Item? = nil
     ) {
-        id = UUID()
+        // Override defaults with provided values
+        self.id = UUID()
         self.provider = provider
-        warrantyType = type.rawValue
+        self.warrantyType = type.rawValue
         self.startDate = startDate
         self.expiresAt = expiresAt
         self.item = item
-        createdAt = Date()
-        updatedAt = Date()
+        self.createdAt = Date()
+        self.updatedAt = Date()
     }
 
     // MARK: - Computed Properties
@@ -77,6 +83,12 @@ public final class Warranty: @unchecked Sendable {
         return components.month ?? 0
     }
 
+    /// Backward compatibility for endDate references
+    public var endDate: Date {
+        get { expiresAt }
+        set { expiresAt = newValue }
+    }
+    
     /// Check if warranty is currently active
     public var isActive: Bool {
         let now = Date()
@@ -190,6 +202,7 @@ public enum WarrantyType: String, CaseIterable, Codable {
     case thirdParty = "third-party"
     case insurance
     case service
+    case store
 
     public var displayName: String {
         switch self {
@@ -199,6 +212,7 @@ public enum WarrantyType: String, CaseIterable, Codable {
         case .thirdParty: "Third-Party Warranty"
         case .insurance: "Insurance Coverage"
         case .service: "Service Contract"
+        case .store: "Store Warranty"
         }
     }
 
@@ -210,6 +224,15 @@ public enum WarrantyType: String, CaseIterable, Codable {
         case .thirdParty: "person.3.fill"
         case .insurance: "umbrella.fill"
         case .service: "wrench.and.screwdriver.fill"
+        case .store: "storefront.fill"
         }
+    }
+}
+
+// MARK: - TCA Compatibility
+
+extension Warranty: Equatable {
+    public static func == (lhs: Warranty, rhs: Warranty) -> Bool {
+        lhs.id == rhs.id && lhs.updatedAt == rhs.updatedAt
     }
 }

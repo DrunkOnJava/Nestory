@@ -114,23 +114,23 @@ extension LiveNotificationService {
         let defaults = UserDefaults.standard
 
         if let warrantyEnabled {
-            defaults.set(warrantyEnabled, forKey: NotificationSettings.warrantyNotificationsEnabled)
+            defaults.set(warrantyEnabled, forKey: NotificationDefaults.warrantyNotificationsEnabled)
         }
 
         if let insuranceEnabled {
-            defaults.set(insuranceEnabled, forKey: NotificationSettings.insuranceNotificationsEnabled)
+            defaults.set(insuranceEnabled, forKey: NotificationDefaults.insuranceNotificationsEnabled)
         }
 
         if let documentEnabled {
-            defaults.set(documentEnabled, forKey: NotificationSettings.documentNotificationsEnabled)
+            defaults.set(documentEnabled, forKey: NotificationDefaults.documentNotificationsEnabled)
         }
 
         if let maintenanceEnabled {
-            defaults.set(maintenanceEnabled, forKey: NotificationSettings.maintenanceNotificationsEnabled)
+            defaults.set(maintenanceEnabled, forKey: NotificationDefaults.maintenanceNotificationsEnabled)
         }
 
         if let notificationDays {
-            defaults.set(notificationDays, forKey: NotificationSettings.warrantyNotificationDays)
+            defaults.set(notificationDays, forKey: NotificationDefaults.warrantyNotificationDays)
         }
     }
 
@@ -144,12 +144,12 @@ extension LiveNotificationService {
         let defaults = UserDefaults.standard
 
         return (
-            warranty: defaults.bool(forKey: NotificationSettings.warrantyNotificationsEnabled),
-            insurance: defaults.bool(forKey: NotificationSettings.insuranceNotificationsEnabled),
-            document: defaults.bool(forKey: NotificationSettings.documentNotificationsEnabled),
-            maintenance: defaults.bool(forKey: NotificationSettings.maintenanceNotificationsEnabled),
-            days: defaults.array(forKey: NotificationSettings.warrantyNotificationDays) as? [Int] ??
-                NotificationSettings.defaultNotificationDays,
+            warranty: defaults.bool(forKey: NotificationDefaults.warrantyNotificationsEnabled),
+            insurance: defaults.bool(forKey: NotificationDefaults.insuranceNotificationsEnabled),
+            document: defaults.bool(forKey: NotificationDefaults.documentNotificationsEnabled),
+            maintenance: defaults.bool(forKey: NotificationDefaults.maintenanceNotificationsEnabled),
+            days: defaults.array(forKey: NotificationDefaults.warrantyNotificationDays) as? [Int] ??
+                NotificationDefaults.defaultNotificationDays,
         )
     }
 }

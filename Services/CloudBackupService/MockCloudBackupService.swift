@@ -32,9 +32,9 @@ public final class MockCloudBackupService: CloudBackupService {
     public init() {
         // Set up some default mock data
         mockBackupInfo = BackupMetadata(
-            date: Date(),
+            forCloudBackup: Date(),
             itemCount: 42,
-            deviceName: "Mock Device",
+            deviceName: "Mock Device"
         )
 
         mockRestoreResult = RestoreResult(

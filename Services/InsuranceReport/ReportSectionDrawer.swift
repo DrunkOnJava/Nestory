@@ -16,7 +16,7 @@ public struct ReportSectionDrawer {
     public func drawHeader(
         in _: UIGraphicsPDFRendererContext,
         at yPosition: CGFloat,
-        metadata: InsuranceReportService.ReportMetadata,
+        metadata: ReportMetadata,
     ) -> CGFloat {
         let titleAttributes: [NSAttributedString.Key: Any] = [
             .font: UIFont.boldSystemFont(ofSize: PDFConstants.FontSize.title),
@@ -38,7 +38,7 @@ public struct ReportSectionDrawer {
         let subtitle = "Generated: \(dateFormatter.string(from: metadata.generatedDate))"
         subtitle.draw(at: CGPoint(x: PDFConstants.Indent.none, y: yPosition + PDFConstants.LineHeight.title), withAttributes: subtitleAttributes)
 
-        let reportId = "Report ID: \(metadata.reportId.uuidString)"
+        let reportId = "Report ID: \(metadata.id.uuidString)"
         reportId.draw(at: CGPoint(x: PDFConstants.Indent.none, y: yPosition + PDFConstants.Spacing.titleBelow), withAttributes: subtitleAttributes)
 
         // Add policy info if available
@@ -118,7 +118,7 @@ public struct ReportSectionDrawer {
         item: Item,
         in _: UIGraphicsPDFRendererContext,
         at yPosition: CGFloat,
-        options: InsuranceReportService.ReportOptions,
+        options: ReportOptions,
     ) -> CGFloat {
         var currentY = yPosition
 
@@ -159,7 +159,7 @@ public struct ReportSectionDrawer {
 
     public func drawFooter(
         in _: UIGraphicsPDFRendererContext,
-        metadata _: InsuranceReportService.ReportMetadata,
+        metadata _: ReportMetadata,
     ) {
         let footerAttributes: [NSAttributedString.Key: Any] = [
             .font: UIFont.systemFont(ofSize: 10),

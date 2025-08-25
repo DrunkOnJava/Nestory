@@ -83,3 +83,14 @@ struct InsightRow: View {
         }
     }
 }
+
+
+// MARK: - Preview
+
+#Preview {
+    let mockProvider = AnalyticsDataProvider(items: [], categories: [])
+    // Mock data would be setup here
+    
+    InsightsView(dataProvider: mockProvider)
+        .padding()
+}

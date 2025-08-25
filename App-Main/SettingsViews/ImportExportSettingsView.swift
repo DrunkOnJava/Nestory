@@ -1,9 +1,14 @@
 //
 // Layer: App
 // Module: Settings
-// Purpose: Import and export functionality including insurance reports
+// Purpose: TCA-driven import and export functionality including insurance reports
 //
+// 🏗️ TCA PATTERN: Progressive dependency injection conversion
+// - Converting @StateObject to @Dependency for services with protocols
+// - ImportExportService: ✅ CONVERTED to TCA dependency injection
+// - InsuranceReportService, InsuranceExportService: ⏳ PENDING protocol creation
 
+import ComposableArchitecture
 import SwiftData
 import SwiftUI
 
@@ -13,11 +18,12 @@ struct ImportExportSettingsView: View {
     @Query private var rooms: [Room]
     @Environment(\.modelContext) private var modelContext
 
-    @StateObject private var insuranceReportService = InsuranceReportService()
-    @StateObject private var importExportService = LiveImportExportService()
-    @StateObject private var insuranceExportService = InsuranceExportService()
+    @Dependency(\.insuranceReportService) var insuranceReportService
+    @Dependency(\.importExportService) var importExportService
+    @State private var insuranceExportService = InsuranceExportService()
+    @StateObject private var cloudStorageManager = CloudStorageManager()
 
-    // REMINDER: InsuranceReportService, ImportExportService, and InsuranceExportService are all wired here!
+    // REMINDER: InsuranceReportService, ImportExportService, InsuranceExportService, and CloudStorageManager are all wired here!
 
     @State private var showingExportOptions = false
     @State private var showingInsuranceReportOptions = false
@@ -28,6 +34,10 @@ struct ImportExportSettingsView: View {
     @State private var showingImportResult = false
     @State private var importResult: ImportResult?
     @State private var showingInsuranceExportOptions = false
+    @State private var showingClaimSubmission = false
+    @State private var showingCloudStorageOptions = false
+    @State private var cloudUploadURL: String?
+    @State private var showingCloudUploadResult = false
 
     var body: some View {
         Section("Import & Export") {
@@ -67,6 +77,27 @@ struct ImportExportSettingsView: View {
                 }
             }
             .disabled(items.isEmpty || insuranceExportService.isExporting)
+
+            // REMINDER: ClaimSubmissionView is wired here!
+            Button(action: { showingClaimSubmission = true }) {
+                Label("Submit Insurance Claim", systemImage: "paperplane.fill")
+            }
+            .disabled(items.isEmpty)
+            
+            // REMINDER: CloudStorageManager is wired here!
+            Button(action: { showingCloudStorageOptions = true }) {
+                if cloudStorageManager.isUploading {
+                    HStack {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle())
+                            .scaleEffect(0.8)
+                        Text("Uploading... \(Int(cloudStorageManager.uploadProgress * 100))%")
+                    }
+                } else {
+                    Label("Backup to Cloud Storage", systemImage: "icloud.and.arrow.up")
+                }
+            }
+            .disabled(items.isEmpty || cloudStorageManager.isUploading)
         }
         .sheet(isPresented: $showingExportOptions) {
             ExportOptionsView(items: items, categories: categories)
@@ -85,6 +116,19 @@ struct ImportExportSettingsView: View {
                 categories: categories,
                 rooms: rooms,
                 exportService: insuranceExportService,
+            )
+        }
+        .sheet(isPresented: $showingClaimSubmission) {
+            ClaimSubmissionView()
+        }
+        .sheet(isPresented: $showingCloudStorageOptions) {
+            CloudStorageOptionsView(
+                items: items,
+                cloudStorageManager: cloudStorageManager,
+                onUploadComplete: { url in
+                    cloudUploadURL = url
+                    showingCloudUploadResult = true
+                }
             )
         }
         .fileImporter(
@@ -122,6 +166,13 @@ struct ImportExportSettingsView: View {
             Button("OK") { reportError = nil }
         } message: {
             Text(reportError?.localizedDescription ?? "An error occurred while generating the report.")
+        }
+        .alert("Cloud Backup Complete", isPresented: $showingCloudUploadResult) {
+            Button("OK") { cloudUploadURL = nil }
+        } message: {
+            if let cloudUploadURL = cloudUploadURL {
+                Text("Your data has been successfully backed up to cloud storage. URL: \(cloudUploadURL)")
+            }
         }
     }
 

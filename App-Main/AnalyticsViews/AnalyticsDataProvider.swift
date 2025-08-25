@@ -23,6 +23,7 @@ class AnalyticsDataProvider: ObservableObject {
     enum TimeRange: String, CaseIterable {
         case week = "Week"
         case month = "Month"
+        case quarter = "Quarter"
         case year = "Year"
         case all = "All Time"
 
@@ -32,6 +33,8 @@ class AnalyticsDataProvider: ObservableObject {
                 7
             case .month:
                 30
+            case .quarter:
+                90
             case .year:
                 365
             case .all:
@@ -63,6 +66,7 @@ class AnalyticsDataProvider: ObservableObject {
     }
 
     var mostValuableCategory: Category? {
+        // APPLE_FRAMEWORK_OPPORTUNITY: Replace with Accelerate Framework - Use vDSP functions for optimized aggregation calculations across large datasets
         var categoryValues: [Category: Decimal] = [:]
 
         for item in items {

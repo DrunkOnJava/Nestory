@@ -16,6 +16,7 @@ enum WarrantyStatusCalculator {
     }
 
     static func calculate(expirationDate: Date) -> StatusInfo? {
+        // APPLE_FRAMEWORK_OPPORTUNITY: Replace with EventKit Framework - Integrate warranty expiration reminders with system calendar for native notification support
         let days = Calendar.current.dateComponents([.day], from: Date(), to: expirationDate).day ?? 0
 
         let icon: String
