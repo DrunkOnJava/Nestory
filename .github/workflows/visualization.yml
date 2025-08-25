@@ -26,10 +26,12 @@ jobs:
     
     - name: Install visualization tools
       run: |
-        brew install graphviz cloc periphery jq
+        brew install graphviz cloc periphery jq coreutils
         # Install xclogparser
         brew tap ChargePoint/xcparse
         brew install xcparse
+        # Add GNU coreutils to PATH for timeout command
+        echo "/opt/homebrew/opt/coreutils/libexec/gnubin" >> $GITHUB_PATH
         
     - name: Create output directory
       run: mkdir -p project-visualization/outputs/ci-$(date +%Y%m%d)
@@ -96,7 +98,7 @@ jobs:
           outputs/ci-$(date +%Y%m%d)
     
     - name: Upload artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: visualization-reports
         path: project-visualization/outputs/ci-*

@@ -86,7 +86,7 @@ public final class Item: @unchecked Sendable {
     public var manualPDFData: Data? // Product manual for reference
     public var documentAttachments: [Data] = [] // Additional supporting documents
     public var documentNames: [String] = [] // Human-readable names for documents
-// DEAD CODE: 
+// DEAD CODE: // DEAD CODE: 
     // 🔍 CONDITION DOCUMENTATION: Current state assessment
     public var condition = "excellent" // String storage (SwiftData enum limitation)
     public var conditionNotes: String? // Detailed condition description
