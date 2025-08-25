@@ -1,0 +1,141 @@
+name: Test Self-Hosted Runners
+
+on:
+  workflow_dispatch:
+    inputs:
+      runner_type:
+        description: 'Which runner to test'
+        required: true
+        default: 'both'
+        type: choice
+        options:
+          - 'both'
+          - 'raspberry-pi'
+          - 'm1-imac'
+
+jobs:
+  test-raspberry-pi:
+    name: Test Raspberry Pi Runner
+    if: ${{ github.event.inputs.runner_type == 'both' || github.event.inputs.runner_type == 'raspberry-pi' }}
+    runs-on: [self-hosted, raspberry-pi, auxiliary]
+    
+    steps:
+      - name: Runner Info
+        run: |
+          echo "🍓 Running on Raspberry Pi 5"
+          echo "Hostname: $(hostname)"
+          echo "OS: $(lsb_release -d | cut -f2)"
+          echo "Kernel: $(uname -r)"
+          echo "Architecture: $(uname -m)"
+          echo "CPU: $(lscpu | grep 'Model name' | cut -d':' -f2 | xargs)"
+          echo "Memory: $(free -h | awk '/^Mem:/ {print $2}')"
+          
+      - name: Check Docker
+        run: |
+          if command -v docker &> /dev/null; then
+            echo "✅ Docker is available"
+            docker --version
+            docker ps
+          else
+            echo "❌ Docker not found"
+          fi
+          
+      - name: Check Python
+        run: |
+          python3 --version
+          pip3 --version || echo "pip3 not installed"
+          
+      - name: Check Node.js
+        run: |
+          node --version 2>/dev/null || echo "Node.js not installed"
+          npm --version 2>/dev/null || echo "npm not installed"
+          
+      - name: Network Test
+        run: |
+          echo "Testing network connectivity..."
+          ping -c 1 github.com || echo "Cannot reach github.com"
+          
+      - name: Disk Space
+        run: |
+          echo "Disk usage:"
+          df -h /
+          
+      - name: Runner Labels
+        run: |
+          echo "This job ran with labels: self-hosted, raspberry-pi, auxiliary"
+          echo "✅ Raspberry Pi runner is working!"
+
+  test-m1-imac:
+    name: Test M1 iMac Runner
+    if: ${{ github.event.inputs.runner_type == 'both' || github.event.inputs.runner_type == 'm1-imac' }}
+    runs-on: [self-hosted, macOS, M1]
+    
+    steps:
+      - name: Runner Info
+        run: |
+          echo "🖥️ Running on M1 iMac"
+          echo "Hostname: $(hostname)"
+          echo "OS: $(sw_vers -productName) $(sw_vers -productVersion)"
+          echo "Architecture: $(uname -m)"
+          echo "Processor: $(sysctl -n machdep.cpu.brand_string)"
+          echo "Memory: $(sysctl -n hw.memsize | awk '{print $1/1024/1024/1024 " GB"}')"
+          
+      - name: Check Xcode
+        run: |
+          if command -v xcodebuild &> /dev/null; then
+            echo "✅ Xcode is available"
+            xcodebuild -version | head -2
+            echo "SDK: $(xcodebuild -showsdks | grep -E "iOS|macOS" | head -2)"
+          else
+            echo "❌ Xcode not found"
+          fi
+          
+      - name: Check Swift
+        run: |
+          swift --version | head -1
+          
+      - name: Check Development Tools
+        run: |
+          echo "Checking development tools..."
+          command -v swiftlint &> /dev/null && swiftlint version || echo "SwiftLint not installed"
+          command -v swiftformat &> /dev/null && swiftformat --version || echo "SwiftFormat not installed"
+          command -v gh &> /dev/null && gh --version | head -1 || echo "GitHub CLI not installed"
+          
+      - name: Runner Labels
+        run: |
+          echo "This job ran with labels: self-hosted, macOS, M1"
+          echo "✅ M1 iMac runner is ready for iOS builds!"
+
+  summary:
+    name: Runner Test Summary
+    needs: [test-raspberry-pi, test-m1-imac]
+    if: always()
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Summary
+        run: |
+          echo "## 📊 Runner Test Results"
+          echo ""
+          
+          if [[ "${{ needs.test-raspberry-pi.result }}" == "success" ]]; then
+            echo "✅ **Raspberry Pi 5**: Online and working"
+          elif [[ "${{ needs.test-raspberry-pi.result }}" == "skipped" ]]; then
+            echo "⏭️ **Raspberry Pi 5**: Test skipped"
+          else
+            echo "❌ **Raspberry Pi 5**: Failed or not available"
+          fi
+          
+          if [[ "${{ needs.test-m1-imac.result }}" == "success" ]]; then
+            echo "✅ **M1 iMac**: Online and working"
+          elif [[ "${{ needs.test-m1-imac.result }}" == "skipped" ]]; then
+            echo "⏭️ **M1 iMac**: Test skipped"
+          else
+            echo "❌ **M1 iMac**: Failed or not available"
+          fi
+          
+          echo ""
+          echo "### Next Steps"
+          echo "- If both runners are working, you can use the hybrid CI workflow"
+          echo "- Update your main workflows to use `runs-on: [self-hosted, ...]`"
+          echo "- Monitor runner performance with `./Scripts/CI/monitor-runners.sh`"
