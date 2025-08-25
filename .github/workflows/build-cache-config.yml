@@ -1,0 +1,287 @@
+name: Build Cache Configuration
+
+# This workflow sets up and manages build caching on self-hosted runners
+# It's called by other workflows to ensure consistent caching strategy
+
+on:
+  workflow_call:
+    inputs:
+      cache_key_prefix:
+        description: 'Prefix for cache keys'
+        required: false
+        default: 'ios-build'
+        type: string
+      enable_aggressive_caching:
+        description: 'Enable aggressive caching (may cause issues with incremental builds)'
+        required: false
+        default: false
+        type: boolean
+      matrix_scheme:
+        description: 'Matrix build scheme (for scheme-specific caching)'
+        required: false
+        default: ''
+        type: string
+      matrix_config:
+        description: 'Matrix build configuration (for config-specific caching)'
+        required: false
+        default: ''
+        type: string
+
+jobs:
+  setup-cache:
+    name: Configure Build Cache
+    runs-on: [self-hosted, macOS, M1, xcode]
+    
+    outputs:
+      cache_hit: ${{ steps.cache-check.outputs.cache-hit }}
+      derived_data_path: ${{ steps.paths.outputs.derived_data }}
+      spm_cache_path: ${{ steps.paths.outputs.spm_cache }}
+      cache_key: ${{ steps.cache-key.outputs.cache_key }}
+      matrix_compatible: ${{ steps.cache-check.outputs.matrix_compatible }}
+      
+    steps:
+    - name: Setup Cache Paths
+      id: paths
+      run: |
+        # Use persistent paths on self-hosted runner
+        DERIVED_DATA="$HOME/Library/Developer/Xcode/DerivedData"
+        SPM_CACHE="$HOME/Library/Caches/org.swift.swiftpm"
+        MODULE_CACHE="$HOME/Library/Developer/Xcode/DerivedData/ModuleCache.noindex"
+        
+        echo "derived_data=$DERIVED_DATA" >> $GITHUB_OUTPUT
+        echo "spm_cache=$SPM_CACHE" >> $GITHUB_OUTPUT
+        echo "module_cache=$MODULE_CACHE" >> $GITHUB_OUTPUT
+        
+        # Create directories if they don't exist
+        mkdir -p "$DERIVED_DATA"
+        mkdir -p "$SPM_CACHE"
+        mkdir -p "$MODULE_CACHE"
+        
+        echo "📁 Cache directories configured"
+    
+    - name: Calculate Cache Key
+      id: cache-key
+      run: |
+        # Create sophisticated cache key based on multiple factors
+        PROJECT_HASH=$(find . -name "*.xcodeproj" -o -name "*.swift" -o -name "Package.resolved" | xargs shasum -a 256 | shasum -a 256 | cut -d' ' -f1)
+        XCODE_VERSION=$(xcodebuild -version | head -1 | tr -d ' ')
+        SWIFT_VERSION=$(swift --version | head -1 | awk '{print $3}')
+        
+        # Matrix-aware cache key components
+        SCHEME_PART=""
+        CONFIG_PART=""
+        
+        if [ -n "${{ inputs.matrix_scheme }}" ]; then
+          SCHEME_PART="-${{ inputs.matrix_scheme }}"
+        fi
+        
+        if [ -n "${{ inputs.matrix_config }}" ]; then
+          CONFIG_PART="-${{ inputs.matrix_config }}"
+        fi
+        
+        # Base cache key with matrix dimensions
+        CACHE_KEY="${{ inputs.cache_key_prefix }}-${XCODE_VERSION}-${SWIFT_VERSION}${SCHEME_PART}${CONFIG_PART}-${PROJECT_HASH:0:8}"
+        
+        # Restore keys for fallback (from most specific to least specific)
+        RESTORE_KEYS="${{ inputs.cache_key_prefix }}-${XCODE_VERSION}-${SWIFT_VERSION}${SCHEME_PART}${CONFIG_PART}-
+        ${{ inputs.cache_key_prefix }}-${XCODE_VERSION}-${SWIFT_VERSION}${SCHEME_PART}-
+        ${{ inputs.cache_key_prefix }}-${XCODE_VERSION}-${SWIFT_VERSION}-
+        ${{ inputs.cache_key_prefix }}-${XCODE_VERSION}-
+        ${{ inputs.cache_key_prefix }}-"
+        
+        echo "cache_key=$CACHE_KEY" >> $GITHUB_OUTPUT
+        echo "restore_keys=$RESTORE_KEYS" >> $GITHUB_OUTPUT
+        
+        echo "🔑 Matrix-aware cache key: $CACHE_KEY"
+        if [ -n "${{ inputs.matrix_scheme }}" ] && [ -n "${{ inputs.matrix_config }}" ]; then
+          echo "📋 Matrix context: Scheme=${{ inputs.matrix_scheme }}, Config=${{ inputs.matrix_config }}"
+        fi
+    
+    - name: Check Existing Cache
+      id: cache-check
+      run: |
+        # Check if we have valid cached data (matrix-aware)
+        DERIVED_DATA="${{ steps.paths.outputs.derived_data }}"
+        
+        # Matrix-specific cache directory patterns
+        CACHE_PATTERN="Nestory-*"
+        if [ -n "${{ inputs.matrix_scheme }}" ]; then
+          CACHE_PATTERN="${{ inputs.matrix_scheme }}-*"
+        fi
+        
+        # Look for both scheme-specific and general cache
+        CACHE_FOUND=false
+        CACHE_AGE=0
+        
+        # Check for scheme-specific cache first
+        if [ -n "${{ inputs.matrix_scheme }}" ] && [ -d "$DERIVED_DATA/${{ inputs.matrix_scheme }}-"* ]; then
+          CACHE_AGE=$(find "$DERIVED_DATA" -name "${{ inputs.matrix_scheme }}-*" -maxdepth 1 -type d -exec stat -f %m {} \; | head -1)
+          CACHE_FOUND=true
+          echo "🎯 Scheme-specific cache found for ${{ inputs.matrix_scheme }}"
+        elif [ -d "$DERIVED_DATA/Nestory-"* ]; then
+          CACHE_AGE=$(find "$DERIVED_DATA" -name "Nestory-*" -maxdepth 1 -type d -exec stat -f %m {} \; | head -1)
+          CACHE_FOUND=true
+          echo "🔄 General cache found, usable for matrix build"
+        fi
+        
+        if [ "$CACHE_FOUND" = true ]; then
+          CURRENT_TIME=$(date +%s)
+          AGE_HOURS=$(( ($CURRENT_TIME - $CACHE_AGE) / 3600 ))
+          
+          # Matrix builds can use slightly older cache (36h vs 24h)
+          MAX_AGE_HOURS=24
+          if [ -n "${{ inputs.matrix_scheme }}" ] && [ -n "${{ inputs.matrix_config }}" ]; then
+            MAX_AGE_HOURS=36
+          fi
+          
+          if [ $AGE_HOURS -lt $MAX_AGE_HOURS ]; then
+            echo "✅ Valid cache found (${AGE_HOURS}h old, max ${MAX_AGE_HOURS}h)"
+            echo "cache-hit=true" >> $GITHUB_OUTPUT
+            echo "matrix_compatible=true" >> $GITHUB_OUTPUT
+          else
+            echo "⚠️ Cache expired (${AGE_HOURS}h old, max ${MAX_AGE_HOURS}h)"
+            echo "cache-hit=false" >> $GITHUB_OUTPUT
+            echo "matrix_compatible=false" >> $GITHUB_OUTPUT
+          fi
+        else
+          echo "❌ No compatible cache found for matrix configuration"
+          echo "cache-hit=false" >> $GITHUB_OUTPUT
+          echo "matrix_compatible=false" >> $GITHUB_OUTPUT
+        fi
+    
+    - name: Optimize Cache Storage
+      if: steps.cache-check.outputs.cache-hit != 'true'
+      run: |
+        # Clean old cache data to prevent bloat
+        DERIVED_DATA="${{ steps.paths.outputs.derived_data }}"
+        
+        # Remove old DerivedData (older than 7 days)
+        find "$DERIVED_DATA" -maxdepth 1 -type d -name "*" -mtime +7 -exec rm -rf {} \; 2>/dev/null || true
+        
+        # Clean module cache selectively
+        MODULE_CACHE="${{ steps.paths.outputs.module_cache }}"
+        if [ -d "$MODULE_CACHE" ]; then
+          # Keep only recent modules (< 3 days)
+          find "$MODULE_CACHE" -type f -mtime +3 -delete 2>/dev/null || true
+        fi
+        
+        # Report cache size
+        CACHE_SIZE=$(du -sh "$DERIVED_DATA" 2>/dev/null | cut -f1)
+        echo "📊 Cache size after cleanup: $CACHE_SIZE"
+    
+    - name: Configure Xcode Build Settings
+      run: |
+        # Create xcconfig for optimal caching
+        cat > CacheOptimized.xcconfig << 'EOF'
+        // Build Cache Optimization Settings
+        
+        // Module Cache
+        CLANG_ENABLE_MODULE_IMPLEMENTATION_OF = YES
+        CLANG_ENABLE_MODULES = YES
+        CLANG_MODULE_CACHE_PATH = $(HOME)/Library/Developer/Xcode/DerivedData/ModuleCache.noindex
+        
+        // Compilation Mode
+        SWIFT_COMPILATION_MODE = incremental
+        SWIFT_WHOLE_MODULE_OPTIMIZATION = NO
+        
+        // Index Store
+        COMPILER_INDEX_STORE_ENABLE = YES
+        INDEX_ENABLE_DATA_STORE = YES
+        INDEX_STORE_PATH = $(DERIVED_DATA_DIR)/Index.noindex/DataStore
+        
+        // Precompiled Headers
+        GCC_PRECOMPILE_PREFIX_HEADER = YES
+        GCC_PREFIX_HEADER_USES_FRAMEWORK_PREFIX_HEADERS = YES
+        
+        // Build Active Architecture Only (for development)
+        ONLY_ACTIVE_ARCH = YES
+        
+        // Parallel Build
+        SWIFT_USE_PARALLEL_WHOLE_MODULE_OPTIMIZATION = YES
+        
+        // Debug Information
+        DEBUG_INFORMATION_FORMAT = dwarf
+        DWARF_DSYM_FOLDER_PATH = $(DERIVED_DATA_DIR)/dSYMs
+        
+        // Additional Optimizations
+        ENABLE_INCREMENTAL_DISTILL = YES
+        SWIFT_INCREMENTAL_COMPILATION = YES
+        EOF
+        
+        echo "⚙️ Xcode build settings optimized for caching"
+    
+    - name: Setup Persistent Build Cache
+      run: |
+        # Configure persistent build cache on self-hosted runner
+        CACHE_DIR="$HOME/Library/Caches/XcodeBuildCache"
+        mkdir -p "$CACHE_DIR"
+        
+        # Create cache configuration
+        cat > "$CACHE_DIR/config.json" << EOF
+        {
+          "version": "1.0",
+          "max_size_gb": 10,
+          "eviction_policy": "lru",
+          "compression": "zstd",
+          "paths": {
+            "derived_data": "${{ steps.paths.outputs.derived_data }}",
+            "spm_cache": "${{ steps.paths.outputs.spm_cache }}",
+            "module_cache": "${{ steps.paths.outputs.module_cache }}"
+          }
+        }
+        EOF
+        
+        echo "💾 Persistent cache configured at $CACHE_DIR"
+
+  warm-cache:
+    name: Warm Build Cache
+    needs: setup-cache
+    if: needs.setup-cache.outputs.cache_hit != 'true'
+    runs-on: [self-hosted, macOS, M1, xcode]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Resolve Swift Packages
+      run: |
+        echo "📦 Resolving Swift packages..."
+        xcodebuild -resolvePackageDependencies \
+          -project Nestory.xcodeproj \
+          -scheme Nestory-Dev \
+          -derivedDataPath "${{ needs.setup-cache.outputs.derived_data_path }}"
+    
+    - name: Precompile Common Modules
+      run: |
+        echo "🔨 Precompiling common modules..."
+        
+        # Build foundation modules first
+        xcodebuild build \
+          -project Nestory.xcodeproj \
+          -scheme Nestory-Dev \
+          -derivedDataPath "${{ needs.setup-cache.outputs.derived_data_path }}" \
+          -destination 'generic/platform=iOS Simulator' \
+          -xcconfig CacheOptimized.xcconfig \
+          ARCHS="arm64" \
+          BUILD_LIBRARY_FOR_DISTRIBUTION=YES \
+          -quiet || true
+        
+        echo "✅ Cache warmed successfully"
+    
+    - name: Generate Cache Manifest
+      run: |
+        # Create manifest of cached items for debugging
+        DERIVED_DATA="${{ needs.setup-cache.outputs.derived_data_path }}"
+        
+        cat > "$DERIVED_DATA/cache_manifest.json" << EOF
+        {
+          "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+          "xcode_version": "$(xcodebuild -version | head -1)",
+          "swift_version": "$(swift --version | head -1)",
+          "cached_modules": $(find "$DERIVED_DATA" -name "*.swiftmodule" | wc -l),
+          "cache_size": "$(du -sh "$DERIVED_DATA" | cut -f1)",
+          "workflow_run": "${{ github.run_id }}"
+        }
+        EOF
+        
+        echo "📋 Cache manifest generated"

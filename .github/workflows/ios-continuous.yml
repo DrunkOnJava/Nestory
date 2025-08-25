@@ -1,0 +1,349 @@
+name: iOS Continuous Testing
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - '**/*.swift'
+      - '**/*.xib'
+      - '**/*.storyboard'
+      - 'project.yml'
+      - 'Nestory.xcodeproj/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - '**/*.swift'
+      - '**/*.xib'
+      - '**/*.storyboard'
+
+jobs:
+  # First, setup and optimize caching
+  cache-setup:
+    uses: ./.github/workflows/build-cache-config.yml
+    with:
+      cache_key_prefix: 'ios-continuous'
+      enable_aggressive_caching: false
+  
+  build-for-testing:
+    name: Build for Testing
+    needs: cache-setup
+    runs-on: [self-hosted, macOS, M1, xcode]
+    
+    env:
+      DERIVED_DATA_PATH: ${{ needs.cache-setup.outputs.derived_data_path }}
+      ENABLE_BUILD_CACHE: true
+      
+    outputs:
+      build_success: ${{ steps.build.outputs.build_success }}
+      build_duration: ${{ steps.build.outputs.build_duration }}
+      cache_hit: ${{ steps.build.outputs.cache_hit }}
+      
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Report Cache Status
+      run: |
+        if [ "${{ needs.cache-setup.outputs.cache_hit }}" == "true" ]; then
+          echo "🚀 Using cached build artifacts - build will be FAST!"
+        else
+          echo "🔨 No cache found - performing fresh build"
+        fi
+    
+    - name: Select Xcode
+      run: |
+        echo "📱 Using Xcode version:"
+        xcodebuild -version
+        echo "📱 Available simulators:"
+        xcrun simctl list devices available
+    
+    - name: Build for Testing
+      id: build
+      run: |
+        set -o pipefail
+        
+        # Start timer
+        BUILD_START=$(date +%s)
+        
+        # Use cache-optimized settings if cache is available
+        if [ "${{ needs.cache-setup.outputs.cache_hit }}" == "true" ]; then
+          echo "⚡ Using incremental build with cache"
+          BUILD_SETTINGS="-xcconfig CacheOptimized.xcconfig"
+          CACHE_HIT="true"
+        else
+          echo "🔨 Full build without cache"
+          BUILD_SETTINGS=""
+          CACHE_HIT="false"
+        fi
+        
+        # Build for all simulators - use universal destination for parallel testing
+        BUILD_SUCCESS="false"
+        if xcodebuild build-for-testing \
+          -project Nestory.xcodeproj \
+          -scheme Nestory-Dev \
+          -destination "platform=iOS Simulator,name=iPhone 16 Pro Max" \
+          -derivedDataPath $DERIVED_DATA_PATH \
+          $BUILD_SETTINGS \
+          -quiet \
+          | xcpretty --color --simple; then
+          BUILD_SUCCESS="true"
+        fi
+        
+        # Calculate duration
+        BUILD_END=$(date +%s)
+        BUILD_DURATION=$((BUILD_END - BUILD_START))
+        
+        echo "⏱️ Build completed in $BUILD_DURATION seconds"
+        echo "build_duration=$BUILD_DURATION" >> $GITHUB_OUTPUT
+        echo "build_success=$BUILD_SUCCESS" >> $GITHUB_OUTPUT
+        echo "cache_hit=$CACHE_HIT" >> $GITHUB_OUTPUT
+    
+    - name: Push Build Metrics
+      if: always()
+      run: |
+        # Push metrics to Prometheus
+        export PUSHGATEWAY_URL="http://192.168.1.5:9091"
+        export SCHEME="Nestory-Dev"
+        export CONFIGURATION="Debug"
+        
+        ./monitoring/scripts/push-metrics.sh build \
+          "${{ steps.build.outputs.build_success }}" \
+          "${{ steps.build.outputs.build_duration }}" \
+          "${{ steps.build.outputs.cache_hit }}"
+
+  # Parallel test execution across 4 simulators
+  parallel-tests:
+    name: Run Tests (${{ matrix.simulator_type }})
+    needs: [cache-setup, build-for-testing]
+    runs-on: [self-hosted, macOS, M1, xcode]
+    if: needs.build-for-testing.outputs.build_success == 'true'
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        simulator_type: [foundation, services, ui_performance, ui_integration]
+    
+    env:
+      DERIVED_DATA_PATH: ${{ needs.cache-setup.outputs.derived_data_path }}
+      SIMULATOR_TYPE: ${{ matrix.simulator_type }}
+      
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Get Test Configuration
+      id: test_config
+      run: |
+        # Get device and estimated time for this simulator type
+        DEVICE=$(Scripts/CI/split-tests.sh device $SIMULATOR_TYPE)
+        ESTIMATED_TIME=$(Scripts/CI/split-tests.sh time $SIMULATOR_TYPE)
+        
+        echo "device=$DEVICE" >> $GITHUB_OUTPUT
+        echo "estimated_time=$ESTIMATED_TIME" >> $GITHUB_OUTPUT
+        
+        echo "📱 Simulator: $SIMULATOR_TYPE"
+        echo "🖥️ Device: $DEVICE"
+        echo "⏱️ Estimated time: ${ESTIMATED_TIME}s"
+      
+    - name: Run Parallel Tests
+      id: test_execution
+      run: |
+        set -o pipefail
+        
+        TEST_START=$(date +%s)
+        
+        # Create unique derived data path for this simulator
+        SIMULATOR_DERIVED_DATA="$DERIVED_DATA_PATH-$SIMULATOR_TYPE"
+        RESULT_BUNDLE="TestResults/${SIMULATOR_TYPE}_TestResults.xcresult"
+        
+        mkdir -p TestResults
+        
+        echo "🚀 Starting tests for $SIMULATOR_TYPE on ${{ steps.test_config.outputs.device }}"
+        
+        # Generate and execute test command
+        TEST_SUCCESS="false"
+        if Scripts/CI/split-tests.sh command $SIMULATOR_TYPE "$SIMULATOR_DERIVED_DATA" "$RESULT_BUNDLE" | bash; then
+          TEST_SUCCESS="true"
+        fi
+        
+        TEST_END=$(date +%s)
+        TEST_DURATION=$((TEST_END - TEST_START))
+        
+        echo "⏱️ Tests completed in $TEST_DURATION seconds (estimated: ${{ steps.test_config.outputs.estimated_time }}s)"
+        echo "test_duration=$TEST_DURATION" >> $GITHUB_OUTPUT
+        echo "test_success=$TEST_SUCCESS" >> $GITHUB_OUTPUT
+        echo "result_bundle=$RESULT_BUNDLE" >> $GITHUB_OUTPUT
+        
+        if [ "$TEST_SUCCESS" != "true" ]; then
+          echo "❌ Tests failed for $SIMULATOR_TYPE"
+          exit 1
+        fi
+      
+    - name: Upload Individual Results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results-${{ matrix.simulator_type }}-${{ github.run_number }}
+        path: TestResults/${{ matrix.simulator_type }}_TestResults.xcresult
+        retention-days: 7
+        
+    - name: Push Simulator Metrics
+      if: always()
+      run: |
+        export PUSHGATEWAY_URL="http://192.168.1.5:9091"
+        export TEST_SUITE="$SIMULATOR_TYPE"
+        export DEVICE_TYPE="${{ steps.test_config.outputs.device }}"
+        
+        ./monitoring/scripts/push-metrics.sh test \
+          "${{ steps.test_execution.outputs.test_success == 'true' && '1' || '0' }}" \
+          "0" \
+          "${{ steps.test_execution.outputs.test_duration }}" \
+          "0"
+  
+  # Aggregate results from all parallel runs
+  aggregate-results:
+    name: Aggregate Test Results
+    needs: [build-for-testing, parallel-tests]
+    runs-on: [self-hosted, macOS, M1, xcode]
+    if: always() && needs.build-for-testing.outputs.build_success == 'true'
+    
+    outputs:
+      total_tests: ${{ steps.aggregate.outputs.total_tests }}
+      tests_passed: ${{ steps.aggregate.outputs.tests_passed }}
+      tests_failed: ${{ steps.aggregate.outputs.tests_failed }}
+      total_duration: ${{ steps.aggregate.outputs.total_duration }}
+      overall_status: ${{ steps.aggregate.outputs.overall_status }}
+      average_coverage: ${{ steps.aggregate.outputs.average_coverage }}
+      
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Download All Test Results
+      uses: actions/download-artifact@v4
+      with:
+        pattern: test-results-*-${{ github.run_number }}
+        path: TestResults/
+        merge-multiple: true
+        
+    - name: Aggregate Results
+      id: aggregate
+      run: |
+        # Run aggregation script
+        Scripts/CI/aggregate-results.sh all TestResults AggregatedResults 80
+        
+        # Upload aggregated results to outputs
+        if [ -f "AggregatedResults/test_summary.json" ]; then
+          echo "total_tests=$(jq -r '.totals.tests_total' AggregatedResults/test_summary.json)" >> $GITHUB_OUTPUT
+          echo "tests_passed=$(jq -r '.totals.tests_passed' AggregatedResults/test_summary.json)" >> $GITHUB_OUTPUT
+          echo "tests_failed=$(jq -r '.totals.tests_failed' AggregatedResults/test_summary.json)" >> $GITHUB_OUTPUT
+          echo "total_duration=$(jq -r '.totals.duration' AggregatedResults/test_summary.json)" >> $GITHUB_OUTPUT
+          echo "overall_status=$(jq -r '.totals.status' AggregatedResults/test_summary.json)" >> $GITHUB_OUTPUT
+        fi
+        
+        if [ -f "AggregatedResults/combined_coverage.json" ]; then
+          echo "average_coverage=$(jq -r '.coveragePercent' AggregatedResults/combined_coverage.json)" >> $GITHUB_OUTPUT
+        fi
+        
+    - name: Upload Aggregated Results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: aggregated-results-${{ github.run_number }}
+        path: |
+          AggregatedResults/
+        retention-days: 7
+        
+    - name: Push Aggregated Metrics
+      if: always()
+      run: |
+        export PUSHGATEWAY_URL="http://192.168.1.5:9091"
+        export TEST_SUITE="Parallel"
+        export DEVICE_TYPE="Multi-Simulator"
+        
+        ./monitoring/scripts/push-metrics.sh test \
+          "${{ steps.aggregate.outputs.tests_passed }}" \
+          "${{ steps.aggregate.outputs.tests_failed }}" \
+          "${{ steps.aggregate.outputs.total_duration }}" \
+          "${{ steps.aggregate.outputs.average_coverage }}"
+          
+    - name: Check Results
+      run: |
+        if [ "${{ steps.aggregate.outputs.overall_status }}" != "success" ]; then
+          echo "❌ Some tests failed in parallel execution"
+          exit 1
+        fi
+        
+        echo "✅ All parallel tests passed!"
+        echo "📊 Results: ${{ steps.aggregate.outputs.tests_passed }}/${{ steps.aggregate.outputs.total_tests }} tests passed"
+        echo "⏱️ Total duration: ${{ steps.aggregate.outputs.total_duration }}s"
+        echo "📈 Average coverage: ${{ steps.aggregate.outputs.average_coverage }}%"
+
+    - name: Comment PR with Results
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const comment = `## 📱 Parallel iOS Test Results
+          
+          | Metric | Value |
+          |--------|-------|
+          | **Build Status** | ✅ Success |
+          | **Total Tests** | ${{ steps.aggregate.outputs.tests_passed }}/${{ steps.aggregate.outputs.total_tests }} |
+          | **Test Coverage** | ${{ steps.aggregate.outputs.average_coverage }}% |
+          | **Duration** | ${{ steps.aggregate.outputs.total_duration }}s |
+          | **Parallel Simulators** | 4 devices |
+          
+          ### Simulator Breakdown
+          - **Foundation**: iPhone 16 Pro Max (architecture, models)
+          - **Services**: iPhone 15 Pro (business logic)
+          - **UI/Performance**: iPhone 16 Plus (views, performance)
+          - **UI Integration**: iPad Pro 12.9" (full UI flows)
+          
+          [View detailed results](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})`;
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });
+
+  swift-lint:
+    name: SwiftLint Analysis
+    runs-on: [self-hosted, macOS, M1]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Run SwiftLint
+      run: |
+        if which swiftlint >/dev/null; then
+          swiftlint --reporter json > swiftlint-report.json || true
+          
+          # Count violations
+          ERRORS=$(cat swiftlint-report.json | jq '[.[] | .violations[] | select(.severity == "error")] | length')
+          WARNINGS=$(cat swiftlint-report.json | jq '[.[] | .violations[] | select(.severity == "warning")] | length')
+          
+          echo "📝 SwiftLint Results:"
+          echo "  Errors: $ERRORS"
+          echo "  Warnings: $WARNINGS"
+          
+          # Fail if there are errors
+          if [ "$ERRORS" -gt 0 ]; then
+            echo "❌ SwiftLint found $ERRORS errors!"
+            cat swiftlint-report.json | jq '.[] | .violations[] | select(.severity == "error")'
+            exit 1
+          fi
+        else
+          echo "⚠️ SwiftLint not installed, skipping..."
+        fi
+    
+    - name: Upload SwiftLint Report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: swiftlint-report-${{ github.run_number }}
+        path: swiftlint-report.json
+        retention-days: 7
