@@ -97,12 +97,25 @@ App → Features → UI → Services → Infrastructure → Foundation
 
 ## 🛠️ ESSENTIAL COMMANDS
 
-### Development Workflow
+### Development Workflow (with Automatic Metrics)
 ```bash
-# Build and run (always iPhone 16 Pro Max)
-make run          # Build and launch in simulator
-make build        # Build only
-make fast-build   # Optimized parallel build
+# ALL builds automatically send metrics to dashboard at http://localhost:3000
+# Build errors, warnings, duration, and success rates are tracked
+
+# Build and run (always iPhone 16 Pro Max) 
+make run          # Build and launch in simulator (metrics enabled)
+make build        # Build only (metrics enabled)
+make fast-build   # Optimized parallel build (metrics enabled)
+
+# When using xcodegen or xcodebuild directly:
+Scripts/CI/xcodegen-with-metrics.sh    # Instead of 'xcodegen'
+Scripts/CI/xcodebuild-with-metrics.sh  # Instead of 'xcodebuild'
+Scripts/CI/build-with-timeout.sh -t 600 -m --  # For timeout protection (prod builds)
+
+# Build Health & Stuck Detection:
+Scripts/CI/build-health-monitor.sh status    # Check current build health  
+Scripts/CI/build-health-monitor.sh monitor   # Start continuous monitoring
+Scripts/CI/build-health-monitor.sh test      # Run single health check
 
 # Testing
 make test         # Run all tests
@@ -187,26 +200,100 @@ struct MyFeature {
 ### Service Dependency
 ```swift
 // In ServiceDependencyKeys.swift
-enum MyServiceKey: @preconcurrency DependencyKey {
-    static var liveValue: any MyService {
+enum MyServiceKey: DependencyKey {
+    static var liveValue: MyService {
         do {
-            return try LiveMyService()
+            let service = try LiveMyService()
+            
+            // Record successful service creation
+            Task { @MainActor in
+                ServiceHealthManager.shared.recordSuccess(for: .myService)
+            }
+            
+            return service
         } catch {
-            print("⚠️ Failed to create MyService: \(error)")
+            // Record service failure for health monitoring
+            Task { @MainActor in
+                ServiceHealthManager.shared.recordFailure(for: .myService, error: error)
+                ServiceHealthManager.shared.notifyDegradedMode(service: .myService)
+            }
+            
+            // Structured error logging (never use print statements)
+            Logger.service.error("Failed to create MyService: \(error.localizedDescription)")
+            Logger.service.info("Falling back to MockMyService for graceful degradation")
+            
+            #if DEBUG
+            Logger.service.debug("MyService creation debug info: \(error)")
+            #endif
+            
             return MockMyService() // Graceful degradation
         }
     }
+    
+    static let testValue: MyService = MockMyService()
 }
 ```
+
+## 🛡️ ERROR HANDLING & RELIABILITY PATTERNS
+
+### Critical Safety Rules
+1. **NEVER USE `try!`** - All force unwraps eliminated for crash-free operation
+2. **ALWAYS PROVIDE FALLBACKS** - Every service has mock implementation for graceful degradation  
+3. **USE STRUCTURED LOGGING** - Replace all `print()` with `Logger.service` calls
+4. **MONITOR SERVICE HEALTH** - Integrate with ServiceHealthManager for failure tracking
+
+### ModelContainer Creation Pattern
+```swift
+// ✅ Safe Pattern (REQUIRED)
+do {
+    let container = try ModelContainer(for: Item.self, configurations: config)
+    return MyView().modelContainer(container)
+} catch {
+    Logger.service.error("Failed to create ModelContainer: \(error.localizedDescription)")
+    return Text("Data initialization failed: \(error.localizedDescription)")
+        .foregroundColor(.red)
+}
+
+// ❌ Dangerous Pattern (FORBIDDEN)
+let container = try! ModelContainer(for: Item.self) // Will crash in production!
+```
+
+### TCA Error State Management
+```swift
+@ObservableState
+struct State: Equatable {
+    var errorMessage: String?
+    var showingError = false
+    var isLoading = false
+}
+
+enum Action {
+    case setError(String?)
+    case dismissError
+    case someAsyncAction
+    case someAsyncActionResponse(Result<SuccessType, Error>)
+}
+```
+
+### Service Health Integration
+All service dependencies must integrate with ServiceHealthManager:
+- Record success: `ServiceHealthManager.shared.recordSuccess(for: .serviceName)`  
+- Record failure: `ServiceHealthManager.shared.recordFailure(for: .serviceName, error: error)`
+- Notify degraded mode: `ServiceHealthManager.shared.notifyDegradedMode(service: .serviceName)`
+
+### Comprehensive Documentation
+See `Documentation/ERROR_HANDLING_GUIDE.md` for complete patterns and examples.
 
 ## 🚨 COMMON PITFALLS TO AVOID
 
 1. **Cross-layer imports** - Features importing Infrastructure (must go through Services)
-2. **Force unwraps** - Replace try! with proper error handling
+2. **Force unwraps** - Replace try! with proper error handling (CRITICAL SAFETY ISSUE)
 3. **Missing wiring** - Creating features without UI access points
 4. **Stock references** - This is for personal items, not business inventory
 5. **Hardcoded secrets** - Use ProcessInfo.environment or Keychain
-6. **Skipping verification** - Always run `make verify-arch` after changes
+6. **Print statements** - Use Logger.service instead of print() for debugging
+7. **Missing mock services** - Every service needs mock implementation for graceful degradation
+8. **Skipping verification** - Always run `make verify-arch` after changes
 
 ## 📊 PROJECT STATUS
 
