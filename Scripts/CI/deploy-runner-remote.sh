@@ -49,7 +49,7 @@ check_ssh_connection() {
     
     log_info "Checking SSH connection to $name ($user@$host)..."
     
-    if ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no "$user@$host" "echo 'Connected'" &>/dev/null; then
+    if ssh -o ConnectTimeout=5 -o ConnectTimeout=10 "$user@$host" "echo 'Connected'" &>/dev/null; then
         log_success "Successfully connected to $name"
         return 0
     else

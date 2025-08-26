@@ -96,7 +96,7 @@ echo
 
 # Try to test the connection
 echo -e "${YELLOW}Testing current connection...${NC}"
-if ssh -o ConnectTimeout=3 -o StrictHostKeyChecking=no -o PasswordAuthentication=no "$PI_USER@$PI_HOST" "echo '✓ SSH key authentication working!'" 2>/dev/null; then
+if ssh -o ConnectTimeout=3 -o ConnectTimeout=10 -o PasswordAuthentication=no "$PI_USER@$PI_HOST" "echo '✓ SSH key authentication working!'" 2>/dev/null; then
     echo -e "${GREEN}✅ Connection successful! You can now deploy the runner.${NC}"
     echo
     echo "Run: ./deploy-runner-remote.sh --deploy-pi"

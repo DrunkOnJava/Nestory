@@ -28,6 +28,11 @@ ARCH_VERIFY_TIMEOUT = 60
 # Build optimization
 PARALLEL_JOBS = $(shell sysctl -n hw.ncpu)
 BUILD_FLAGS = -jobs $(PARALLEL_JOBS) -quiet -parallelizeTargets -showBuildTimingSummary
+
+# Build command with timeout protection and metrics
+# Use build-with-timeout.sh for CI/production (timeout + metrics)
+# Use xcodebuild-with-metrics.sh for development (metrics only)
+XCODEBUILD_CMD = Scripts/CI/build-with-timeout.sh -t 600 -m --
 # Enhanced build performance flags
 FAST_BUILD_FLAGS = $(BUILD_FLAGS) -derivedDataPath $(DERIVED_DATA_PATH) -clonedSourcePackagesDirPath $(DERIVED_DATA_PATH)/SourcePackages
 
@@ -79,6 +84,15 @@ help: ## Show this help message
 	@echo "  $(GREEN)make health-report$(NC)        - Generate comprehensive health report"
 	@echo "  $(GREEN)make health-report-open$(NC)   - Generate health report and open in browser"
 	@echo ""
+	@echo "$(YELLOW)Enterprise UI Testing Framework:$(NC)"
+	@echo "  $(GREEN)make test-framework$(NC)     - Test the UI testing framework itself"
+	@echo "  $(GREEN)make test-performance$(NC)   - Run performance UI tests"
+	@echo "  $(GREEN)make test-accessibility$(NC) - Run accessibility UI tests"
+	@echo "  $(GREEN)make test-smoke$(NC)         - Run quick smoke tests"
+	@echo "  $(GREEN)make test-regression$(NC)    - Run regression test suite"
+	@echo "  $(GREEN)make test-load$(NC)          - Run load testing scenarios"
+	@echo "  $(GREEN)make test-report$(NC)        - Generate comprehensive test report"
+	@echo ""
 	@echo "$(YELLOW)Development Workflow:$(NC)"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-20s$(NC) %s\n", $$1, $$2}'
 	@echo ""
@@ -89,6 +103,7 @@ help: ## Show this help message
 	@echo "  • $(BLUE)NO$(NC) orphaned code - everything must be accessible"
 	@echo "  • $(RED)TCA REQUIRED$(NC) - All new features must use TCA patterns"
 	@echo "  • $(RED)ARCHITECTURE$(NC) - App→Features→UI→Services→Infrastructure→Foundation"
+	@echo "  • $(RED)UI TESTING$(NC) - All features must have comprehensive UI test coverage"
 	@echo ""
 	@echo "$(RED)Remember:$(NC) This is for personal belongings insurance documentation!"
 
@@ -112,7 +127,7 @@ run: build-for-simulator ## Build and run app in iPhone 16 Pro Max simulator
 .PHONY: build
 build: gen check-tools clean-logs check-file-sizes ## Build the app (Debug configuration)
 	@echo "$(YELLOW)🔨 Building Nestory for iPhone 16 Pro Max...$(NC)"
-	@timeout $(BUILD_TIMEOUT) xcodebuild -scheme $(ACTIVE_SCHEME) \
+	@timeout $(BUILD_TIMEOUT) $(XCODEBUILD_CMD) -scheme $(ACTIVE_SCHEME) \
 		-destination '$(DESTINATION)' \
 		-configuration $(CONFIGURATION) \
 		$(BUILD_FLAGS) \
@@ -138,7 +153,7 @@ build: gen check-tools clean-logs check-file-sizes ## Build the app (Debug confi
 .PHONY: build-for-simulator
 build-for-simulator: gen check-tools clean-logs check-file-sizes ## Build specifically for simulator usage
 	@echo "$(YELLOW)🔨 Building Nestory for Simulator...$(NC)"
-	@timeout $(BUILD_TIMEOUT) xcodebuild -scheme $(ACTIVE_SCHEME) \
+	@timeout $(BUILD_TIMEOUT) $(XCODEBUILD_CMD) -scheme $(ACTIVE_SCHEME) \
 		-destination '$(DESTINATION)' \
 		-configuration $(CONFIGURATION) \
 		-derivedDataPath $(DERIVED_DATA_PATH) \
@@ -151,7 +166,7 @@ build-for-simulator: gen check-tools clean-logs check-file-sizes ## Build specif
 .PHONY: build-release
 build-release: gen check-tools check-file-sizes ## Build the app (Release configuration)
 	@echo "$(YELLOW)🔨 Building Nestory (Release)...$(NC)"
-	@timeout $(BUILD_TIMEOUT) xcodebuild -scheme $(ACTIVE_SCHEME) \
+	@timeout $(BUILD_TIMEOUT) $(XCODEBUILD_CMD) -scheme $(ACTIVE_SCHEME) \
 		-configuration Release \
 		-destination '$(DESTINATION)' \
 		$(BUILD_FLAGS) \
@@ -181,20 +196,32 @@ regenerate: gen ## Alias for gen - regenerate Xcode project
 clean-build: clean gen build ## Clean, regenerate project, and build
 
 # ============================================================================
-# TESTING
+# TESTING - COMPREHENSIVE UI TESTING FRAMEWORK
 # ============================================================================
 
 .PHONY: test
-test: check-tools ## Run all tests
-	@echo "$(YELLOW)🧪 Running tests...$(NC)"
+test: check-tools ## Run all tests (unit + integration)
+	@echo "$(YELLOW)🧪 Running comprehensive test suite...$(NC)"
 	@timeout $(TEST_TIMEOUT) swift test || \
 		{ echo "$(RED)❌ Tests failed or timed out after $(TEST_TIMEOUT)s!$(NC)"; exit 1; }
 	@echo "$(GREEN)✅ Tests completed!$(NC)"
 
+.PHONY: test-framework
+test-framework: gen ## Test the UI testing framework itself
+	@echo "$(YELLOW)🔧 Testing UI Testing Framework...$(NC)"
+	@timeout 180 $(XCODEBUILD_CMD) test \
+		-scheme $(SCHEME_DEV) \
+		-destination '$(DESTINATION)' \
+		-only-testing:NestoryUITests/TestFrameworkSelfTest \
+		$(BUILD_FLAGS) \
+		2>&1 | tee framework-test-$(BUILD_LOG) || \
+		{ echo "$(RED)❌ Framework tests failed!$(NC)"; exit 1; }
+	@echo "$(GREEN)✅ UI Testing Framework validated!$(NC)"
+
 .PHONY: test-xcode
 test-xcode: gen ## Run tests via Xcode
 	@echo "$(YELLOW)🧪 Running Xcode tests...$(NC)"
-	@timeout $(TEST_TIMEOUT) xcodebuild test \
+	@timeout $(TEST_TIMEOUT) $(XCODEBUILD_CMD) test \
 		-scheme $(SCHEME_DEV) \
 		-destination '$(DESTINATION)' \
 		$(BUILD_FLAGS) \
@@ -211,23 +238,63 @@ test-unit: ## Run unit tests only
 	@echo "$(GREEN)✅ Unit tests completed!$(NC)"
 
 .PHONY: test-ui
-test-ui: gen ## Run UI tests only
-	@echo "$(YELLOW)🧪 Running UI tests...$(NC)"
-	@timeout $(TEST_TIMEOUT) xcodebuild test \
+test-ui: gen ## Run comprehensive UI tests with enterprise framework
+	@echo "$(YELLOW)🧪 Running comprehensive UI test suite...$(NC)"
+	@mkdir -p ~/Desktop/NestoryUITestResults
+	@timeout $(TEST_TIMEOUT) $(XCODEBUILD_CMD) test \
 		-scheme $(SCHEME_DEV) \
 		-destination '$(DESTINATION)' \
 		-only-testing:NestoryUITests \
 		$(BUILD_FLAGS) \
+		-resultBundlePath ~/Desktop/NestoryUITestResults/comprehensive_results \
 		2>&1 | tee ui-test-$(BUILD_LOG) || \
 		{ echo "$(RED)❌ UI tests failed or timed out after $(TEST_TIMEOUT)s!$(NC)"; \
 		  echo "$(YELLOW)Check ui-test-$(BUILD_LOG) for details$(NC)"; exit 1; }
-	@echo "$(GREEN)✅ UI tests completed!$(NC)"
+	@echo "$(GREEN)✅ Comprehensive UI tests completed!$(NC)"
+	@echo "$(BLUE)📊 Results available at ~/Desktop/NestoryUITestResults/$(NC)"
+
+.PHONY: test-performance
+test-performance: gen ## Run performance UI tests
+	@echo "$(YELLOW)⚡ Running performance UI tests...$(NC)"
+	@mkdir -p ~/Desktop/NestoryPerformanceResults
+	@timeout 300 $(XCODEBUILD_CMD) test \
+		-scheme Nestory-Performance \
+		-destination '$(DESTINATION)' \
+		$(BUILD_FLAGS) \
+		-resultBundlePath ~/Desktop/NestoryPerformanceResults/performance_results \
+		2>&1 | tee performance-test-$(BUILD_LOG) || \
+		{ echo "$(RED)❌ Performance tests failed!$(NC)"; exit 1; }
+	@echo "$(GREEN)✅ Performance tests completed!$(NC)"
+
+.PHONY: test-accessibility
+test-accessibility: gen ## Run accessibility UI tests
+	@echo "$(YELLOW)♿ Running accessibility tests...$(NC)"
+	@mkdir -p ~/Desktop/NestoryAccessibilityResults
+	@timeout 240 $(XCODEBUILD_CMD) test \
+		-scheme Nestory-Accessibility \
+		-destination '$(DESTINATION)' \
+		$(BUILD_FLAGS) \
+		-resultBundlePath ~/Desktop/NestoryAccessibilityResults/accessibility_results \
+		2>&1 | tee accessibility-test-$(BUILD_LOG) || \
+		{ echo "$(RED)❌ Accessibility tests failed!$(NC)"; exit 1; }
+	@echo "$(GREEN)✅ Accessibility tests completed!$(NC)"
+
+.PHONY: test-smoke
+test-smoke: gen ## Run quick smoke tests
+	@echo "$(YELLOW)💨 Running smoke tests...$(NC)"
+	@timeout 90 $(XCODEBUILD_CMD) test \
+		-scheme Nestory-Smoke \
+		-destination '$(DESTINATION)' \
+		$(BUILD_FLAGS) \
+		2>&1 | tee smoke-test-$(BUILD_LOG) || \
+		{ echo "$(RED)❌ Smoke tests failed!$(NC)"; exit 1; }
+	@echo "$(GREEN)✅ Smoke tests completed!$(NC)"
 
 .PHONY: test-wiring
 test-wiring: gen ## Run comprehensive UI wiring tests to validate all navigation and integration
 	@echo "$(YELLOW)🔍 Running comprehensive UI wiring validation...$(NC)"
 	@mkdir -p ~/Desktop/NestoryUIWiringScreenshots
-	@timeout 300 xcodebuild test \
+	@timeout 300 $(XCODEBUILD_CMD) test \
 		-scheme Nestory-UIWiring \
 		-destination '$(DESTINATION)' \
 		-only-testing:NestoryUITests/ComprehensiveUIWiringTest/testCompleteUIWiring \
@@ -277,7 +344,7 @@ test-full-wiring: gen ## Run complete UI wiring validation with all tests
 # ============================================================================
 
 .PHONY: check
-check: build test guard verify-wiring verify-no-stock check-file-sizes validate-config tree ## Run all checks
+check: build test guard verify-wiring verify-no-stock check-file-sizes validate-config test-framework tree ## Run all checks including UI testing framework
 	@echo "$(GREEN)✅ All checks passed!$(NC)"
 
 .PHONY: guard
@@ -402,7 +469,7 @@ clean-derived-data: ## Clean all Xcode derived data
 .PHONY: fast-build
 fast-build: clean-derived-data ## Fast parallel build with maximum optimization ($(PARALLEL_JOBS) jobs + caching)
 	@echo "$(YELLOW)⚡ Fast parallel build ($(PARALLEL_JOBS) jobs + enhanced caching)...$(NC)"
-	@timeout $(BUILD_TIMEOUT) xcodebuild -scheme $(ACTIVE_SCHEME) \
+	@timeout $(BUILD_TIMEOUT) $(XCODEBUILD_CMD) -scheme $(ACTIVE_SCHEME) \
 		-destination '$(DESTINATION)' \
 		-configuration $(CONFIGURATION) \
 		$(FAST_BUILD_FLAGS) \
@@ -583,7 +650,7 @@ comprehensive-check: validate-config monitor-modularization verify-enhanced-arch
 .PHONY: screenshot
 screenshot: gen ## Capture app screenshots
 	@echo "$(YELLOW)📸 Capturing screenshots...$(NC)"
-	@timeout $(TEST_TIMEOUT) xcodebuild test \
+	@timeout $(TEST_TIMEOUT) $(XCODEBUILD_CMD) test \
 		-scheme $(SCHEME_DEV) \
 		-destination '$(DESTINATION)' \
 		-only-testing:NestoryUITests/NestoryScreenshotTests \
@@ -1035,6 +1102,97 @@ validate-config: ## Validate master configuration file
 	@swift -c "import Foundation; let data = try Data(contentsOf: URL(fileURLWithPath: \"Config/ProjectConfiguration.json\")); let _ = try JSONSerialization.jsonObject(with: data)" 2>/dev/null && echo "$(GREEN)✅ Configuration file is valid JSON$(NC)" || echo "$(RED)❌ Configuration file has JSON errors$(NC)"
 
 # ============================================================================
+# ENTERPRISE UI TESTING FRAMEWORK COMMANDS
+# ============================================================================
+
+.PHONY: test-regression
+test-regression: gen ## Run comprehensive regression test suite
+	@echo "$(YELLOW)🔄 Running regression test suite...$(NC)"
+	@mkdir -p ~/Desktop/NestoryRegressionResults
+	@timeout 450 $(XCODEBUILD_CMD) test \
+		-scheme Nestory-UIWiring \
+		-destination '$(DESTINATION)' \
+		$(BUILD_FLAGS) \
+		-resultBundlePath ~/Desktop/NestoryRegressionResults/regression_results \
+		2>&1 | tee regression-test-$(BUILD_LOG) || \
+		{ echo "$(RED)❌ Regression tests failed!$(NC)"; exit 1; }
+	@echo "$(GREEN)✅ Regression tests completed!$(NC)"
+
+.PHONY: test-load
+test-load: gen ## Run load testing scenarios
+	@echo "$(YELLOW)📊 Running load tests...$(NC)"
+	@mkdir -p ~/Desktop/NestoryLoadTestResults
+	@timeout 360 $(XCODEBUILD_CMD) test \
+		-scheme Nestory-Performance \
+		-destination '$(DESTINATION)' \
+		-only-testing:NestoryPerformanceUITests/LoadTests \
+		$(BUILD_FLAGS) \
+		-resultBundlePath ~/Desktop/NestoryLoadTestResults/load_results \
+		2>&1 | tee load-test-$(BUILD_LOG) || \
+		{ echo "$(RED)❌ Load tests failed!$(NC)"; exit 1; }
+	@echo "$(GREEN)✅ Load tests completed!$(NC)"
+
+.PHONY: test-report
+test-report: ## Generate comprehensive test report
+	@echo "$(YELLOW)📊 Generating comprehensive test report...$(NC)"
+	@mkdir -p ~/Desktop/NestoryTestReports
+	@echo "# Nestory UI Testing Framework Report" > ~/Desktop/NestoryTestReports/test_report.md
+	@echo "Generated: $$(date)" >> ~/Desktop/NestoryTestReports/test_report.md
+	@echo "" >> ~/Desktop/NestoryTestReports/test_report.md
+	@echo "## Test Results Summary" >> ~/Desktop/NestoryTestReports/test_report.md
+	@if [ -d "~/Desktop/NestoryUITestResults" ]; then \
+		echo "- UI Tests: Available" >> ~/Desktop/NestoryTestReports/test_report.md; \
+	else \
+		echo "- UI Tests: Not run" >> ~/Desktop/NestoryTestReports/test_report.md; \
+	fi
+	@if [ -d "~/Desktop/NestoryPerformanceResults" ]; then \
+		echo "- Performance Tests: Available" >> ~/Desktop/NestoryTestReports/test_report.md; \
+	else \
+		echo "- Performance Tests: Not run" >> ~/Desktop/NestoryTestReports/test_report.md; \
+	fi
+	@if [ -d "~/Desktop/NestoryAccessibilityResults" ]; then \
+		echo "- Accessibility Tests: Available" >> ~/Desktop/NestoryTestReports/test_report.md; \
+	else \
+		echo "- Accessibility Tests: Not run" >> ~/Desktop/NestoryTestReports/test_report.md; \
+	fi
+	@echo "$(GREEN)✅ Test report generated at ~/Desktop/NestoryTestReports/test_report.md$(NC)"
+	@open ~/Desktop/NestoryTestReports/test_report.md
+
+.PHONY: test-clean
+test-clean: ## Clean all test results and temporary files
+	@echo "$(YELLOW)🧽 Cleaning test results...$(NC)"
+	@rm -rf ~/Desktop/NestoryUITestResults
+	@rm -rf ~/Desktop/NestoryPerformanceResults
+	@rm -rf ~/Desktop/NestoryAccessibilityResults
+	@rm -rf ~/Desktop/NestoryRegressionResults
+	@rm -rf ~/Desktop/NestoryLoadTestResults
+	@rm -rf ~/Desktop/NestoryTestReports
+	@rm -rf ~/Desktop/NestoryUIWiringScreenshots
+	@rm -f *-test-*.log
+	@echo "$(GREEN)✅ Test results cleaned!$(NC)"
+
+.PHONY: test-validate-framework
+test-validate-framework: ## Validate the UI testing framework configuration
+	@echo "$(YELLOW)🔍 Validating UI testing framework...$(NC)"
+	@echo "Checking framework structure..."
+	@if [ -d "NestoryUITests/Core/Framework" ]; then \
+		echo "$(GREEN)✓$(NC) Core framework directory found"; \
+	else \
+		echo "$(RED)✗$(NC) Core framework directory missing"; exit 1; \
+	fi
+	@if [ -f "NestoryUITests/Core/Framework/NestoryUITestFramework.swift" ]; then \
+		echo "$(GREEN)✓$(NC) Main framework file found"; \
+	else \
+		echo "$(RED)✗$(NC) Main framework file missing"; exit 1; \
+	fi
+	@if [ -d "NestoryUITests/PageObjects" ]; then \
+		echo "$(GREEN)✓$(NC) Page Objects directory found"; \
+	else \
+		echo "$(RED)✗$(NC) Page Objects directory missing"; exit 1; \
+	fi
+	@echo "$(GREEN)✅ UI testing framework validation completed!$(NC)"
+
+# ============================================================================
 # QUICK ACCESS COMMANDS
 # ============================================================================
 
@@ -1052,6 +1210,18 @@ d: doctor ## Shortcut for 'make doctor'
 
 .PHONY: f
 f: fast-build ## Shortcut for 'make fast-build'
+
+.PHONY: tf
+tf: test-framework ## Shortcut for 'make test-framework'
+
+.PHONY: tp
+tp: test-performance ## Shortcut for 'make test-performance'
+
+.PHONY: ta
+ta: test-accessibility ## Shortcut for 'make test-accessibility'
+
+.PHONY: ts
+ts: test-smoke ## Shortcut for 'make test-smoke'
 
 # ============================================================================
 # END OF MAKEFILE

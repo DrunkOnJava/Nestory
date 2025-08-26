@@ -24,9 +24,16 @@ Packages/
 
 # Build artifacts
 build/
+**/build/
 *.ipa
 *.dSYM.zip
 *.dSYM
+*.backup
+*.old-*
+
+# Xcode build products
+DerivedData/
+**/DerivedData/
 
 # Provisioning
 *.mobileprovision

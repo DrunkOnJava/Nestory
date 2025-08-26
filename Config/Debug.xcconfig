@@ -18,3 +18,8 @@ CLOUDKIT_ENVIRONMENT = Development
 // Hot reload support for InjectionNext
 OTHER_LDFLAGS = $(inherited) -Xlinker -interposable
 OTHER_SWIFT_FLAGS = $(inherited) -DINJECTION_ENABLED
+
+// UI Testing Framework Support
+UI_TESTING_SUPPORT_ENABLED = YES
+ENABLE_TESTING_SEARCH_PATHS = YES
+ACCESSIBILITY_IDENTIFIERS_ENABLED = YES

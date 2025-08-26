@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import OSLog
 
 // MARK: - Configuration Models (matches ProjectConfiguration.json)
 
@@ -20,7 +21,7 @@ public enum ProjectConfigurationLoader {
                 .appendingPathComponent("ProjectConfiguration.json")
 
             guard let data = try? Data(contentsOf: projectURL) else {
-                print("⚠️ Could not load ProjectConfiguration.json - using defaults")
+                Logger.service.warning("Could not load ProjectConfiguration.json - using defaults")
                 return nil
             }
             return try? JSONDecoder().decode(ProjectConfigurationData.self, from: data)
@@ -308,13 +309,13 @@ public final class EnvironmentConfiguration: ObservableObject {
     // MARK: - Logging
 
     public func logConfiguration() {
-        print("🔧 Environment Configuration")
-        print("   Environment: \(currentEnvironment.rawValue)")
-        print("   CloudKit Container: \(cloudKitContainer)")
-        print("   API Base URL: \(apiBaseURL)")
-        print("   Bundle ID: \(bundleIdentifier)")
-        print("   Product Name: \(productName)")
-        print("   Debug Menu: \(debugMenuEnabled)")
-        print("   Analytics: \(analyticsEnabled)")
+        Logger.service.info("Environment Configuration")
+        Logger.service.info("Environment: \(self.currentEnvironment.rawValue)")
+        Logger.service.info("CloudKit Container: \(self.cloudKitContainer)")
+        Logger.service.info("API Base URL: \(self.apiBaseURL)")
+        Logger.service.info("Bundle ID: \(self.bundleIdentifier)")
+        Logger.service.info("Product Name: \(self.productName)")
+        Logger.service.info("Debug Menu: \(self.debugMenuEnabled)")
+        Logger.service.info("Analytics: \(self.analyticsEnabled)")
     }
 }

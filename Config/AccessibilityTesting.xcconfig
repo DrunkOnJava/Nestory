@@ -1,0 +1,127 @@
+// Accessibility Testing Configuration
+// Enterprise Accessibility UI Testing Framework Settings
+//
+// This configuration enables comprehensive accessibility testing
+// with VoiceOver, contrast, and other accessibility validation
+
+#include "UITesting.xcconfig"
+
+// ============================================================================
+// ACCESSIBILITY TESTING FRAMEWORK SETTINGS
+// ============================================================================
+
+// Enable accessibility testing mode
+ACCESSIBILITY_TESTING_MODE = YES
+ACCESSIBILITY_TEST_MODE = comprehensive
+
+// Accessibility identifiers
+UI_ACCESSIBILITY_IDENTIFIERS_ENABLED = YES
+ACCESSIBILITY_IDENTIFIERS_VALIDATION = YES
+
+// ============================================================================
+// VOICEOVER TESTING SETTINGS
+// ============================================================================
+
+// VoiceOver testing
+VOICE_OVER_ENABLED = NO
+VOICE_OVER_TESTING_MODE = NO
+VOICE_OVER_SPEED_ADJUSTMENT = normal
+
+// VoiceOver navigation
+VOICE_OVER_CONTAINER_NAVIGATION = YES
+VOICE_OVER_ROTOR_NAVIGATION = YES
+
+// ============================================================================
+// CONTRAST AND VISUAL TESTING SETTINGS
+// ============================================================================
+
+// Contrast testing
+CONTRAST_TESTING_ENABLED = YES
+HIGH_CONTRAST_MODE = NO
+REDUCE_TRANSPARENCY_MODE = NO
+
+// Color testing
+COLOR_BLIND_TESTING_ENABLED = YES
+COLOR_CONTRAST_VALIDATION = YES
+
+// Visual accessibility
+REDUCE_MOTION_ENABLED = NO
+INCREASE_BUTTON_SHAPES = NO
+BOLD_TEXT_ENABLED = NO
+
+// ============================================================================
+// FONT AND TEXT ACCESSIBILITY SETTINGS
+// ============================================================================
+
+// Dynamic Type testing
+DYNAMIC_TYPE_TESTING_ENABLED = YES
+LARGE_TEXT_TESTING = YES
+EXTRA_LARGE_TEXT_TESTING = YES
+
+// Text accessibility
+BUTTON_SHAPES_ENABLED = NO
+REDUCE_WHITE_POINT = NO
+
+// ============================================================================
+// MOTOR ACCESSIBILITY TESTING SETTINGS
+// ============================================================================
+
+// Switch Control testing
+SWITCH_CONTROL_ENABLED = NO
+ASSISTIVE_TOUCH_ENABLED = NO
+
+// Touch accommodations
+TOUCH_ACCOMMODATIONS_ENABLED = NO
+HOLD_DURATION_ADJUSTMENT = 0.1
+IGNORE_REPEAT_DURATION = 0.1
+
+// ============================================================================
+// ACCESSIBILITY AUDIT SETTINGS
+// ============================================================================
+
+// Audit configuration
+ACCESSIBILITY_AUDIT_ENABLED = YES
+ACCESSIBILITY_AUDIT_LEVEL = comprehensive
+ACCESSIBILITY_AUDIT_REPORTING = YES
+
+// Accessibility validation
+ACCESSIBILITY_LABEL_VALIDATION = YES
+ACCESSIBILITY_HINT_VALIDATION = YES
+ACCESSIBILITY_VALUE_VALIDATION = YES
+ACCESSIBILITY_TRAIT_VALIDATION = YES
+
+// ============================================================================
+// COMPILER SETTINGS FOR ACCESSIBILITY
+// ============================================================================
+
+// Additional compiler flags
+OTHER_SWIFT_FLAGS = $(inherited) -DACCESSIBILITY_TESTING=1
+GCC_PREPROCESSOR_DEFINITIONS = $(inherited) ACCESSIBILITY_TESTING=1
+
+// Swift optimization for accessibility testing
+SWIFT_OPTIMIZATION_LEVEL = -Onone
+SWIFT_COMPILATION_MODE = singlefile
+
+// ============================================================================
+// TESTING ENVIRONMENT SETTINGS
+// ============================================================================
+
+// Test environment configuration
+ACCESSIBILITY_TEST_TIMEOUT = 240
+ACCESSIBILITY_TEST_RETRY_COUNT = 3
+
+// Screenshot and reporting
+ACCESSIBILITY_SCREENSHOT_CAPTURE = YES
+ACCESSIBILITY_TEST_REPORTING = YES
+
+// ============================================================================
+// INTERNATIONALIZATION TESTING
+// ============================================================================
+
+// Localization testing
+LOCALIZATION_TESTING_ENABLED = YES
+PSEUDOLOCALIZATION_ENABLED = NO
+RTL_TESTING_ENABLED = NO
+
+// Text direction
+FORCE_RIGHT_TO_LEFT_LAYOUT = NO

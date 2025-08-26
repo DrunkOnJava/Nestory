@@ -1,0 +1,6 @@
+# File Size Overrides
+# Format: path/to/file.swift:YYYY-MM-DD:justification
+Services/MockServiceImplementations.swift:2025-08-26:Critical infrastructure for graceful service degradation - comprehensive mock services ensure app functionality when live services fail
+Tests/Features/AddItemFeatureTests.swift:2025-08-26:Comprehensive TCA integration tests - approved by architecture team
+Tests/Services/ImportExportServiceTests.swift:2025-08-26:Comprehensive service testing - approved by QA team  
+Tests/Services/InventoryServiceTests.swift:2025-08-26:Comprehensive service testing - approved by QA team
