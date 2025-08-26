@@ -1,14 +1,13 @@
 # Project Structure
 
-_Last updated: 2025-08-26 14:39:04_
+_Last updated: 2025-08-26 15:05:33_
 
 ```
 [01;34m.[0m
 ├── [01;34mApp-Main[0m
-│   ├── [01;34mAdvancedSearch[0m
-│   │   └── AdvancedFilterSheet.swift
 │   ├── [01;34mAnalyticsViews[0m
 │   │   ├── AnalyticsCharts.swift
+│   │   ├── AnalyticsDataProvider.swift
 │   │   ├── EnhancedAnalyticsSummaryView.swift
 │   │   ├── EnhancedInsightsView.swift
 │   │   └── InsightsView.swift
@@ -90,12 +89,6 @@ _Last updated: 2025-08-26 14:39:04_
 │   │   ├── ClaimPackageAssemblyIndex.swift
 │   │   ├── ClaimPackageAssemblySteps.swift
 │   │   └── README.md
-│   ├── [01;34mClaimsDashboard[0m
-│   │   ├── ClaimsAnalyticsSection.swift
-│   │   ├── ClaimsDashboardContent.swift
-│   │   ├── ClaimsDashboardStates.swift
-│   │   ├── FollowUpActionsSection.swift
-│   │   └── RecentActivitiesSection.swift
 │   ├── [01;34mClaimSubmission[0m
 │   │   ├── ClaimSubmissionComponents.swift
 │   │   ├── ClaimSubmissionCore.swift
@@ -178,6 +171,7 @@ _Last updated: 2025-08-26 14:39:04_
 │   │   ├── DamageAssessmentComponents.swift
 │   │   ├── DamageAssessmentCore.swift
 │   │   ├── DamageAssessmentReportView.swift
+│   │   ├── DamageAssessmentReportView.swift.backup
 │   │   ├── DamageAssessmentSteps.swift
 │   │   ├── DamageAssessmentWorkflowView.swift
 │   │   ├── DamageSeverityAssessmentView.swift
@@ -258,7 +252,6 @@ _Last updated: 2025-08-26 14:39:04_
 │   │   │   │   ├── [01;34mTypes[0m
 │   │   │   │   │   └── WarrantyExtension.swift
 │   │   │   │   ├── README.md
-│   │   │   │   ├── WarrantyNotificationSettingsView.swift
 │   │   │   │   └── WarrantyTrackingSheetsIndex.swift
 │   │   │   ├── WarrantyTrackingComponents.swift
 │   │   │   ├── WarrantyTrackingCore.swift
@@ -272,9 +265,11 @@ _Last updated: 2025-08-26 14:39:04_
 │   │   ├── WarrantyStatusCalculator.swift
 │   │   ├── WarrantySubviews.swift
 │   │   └── WarrantyTrackingView.swift
+│   ├── AddItemView.swift
 │   ├── AdvancedSearchView.swift
 │   ├── BarcodeScannerView.swift
 │   ├── CaptureView.swift
+│   ├── CategoriesView.swift
 │   ├── ClaimExportView.swift
 │   ├── ClaimPackageAssemblyView.swift
 │   ├── ClaimPreviewView.swift
@@ -322,6 +317,16 @@ _Last updated: 2025-08-26 14:39:04_
 │   │       ├── AuthError.swift
 │   │       └── AuthService.swift
 │   ├── [01;34mTCA-Migration[0m
+│   │   ├── [01;34mApp-Main.backup[0m
+│   │   │   ├── RootFeature.swift
+│   │   │   └── RootView.swift
+│   │   ├── [01;34mFeatures.backup[0m
+│   │   │   └── [01;34mInventory[0m
+│   │   │       ├── InventoryFeature.swift
+│   │   │       ├── InventoryView.swift
+│   │   │       ├── ItemDetailFeature.swift
+│   │   │       └── ItemEditFeature.swift
+│   │   └── DependencyKeys.swift.backup
 │   └── manual_navigation_test.swift
 ├── [01;34mAssets[0m
 │   └── [01;34mIcons[0m
@@ -438,23 +443,15 @@ _Last updated: 2025-08-26 14:39:04_
 │   └── upload_testflight.rb
 ├── [01;34mFeatures[0m
 │   ├── [01;34mAddItem[0m
-│   │   ├── AddItemFeature.swift
-│   │   └── AddItemView.swift
+│   │   └── AddItemFeature.swift
 │   ├── [01;34mAnalytics[0m
 │   │   ├── AnalyticsDashboardView.swift
 │   │   └── AnalyticsFeature.swift
-│   ├── [01;34mCapture[0m
-│   │   └── CaptureFeature.swift
 │   ├── [01;34mCategories[0m
 │   │   ├── CategoriesView.swift
 │   │   └── CategoryFeature.swift
-│   ├── [01;34mClaimSubmission[0m
-│   │   └── ClaimSubmissionFeature.swift
-│   ├── [01;34mExport[0m
-│   │   └── ExportFeature.swift
-│   ├── [01;34mInsuranceReport[0m
-│   │   └── InsuranceReportFeature.swift
 │   ├── [01;34mInventory[0m
+│   │   ├── InventoryFeature-Refactored.swift
 │   │   ├── InventoryFeature.swift
 │   │   ├── InventoryView.swift
 │   │   ├── ItemDetailFeature.swift
@@ -478,26 +475,25 @@ _Last updated: 2025-08-26 14:39:04_
 │   │   ├── SearchView.swift
 │   │   ├── SearchViewComponents.swift
 │   │   └── SearchViewModifiers.swift
-│   ├── [01;34mSettings[0m
-│   │   ├── [01;34mComponents[0m
-│   │   │   ├── [01;34mActions[0m
-│   │   │   │   └── SettingsActions.swift
-│   │   │   ├── [01;34mReducers[0m
-│   │   │   │   └── SettingsReducer.swift
-│   │   │   ├── [01;34mState[0m
-│   │   │   │   └── SettingsState.swift
-│   │   │   ├── [01;34mTypes[0m
-│   │   │   │   └── SettingsTypes.swift
-│   │   │   ├── [01;34mUtils[0m
-│   │   │   │   └── SettingsUtils.swift
-│   │   │   ├── SettingsIndex.swift
-│   │   │   ├── SettingsReceiptComponents.swift
-│   │   │   ├── SettingsViewComponents.swift
-│   │   │   └── ThemeComponents.swift
-│   │   ├── SettingsFeature.swift
-│   │   └── SettingsView.swift
-│   └── [01;34mWarranty[0m
-│       └── WarrantyFeature.swift
+│   └── [01;34mSettings[0m
+│       ├── [01;34mComponents[0m
+│       │   ├── [01;34mActions[0m
+│       │   │   └── SettingsActions.swift
+│       │   ├── [01;34mReducers[0m
+│       │   │   └── SettingsReducer.swift
+│       │   ├── [01;34mState[0m
+│       │   │   └── SettingsState.swift
+│       │   ├── [01;34mTypes[0m
+│       │   │   └── SettingsTypes.swift
+│       │   ├── [01;34mUtils[0m
+│       │   │   └── SettingsUtils.swift
+│       │   ├── SettingsIndex.swift
+│       │   ├── SettingsReceiptComponents.swift
+│       │   ├── SettingsViewComponents.swift
+│       │   └── ThemeComponents.swift
+│       ├── SettingsFeature.swift
+│       ├── SettingsFeature.swift.backup
+│       └── SettingsView.swift
 ├── [01;34mFoundation[0m
 │   ├── [01;34mCore[0m
 │   │   ├── [01;34mConstants[0m
@@ -522,7 +518,6 @@ _Last updated: 2025-08-26 14:39:04_
 │   │   ├── ScreenRegistry.swift
 │   │   ├── ServiceError.swift
 │   │   ├── Slug.swift
-│   │   ├── StringExtensions.swift
 │   │   ├── UITestMode.swift
 │   │   └── ValidationIssue.swift
 │   ├── [01;34mModels[0m
@@ -549,9 +544,6 @@ _Last updated: 2025-08-26 14:39:04_
 │   │   └── WarrantyStatus.swift
 │   ├── [01;34mResources[0m
 │   │   └── Fixtures.json
-│   ├── [01;34mTelemetry[0m
-│   │   ├── InstrumentedHTTPClient.swift
-│   │   └── TelemetryBootstrap.swift
 │   └── [01;34mUtils[0m
 │       ├── CurrencyUtils.swift
 │       ├── DateUtils.swift
@@ -1078,6 +1070,7 @@ _Last updated: 2025-08-26 14:39:04_
 │   │   ├── DamageAssessmentModels.swift
 │   │   └── DamageAssessmentService.swift
 │   ├── [01;34mDependencies[0m
+│   │   └── CoreServiceKeys.swift.backup
 │   ├── [01;34mExportService[0m
 │   │   └── ExportService.swift
 │   ├── [01;34mImportExportService[0m
@@ -1107,7 +1100,8 @@ _Last updated: 2025-08-26 14:39:04_
 │   │   │   ├── ClaimTemplateIndex.swift
 │   │   │   └── ClaimTemplateTypes.swift
 │   │   ├── ClaimDocumentGenerator.swift
-│   │   └── ClaimTemplateManager.swift
+│   │   ├── ClaimTemplateManager.swift
+│   │   └── ClaimTemplateManager.swift.backup
 │   ├── [01;34mInsuranceExport[0m
 │   │   ├── DataFormatHelpers.swift
 │   │   ├── HTMLTemplateGenerator.swift
@@ -1144,10 +1138,6 @@ _Last updated: 2025-08-26 14:39:04_
 │   │   ├── ReceiptDataParser.swift
 │   │   ├── ReceiptItemExtractor.swift
 │   │   └── VisionTextExtractor.swift
-│   ├── [01;34mSearchHistoryService[0m
-│   │   ├── LiveSearchHistoryService.swift
-│   │   ├── MockSearchHistoryService.swift
-│   │   └── SearchHistoryService.swift
 │   ├── [01;34mSyncService[0m
 │   │   └── SyncService.swift
 │   ├── [01;34mWarrantyService[0m
@@ -1168,6 +1158,7 @@ _Last updated: 2025-08-26 14:39:04_
 │   │   │   │   └── WarrantyStatusManager.swift
 │   │   │   └── WarrantyOperationsIndex.swift
 │   │   ├── LiveWarrantyTrackingService.swift
+│   │   ├── LiveWarrantyTrackingService.swift.backup
 │   │   └── WarrantyTrackingService.swift
 │   ├── CategoryService.swift
 │   ├── ClaimContentGenerator.swift
@@ -1178,6 +1169,7 @@ _Last updated: 2025-08-26 14:39:04_
 │   ├── ClaimPackageCore.swift
 │   ├── ClaimPackageExporter.swift
 │   ├── ClaimTrackingService.swift
+│   ├── ClaimTrackingService.swift.backup
 │   ├── ClaimValidationService.swift
 │   ├── CloudStorageServices.swift
 │   ├── DependencyKeys.swift
@@ -1327,7 +1319,6 @@ _Last updated: 2025-08-26 14:39:04_
 ├── Build Nestory-Dev_2025-08-22T16-53-38.txt
 ├── Build Nestory-Dev_2025-08-22T19-25-50.txt
 ├── Build Nestory-Dev_2025-08-22T22-11-24.txt
-├── Build Nestory-Dev_2025-08-26T08-02-40.txt
 ├── Build Nestory-Prod_2025-08-21T23-12-46.txt
 ├── BUILD_FIXES_COMPLETED.md
 ├── BUILD_INSTRUCTIONS.md
@@ -1415,7 +1406,7 @@ _Last updated: 2025-08-26 14:39:04_
 ├── XCODE_UI_TESTING_GUIDE.md
 └── XCUIAutomation-Definitive-Documentation.md
 
-286 directories, 1125 files
+280 directories, 1122 files
 ```
 
 _📁 Directories:  | 📄 Files: 

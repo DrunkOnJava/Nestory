@@ -49,7 +49,7 @@ public struct RootFeature {
         // - Capture: Receipt/barcode scanning for documentation
         // - Analytics: Insights for insurance coverage gaps
         // - Settings: App configuration and export options
-        public enum Tab: String, CaseIterable {
+        public enum Tab: String, CaseIterable, Equatable {
             case inventory = "Inventory"
             case search = "Search"
             case capture = "Capture"
@@ -65,6 +65,15 @@ public struct RootFeature {
                 case .settings: "gearshape"
                 }
             }
+        }
+        
+        // Equatable implementation excluding computed properties
+        public static func == (lhs: State, rhs: State) -> Bool {
+            return lhs.inventory == rhs.inventory &&
+                   lhs.search == rhs.search &&
+                   lhs.analytics == rhs.analytics &&
+                   lhs.settings == rhs.settings &&
+                   lhs.selectedTab == rhs.selectedTab
         }
     }
 
