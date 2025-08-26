@@ -46,7 +46,7 @@ settings:
     SWIFT_ENABLE_INCREMENTAL_COMPILATION: YES
   configs:
     Debug:
-      SWIFT_STRICT_CONCURRENCY: minimal
+      SWIFT_STRICT_CONCURRENCY: complete
       SWIFT_TREAT_WARNINGS_AS_ERRORS: NO
       OTHER_SWIFT_FLAGS: "-Xfrontend -disable-availability-checking -suppress-warnings -enable-experimental-feature Macros"
       DEBUG_INFORMATION_FORMAT: dwarf-with-dsym
@@ -80,12 +80,65 @@ packages:
   swift-composable-architecture:
     url: https://github.com/pointfreeco/swift-composable-architecture
     majorVersion: 1.22.0
+  
+  # UI TESTING FRAMEWORK DEPENDENCIES
+  swift-snapshot-testing:
+    url: https://github.com/pointfreeco/swift-snapshot-testing
+    majorVersion: 1.12.0
+  swift-collections:
+    url: https://github.com/apple/swift-collections
+    majorVersion: 1.0.0
 
 targets:
   Nestory:
     type: application
     platform: iOS
     deploymentTarget: 17.0
+    
+    # Build phase scripts for metrics collection
+    preBuildScripts:
+      - name: "📊 Start Build Metrics Timer"
+        script: |
+          echo "$(date +%s)" > /tmp/nestory_build_start_time
+          echo "Starting build metrics collection..."
+        shell: /bin/bash
+        runOnlyWhenInstalling: false
+    
+    postBuildScripts:
+      - name: "📊 Capture Build Metrics"
+        script: |
+          export BUILD_START_TIME=$(cat /tmp/nestory_build_start_time 2>/dev/null || echo $(date +%s))
+          export SCHEME_NAME="${SCHEME_NAME:-Nestory-Dev}"
+          export CONFIGURATION="${CONFIGURATION:-Debug}"
+          export TARGET_NAME="${TARGET_NAME:-Nestory}"
+          export BUILD_LOG_PATH="${BUILD_ROOT}/build.log"
+          
+          # Capture enhanced metrics with real error tracking
+          "${SRCROOT}/Scripts/CI/enhanced-build-metrics.sh" &
+          
+          # Capture detailed build errors from project's DerivedData path
+          PROJECT_BUILD_DIR="${SRCROOT}/.build"
+          if [ -d "$PROJECT_BUILD_DIR" ]; then
+            # Find the most recent build log in project's build directory
+            LATEST_LOG=$(find "$PROJECT_BUILD_DIR" -name "*.xcactivitylog" -mmin -5 2>/dev/null | head -1)
+            if [ -n "$LATEST_LOG" ]; then
+              echo "Found build log: $LATEST_LOG"
+              # Parse and send errors to dashboard
+              gunzip -c "$LATEST_LOG" 2>/dev/null | \
+                "${SRCROOT}/monitoring/scripts/xcode-error-collector.sh" parse /dev/stdin &
+            fi
+            
+            # Also check for xcresult bundle in project build directory
+            XCRESULT=$(find "$PROJECT_BUILD_DIR" -name "*.xcresult" -maxdepth 2 2>/dev/null | head -1)
+            if [ -n "$XCRESULT" ]; then
+              echo "Found xcresult bundle: $XCRESULT"
+              "${SRCROOT}/monitoring/scripts/xcode-error-collector.sh" xcresult "$XCRESULT" &
+            fi
+          fi
+          
+          echo "Build metrics and errors captured and sent to dashboard"
+        shell: /bin/bash
+        runOnlyWhenInstalling: false
     
     sources:
       # FAIL-FAST BUILD ORDER: Foundation → Infrastructure → Services → UI → Features → App-Main
@@ -204,6 +257,12 @@ targets:
       - NestoryUITests
     dependencies:
       - target: Nestory
+      - package: swift-snapshot-testing
+        product: SnapshotTesting
+      - package: swift-collections
+        product: Collections
+      - package: swift-composable-architecture
+        product: ComposableArchitecture
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.drunkonjava.nestory.UITests
@@ -212,6 +271,65 @@ targets:
         SWIFT_VERSION: 6.0
         SWIFT_STRICT_CONCURRENCY: minimal
         SWIFT_TREAT_WARNINGS_AS_ERRORS: NO
+        # Enterprise UI Testing Framework Settings
+        ENABLE_TESTING_SEARCH_PATHS: YES
+        UI_TEST_BUNDLE_ID: com.drunkonjava.nestory.UITests
+        UI_TEST_FRAMEWORK_ENABLED: YES
+  
+  # PERFORMANCE UI TESTS TARGET
+  NestoryPerformanceUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    deploymentTarget: 17.0
+    sources:
+      - NestoryUITests/PerformanceTests
+      - NestoryUITests/Core/Framework
+      - NestoryUITests/Base
+      - NestoryUITests/Extensions
+      - NestoryUITests/Helpers
+    dependencies:
+      - target: Nestory
+      - package: swift-snapshot-testing
+        product: SnapshotTesting
+      - package: swift-collections
+        product: Collections
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.drunkonjava.nestory.PerformanceUITests
+        TEST_TARGET_NAME: Nestory
+        GENERATE_INFOPLIST_FILE: YES
+        SWIFT_VERSION: 6.0
+        SWIFT_STRICT_CONCURRENCY: minimal
+        SWIFT_TREAT_WARNINGS_AS_ERRORS: NO
+        ENABLE_TESTING_SEARCH_PATHS: YES
+        UI_TEST_PERFORMANCE_MODE: YES
+        PERFORMANCE_TEST_TIMEOUT: 300
+  
+  # ACCESSIBILITY UI TESTS TARGET
+  NestoryAccessibilityUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    deploymentTarget: 17.0
+    sources:
+      - NestoryUITests/AccessibilityTests
+      - NestoryUITests/Core/Framework
+      - NestoryUITests/Base
+      - NestoryUITests/Extensions
+      - NestoryUITests/Helpers
+    dependencies:
+      - target: Nestory
+      - package: swift-snapshot-testing
+        product: SnapshotTesting
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.drunkonjava.nestory.AccessibilityUITests
+        TEST_TARGET_NAME: Nestory
+        GENERATE_INFOPLIST_FILE: YES
+        SWIFT_VERSION: 6.0
+        SWIFT_STRICT_CONCURRENCY: minimal
+        SWIFT_TREAT_WARNINGS_AS_ERRORS: NO
+        ENABLE_TESTING_SEARCH_PATHS: YES
+        ACCESSIBILITY_TEST_MODE: YES
 
 schemes:
   Nestory-Dev:
@@ -242,10 +360,12 @@ schemes:
     archive:
       config: Release
 
+  # COMPREHENSIVE UI WIRING SCHEME
   Nestory-UIWiring:
     build:
       targets:
         Nestory: all
+        NestoryUITests: all
     run:
       config: Debug
       environmentVariables:
@@ -254,6 +374,7 @@ schemes:
         API_BASE_URL: https://api-dev.nestory.app
         FX_API_ENDPOINT: https://fx-dev.nestory.app
         UI_WIRING_TEST_MODE: "true"
+        UI_TEST_FRAMEWORK_ENABLED: "true"
     test:
       config: Debug
       targets:
@@ -264,20 +385,126 @@ schemes:
       onlyTestIdentifiers:
         - NestoryUITests/ComprehensiveUIWiringTest/testCompleteUIWiring
         - NestoryUITests/BasicScreenshotTest/testBasicAppScreenshots
+        - NestoryUITests/ComprehensiveFlowDemonstrationTest
       commandLineArguments:
         - --ui-testing
         - --demo-data  
         - --comprehensive-testing
         - --wiring-validation
+        - --framework-validation
       environmentVariables:
         UI_TEST_SCREENSHOT_DIR: ~/Desktop/NestoryUIWiringScreenshots
         UI_TEST_ENABLE_VALIDATION: "true"
+        UI_TEST_FRAMEWORK_MODE: "comprehensive"
+        TEST_EXECUTION_TIMEOUT: "300"
     profile:
       config: Debug
     analyze:
       config: Debug
     archive:
       config: Release
+  
+  # PERFORMANCE TESTING SCHEME
+  Nestory-Performance:
+    build:
+      targets:
+        Nestory: all
+        NestoryPerformanceUITests: all
+    run:
+      config: Release
+      environmentVariables:
+        CLOUDKIT_CONTAINER: iCloud.com.drunkonjava.nestory.dev
+        NESTORY_ENVIRONMENT: performance
+        PERFORMANCE_TESTING_MODE: "true"
+    test:
+      config: Release
+      targets:
+        - name: NestoryPerformanceUITests
+          parallelizable: true
+          randomExecutionOrder: false
+      gatherCoverageData: false
+      commandLineArguments:
+        - --performance-testing
+        - --load-testing
+        - --memory-profiling
+      environmentVariables:
+        PERFORMANCE_TEST_TIMEOUT: "300"
+        MEMORY_TEST_THRESHOLD: "100MB"
+        CPU_TEST_THRESHOLD: "80%"
+    profile:
+      config: Release
+    analyze:
+      config: Release
+    archive:
+      config: Release
+  
+  # ACCESSIBILITY TESTING SCHEME
+  Nestory-Accessibility:
+    build:
+      targets:
+        Nestory: all
+        NestoryAccessibilityUITests: all
+    run:
+      config: Debug
+      environmentVariables:
+        CLOUDKIT_CONTAINER: iCloud.com.drunkonjava.nestory.dev
+        NESTORY_ENVIRONMENT: accessibility
+        ACCESSIBILITY_TESTING_MODE: "true"
+    test:
+      config: Debug
+      targets:
+        - name: NestoryAccessibilityUITests
+          parallelizable: false
+          randomExecutionOrder: false
+      gatherCoverageData: true
+      commandLineArguments:
+        - --accessibility-testing
+        - --voice-over-testing
+        - --contrast-testing
+      environmentVariables:
+        ACCESSIBILITY_TEST_MODE: "comprehensive"
+        VOICE_OVER_ENABLED: "true"
+        CONTRAST_TESTING_ENABLED: "true"
+    profile:
+      config: Debug
+    analyze:
+      config: Debug
+    archive:
+      config: Release
+  
+  # SMOKE TESTING SCHEME
+  Nestory-Smoke:
+    build:
+      targets:
+        Nestory: all
+        NestoryUITests: all
+    run:
+      config: Debug
+      environmentVariables:
+        CLOUDKIT_CONTAINER: iCloud.com.drunkonjava.nestory.dev
+        NESTORY_ENVIRONMENT: smoke
+        SMOKE_TESTING_MODE: "true"
+    test:
+      config: Debug
+      targets:
+        - name: NestoryUITests
+          parallelizable: true
+          randomExecutionOrder: false
+      gatherCoverageData: false
+      onlyTestIdentifiers:
+        - NestoryUITests/SmokeTests
+      commandLineArguments:
+        - --smoke-testing
+        - --quick-validation
+      environmentVariables:
+        SMOKE_TEST_TIMEOUT: "60"
+        QUICK_VALIDATION_MODE: "true"
+    profile:
+      config: Debug
+    analyze:
+      config: Debug
+    archive:
+      config: Debug
 
   Nestory-Prod:
     build:

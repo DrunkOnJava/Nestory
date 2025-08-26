@@ -30,7 +30,7 @@ echo -e "${YELLOW}Testing M1 iMac connection (Tailscale)...${NC}"
 echo "  Host: $IMAC_HOST"
 echo "  User: $IMAC_USER"
 
-if ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no "$IMAC_USER@$IMAC_HOST" "echo '  ✓ Connected'; uname -a | sed 's/^/  /'; sw_vers | head -2 | sed 's/^/  /'" 2>/dev/null; then
+if ssh -o ConnectTimeout=5 -o ConnectTimeout=10 "$IMAC_USER@$IMAC_HOST" "echo '  ✓ Connected'; uname -a | sed 's/^/  /'; sw_vers | head -2 | sed 's/^/  /'" 2>/dev/null; then
     echo -e "${GREEN}  ✓ M1 iMac connection successful${NC}"
     
     # Check if runner is installed
@@ -50,7 +50,7 @@ echo -e "${YELLOW}Testing Raspberry Pi 5 connection (Tailscale)...${NC}"
 echo "  Host: $PI_HOST"
 echo "  User: $PI_USER"
 
-if ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no "$PI_USER@$PI_HOST" "echo '  ✓ Connected'; uname -a | sed 's/^/  /'; lsb_release -d 2>/dev/null | sed 's/^/  /'" 2>/dev/null; then
+if ssh -o ConnectTimeout=5 -o ConnectTimeout=10 "$PI_USER@$PI_HOST" "echo '  ✓ Connected'; uname -a | sed 's/^/  /'; lsb_release -d 2>/dev/null | sed 's/^/  /'" 2>/dev/null; then
     echo -e "${GREEN}  ✓ Raspberry Pi connection successful${NC}"
     
     # Check if runner is installed
@@ -77,8 +77,8 @@ echo -e "${BLUE}═════════════════════�
 M1_OK=false
 PI_OK=false
 
-ssh -o ConnectTimeout=2 -o StrictHostKeyChecking=no "$IMAC_USER@$IMAC_HOST" "exit 0" 2>/dev/null && M1_OK=true
-ssh -o ConnectTimeout=2 -o StrictHostKeyChecking=no "$PI_USER@$PI_HOST" "exit 0" 2>/dev/null && PI_OK=true
+ssh -o ConnectTimeout=2 -o ConnectTimeout=10 "$IMAC_USER@$IMAC_HOST" "exit 0" 2>/dev/null && M1_OK=true
+ssh -o ConnectTimeout=2 -o ConnectTimeout=10 "$PI_USER@$PI_HOST" "exit 0" 2>/dev/null && PI_OK=true
 
 if $M1_OK && $PI_OK; then
     echo -e "${GREEN}✓ Both runners are accessible${NC}"

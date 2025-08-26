@@ -7,10 +7,10 @@
 
 set -euo pipefail
 
-# Configuration (Tailscale IPs for secure access)
-IMAC_HOST="${IMAC_HOST:-100.106.87.23}"  # M1 iMac via Tailscale
+# Configuration (use environment variables for security)
+IMAC_HOST="${IMAC_HOST:?IMAC_HOST environment variable is required}"
 IMAC_USER="${IMAC_USER:-griffin}"
-PI_HOST="${PI_HOST:-100.116.38.90}"      # Raspberry Pi 5 via Tailscale
+PI_HOST="${PI_HOST:?PI_HOST environment variable is required}"
 PI_USER="${PI_USER:-griffin}"
 
 # Colors
@@ -28,11 +28,14 @@ get_runner_status() {
     local host=$1
     local user=$2
     
-    # Use specific SSH key for Raspberry Pi
-    SSH_OPTS="-o ConnectTimeout=2 -o StrictHostKeyChecking=no"
-    if [[ "$host" == "100.116.38.90" ]]; then
-        SSH_OPTS="$SSH_OPTS -i ~/.ssh/raspberry_pi_key_new"
-    fi
+    # Use secure SSH connection with proper host checking
+    SSH_OPTS="-o ConnectTimeout=2"
+    # SSH keys and host checking should be configured in ~/.ssh/config
+    # Example config:
+    # Host pi-runner
+    #   HostName 100.116.38.90
+    #   User griffin  
+    #   IdentityFile ~/.ssh/raspberry_pi_key_new
     
     ssh $SSH_OPTS "$user@$host" 2>/dev/null << 'ENDSSH' || echo "offline"
     if [[ -d "$HOME/actions-runner" ]]; then
@@ -69,11 +72,14 @@ get_system_metrics() {
     local host=$1
     local user=$2
     
-    # Use specific SSH key for Raspberry Pi
-    SSH_OPTS="-o ConnectTimeout=2 -o StrictHostKeyChecking=no"
-    if [[ "$host" == "100.116.38.90" ]]; then
-        SSH_OPTS="$SSH_OPTS -i ~/.ssh/raspberry_pi_key_new"
-    fi
+    # Use secure SSH connection with proper host checking
+    SSH_OPTS="-o ConnectTimeout=2"
+    # SSH keys and host checking should be configured in ~/.ssh/config
+    # Example config:
+    # Host pi-runner
+    #   HostName 100.116.38.90
+    #   User griffin  
+    #   IdentityFile ~/.ssh/raspberry_pi_key_new
     
     ssh $SSH_OPTS "$user@$host" 2>/dev/null << 'ENDSSH' || echo "N/A|N/A|N/A|N/A"
     if [[ "$(uname)" == "Darwin" ]]; then
@@ -98,11 +104,14 @@ get_recent_jobs() {
     local host=$1
     local user=$2
     
-    # Use specific SSH key for Raspberry Pi
-    SSH_OPTS="-o ConnectTimeout=2 -o StrictHostKeyChecking=no"
-    if [[ "$host" == "100.116.38.90" ]]; then
-        SSH_OPTS="$SSH_OPTS -i ~/.ssh/raspberry_pi_key_new"
-    fi
+    # Use secure SSH connection with proper host checking
+    SSH_OPTS="-o ConnectTimeout=2"
+    # SSH keys and host checking should be configured in ~/.ssh/config
+    # Example config:
+    # Host pi-runner
+    #   HostName 100.116.38.90
+    #   User griffin  
+    #   IdentityFile ~/.ssh/raspberry_pi_key_new
     
     ssh $SSH_OPTS "$user@$host" 2>/dev/null << 'ENDSSH' || echo "No connection"
     if [[ -d "$HOME/actions-runner/_diag" ]]; then

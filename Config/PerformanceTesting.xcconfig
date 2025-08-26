@@ -1,0 +1,99 @@
+// Performance Testing Configuration
+// Enterprise Performance UI Testing Framework Settings
+//
+// This configuration optimizes build settings for performance testing
+// scenarios with comprehensive monitoring and profiling capabilities
+
+#include "UITesting.xcconfig"
+
+// ============================================================================
+// PERFORMANCE TESTING FRAMEWORK SETTINGS
+// ============================================================================
+
+// Enable performance testing mode
+PERFORMANCE_TESTING_MODE = YES
+UI_TEST_PERFORMANCE_MODE = YES
+PERFORMANCE_TEST_TIMEOUT = 300
+
+// Performance thresholds
+MEMORY_TEST_THRESHOLD = 100MB
+CPU_TEST_THRESHOLD = 80%
+DISK_IO_TEST_THRESHOLD = 50MB/s
+NETWORK_TEST_THRESHOLD = 10MB/s
+
+// ============================================================================
+// PROFILING AND MONITORING SETTINGS
+// ============================================================================
+
+// Enable performance monitoring
+PERFORMANCE_MONITORING_ENABLED = YES
+MEMORY_MONITORING_ENABLED = YES
+CPU_MONITORING_ENABLED = YES
+NETWORK_MONITORING_ENABLED = YES
+
+// MetricKit integration
+METRICKIT_ENABLED = YES
+PERFORMANCE_METRICS_COLLECTION = YES
+
+// ============================================================================
+// OPTIMIZATION SETTINGS FOR PERFORMANCE TESTING
+// ============================================================================
+
+// Swift optimization
+SWIFT_OPTIMIZATION_LEVEL = -O
+SWIFT_COMPILATION_MODE = wholemodule
+GCC_OPTIMIZATION_LEVEL = s
+
+// Enable all performance optimizations
+ENABLE_MODULE_VERIFIER = YES
+VALIDATE_PRODUCT = YES
+SWIFT_DISABLE_SAFETY_CHECKS = YES
+
+// ============================================================================
+// INSTRUMENTATION SETTINGS
+// ============================================================================
+
+// Enable instrumentation
+ENABLE_INSTRUMENTS_PROFILING = YES
+INSTRUMENTS_PROFILING_ENABLED = YES
+
+// Memory profiling
+MALLOC_SCRIBBLE = YES
+MALLOC_GUARD_EDGES = YES
+GUARD_MALLOC = YES
+
+// ============================================================================
+// PERFORMANCE BUILD FLAGS
+// ============================================================================
+
+// Additional compiler flags for performance
+OTHER_SWIFT_FLAGS = $(inherited) -Xfrontend -enable-experimental-performance-annotations
+OTHER_CFLAGS = $(inherited) -DPERFORMANCE_TESTING=1
+
+// Preprocessor definitions
+GCC_PREPROCESSOR_DEFINITIONS = $(inherited) PERFORMANCE_TESTING=1 PERFORMANCE_MODE=1
+
+// ============================================================================
+// CONFIGURATION OVERRIDES
+// ============================================================================
+
+// Use Release configuration base for performance testing
+CONFIGURATION = Release
+
+// Disable debugging features that impact performance
+DEBUG_INFORMATION_FORMAT = dwarf
+ENABLE_TESTABILITY = YES
+
+// ============================================================================
+// LOAD TESTING SPECIFIC SETTINGS
+// ============================================================================
+
+// Load testing configuration
+LOAD_TESTING_MODE = NO
+STRESS_TESTING_MODE = NO
+CONCURRENT_TEST_EXECUTION = YES
+PARALLEL_TEST_EXECUTION = YES
+
+// Test execution settings
+TEST_PARALLELIZATION_ENABLED = YES
+MAXIMUM_PARALLEL_TESTING_WORKERS = 4

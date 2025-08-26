@@ -1,0 +1,115 @@
+// UI Testing Configuration
+// Enterprise UI Testing Framework Settings
+//
+// This configuration enables comprehensive UI testing capabilities
+// for the Nestory iOS app with enterprise-grade testing framework
+
+#include "Base.xcconfig"
+
+// ============================================================================
+// UI TESTING FRAMEWORK SETTINGS
+// ============================================================================
+
+// Enable UI testing framework
+UI_TEST_FRAMEWORK_ENABLED = YES
+UI_TESTING_ENABLED = YES
+ENABLE_TESTING_SEARCH_PATHS = YES
+
+// Testing bundle configuration
+UI_TEST_BUNDLE_ID = com.drunkonjava.nestory.UITests
+TEST_HOST = $(BUILT_PRODUCTS_DIR)/Nestory.app/Nestory
+BUNDLE_LOADER = $(TEST_HOST)
+
+// Framework search paths for testing
+FRAMEWORK_SEARCH_PATHS = $(inherited) $(PLATFORM_DIR)/Developer/Library/Frameworks $(DEVELOPER_FRAMEWORKS_DIR)
+LD_RUNPATH_SEARCH_PATHS = $(inherited) @executable_path/Frameworks @loader_path/Frameworks
+
+// Additional linker flags for testing
+OTHER_LDFLAGS = $(inherited) -Xlinker -bundle_loader -Xlinker $(TEST_HOST) -framework XCTest
+
+// ============================================================================
+// ACCESSIBILITY AND AUTOMATION SETTINGS
+// ============================================================================
+
+// Accessibility testing
+ACCESSIBILITY_TEST_MODE = YES
+UI_ACCESSIBILITY_IDENTIFIERS_ENABLED = YES
+VOICE_OVER_ENABLED = NO
+CONTRAST_TESTING_ENABLED = NO
+
+// UI automation settings
+UI_TESTING_AUTOMATION_ENABLED = YES
+UI_TESTING_DEBUG_MODE = YES
+
+// ============================================================================
+// PERFORMANCE TESTING SETTINGS
+// ============================================================================
+
+// Performance monitoring
+PERFORMANCE_TESTING_MODE = NO
+UI_TEST_PERFORMANCE_MODE = NO
+PERFORMANCE_TEST_TIMEOUT = 300
+MEMORY_TEST_THRESHOLD = 100MB
+CPU_TEST_THRESHOLD = 80%
+
+// ============================================================================
+// SCREENSHOT AND RECORDING SETTINGS
+// ============================================================================
+
+// Screenshot capture
+UI_TEST_SCREENSHOT_CAPTURE = YES
+UI_TEST_SCREENSHOT_DIR = $(TMPDIR)/NestoryUITestScreenshots
+UI_TEST_VIDEO_RECORDING = YES
+
+// ============================================================================
+// METRICS AND ANALYTICS SETTINGS
+// ============================================================================
+
+// Metrics collection
+UI_TEST_METRICS_COLLECTION = YES
+UI_TEST_ANALYTICS_ENABLED = YES
+TEST_EXECUTION_TIMEOUT = 300
+
+// ============================================================================
+// NETWORK AND SECURITY SETTINGS
+// ============================================================================
+
+// Network testing
+NETWORK_TESTING_MODE = NO
+NETWORK_MONITORING_ENABLED = NO
+
+// Security settings for testing
+ENABLE_TESTABILITY = YES
+SWIFT_TREAT_WARNINGS_AS_ERRORS = NO
+SWIFT_ACTIVE_COMPILATION_CONDITIONS = $(inherited) UI_TESTING
+
+// ============================================================================
+// SWIFT COMPILER SETTINGS FOR TESTING
+// ============================================================================
+
+// Swift concurrency for testing
+SWIFT_STRICT_CONCURRENCY = minimal
+SWIFT_UPCOMING_FEATURE_CONCURRENCY = YES
+
+// Swift optimization for testing
+SWIFT_OPTIMIZATION_LEVEL = -Onone
+SWIFT_COMPILATION_MODE = singlefile
+
+// ============================================================================
+// XCODE BUILD SETTINGS FOR TESTING
+// ============================================================================
+
+// Build settings
+GCC_PREPROCESSOR_DEFINITIONS = $(inherited) UI_TESTING=1
+ONLY_ACTIVE_ARCH = YES
+SKIP_INSTALL = YES
+GENERATE_INFOPLIST_FILE = YES
+
+// Debug information
+DEBUG_INFORMATION_FORMAT = dwarf-with-dsym
+ENABLE_BITCODE = NO
+
+// Code signing for testing
+CODE_SIGN_IDENTITY = -
+CODE_SIGN_STYLE = Automatic
+DEVELOPMENT_TEAM = $(inherited)
