@@ -10,7 +10,7 @@ import SwiftUI
 import Foundation
 
 @ObservableState
-public struct SearchState {
+public struct SearchState: Equatable {
     // 🔍 SEARCH STATE: Core search functionality
     public var searchText = "" // Current search query
     public var isSearching = false // Active search indicator
