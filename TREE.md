@@ -1,6 +1,6 @@
 # Project Structure
 
-_Last updated: 2025-08-26 15:05:33_
+_Last updated: 2025-08-26 15:21:53_
 
 ```
 [01;34m.[0m
@@ -448,10 +448,8 @@ _Last updated: 2025-08-26 15:05:33_
 │   │   ├── AnalyticsDashboardView.swift
 │   │   └── AnalyticsFeature.swift
 │   ├── [01;34mCategories[0m
-│   │   ├── CategoriesView.swift
 │   │   └── CategoryFeature.swift
 │   ├── [01;34mInventory[0m
-│   │   ├── InventoryFeature-Refactored.swift
 │   │   ├── InventoryFeature.swift
 │   │   ├── InventoryView.swift
 │   │   ├── ItemDetailFeature.swift
@@ -1406,7 +1404,7 @@ _Last updated: 2025-08-26 15:05:33_
 ├── XCODE_UI_TESTING_GUIDE.md
 └── XCUIAutomation-Definitive-Documentation.md
 
-280 directories, 1122 files
+280 directories, 1120 files
 ```
 
 _📁 Directories:  | 📄 Files: 
