@@ -1,0 +1,750 @@
+{
+  "dashboard": {
+    "id": null,
+    "uid": "nestory-build-errors",
+    "title": "Nestory Build Errors & Analysis",
+    "tags": ["xcode", "builds", "errors", "ci-cd"],
+    "timezone": "browser",
+    "schemaVersion": 38,
+    "version": 1,
+    "refresh": "5s",
+    "time": {
+      "from": "now-3h",
+      "to": "now"
+    },
+    "templating": {
+      "list": [
+        {
+          "name": "scheme",
+          "type": "query",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "definition": "label_values(xcode_build_errors_total, scheme)",
+          "current": {
+            "selected": true,
+            "text": "All",
+            "value": "$__all"
+          },
+          "options": [],
+          "multi": true,
+          "includeAll": true,
+          "refresh": 1
+        },
+        {
+          "name": "error_type",
+          "type": "custom",
+          "current": {
+            "selected": true,
+            "text": "All",
+            "value": "All"
+          },
+          "options": [
+            {"text": "All", "value": "All", "selected": true},
+            {"text": "Compile", "value": "compile"},
+            {"text": "Linker", "value": "linker"},
+            {"text": "Test", "value": "test"},
+            {"text": "Warning", "value": "warning"},
+            {"text": "Code Sign", "value": "codesign"}
+          ],
+          "multi": false,
+          "includeAll": false
+        }
+      ]
+    },
+    "panels": [
+      {
+        "id": 1,
+        "gridPos": {"h": 3, "w": 24, "x": 0, "y": 0},
+        "type": "text",
+        "title": "",
+        "transparent": true,
+        "options": {
+          "mode": "markdown",
+          "content": "# 🚨 Xcode Build Errors & Analysis\n**Real-time tracking of build errors, warnings, and failure patterns**\n\n---"
+        }
+      },
+      {
+        "id": 2,
+        "gridPos": {"h": 4, "w": 4, "x": 0, "y": 3},
+        "type": "stat",
+        "title": "Current Build Status",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "targets": [
+          {
+            "expr": "xcode_build_result{scheme=~\"$scheme\"} == 0",
+            "instant": true,
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "red", "value": null},
+                {"color": "green", "value": 1}
+              ]
+            },
+            "mappings": [
+              {
+                "type": "value",
+                "options": {
+                  "0": {
+                    "text": "❌ FAILED",
+                    "color": "red"
+                  },
+                  "1": {
+                    "text": "✅ SUCCESS",
+                    "color": "green"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "options": {
+          "orientation": "auto",
+          "textMode": "value",
+          "colorMode": "background",
+          "graphMode": "none",
+          "justifyMode": "center",
+          "textSize": {
+            "title": 14,
+            "value": 24
+          }
+        }
+      },
+      {
+        "id": 3,
+        "gridPos": {"h": 4, "w": 3, "x": 4, "y": 3},
+        "type": "stat",
+        "title": "Build Errors",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "targets": [
+          {
+            "expr": "sum(xcode_build_errors_total{scheme=~\"$scheme\",type=\"compile\"})",
+            "instant": true,
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "green", "value": 0},
+                {"color": "yellow", "value": 1},
+                {"color": "orange", "value": 5},
+                {"color": "red", "value": 10}
+              ]
+            },
+            "unit": "short"
+          }
+        },
+        "options": {
+          "orientation": "auto",
+          "textMode": "value",
+          "colorMode": "background",
+          "graphMode": "area",
+          "justifyMode": "center"
+        }
+      },
+      {
+        "id": 4,
+        "gridPos": {"h": 4, "w": 3, "x": 7, "y": 3},
+        "type": "stat",
+        "title": "Build Warnings",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "targets": [
+          {
+            "expr": "sum(xcode_build_errors_total{scheme=~\"$scheme\",type=\"warning\"})",
+            "instant": true,
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "green", "value": 0},
+                {"color": "yellow", "value": 10},
+                {"color": "orange", "value": 25},
+                {"color": "red", "value": 50}
+              ]
+            },
+            "unit": "short"
+          }
+        },
+        "options": {
+          "orientation": "auto",
+          "textMode": "value",
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "center"
+        }
+      },
+      {
+        "id": 5,
+        "gridPos": {"h": 4, "w": 3, "x": 10, "y": 3},
+        "type": "stat",
+        "title": "Test Failures",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "targets": [
+          {
+            "expr": "sum(xcode_build_errors_total{scheme=~\"$scheme\",type=\"test\"})",
+            "instant": true,
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "green", "value": 0},
+                {"color": "yellow", "value": 1},
+                {"color": "red", "value": 5}
+              ]
+            },
+            "unit": "short"
+          }
+        },
+        "options": {
+          "orientation": "auto",
+          "textMode": "value",
+          "colorMode": "background",
+          "graphMode": "none",
+          "justifyMode": "center"
+        }
+      },
+      {
+        "id": 6,
+        "gridPos": {"h": 4, "w": 3, "x": 13, "y": 3},
+        "type": "gauge",
+        "title": "Build Success Rate",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "targets": [
+          {
+            "expr": "(sum(increase(nestory_build_success_total[24h])) / (sum(increase(nestory_build_success_total[24h])) + sum(increase(nestory_build_failure_total[24h])))) * 100",
+            "instant": true,
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "red", "value": null},
+                {"color": "yellow", "value": 80},
+                {"color": "green", "value": 95}
+              ]
+            },
+            "unit": "percent",
+            "min": 0,
+            "max": 100
+          }
+        },
+        "options": {
+          "showThresholdLabels": true,
+          "showThresholdMarkers": true
+        }
+      },
+      {
+        "id": 7,
+        "gridPos": {"h": 4, "w": 4, "x": 16, "y": 3},
+        "type": "stat",
+        "title": "Last Build Duration",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "targets": [
+          {
+            "expr": "xcode_build_duration_seconds{scheme=~\"$scheme\"}",
+            "instant": true,
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 30},
+                {"color": "red", "value": 60}
+              ]
+            },
+            "unit": "s",
+            "decimals": 1
+          }
+        },
+        "options": {
+          "orientation": "auto",
+          "textMode": "value_and_name",
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "center"
+        }
+      },
+      {
+        "id": 8,
+        "gridPos": {"h": 4, "w": 4, "x": 20, "y": 3},
+        "type": "stat",
+        "title": "Lines of Code",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "targets": [
+          {
+            "expr": "nestory_code_lines_total",
+            "instant": true,
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "fixedColor": "blue",
+              "mode": "fixed"
+            },
+            "unit": "short"
+          }
+        },
+        "options": {
+          "orientation": "auto",
+          "textMode": "value",
+          "colorMode": "background",
+          "graphMode": "none",
+          "justifyMode": "center"
+        }
+      },
+      {
+        "id": 9,
+        "gridPos": {"h": 10, "w": 12, "x": 0, "y": 7},
+        "type": "timeseries",
+        "title": "Build Errors Over Time",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "targets": [
+          {
+            "expr": "xcode_build_errors_total{scheme=~\"$scheme\",type=\"compile\"}",
+            "legendFormat": "Compile Errors - {{scheme}}",
+            "refId": "A"
+          },
+          {
+            "expr": "xcode_build_errors_total{scheme=~\"$scheme\",type=\"warning\"}",
+            "legendFormat": "Warnings - {{scheme}}",
+            "refId": "B"
+          },
+          {
+            "expr": "xcode_build_errors_total{scheme=~\"$scheme\",type=\"test\"}",
+            "legendFormat": "Test Failures - {{scheme}}",
+            "refId": "C"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "smooth",
+              "lineWidth": 2,
+              "fillOpacity": 20,
+              "gradientMode": "opacity",
+              "spanNulls": false,
+              "showPoints": "auto",
+              "pointSize": 5,
+              "stacking": {
+                "mode": "none",
+                "group": "A"
+              },
+              "axisPlacement": "auto",
+              "axisLabel": "",
+              "axisColorMode": "text",
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "axisCenteredZero": false,
+              "hideFrom": {
+                "tooltip": false,
+                "viz": false,
+                "legend": false
+              },
+              "thresholdsStyle": {
+                "mode": "area"
+              }
+            },
+            "unit": "short",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "green", "value": 0},
+                {"color": "yellow", "value": 5},
+                {"color": "red", "value": 10}
+              ]
+            }
+          }
+        },
+        "options": {
+          "legend": {
+            "showLegend": true,
+            "displayMode": "list",
+            "placement": "bottom",
+            "calcs": ["last", "mean", "max"]
+          },
+          "tooltip": {
+            "mode": "multi",
+            "sort": "desc"
+          }
+        }
+      },
+      {
+        "id": 10,
+        "gridPos": {"h": 10, "w": 12, "x": 12, "y": 7},
+        "type": "heatmap",
+        "title": "Error Distribution Heatmap",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "targets": [
+          {
+            "expr": "sum by (le) (rate(xcode_build_errors_total[5m]))",
+            "format": "heatmap",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "hideFrom": {
+                "tooltip": false,
+                "viz": false,
+                "legend": false
+              },
+              "scaleDistribution": {
+                "type": "linear"
+              }
+            }
+          }
+        },
+        "options": {
+          "calculate": false,
+          "cellGap": 1,
+          "cellValues": {
+            "unit": "short"
+          },
+          "color": {
+            "exponent": 0.5,
+            "fill": "dark-red",
+            "mode": "scheme",
+            "reverse": false,
+            "scale": "exponential",
+            "scheme": "Reds",
+            "steps": 64
+          },
+          "exemplars": {
+            "color": "rgba(255,0,255,0.7)"
+          },
+          "filterValues": {
+            "le": 1e-09
+          },
+          "legend": {
+            "show": true
+          },
+          "rowsFrame": {
+            "layout": "auto"
+          },
+          "tooltip": {
+            "show": true,
+            "yHistogram": false
+          },
+          "yAxis": {
+            "axisPlacement": "left",
+            "reverse": false,
+            "unit": "short"
+          }
+        }
+      },
+      {
+        "id": 11,
+        "gridPos": {"h": 8, "w": 8, "x": 0, "y": 17},
+        "type": "piechart",
+        "title": "Error Types Distribution",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "targets": [
+          {
+            "expr": "sum by (type) (xcode_build_errors_total{scheme=~\"$scheme\"})",
+            "legendFormat": "{{type}}",
+            "instant": true,
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "unit": "short",
+            "mappings": [
+              {
+                "type": "value",
+                "options": {
+                  "compile": {
+                    "text": "Compile Errors",
+                    "color": "red"
+                  },
+                  "warning": {
+                    "text": "Warnings",
+                    "color": "yellow"
+                  },
+                  "test": {
+                    "text": "Test Failures",
+                    "color": "orange"
+                  },
+                  "linker": {
+                    "text": "Linker Errors",
+                    "color": "purple"
+                  },
+                  "codesign": {
+                    "text": "Code Sign Errors",
+                    "color": "blue"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "options": {
+          "pieType": "donut",
+          "displayLabels": ["name", "value", "percent"],
+          "legendDisplayMode": "table",
+          "legendPlacement": "right",
+          "legendShowLegend": true,
+          "legendValues": ["value", "percent"],
+          "reduceOptions": {
+            "values": false,
+            "calcs": ["lastNotNull"]
+          },
+          "tooltip": {
+            "mode": "single",
+            "sort": "none"
+          }
+        }
+      },
+      {
+        "id": 12,
+        "gridPos": {"h": 8, "w": 8, "x": 8, "y": 17},
+        "type": "bargauge",
+        "title": "Build Performance by Scheme",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "targets": [
+          {
+            "expr": "avg by (scheme) (xcode_build_duration_seconds)",
+            "instant": true,
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 30},
+                {"color": "red", "value": 60}
+              ]
+            },
+            "unit": "s",
+            "min": 0,
+            "max": 120
+          }
+        },
+        "options": {
+          "orientation": "horizontal",
+          "displayMode": "gradient",
+          "showUnfilled": true,
+          "valueMode": "color",
+          "namePlacement": "left"
+        }
+      },
+      {
+        "id": 13,
+        "gridPos": {"h": 8, "w": 8, "x": 16, "y": 17},
+        "type": "table",
+        "title": "Recent Build Errors",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "targets": [
+          {
+            "expr": "topk(10, xcode_build_error_info{scheme=~\"$scheme\"})",
+            "format": "table",
+            "instant": true,
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "custom": {
+              "align": "auto",
+              "displayMode": "auto",
+              "inspect": false,
+              "filterable": true
+            }
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "error_message"
+              },
+              "properties": [
+                {
+                  "id": "custom.width",
+                  "value": 400
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "file"
+              },
+              "properties": [
+                {
+                  "id": "custom.width",
+                  "value": 200
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "line"
+              },
+              "properties": [
+                {
+                  "id": "custom.width",
+                  "value": 80
+                }
+              ]
+            }
+          ]
+        },
+        "options": {
+          "showHeader": true,
+          "sortBy": [
+            {
+              "displayName": "Time",
+              "desc": true
+            }
+          ],
+          "footer": {
+            "enablePagination": true,
+            "show": false
+          }
+        }
+      },
+      {
+        "id": 14,
+        "gridPos": {"h": 6, "w": 24, "x": 0, "y": 25},
+        "type": "logs",
+        "title": "Build Error Logs",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "targets": [
+          {
+            "expr": "{job=\"xcode-build\"} |~ \"error|warning|failed\"",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "showTime": true,
+          "showLabels": true,
+          "showCommonLabels": false,
+          "wrapLogMessage": true,
+          "sortOrder": "Descending",
+          "dedupStrategy": "none",
+          "enableLogDetails": true,
+          "prettifyLogMessage": false
+        }
+      }
+    ],
+    "links": [
+      {
+        "title": "Main Dashboard",
+        "type": "dashboards",
+        "icon": "external",
+        "targetBlank": false,
+        "url": "/d/nestory-full/nestory-complete-monitoring-platform"
+      },
+      {
+        "title": "Xcode",
+        "type": "link",
+        "icon": "external",
+        "targetBlank": true,
+        "url": "xcode://open?file=/Users/griffin/Projects/Nestory/Nestory.xcodeproj"
+      }
+    ]
+  },
+  "overwrite": true
+}

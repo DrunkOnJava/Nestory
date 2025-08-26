@@ -1,0 +1,35 @@
+{
+  "dev": {
+    "grafana_url": "http://localhost:3000",
+    "grafana_api_token": "${GRAFANA_API_TOKEN:-}",
+    "default_folder_id": 0,
+    "timeout": 30,
+    "upload_settings": {
+      "overwrite": true,
+      "auto_tag": true,
+      "tags": ["nestory", "monitoring", "automated"]
+    }
+  },
+  "staging": {
+    "grafana_url": "http://192.168.1.179:3000",
+    "grafana_api_token": "${GRAFANA_API_TOKEN:-}",
+    "default_folder_id": 1,
+    "timeout": 30,
+    "upload_settings": {
+      "overwrite": true,
+      "auto_tag": true,
+      "tags": ["nestory", "staging", "monitoring"]
+    }
+  },
+  "prod": {
+    "grafana_url": "http://192.168.1.179:3000",
+    "grafana_api_token": "${GRAFANA_PROD_API_TOKEN:-}",
+    "default_folder_id": 2,
+    "timeout": 30,
+    "upload_settings": {
+      "overwrite": false,
+      "auto_tag": true,
+      "tags": ["nestory", "production", "monitoring"]
+    }
+  }
+}

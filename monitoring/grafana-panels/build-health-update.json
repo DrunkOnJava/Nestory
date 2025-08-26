@@ -1,0 +1,178 @@
+{
+  "panels": [
+    {
+      "id": 50,
+      "title": "🏥 Build Health Status",
+      "type": "stat",
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 32},
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "targets": [
+        {
+          "expr": "nestory_build_concurrent_count",
+          "legendFormat": "Active Builds",
+          "refId": "A"
+        },
+        {
+          "expr": "nestory_build_stuck_count",
+          "legendFormat": "Stuck Builds",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 1},
+              {"color": "red", "value": 3}
+            ]
+          }
+        }
+      },
+      "options": {
+        "orientation": "horizontal",
+        "textMode": "value_and_name",
+        "colorMode": "background"
+      }
+    },
+    {
+      "id": 51,
+      "title": "📊 System Resources",
+      "type": "gauge",
+      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 32},
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "targets": [
+        {
+          "expr": "nestory_system_disk_usage_percent{mount=\"/\"}",
+          "legendFormat": "Disk Usage %",
+          "refId": "A"
+        },
+        {
+          "expr": "nestory_system_load_per_cpu",
+          "legendFormat": "Load per CPU",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 70},
+              {"color": "red", "value": 85}
+            ]
+          },
+          "unit": "percent",
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "id": 52,
+      "title": "⚠️ Build Issues Timeline",
+      "type": "timeseries",
+      "gridPos": {"h": 6, "w": 12, "x": 12, "y": 32},
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "targets": [
+        {
+          "expr": "increase(nestory_build_stuck_detected[5m])",
+          "legendFormat": "Stuck Builds Detected",
+          "refId": "A"
+        },
+        {
+          "expr": "increase(nestory_build_timeout_total[5m])",
+          "legendFormat": "Build Timeouts",
+          "refId": "B"
+        },
+        {
+          "expr": "increase(nestory_build_auto_recovery_total[5m])",
+          "legendFormat": "Auto-Recovery Actions",
+          "refId": "C"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 20,
+            "spanNulls": true
+          }
+        }
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": ["lastNotNull", "sum"]
+        }
+      }
+    },
+    {
+      "id": 53,
+      "title": "🎯 Build Performance Metrics",
+      "type": "table",
+      "gridPos": {"h": 6, "w": 12, "x": 0, "y": 38},
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "targets": [
+        {
+          "expr": "topk(10, nestory_build_duration_seconds{status=\"success\"})",
+          "format": "table",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {"align": "left", "displayMode": "auto"},
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 30},
+              {"color": "red", "value": 60}
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": [
+          {
+            "matcher": {"id": "byName", "options": "scheme"},
+            "properties": [{"id": "custom.width", "value": 150}]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": [{"displayName": "Value", "desc": true}]
+      }
+    },
+    {
+      "id": 54,
+      "title": "🚨 System Alerts",
+      "type": "logs",
+      "gridPos": {"h": 6, "w": 12, "x": 12, "y": 38},
+      "datasource": {"type": "loki", "uid": "P8E80F9AEF21F6940"},
+      "targets": [
+        {
+          "expr": "{job=\"nestory_build_health\"} |~ \"⚠️|🔄|❌\"",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "showTime": true,
+        "showLabels": false,
+        "wrapLogMessage": true,
+        "sortOrder": "Descending"
+      }
+    }
+  ]
+}

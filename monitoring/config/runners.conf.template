@@ -1,0 +1,20 @@
+# GitHub Actions Runner Configuration
+# Copy this file to runners.conf and configure with your actual values
+# This removes hardcoded credentials from scripts
+
+# M1 iMac Runner Configuration
+IMAC_HOST=100.106.87.23
+IMAC_USER=griffin
+
+# Raspberry Pi Runner Configuration  
+PI_HOST=100.116.38.90
+PI_USER=griffin
+
+# SSH Configuration
+SSH_CONFIG_FILE=$HOME/.ssh/config
+
+# Security Notes:
+# 1. Add these hosts to your SSH config with proper keys
+# 2. Use StrictHostKeyChecking=yes for security
+# 3. Never commit the actual runners.conf file to version control
+# 4. Use SSH key authentication, not passwords

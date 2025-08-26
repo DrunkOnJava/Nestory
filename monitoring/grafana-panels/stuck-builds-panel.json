@@ -1,0 +1,94 @@
+{
+  "title": "Stuck Builds Monitoring",
+  "type": "timeseries",
+  "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 0,
+    "y": 28
+  },
+  "targets": [
+    {
+      "expr": "increase(nestory_build_stuck_total[5m])",
+      "legendFormat": "Stuck Builds - {{scheme}}",
+      "refId": "A"
+    },
+    {
+      "expr": "increase(nestory_build_timeout_total[5m])",
+      "legendFormat": "Timeouts - {{scheme}}",
+      "refId": "B"
+    },
+    {
+      "expr": "nestory_build_stuck_duration_seconds",
+      "legendFormat": "Time Until Stuck Detection - {{scheme}}",
+      "refId": "C"
+    }
+  ],
+  "fieldConfig": {
+    "defaults": {
+      "color": {
+        "mode": "palette-classic"
+      },
+      "custom": {
+        "axisLabel": "Events / Duration",
+        "drawStyle": "line",
+        "fillOpacity": 10,
+        "gradientMode": "opacity",
+        "lineInterpolation": "smooth",
+        "lineWidth": 2,
+        "pointSize": 5,
+        "showPoints": "auto",
+        "spanNulls": true,
+        "stacking": {
+          "group": "A",
+          "mode": "none"
+        }
+      },
+      "thresholds": {
+        "mode": "absolute",
+        "steps": [
+          {
+            "color": "green",
+            "value": null
+          },
+          {
+            "color": "yellow",
+            "value": 1
+          },
+          {
+            "color": "red",
+            "value": 3
+          }
+        ]
+      }
+    },
+    "overrides": [
+      {
+        "matcher": {
+          "id": "byRegexp",
+          "options": "Duration"
+        },
+        "properties": [
+          {
+            "id": "unit",
+            "value": "s"
+          },
+          {
+            "id": "custom.axisPlacement",
+            "value": "right"
+          }
+        ]
+      }
+    ]
+  },
+  "options": {
+    "legend": {
+      "calcs": ["lastNotNull", "max"],
+      "displayMode": "table",
+      "placement": "bottom"
+    },
+    "tooltip": {
+      "mode": "multi"
+    }
+  }
+}

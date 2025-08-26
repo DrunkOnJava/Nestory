@@ -1,0 +1,60 @@
+# Simplified iOS telemetry stack - just the essentials
+version: '3.8'
+
+services:
+  # OpenTelemetry Collector - receives iOS app telemetry  
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.88.0
+    container_name: nestory-otel-collector-simple
+    command: ["--config=/etc/otelcol-contrib/collector.yaml"]
+    volumes:
+      - ./collector-simple.yaml:/etc/otelcol-contrib/collector.yaml
+    ports:
+      - "4317:4317"   # OTLP gRPC receiver
+      - "4318:4318"   # OTLP HTTP receiver
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+    networks:
+      - telemetry
+
+  # Prometheus - metrics storage and querying
+  prometheus:
+    image: prom/prometheus:v2.45.0
+    container_name: nestory-prometheus-simple
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-remote-write-receiver'  # Enable remote write from collector
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus-simple.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    restart: unless-stopped
+    networks:
+      - telemetry
+
+  # Grafana - visualization 
+  grafana:
+    image: grafana/grafana:10.1.0
+    container_name: nestory-grafana-simple
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=nestory123
+    volumes:
+      - grafana_data:/var/lib/grafana
+    restart: unless-stopped
+    networks:
+      - telemetry
+    depends_on:
+      - prometheus
+
+volumes:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  telemetry:
+    driver: bridge

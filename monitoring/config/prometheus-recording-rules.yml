@@ -1,0 +1,76 @@
+# Nestory Recording Rules for Professional Monitoring
+# These rules pre-calculate complex queries for better performance
+
+groups:
+  - name: nestory_slo_rules
+    interval: 30s
+    rules:
+      # System Health SLO - Error rate calculation
+      - record: nestory:http_error_rate
+        expr: |
+          sum(rate(nestory_http_requests_errors_total[5m])) 
+          / 
+          clamp_min(sum(rate(nestory_http_requests_total[5m])), 1)
+      
+      # Build success rate (rate-based)
+      - record: nestory:build_success_rate
+        expr: |
+          sum(rate(nestory_build_success_total[5m])) 
+          / 
+          clamp_min(sum(rate(nestory_build_total[5m])), 1)
+      
+      # Build duration p95 (pre-calculated)
+      - record: nestory:build_duration_p95
+        expr: |
+          histogram_quantile(0.95, 
+            sum by (le) (rate(nestory_build_duration_seconds_bucket[5m]))
+          )
+
+  - name: nestory_deployment_rules
+    interval: 60s
+    rules:
+      # Deployment frequency tracking
+      - record: nestory:deployment_rate_5m
+        expr: sum(rate(nestory_deployment_total[5m]))
+      
+      # Deployment frequency tracking (hourly)
+      - record: nestory:deployment_rate_1h 
+        expr: sum(rate(nestory_deployment_total[1h]))
+
+  - name: nestory_infrastructure_rules
+    interval: 30s
+    rules:
+      # Node-based CPU usage (fallback)
+      - record: nestory:cpu_usage_percent
+        expr: |
+          100 - (
+            avg by (instance) (
+              rate(node_cpu_seconds_total{mode="idle"}[5m])
+            ) * 100
+          )
+      
+      # Node-based memory usage (fallback)  
+      - record: nestory:memory_usage_percent
+        expr: |
+          100 * (1 - (
+            node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes
+          ))
+      
+      # Disk usage (fallback)
+      - record: nestory:disk_usage_percent
+        expr: |
+          100 - (
+            sum by (instance) (
+              node_filesystem_avail_bytes{
+                fstype!="",
+                mountpoint!~"/var/lib/docker.*|/run/.*|/sys/.*|/proc/.*"
+              }
+            ) 
+            / 
+            sum by (instance) (
+              node_filesystem_size_bytes{
+                fstype!="",
+                mountpoint!~"/var/lib/docker.*|/run/.*|/sys/.*|/proc/.*"
+              }
+            )
+          ) * 100

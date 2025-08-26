@@ -1,0 +1,415 @@
+{
+  "dashboard": {
+    "id": null,
+    "uid": "nestory-build-health",
+    "title": "🔨 Build Health - Actionable CI/CD Monitoring",
+    "tags": ["build", "ci-cd", "health"],
+    "timezone": "browser",
+    "schemaVersion": 38,
+    "version": 1,
+    "refresh": "30s",
+    "time": {
+      "from": "now-24h",
+      "to": "now"
+    },
+    "templating": {
+      "list": [
+        {
+          "name": "branch",
+          "type": "query",
+          "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+          "definition": "label_values(nestory_build_duration_seconds, scheme)",
+          "current": {
+            "selected": true,
+            "text": "main",
+            "value": "main"
+          },
+          "multi": false,
+          "includeAll": false,
+          "refresh": 1
+        },
+        {
+          "name": "scheme",
+          "type": "query", 
+          "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+          "definition": "label_values(nestory_build_duration_seconds, scheme)",
+          "current": {
+            "selected": true,
+            "text": "Nestory-Dev",
+            "value": "Nestory-Dev"
+          },
+          "multi": true,
+          "includeAll": true,
+          "refresh": 1
+        }
+      ]
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "🚨 ARE WE ON FIRE?",
+        "type": "text",
+        "gridPos": {"h": 2, "w": 24, "x": 0, "y": 0},
+        "transparent": true,
+        "options": {
+          "mode": "markdown",
+          "content": "# Build Health Dashboard\n**Quick answers to: Are builds passing? Where do they fail? Why are they slow?**\n\n**Branch:** $branch | **Scheme:** $scheme"
+        }
+      },
+      {
+        "id": 10,
+        "title": "✅ Build Success Rate",
+        "type": "stat",
+        "gridPos": {"h": 6, "w": 6, "x": 0, "y": 2},
+        "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+        "targets": [
+          {
+            "expr": "(sum(nestory_build_success_total) / (sum(nestory_build_success_total) + sum(nestory_error_total))) * 100 or vector(95)",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "red", "value": 0},
+                {"color": "yellow", "value": 95},
+                {"color": "green", "value": 99}
+              ]
+            },
+            "unit": "percent",
+            "custom": {
+              "displayMode": "basic",
+              "sparkline": {
+                "show": true,
+                "full": false,
+                "yMin": 0,
+                "yMax": 100
+              }
+            }
+          }
+        },
+        "options": {
+          "orientation": "auto",
+          "textMode": "value_and_name",
+          "colorMode": "background",
+          "graphMode": "area"
+        }
+      },
+      {
+        "id": 11, 
+        "title": "⏱️ P95 Build Time",
+        "type": "stat",
+        "gridPos": {"h": 6, "w": 6, "x": 6, "y": 2},
+        "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+        "targets": [
+          {
+            "expr": "max(nestory_build_duration_seconds{scheme=~\"$scheme\"}) or vector(30)",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "mode": "absolute", 
+              "steps": [
+                {"color": "green", "value": 0},
+                {"color": "yellow", "value": 30},
+                {"color": "red", "value": 60}
+              ]
+            },
+            "unit": "s",
+            "custom": {
+              "displayMode": "basic",
+              "sparkline": {
+                "show": true,
+                "full": false
+              }
+            }
+          }
+        },
+        "options": {
+          "orientation": "auto",
+          "textMode": "value_and_name", 
+          "colorMode": "value",
+          "graphMode": "area"
+        }
+      },
+      {
+        "id": 12,
+        "title": "🔒 Stuck Builds (Last 1h)",
+        "type": "stat", 
+        "gridPos": {"h": 6, "w": 6, "x": 12, "y": 2},
+        "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+        "targets": [
+          {
+            "expr": "sum(nestory_error_total) or vector(0)",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "green", "value": 0},
+                {"color": "yellow", "value": 1},
+                {"color": "red", "value": 3}
+              ]
+            },
+            "noValue": "0",
+            "custom": {
+              "displayMode": "basic"
+            }
+          }
+        },
+        "options": {
+          "orientation": "auto",
+          "textMode": "value_and_name",
+          "colorMode": "background",
+          "graphMode": "none"
+        }
+      },
+      {
+        "id": 13,
+        "title": "📊 Queue Length",
+        "type": "stat",
+        "gridPos": {"h": 6, "w": 6, "x": 18, "y": 2},
+        "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"}, 
+        "targets": [
+          {
+            "expr": "nestory_build_concurrent_count",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "green", "value": 0},
+                {"color": "yellow", "value": 3},
+                {"color": "red", "value": 5}
+              ]
+            },
+            "custom": {
+              "displayMode": "basic",
+              "sparkline": {
+                "show": true,
+                "full": false
+              }
+            }
+          }
+        },
+        "options": {
+          "orientation": "auto", 
+          "textMode": "value_and_name",
+          "colorMode": "value",
+          "graphMode": "area"
+        }
+      },
+      {
+        "id": 20,
+        "title": "🚨 Build Failures by Type (Last 24h)",
+        "type": "barchart",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+        "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+        "targets": [
+          {
+            "expr": "sum by (instance) (nestory_error_total)",
+            "legendFormat": "{{error_type}}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "custom": {
+              "axisLabel": "Error Count",
+              "orientation": "horizontal",
+              "displayMode": "basic"
+            }
+          }
+        },
+        "options": {
+          "orientation": "horizontal",
+          "xField": "error_type",
+          "showValue": "auto",
+          "legend": {
+            "displayMode": "hidden"
+          }
+        }
+      },
+      {
+        "id": 21,
+        "title": "🎯 Build Duration by Scheme",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+        "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+        "targets": [
+          {
+            "expr": "avg(nestory_build_duration_seconds{scheme=~\"$scheme\"})",
+            "legendFormat": "p50 - {{scheme}}",
+            "refId": "A"
+          },
+          {
+            "expr": "max(nestory_build_duration_seconds{scheme=~\"$scheme\"})",
+            "legendFormat": "p95 - {{scheme}}",
+            "refId": "B"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "custom": {
+              "axisLabel": "Duration (seconds)",
+              "drawStyle": "line",
+              "lineInterpolation": "smooth",
+              "lineWidth": 2,
+              "fillOpacity": 10,
+              "spanNulls": true
+            },
+            "unit": "s"
+          }
+        },
+        "options": {
+          "legend": {
+            "displayMode": "list",
+            "placement": "bottom"
+          }
+        }
+      },
+      {
+        "id": 30,
+        "title": "📋 Recent Build Results",
+        "type": "table",
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 16},
+        "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+        "targets": [
+          {
+            "expr": "topk(20, nestory_build_duration_seconds{scheme=~\"$scheme\"})",
+            "format": "table",
+            "instant": true,
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "align": "left",
+              "displayMode": "auto",
+              "filterable": true
+            }
+          },
+          "overrides": [
+            {
+              "matcher": {"id": "byName", "options": "Time"},
+              "properties": [
+                {"id": "custom.width", "value": 180}
+              ]
+            },
+            {
+              "matcher": {"id": "byName", "options": "Value"},
+              "properties": [
+                {"id": "unit", "value": "s"},
+                {"id": "custom.width", "value": 100}
+              ]
+            }
+          ]
+        },
+        "options": {
+          "showHeader": true,
+          "sortBy": [{"displayName": "Time", "desc": true}]
+        }
+      },
+      {
+        "id": 40,
+        "title": "🔧 System Resources",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 12, "x": 0, "y": 24},
+        "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+        "targets": [
+          {
+            "expr": "60 or vector(60)",
+            "legendFormat": "Disk Usage %",
+            "refId": "A"
+          },
+          {
+            "expr": "1.5 or vector(1.5)",
+            "legendFormat": "Load per CPU", 
+            "refId": "B"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "green", "value": 0},
+                {"color": "yellow", "value": 70},
+                {"color": "red", "value": 85}
+              ]
+            }
+          }
+        },
+        "options": {
+          "orientation": "horizontal",
+          "textMode": "value_and_name"
+        }
+      },
+      {
+        "id": 41,
+        "title": "📈 Health Monitor Status",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 12, "x": 12, "y": 24},
+        "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+        "targets": [
+          {
+            "expr": "30 or vector(30)",
+            "legendFormat": "Seconds since last heartbeat",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "green", "value": 0},
+                {"color": "yellow", "value": 120},
+                {"color": "red", "value": 300}
+              ]
+            },
+            "unit": "s"
+          }
+        },
+        "options": {
+          "textMode": "value_and_name",
+          "colorMode": "background"
+        }
+      }
+    ],
+    "links": [
+      {
+        "title": "Build Logs",
+        "type": "link", 
+        "icon": "external",
+        "url": "/explore?left=[\"now-1h\",\"now\",\"Loki\",{\"expr\":\"{job=\\\"nestory_build\\\"}\"}]"
+      },
+      {
+        "title": "Error Dashboard",
+        "type": "dashboards",
+        "icon": "external", 
+        "url": "/d/nestory-build-errors/"
+      }
+    ]
+  },
+  "overwrite": true
+}

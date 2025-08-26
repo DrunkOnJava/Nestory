@@ -1,0 +1,175 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nestory.com/schemas/monitoring/environments.json",
+  "title": "Nestory Monitoring Environment Configuration",
+  "description": "Schema for validating environment-specific monitoring configuration",
+  "type": "object",
+  "patternProperties": {
+    "^(dev|development|staging|stage|prod|production|test)$": {
+      "type": "object",
+      "properties": {
+        "prometheus_url": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https?://",
+          "description": "Prometheus server endpoint URL"
+        },
+        "pushgateway_url": {
+          "type": "string", 
+          "format": "uri",
+          "pattern": "^https?://",
+          "description": "Pushgateway server endpoint URL"
+        },
+        "alertmanager_url": {
+          "type": "string",
+          "format": "uri", 
+          "pattern": "^https?://",
+          "description": "Alertmanager server endpoint URL"
+        },
+        "grafana_url": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https?://",
+          "description": "Grafana server endpoint URL"
+        },
+        "runbook_url": {
+          "type": "string",
+          "format": "uri",
+          "description": "Link to operational runbooks"
+        },
+        "grafana_folder": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9_-]+$",
+          "description": "Grafana folder UID for organization"
+        },
+        "slack_webhook": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://hooks.slack.com/",
+          "description": "Slack webhook URL for notifications"
+        },
+        "pagerduty_integration_key": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$",
+          "description": "PagerDuty integration key (32 hex characters)"
+        },
+        "environment_type": {
+          "type": "string",
+          "enum": ["development", "staging", "production", "test"],
+          "description": "Environment classification"
+        },
+        "monitoring_level": {
+          "type": "string",
+          "enum": ["basic", "professional", "enterprise"],
+          "default": "professional",
+          "description": "Level of monitoring features to enable"
+        },
+        "cost_tracking": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "aws_account_id": {
+              "type": "string",
+              "pattern": "^[0-9]{12}$"
+            },
+            "gcp_project_id": {
+              "type": "string"
+            },
+            "azure_subscription_id": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "additionalProperties": false
+        },
+        "security_scanning": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "vulnerability_db_url": {
+              "type": "string",
+              "format": "uri"
+            },
+            "compliance_frameworks": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["SOC2", "ISO27001", "PCI-DSS", "HIPAA"]
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "ai_features": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "anomaly_detection": {
+              "type": "boolean",
+              "default": true
+            },
+            "predictive_scaling": {
+              "type": "boolean",
+              "default": false
+            },
+            "intelligent_alerting": {
+              "type": "boolean",
+              "default": true
+            }
+          },
+          "additionalProperties": false
+        },
+        "retention_policies": {
+          "type": "object",
+          "properties": {
+            "metrics_retention_days": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 3650,
+              "default": 30
+            },
+            "logs_retention_days": {
+              "type": "integer", 
+              "minimum": 1,
+              "maximum": 2555,
+              "default": 7
+            },
+            "traces_retention_days": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 90,
+              "default": 3
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": ["prometheus_url", "pushgateway_url", "alertmanager_url", "runbook_url", "grafana_folder"],
+      "additionalProperties": false
+    }
+  },
+  "minProperties": 1,
+  "additionalProperties": false,
+  "examples": [
+    {
+      "dev": {
+        "prometheus_url": "http://localhost:9090",
+        "pushgateway_url": "http://localhost:9091", 
+        "alertmanager_url": "http://localhost:9093",
+        "runbook_url": "https://docs.nestory.com/runbooks/development",
+        "grafana_folder": "nry-development",
+        "environment_type": "development",
+        "monitoring_level": "professional"
+      }
+    }
+  ]
+}
