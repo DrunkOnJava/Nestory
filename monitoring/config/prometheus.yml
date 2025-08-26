@@ -1,0 +1,47 @@
+# Prometheus Configuration for Nestory Monitoring
+# Add this configuration to your existing prometheus.yml
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - "prometheus-recording-rules.yml"
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    metrics_path: /metrics
+    scrape_interval: 15s
+
+  - job_name: 'pushgateway'
+    static_configs:
+      - targets: ['localhost:9091']
+    metrics_path: /metrics
+    scrape_interval: 15s
+    honor_labels: true
+
+  - job_name: 'node'
+    static_configs:
+      - targets: ['localhost:9100']
+    metrics_path: /metrics
+    scrape_interval: 15s
+
+  - job_name: 'nestory_metrics'
+    static_configs:
+      - targets: ['localhost:8080']
+    metrics_path: /metrics
+    scrape_interval: 30s
+
+  - job_name: 'nestory_build_health'
+    static_configs:
+      - targets: ['localhost:8081']
+    metrics_path: /metrics
+    scrape_interval: 60s
+
+  - job_name: 'system_health'
+    static_configs:
+      - targets: ['localhost:8082']
+    metrics_path: /metrics
+    scrape_interval: 30s

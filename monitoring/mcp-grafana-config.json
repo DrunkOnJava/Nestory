@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "grafana": {
+      "command": "/Users/griffin/Projects/Nestory/monitoring/mcp-grafana/dist/mcp-grafana",
+      "args": ["-debug"],
+      "env": {
+        "GRAFANA_URL": "http://localhost:3000",
+        "GRAFANA_API_KEY": "${GRAFANA_API_KEY}"
+      }
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "prod": {
+    "prometheus_url": "https://prometheus.nestory.com",
+    "pushgateway_url": "https://pushgateway.nestory.com", 
+    "alertmanager_url": "https://alertmanager.nestory.com",
+    "runbook_url": "https://docs.nestory.com/runbooks/production",
+    "grafana_folder": "nry-observability"
+  },
+  "staging": {
+    "prometheus_url": "https://prometheus-staging.nestory.com",
+    "pushgateway_url": "https://pushgateway-staging.nestory.com",
+    "alertmanager_url": "https://alertmanager-staging.nestory.com", 
+    "runbook_url": "https://docs.nestory.com/runbooks/staging",
+    "grafana_folder": "nry-staging"
+  },
+  "dev": {
+    "prometheus_url": "http://localhost:9090",
+    "pushgateway_url": "http://localhost:9091",
+    "alertmanager_url": "http://localhost:9093",
+    "runbook_url": "https://docs.nestory.com/runbooks/development",
+    "grafana_folder": "nry-development"
+  }
+}

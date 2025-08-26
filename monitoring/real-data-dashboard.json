@@ -1,0 +1,187 @@
+{
+  "dashboard": {
+    "id": null,
+    "uid": "nestory-real-data",
+    "title": "Nestory Real Project Data",
+    "description": "100% REAL data from actual Nestory project - no simulated metrics",
+    "tags": ["real-data", "nestory", "project-stats"],
+    "timezone": "browser",
+    "refresh": "30s",
+    "time": {
+      "from": "now-24h",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "Real Project Overview",
+        "type": "row",
+        "gridPos": {"h": 1, "w": 24, "x": 0, "y": 0},
+        "collapsed": false
+      },
+      {
+        "id": 2,
+        "title": "Total Builds (Real)",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "nestory_builds_total",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 6, "w": 6, "x": 0, "y": 1},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "steps": [{"color": "blue", "value": null}]
+            },
+            "unit": "short"
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "Swift Files (Real)",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "nestory_swift_files_total",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 6, "w": 6, "x": 6, "y": 1},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "steps": [{"color": "green", "value": null}]
+            },
+            "unit": "short"
+          }
+        }
+      },
+      {
+        "id": 4,
+        "title": "Total Commits (Real)",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "nestory_total_commits",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 6, "w": 6, "x": 12, "y": 1},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "steps": [{"color": "purple", "value": null}]
+            },
+            "unit": "short"
+          }
+        }
+      },
+      {
+        "id": 5,
+        "title": "Project Size (Real)",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "nestory_project_size_mb",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 6, "w": 6, "x": 18, "y": 1},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "steps": [{"color": "orange", "value": null}]
+            },
+            "unit": "decbytes"
+          }
+        }
+      },
+      {
+        "id": 6,
+        "title": "Real Development Activity",
+        "type": "row",
+        "gridPos": {"h": 1, "w": 24, "x": 0, "y": 7},
+        "collapsed": false
+      },
+      {
+        "id": 7,
+        "title": "Commits This Week (Real)",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "nestory_commits_this_week",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 8, "x": 0, "y": 8},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null}
+              ]
+            },
+            "unit": "short"
+          }
+        }
+      },
+      {
+        "id": 8,
+        "title": "Test Files (Real)",
+        "type": "stat", 
+        "targets": [
+          {
+            "expr": "nestory_test_files_total",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 8, "x": 8, "y": 8},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "steps": [{"color": "cyan", "value": null}]
+            },
+            "unit": "short"
+          }
+        }
+      },
+      {
+        "id": 9,
+        "title": "Recent Error Fixes (Real)",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "nestory_recent_error_fixes",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 8, "x": 16, "y": 8},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 3},
+                {"color": "red", "value": 10}
+              ]
+            },
+            "unit": "short"
+          }
+        }
+      }
+    ],
+    "schemaVersion": 41,
+    "version": 1
+  },
+  "overwrite": true
+}

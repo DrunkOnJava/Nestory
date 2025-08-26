@@ -1,0 +1,71 @@
+{
+  "title": "Build Errors Analysis",
+  "type": "graph",
+  "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 0,
+    "y": 20
+  },
+  "targets": [
+    {
+      "expr": "sum(rate(nestory_build_errors_total[5m])) by (scheme, configuration)",
+      "legendFormat": "{{scheme}} - {{configuration}}",
+      "refId": "A"
+    },
+    {
+      "expr": "sum(rate(nestory_build_warnings_total[5m])) by (scheme, configuration)",
+      "legendFormat": "Warnings: {{scheme}} - {{configuration}}",
+      "refId": "B"
+    }
+  ],
+  "fieldConfig": {
+    "defaults": {
+      "color": {
+        "mode": "palette-classic"
+      },
+      "custom": {
+        "axisLabel": "Errors/Warnings per minute",
+        "drawStyle": "line",
+        "fillOpacity": 10,
+        "gradientMode": "opacity",
+        "lineInterpolation": "smooth",
+        "lineWidth": 2,
+        "pointSize": 5,
+        "showPoints": "never",
+        "spanNulls": true,
+        "stacking": {
+          "group": "A",
+          "mode": "none"
+        }
+      },
+      "thresholds": {
+        "mode": "absolute",
+        "steps": [
+          {
+            "color": "green",
+            "value": null
+          },
+          {
+            "color": "yellow",
+            "value": 5
+          },
+          {
+            "color": "red",
+            "value": 10
+          }
+        ]
+      }
+    }
+  },
+  "options": {
+    "legend": {
+      "calcs": ["lastNotNull", "max"],
+      "displayMode": "table",
+      "placement": "bottom"
+    },
+    "tooltip": {
+      "mode": "multi"
+    }
+  }
+}

@@ -1,0 +1,65 @@
+groups:
+  - name: build_health
+    interval: 30s
+    rules:
+      # Alert when build takes longer than expected
+      - alert: BuildTimeout
+        expr: |
+          (time() - nestory_build_start_time) > 600
+          and nestory_build_in_progress == 1
+        for: 1m
+        labels:
+          severity: warning
+          component: build
+        annotations:
+          summary: "Build running longer than 10 minutes"
+          description: "Build {{ $labels.scheme }} has been running for {{ humanizeDuration (time() - $value) }}"
+          
+      # Alert on frequent build failures
+      - alert: HighBuildFailureRate
+        expr: |
+          rate(nestory_build_termination_total{reason!="success"}[5m]) > 0.5
+        for: 5m
+        labels:
+          severity: critical
+          component: build
+        annotations:
+          summary: "High build failure rate detected"
+          description: "Build failure rate is {{ $value | humanizePercentage }} over last 5 minutes"
+          
+      # Alert on stuck builds (timeout terminations)
+      - alert: FrequentBuildTimeouts
+        expr: |
+          sum(increase(nestory_build_termination_total{reason="timeout"}[1h])) > 3
+        for: 1m
+        labels:
+          severity: warning
+          component: build
+        annotations:
+          summary: "Multiple build timeouts in last hour"
+          description: "{{ $value }} builds have timed out in the last hour"
+          
+      # Alert on high error count
+      - alert: HighBuildErrorCount
+        expr: |
+          nestory_build_errors_total > 50
+        for: 1m
+        labels:
+          severity: warning
+          component: build
+        annotations:
+          summary: "High number of build errors"
+          description: "Build has {{ $value }} errors for {{ $labels.scheme }}"
+          
+      # Alert when no successful builds for extended period
+      - alert: NoSuccessfulBuilds
+        expr: |
+          sum(increase(nestory_build_termination_total{reason="success"}[2h])) == 0
+          and sum(increase(nestory_build_termination_total[2h])) > 0
+        for: 5m
+        labels:
+          severity: warning
+          component: build
+        annotations:
+          summary: "No successful builds in 2 hours"
+          description: "All builds have failed in the last 2 hours"

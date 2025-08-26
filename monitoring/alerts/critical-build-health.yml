@@ -1,0 +1,101 @@
+groups:
+  - name: build_health_critical
+    interval: 30s
+    rules:
+      # Critical: Build success rate below SLO
+      - alert: BuildSuccessRateBelowSLO
+        expr: |
+          (
+            sum(rate(nestory_build_termination_total{reason="success"}[1h])) /
+            sum(rate(nestory_build_termination_total[1h]))
+          ) * 100 < 95
+        for: 5m
+        labels:
+          severity: critical
+          component: build
+          runbook: https://github.com/YourOrg/Nestory/wiki/BuildFailureRunbook
+        annotations:
+          summary: "Build success rate below 95% SLO"
+          description: "Build success rate is {{ $value | humanizePercentage }} over last hour (SLO: 95%)"
+          action: "Check recent failures, review error types, investigate infrastructure"
+          
+      # Critical: P95 build time exceeds SLO  
+      - alert: BuildTimeExceedsSLO
+        expr: |
+          histogram_quantile(0.95, 
+            sum(rate(nestory_build_duration_seconds_bucket[30m])) by (le)
+          ) > 60
+        for: 5m
+        labels:
+          severity: critical
+          component: build
+          runbook: https://github.com/YourOrg/Nestory/wiki/SlowBuildRunbook
+        annotations:
+          summary: "P95 build time exceeds 60s SLO"
+          description: "P95 build duration is {{ $value }}s over last 30 minutes (SLO: <60s)"
+          action: "Check for cache misses, runner capacity, dependency changes"
+          
+      # Warning: Stuck builds detected
+      - alert: StuckBuildsDetected
+        expr: |
+          sum(increase(nestory_build_stuck_detected[1h])) > 0
+        for: 1m
+        labels:
+          severity: warning
+          component: build
+        annotations:
+          summary: "{{ $value }} stuck builds detected in last hour"
+          description: "Build monitoring detected {{ $value }} stuck builds that required intervention"
+          action: "Review build logs for hanging processes, check runner health"
+          
+      # Warning: High concurrent build count
+      - alert: HighConcurrentBuilds
+        expr: |
+          nestory_build_concurrent_count > 3
+        for: 2m
+        labels:
+          severity: warning
+          component: build
+        annotations:
+          summary: "{{ $value }} concurrent builds running"
+          description: "High build concurrency may indicate queue backing up or CI issues"
+          action: "Check runner capacity and queue health"
+          
+      # Critical: Build monitor down
+      - alert: BuildMonitorDown
+        expr: |
+          (time() - nestory_build_monitor_heartbeat) > 300
+        for: 1m
+        labels:
+          severity: critical
+          component: monitoring
+        annotations:
+          summary: "Build health monitor is down"
+          description: "No heartbeat from build monitor for {{ $value }}s"
+          action: "Restart monitoring service: Scripts/CI/build-health-monitor.sh monitor &"
+          
+      # Warning: High system resource usage
+      - alert: HighDiskUsage
+        expr: |
+          nestory_system_disk_usage_percent{mount="/"} > 85
+        for: 5m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "Disk usage is {{ $value }}%"
+          description: "Root disk usage above 85% may impact build performance"
+          action: "Clean DerivedData, check for large logs/artifacts"
+          
+      # Critical: Multiple build failures in short time
+      - alert: BuildFailureSpike
+        expr: |
+          sum(increase(nestory_build_termination_total{reason!="success"}[10m])) > 5
+        for: 2m
+        labels:
+          severity: critical
+          component: build
+        annotations:
+          summary: "{{ $value }} build failures in last 10 minutes"
+          description: "Spike in build failures may indicate systemic issue"
+          action: "Check for recent code/infrastructure changes, review error patterns"

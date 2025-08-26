@@ -1,0 +1,75 @@
+# OpenTelemetry Collector configuration for Nestory iOS telemetry
+# Receives OTLP from iOS app and forwards to Prometheus/Loki/Tempo
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+    timeout: 10s
+    send_batch_size: 1024
+    send_batch_max_size: 2048
+  
+  # Add resource attributes for better organization
+  resource:
+    attributes:
+      - key: collector.name
+        value: nestory-collector
+        action: insert
+      - key: collector.version
+        value: 0.88.0
+        action: insert
+
+  # Memory limiter to prevent OOM
+  memory_limiter:
+    limit_mib: 512
+
+exporters:
+  # Export metrics to Prometheus via remote write
+  prometheusremotewrite:
+    endpoint: http://localhost:9090/api/v1/write
+    timeout: 30s
+    retry_on_failure:
+      enabled: true
+      initial_interval: 5s
+      max_interval: 30s
+      max_elapsed_time: 300s
+
+  # Export logs to Loki
+  loki:
+    endpoint: http://localhost:3100/loki/api/v1/push
+    tenant_id: nestory
+
+  # Export traces to Tempo  
+  otlp/tempo:
+    endpoint: http://localhost:3200
+    tls:
+      insecure: true
+
+  # Debug logging
+  logging:
+    loglevel: info
+
+service:
+  pipelines:
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, resource]
+      exporters: [prometheusremotewrite, logging]
+    
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, resource]
+      exporters: [loki, logging]
+    
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, resource]
+      exporters: [otlp/tempo, logging]
+
+  extensions: []

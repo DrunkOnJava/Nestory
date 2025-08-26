@@ -1,0 +1,308 @@
+{
+  "dashboard": {
+    "id": null,
+    "uid": "nestory-fixed-fundamentals",
+    "title": "🏗️ Nestory Build Health - Fixed Fundamentals",
+    "tags": ["build", "monitoring", "fixed"],
+    "timezone": "browser",
+    "schemaVersion": 38,
+    "version": 1,
+    "refresh": "30s",
+    "time": {
+      "from": "now-24h",
+      "to": "now"
+    },
+    "templating": {
+      "list": [
+        {
+          "name": "scheme",
+          "type": "query",
+          "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+          "definition": "label_values(nestory_build_success_total, scheme)",
+          "current": {
+            "selected": true,
+            "text": "All",
+            "value": ".*"
+          },
+          "multi": true,
+          "includeAll": true,
+          "allValue": ".*",
+          "refresh": 1
+        }
+      ]
+    },
+    "annotations": {
+      "list": [
+        {
+          "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+          "enable": true,
+          "iconColor": "green",
+          "name": "Deployments",
+          "query": "changes(nestory_deployment_timestamp[1m]) > 0"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+          "enable": true,
+          "iconColor": "red", 
+          "name": "Build Failures",
+          "query": "increase(nestory_build_errors_total[1m]) > 0"
+        }
+      ]
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "🚨 BUILD HEALTH STATUS",
+        "type": "text",
+        "gridPos": {"h": 2, "w": 24, "x": 0, "y": 0},
+        "transparent": true,
+        "options": {
+          "mode": "markdown",
+          "content": "# Build Health Dashboard\n\n**Real-time build health, performance & error tracking**"
+        }
+      },
+      {
+        "id": 10,
+        "title": "Build Success Rate",
+        "type": "stat",
+        "gridPos": {"h": 6, "w": 4, "x": 0, "y": 2},
+        "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+        "targets": [
+          {
+            "expr": "100 * sum(increase(nestory_build_success_total[$__range])) / clamp_min(sum(increase(nestory_build_total[$__range])), 1)",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "displayName": "Success Rate",
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "red", "value": 0},
+                {"color": "yellow", "value": 95},
+                {"color": "green", "value": 98}
+              ]
+            },
+            "unit": "percent",
+            "decimals": 0,
+            "custom": {
+              "displayMode": "basic",
+              "sparkline": {"show": true, "full": false, "yMin": 0, "yMax": 100}
+            }
+          }
+        },
+        "options": {
+          "orientation": "auto",
+          "textMode": "value_and_name",
+          "colorMode": "background",
+          "graphMode": "area"
+        }
+      },
+      {
+        "id": 11,
+        "title": "Latest Build Duration",
+        "type": "stat", 
+        "gridPos": {"h": 6, "w": 4, "x": 4, "y": 2},
+        "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+        "targets": [
+          {
+            "expr": "max(nestory_build_duration_seconds) or on() vector(0)",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "displayName": "Latest Duration",
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "green", "value": 0},
+                {"color": "yellow", "value": 30},
+                {"color": "red", "value": 45}
+              ]
+            },
+            "unit": "s",
+            "decimals": 1,
+            "custom": {
+              "displayMode": "basic",
+              "sparkline": {"show": true, "full": false}
+            }
+          }
+        },
+        "options": {
+          "orientation": "auto",
+          "textMode": "value_and_name",
+          "colorMode": "value",
+          "graphMode": "area"
+        }
+      },
+      {
+        "id": 12,
+        "title": "Build Warnings",
+        "type": "stat",
+        "gridPos": {"h": 6, "w": 4, "x": 8, "y": 2},
+        "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+        "targets": [
+          {
+            "expr": "sum(increase(nestory_build_warnings_total[$__range])) or on() vector(0)",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "displayName": "Warnings (24h)",
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "green", "value": 0},
+                {"color": "yellow", "value": 5},
+                {"color": "orange", "value": 15},
+                {"color": "red", "value": 25}
+              ]
+            },
+            "unit": "short",
+            "decimals": 0
+          }
+        },
+        "options": {
+          "colorMode": "background",
+          "graphMode": "area",
+          "justifyMode": "center",
+          "orientation": "auto",
+          "textMode": "value_and_name"
+        }
+      },
+      {
+        "id": 13,
+        "title": "Build Errors",
+        "type": "stat",
+        "gridPos": {"h": 6, "w": 4, "x": 12, "y": 2},
+        "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+        "targets": [
+          {
+            "expr": "sum(increase(nestory_build_errors_total[$__range])) or on() vector(0)",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "displayName": "Errors (24h)",
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "green", "value": 0},
+                {"color": "yellow", "value": 1},
+                {"color": "red", "value": 3}
+              ]
+            },
+            "unit": "short",
+            "decimals": 0
+          }
+        },
+        "options": {
+          "orientation": "auto",
+          "textMode": "value_and_name",
+          "colorMode": "background"
+        }
+      },
+      {
+        "id": 14,
+        "title": "Queue Length",
+        "type": "stat",
+        "gridPos": {"h": 6, "w": 4, "x": 16, "y": 2},
+        "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+        "targets": [
+          {
+            "expr": "max(nestory_build_queue_length) or on() vector(0)",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "displayName": "Queue Length",
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "green", "value": 0},
+                {"color": "yellow", "value": 2},
+                {"color": "red", "value": 5}
+              ]
+            },
+            "unit": "short",
+            "decimals": 0,
+            "custom": {
+              "displayMode": "basic",
+              "sparkline": {"show": true, "full": false}
+            }
+          }
+        },
+        "options": {
+          "orientation": "auto",
+          "textMode": "value_and_name",
+          "colorMode": "background",
+          "graphMode": "area"
+        }
+      },
+      {
+        "id": 15,
+        "title": "Build Rate",
+        "type": "stat",
+        "gridPos": {"h": 6, "w": 4, "x": 20, "y": 2},
+        "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+        "targets": [
+          {
+            "expr": "sum(rate(nestory_build_total[$__rate_interval])) * 3600 or on() vector(0)",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "displayName": "Builds/Hour",
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "red", "value": 0},
+                {"color": "yellow", "value": 1},
+                {"color": "green", "value": 3}
+              ]
+            },
+            "unit": "short",
+            "decimals": 1,
+            "custom": {
+              "displayMode": "basic",
+              "sparkline": {"show": true, "full": false}
+            }
+          }
+        },
+        "options": {
+          "orientation": "auto",
+          "textMode": "value_and_name",
+          "colorMode": "value",
+          "graphMode": "area"
+        }
+      }
+    ],
+    "links": [
+      {
+        "title": "Prometheus Metrics",
+        "type": "link",
+        "icon": "external",
+        "url": "http://localhost:9090/graph"
+      },
+      {
+        "title": "Pushgateway", 
+        "type": "link",
+        "icon": "external",
+        "url": "http://localhost:9091"
+      }
+    ]
+  },
+  "overwrite": true
+}

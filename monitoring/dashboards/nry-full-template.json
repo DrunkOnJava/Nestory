@@ -1,0 +1,142 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "enable": true,
+        "hide": false,
+        "iconColor": "green",
+        "name": "Deployments",
+        "query": "changes(nestory_deployment_timestamp[1m])",
+        "tagKeys": "environment,version",
+        "type": "dashboard"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "enable": true,
+        "hide": false,
+        "iconColor": "red",
+        "name": "Incidents",
+        "query": "changes(nestory_incident_open_timestamp[1m])",
+        "type": "dashboard"
+      },
+      {
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": false,
+        "name": "Grafana Alerts",
+        "type": "alert"
+      }
+    ]
+  },
+  "description": "Owner: Team Nestory SRE · On-call: #nestory-oncall · Runbook: ${runbook_url} · How data flows: Prometheus → exporters/pushgateway → Grafana · Contribute: open a PR to the dashboards repo (/grafana/dashboards/nry-full.json).",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": 1,
+  "links": [
+    {
+      "icon": "external",
+      "targetBlank": true,
+      "title": "Prometheus",
+      "type": "link",
+      "url": "${prometheus_url}"
+    },
+    {
+      "icon": "external",
+      "targetBlank": true,
+      "title": "Pushgateway",
+      "type": "link",
+      "url": "${pushgateway_url}"
+    },
+    {
+      "icon": "external",
+      "targetBlank": true,
+      "title": "Alertmanager",
+      "type": "link",
+      "url": "${alertmanager_url}"
+    }
+  ],
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 3
+      },
+      "id": 2,
+      "panels": [],
+      "title": "Executive Overview",
+      "type": "row"
+    }
+  ],
+  "preload": false,
+  "refresh": "30s",
+  "schemaVersion": 41,
+  "tags": [
+    "monitoring",
+    "ci-cd",
+    "operations",
+    "performance",
+    "production"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "text": "${environment}",
+          "value": "${environment}"
+        },
+        "hide": 2,
+        "label": "Environment",
+        "name": "environment",
+        "query": "${environment}",
+        "skipUrlSync": true,
+        "type": "constant"
+      },
+      {
+        "current": {
+          "text": "scheme=~\"$scheme\",branch=~\"$branch\",configuration=~\"$configuration_filter\"",
+          "value": "scheme=~\"$scheme\",branch=~\"$branch\",configuration=~\"$configuration_filter\""
+        },
+        "hide": 2,
+        "label": "Filter (do not edit)",
+        "name": "filter",
+        "query": "scheme=~\"$scheme\",branch=~\"$branch\",configuration=~\"$configuration_filter\"",
+        "skipUrlSync": true,
+        "type": "constant"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timezone": "browser",
+  "title": "Nestory – ${environment} – Complete Monitoring",
+  "uid": "nry-full",
+  "version": 1
+}
