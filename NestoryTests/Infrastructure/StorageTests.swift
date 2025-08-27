@@ -122,8 +122,10 @@ final class CacheTests: XCTestCase {
     func testContains() async {
         await cache.set("value1", for: "key1")
 
-        await XCTAssertTrue(cache.contains(key: "key1"))
-        await XCTAssertFalse(cache.contains(key: "key2"))
+        let containsKey1 = await cache.contains(key: "key1")
+        XCTAssertTrue(containsKey1)
+        let containsKey2 = await cache.contains(key: "key2")
+        XCTAssertFalse(containsKey2)
     }
 
     func testTTLExpiration() async throws {
@@ -141,8 +143,10 @@ final class CacheTests: XCTestCase {
 
         await cache.removeAll()
 
-        await XCTAssertNil(cache.get(for: "key1"))
-        await XCTAssertNil(cache.get(for: "key2"))
+        let value1 = await cache.get(for: "key1")
+        XCTAssertNil(value1)
+        let value2 = await cache.get(for: "key2")
+        XCTAssertNil(value2)
     }
 }
 

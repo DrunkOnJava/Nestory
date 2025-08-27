@@ -1,0 +1,448 @@
+name: Physical Device Testing
+
+on:
+  workflow_dispatch:
+    inputs:
+      device_name:
+        description: 'Target device name (leave empty for auto-detect)'
+        required: false
+        type: string
+      test_suite:
+        description: 'Test suite to run'
+        required: false
+        default: 'smoke'
+        type: choice
+        options:
+          - 'smoke'
+          - 'regression'
+          - 'performance'
+          - 'accessibility'
+          - 'full'
+      capture_video:
+        description: 'Capture test execution video'
+        required: false
+        default: true
+        type: boolean
+  schedule:
+    # Run weekly on Sundays at 6 AM
+    - cron: '0 6 * * 0'
+  release:
+    types: [published]
+
+env:
+  XCODE_VERSION: '15.0'
+  DEVELOPER_DIR: /Applications/Xcode_15.0.app/Contents/Developer
+
+concurrency:
+  group: device-testing-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  device-detection:
+    name: Device Detection & Setup
+    runs-on: [self-hosted, macOS, M1, xcode, physical-device]
+    timeout-minutes: 10
+    
+    outputs:
+      device-udid: ${{ steps.device-setup.outputs.device-udid }}
+      device-name: ${{ steps.device-setup.outputs.device-name }}
+      device-version: ${{ steps.device-setup.outputs.device-version }}
+      device-available: ${{ steps.device-setup.outputs.device-available }}
+      
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        
+      - name: Device Detection & Setup
+        id: device-setup
+        run: |
+          echo "📱 Detecting connected iOS devices..."
+          
+          # List connected devices
+          DEVICES=$(xcrun devicectl list devices -d iOS 2>/dev/null || echo "")
+          
+          if [[ -z "$DEVICES" || "$DEVICES" == *"No devices found"* ]]; then
+            echo "❌ No iOS devices connected"
+            echo "device-available=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          echo "📋 Connected devices:"
+          echo "$DEVICES"
+          
+          # Extract device information
+          TARGET_DEVICE="${{ github.event.inputs.device_name }}"
+          
+          if [[ -n "$TARGET_DEVICE" ]]; then
+            # Use specified device
+            DEVICE_INFO=$(echo "$DEVICES" | grep "$TARGET_DEVICE" | head -1)
+          else
+            # Use first available device
+            DEVICE_INFO=$(echo "$DEVICES" | grep -v "Preparing" | head -1)
+          fi
+          
+          if [[ -z "$DEVICE_INFO" ]]; then
+            echo "❌ Target device not found or not ready"
+            echo "device-available=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          # Parse device information (format varies by Xcode version)
+          UDID=$(echo "$DEVICE_INFO" | grep -o "[A-F0-9]\{8\}-[A-F0-9]\{4\}-[A-F0-9]\{4\}-[A-F0-9]\{4\}-[A-F0-9]\{12\}" | head -1)
+          DEVICE_NAME=$(echo "$DEVICE_INFO" | sed 's/.*(\(.*\))/\1/' | sed 's/[[:space:]]*$//')
+          
+          if [[ -z "$UDID" ]]; then
+            echo "❌ Could not extract device UDID"
+            echo "device-available=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          # Get device details
+          DEVICE_VERSION=$(xcrun devicectl list devices -d iOS | grep "$UDID" | grep -o "iOS [0-9\.]*" | head -1 || echo "iOS Unknown")
+          
+          echo "✅ Selected device:"
+          echo "  Name: $DEVICE_NAME"
+          echo "  UDID: $UDID"
+          echo "  Version: $DEVICE_VERSION"
+          
+          # Verify device is ready
+          echo "🔍 Verifying device readiness..."
+          if xcrun devicectl list devices -d iOS | grep "$UDID" | grep -q "Connected"; then
+            echo "✅ Device is ready for testing"
+            echo "device-available=true" >> $GITHUB_OUTPUT
+            echo "device-udid=$UDID" >> $GITHUB_OUTPUT
+            echo "device-name=$DEVICE_NAME" >> $GITHUB_OUTPUT
+            echo "device-version=$DEVICE_VERSION" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Device not ready - may be locked or in development mode"
+            echo "device-available=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+      - name: Device Preparation
+        if: steps.device-setup.outputs.device-available == 'true'
+        run: |
+          DEVICE_UDID="${{ steps.device-setup.outputs.device-udid }}"
+          
+          echo "🔧 Preparing device for testing..."
+          
+          # Clear any existing Nestory installations
+          xcrun devicectl appservice uninstall app --device "$DEVICE_UDID" com.drunkonjava.nestory 2>/dev/null || echo "App not installed"
+          
+          # Reset any cached data
+          echo "✅ Device prepared for fresh installation"
+
+  build-for-device:
+    name: Build for Physical Device
+    runs-on: [self-hosted, macOS, M1, xcode]
+    needs: [device-detection]
+    if: needs.device-detection.outputs.device-available == 'true'
+    timeout-minutes: 15
+    
+    outputs:
+      app-path: ${{ steps.build-info.outputs.app-path }}
+      build-success: ${{ steps.build-info.outputs.build-success }}
+      
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        
+      - name: Cache Build Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            .build
+            ~/Library/Developer/Xcode/DerivedData/Nestory-*
+            ~/Library/Caches/org.swift.swiftpm
+          key: ${{ runner.os }}-device-build-${{ hashFiles('**/*.swift', '**/project.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-device-build-
+            ${{ runner.os }}-build-
+            
+      - name: Generate Xcode Project
+        run: |
+          if command -v xcodegen &> /dev/null; then
+            xcodegen generate
+          else
+            echo "Using existing Xcode project"
+          fi
+          
+      - name: Build for Device
+        id: device-build
+        run: |
+          DEVICE_UDID="${{ needs.device-detection.outputs.device-udid }}"
+          
+          echo "🔨 Building Nestory for physical device..."
+          echo "Target Device: ${{ needs.device-detection.outputs.device-name }} ($DEVICE_UDID)"
+          
+          # Build for the specific device
+          xcodebuild build-for-testing \
+            -scheme Nestory-Dev \
+            -destination "id=$DEVICE_UDID" \
+            -configuration Debug \
+            -derivedDataPath .build \
+            -quiet \
+            -parallelizeTargets \
+            -jobs $(sysctl -n hw.ncpu) \
+            CODE_SIGN_IDENTITY="Apple Development" \
+            DEVELOPMENT_TEAM="2VXBQV4XC9" \
+            || { echo "❌ Device build failed"; exit 1; }
+            
+          echo "✅ Device build completed successfully"
+          
+      - name: Build Information
+        id: build-info
+        run: |
+          # Find the built app
+          APP_PATH=$(find .build -name "Nestory.app" -path "*Debug-iphoneos*" | head -1)
+          
+          if [[ -n "$APP_PATH" && -d "$APP_PATH" ]]; then
+            echo "✅ App built at: $APP_PATH"
+            echo "app-path=$APP_PATH" >> $GITHUB_OUTPUT
+            echo "build-success=true" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Could not find built app"
+            echo "build-success=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+  device-testing:
+    name: Run Tests on Device
+    runs-on: [self-hosted, macOS, M1, xcode, physical-device]
+    needs: [device-detection, build-for-device]
+    if: needs.build-for-device.outputs.build-success == 'true'
+    timeout-minutes: 30
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        test-type: 
+          - ${{ github.event.inputs.test_suite == 'full' && fromJSON('["smoke", "regression", "accessibility"]') || fromJSON('[github.event.inputs.test_suite || "smoke"]') }}
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Test Environment
+        run: |
+          DEVICE_UDID="${{ needs.device-detection.outputs.device-udid }}"
+          DEVICE_NAME="${{ needs.device-detection.outputs.device-name }}"
+          
+          echo "🧪 Setting up test environment for ${{ matrix.test-type }} tests"
+          echo "Device: $DEVICE_NAME ($DEVICE_UDID)"
+          
+          # Create directories for test results
+          mkdir -p ~/Desktop/DeviceTestResults
+          mkdir -p ~/Desktop/DeviceTestResults/screenshots
+          mkdir -p ~/Desktop/DeviceTestResults/videos
+          
+      - name: Install App on Device
+        run: |
+          DEVICE_UDID="${{ needs.device-detection.outputs.device-udid }}"
+          APP_PATH="${{ needs.build-for-device.outputs.app-path }}"
+          
+          echo "📱 Installing Nestory on device..."
+          
+          if xcrun devicectl appservice install app --device "$DEVICE_UDID" "$APP_PATH"; then
+            echo "✅ App installed successfully"
+          else
+            echo "❌ App installation failed"
+            exit 1
+          fi
+          
+          # Verify installation
+          sleep 3
+          if xcrun devicectl appservice list apps --device "$DEVICE_UDID" | grep -q "com.drunkonjava.nestory"; then
+            echo "✅ App installation verified"
+          else
+            echo "❌ App not found after installation"
+            exit 1
+          fi
+          
+      - name: Start Video Recording
+        id: video-recording
+        if: github.event.inputs.capture_video == 'true'
+        run: |
+          DEVICE_UDID="${{ needs.device-detection.outputs.device-udid }}"
+          VIDEO_FILE="~/Desktop/DeviceTestResults/videos/test-${{ matrix.test-type }}-$(date +%Y%m%d-%H%M%S).mp4"
+          
+          echo "🎥 Starting video recording..."
+          xcrun devicectl record video --device "$DEVICE_UDID" --output "$VIDEO_FILE" &
+          RECORDING_PID=$!
+          
+          echo "recording-pid=$RECORDING_PID" >> $GITHUB_OUTPUT
+          echo "video-file=$VIDEO_FILE" >> $GITHUB_OUTPUT
+          
+          # Give recording time to start
+          sleep 2
+          
+      - name: Run Device Tests
+        id: device-test
+        run: |
+          DEVICE_UDID="${{ needs.device-detection.outputs.device-udid }}"
+          TEST_TYPE="${{ matrix.test-type }}"
+          
+          echo "🧪 Running $TEST_TYPE tests on physical device..."
+          
+          # Map test types to make targets
+          case "$TEST_TYPE" in
+            "smoke")
+              TEST_TARGET="test-smoke"
+              ;;
+            "regression") 
+              TEST_TARGET="test-regression"
+              ;;
+            "accessibility")
+              TEST_TARGET="test-accessibility"
+              ;;
+            "performance")
+              TEST_TARGET="test-performance"
+              ;;
+            *)
+              TEST_TARGET="test-ui"
+              ;;
+          esac
+          
+          # Run tests with timeout
+          if timeout 1200 xcodebuild test \
+            -scheme Nestory-Dev \
+            -destination "id=$DEVICE_UDID" \
+            -only-testing:NestoryUITests \
+            -resultBundlePath ~/Desktop/DeviceTestResults/$TEST_TYPE-results.xcresult \
+            -derivedDataPath .build \
+            CODE_SIGN_IDENTITY="Apple Development" \
+            DEVELOPMENT_TEAM="2VXBQV4XC9"; then
+            
+            echo "✅ $TEST_TYPE tests completed successfully"
+            echo "test-success=true" >> $GITHUB_OUTPUT
+          else
+            echo "❌ $TEST_TYPE tests failed"
+            echo "test-success=false" >> $GITHUB_OUTPUT
+            # Don't exit here - we want to collect artifacts
+          fi
+          
+      - name: Stop Video Recording
+        if: always() && steps.video-recording.outputs.recording-pid
+        run: |
+          RECORDING_PID="${{ steps.video-recording.outputs.recording-pid }}"
+          
+          echo "🛑 Stopping video recording..."
+          kill $RECORDING_PID 2>/dev/null || true
+          sleep 3
+          
+          VIDEO_FILE="${{ steps.video-recording.outputs.video-file }}"
+          if [[ -f "$VIDEO_FILE" ]]; then
+            echo "✅ Video saved: $VIDEO_FILE"
+          fi
+          
+      - name: Capture Screenshots
+        if: always()
+        run: |
+          DEVICE_UDID="${{ needs.device-detection.outputs.device-udid }}"
+          
+          echo "📸 Capturing device screenshot..."
+          xcrun devicectl screenshot --device "$DEVICE_UDID" \
+            ~/Desktop/DeviceTestResults/screenshots/final-${{ matrix.test-type }}-$(date +%Y%m%d-%H%M%S).png \
+            2>/dev/null || echo "Screenshot capture failed"
+            
+      - name: Collect Test Results
+        if: always()
+        run: |
+          echo "📊 Collecting test results..."
+          
+          RESULT_BUNDLE="~/Desktop/DeviceTestResults/${{ matrix.test-type }}-results.xcresult"
+          if [[ -d "$RESULT_BUNDLE" ]]; then
+            echo "✅ Test results available: $RESULT_BUNDLE"
+            
+            # Extract test summary
+            xcrun xcresulttool get --format json --path "$RESULT_BUNDLE" > \
+              ~/Desktop/DeviceTestResults/${{ matrix.test-type }}-summary.json 2>/dev/null || echo "Could not extract summary"
+          fi
+          
+      - name: Upload Test Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: device-test-${{ matrix.test-type }}-${{ github.run_number }}
+          path: |
+            ~/Desktop/DeviceTestResults/
+          retention-days: 7
+
+  test-summary:
+    name: Device Testing Summary
+    needs: [device-detection, build-for-device, device-testing]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    
+    steps:
+      - name: Generate Test Summary
+        run: |
+          echo "# 📱 Physical Device Testing Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Device Information
+          if [[ "${{ needs.device-detection.outputs.device-available }}" == "true" ]]; then
+            echo "## 📲 Test Device" >> $GITHUB_STEP_SUMMARY
+            echo "- **Name:** ${{ needs.device-detection.outputs.device-name }}" >> $GITHUB_STEP_SUMMARY
+            echo "- **Version:** ${{ needs.device-detection.outputs.device-version }}" >> $GITHUB_STEP_SUMMARY
+            echo "- **UDID:** ${{ needs.device-detection.outputs.device-udid }}" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **No compatible device found**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Please ensure:" >> $GITHUB_STEP_SUMMARY
+            echo "- iOS device is connected via USB" >> $GITHUB_STEP_SUMMARY
+            echo "- Device is unlocked and trusted" >> $GITHUB_STEP_SUMMARY  
+            echo "- Device is in developer mode" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            exit 0
+          fi
+          
+          # Build Status
+          echo "## 🔨 Build Results" >> $GITHUB_STEP_SUMMARY
+          if [[ "${{ needs.build-for-device.outputs.build-success }}" == "true" ]]; then
+            echo "✅ **Device Build:** Successful" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Device Build:** Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Test Results
+          echo "## 🧪 Test Results" >> $GITHUB_STEP_SUMMARY
+          TEST_SUITE="${{ github.event.inputs.test_suite || 'smoke' }}"
+          
+          # Check individual test results (this is a simplified check)
+          OVERALL_SUCCESS="true"
+          if [[ "${{ needs.device-testing.result }}" != "success" ]]; then
+            OVERALL_SUCCESS="false"
+          fi
+          
+          if [[ "$OVERALL_SUCCESS" == "true" ]]; then
+            echo "✅ **$TEST_SUITE Tests:** Passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **$TEST_SUITE Tests:** Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 📊 Additional Information" >> $GITHUB_STEP_SUMMARY
+          echo "- **Test Suite:** $TEST_SUITE" >> $GITHUB_STEP_SUMMARY
+          echo "- **Video Recording:** ${{ github.event.inputs.capture_video || 'true' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Triggered By:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          
+          if [[ "${{ github.event_name }}" == "schedule" ]]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "🗓️ *This was an automated weekly test run*" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+      - name: Final Status
+        run: |
+          if [[ "${{ needs.device-detection.outputs.device-available }}" == "true" && \
+                "${{ needs.build-for-device.outputs.build-success }}" == "true" && \
+                "${{ needs.device-testing.result }}" == "success" ]]; then
+            echo "✅ Device testing completed successfully"
+            exit 0
+          else
+            echo "❌ Device testing failed or was incomplete"
+            exit 1
+          fi

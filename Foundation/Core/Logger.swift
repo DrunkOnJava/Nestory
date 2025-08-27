@@ -125,7 +125,8 @@ extension Logger {
     /// Debug-only logging that compiles out in release builds
     public func debug(_ message: String, file: String = #file, function: String = #function, line: Int = #line) {
         let fileName = URL(fileURLWithPath: file).lastPathComponent
-        self.debug("[\(fileName):\(line)] \(function) - \(message)")
+        // Use os_log directly to avoid any potential method resolution issues
+        os_log(.debug, log: OSLog(subsystem: Bundle.main.bundleIdentifier ?? "com.nestory.app", category: "debug"), "%{public}s", "[\(fileName):\(line)] \(function) - \(message)")
     }
 }
 #endif

@@ -83,7 +83,7 @@ final class CloudKitCompatibilityTests: XCTestCase {
     @MainActor
     func testModelContainerLocalOnlyConfiguration() throws {
         // Test that we can create a local-only ModelContainer without CloudKit
-        let schema = Schema([Item.self, Category.self, Room.self, Warranty.self, Receipt.self, ClaimSubmission.self])
+        let schema = Schema([Item.self, Category.self, Room.self, Warranty.self, Receipt.self])
         let config = ModelConfiguration(
             schema: schema,
             isStoredInMemoryOnly: true,

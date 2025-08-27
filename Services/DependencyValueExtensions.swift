@@ -93,4 +93,9 @@ extension DependencyValues {
         get { self[WarrantyTrackingServiceKey.self] }
         set { self[WarrantyTrackingServiceKey.self] = newValue }
     }
+    
+    public var categoryService: any CategoryService {
+        get { self[CategoryServiceKey.self] }
+        set { self[CategoryServiceKey.self] = newValue }
+    }
 }

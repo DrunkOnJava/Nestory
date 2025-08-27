@@ -65,7 +65,9 @@
       "Bash(git stash pop:*)",
       "Bash(git merge:*)",
       "Bash(git pull:*)",
-      "Bash(git cherry-pick:*)"
+      "Bash(git cherry-pick:*)",
+      "Bash(/Users/griffin/Projects/Nestory/test-navigation.sh)",
+      "Bash(docker-compose:*)"
     ],
     "deny": [],
     "ask": [],

@@ -66,7 +66,13 @@ jobs:
   # Main iOS build on M1 iMac
   ios-build:
     name: iOS Build & Test
-    runs-on: ${{ (github.event.inputs.use_self_hosted == 'false' && 'macos-latest') || (github.event.inputs.use_self_hosted == 'auxiliary-only' && 'macos-latest') || ['self-hosted', 'macOS', 'M1', 'xcode'] }}
+    runs-on: ${{ (github.event.inputs.use_self_hosted == 'false' && 'macos-14') || (github.event.inputs.use_self_hosted == 'auxiliary-only' && 'macos-14') || fromJSON('["self-hosted", "macOS", "M1", "xcode"]') }}
+    timeout-minutes: 20
+    
+    outputs:
+      build-success: ${{ steps.build-status.outputs.success }}
+      build-time: ${{ steps.build-metrics.outputs.build-time }}
+      runner-type: ${{ runner.name || 'github-hosted' }}
     
     steps:
       - name: Runner Information
@@ -76,6 +82,7 @@ jobs:
           echo "🏃 Runner name: ${{ runner.name }}"
           echo "🏠 Runner OS: ${{ runner.os }}"
           echo "🏗️ Runner arch: ${{ runner.arch }}"
+          echo "⏰ Timeout: 20 minutes"
           
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -88,17 +95,27 @@ jobs:
         with:
           xcode-version: 'latest-stable'
           
-      - name: Cache Dependencies
-        uses: actions/cache@v3
+      # Enhanced 3-tier caching system
+      - name: Cache SPM Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Caches/org.swift.swiftpm
+            ~/Library/Developer/Xcode/DerivedData/ModuleCache.noindex
+          key: ${{ runner.os }}-${{ runner.arch }}-spm-v2-${{ hashFiles('**/Package.resolved', '**/project.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-spm-v2-
+            
+      - name: Cache Build Artifacts
+        uses: actions/cache@v4
         with:
           path: |
             .build
-            ~/Library/Developer/Xcode/DerivedData
-            ~/Library/Caches/org.swift.swiftpm
+            ~/Library/Developer/Xcode/DerivedData/Nestory-*
             DevTools/nestoryctl/.build
-          key: ${{ runner.os }}-${{ runner.arch }}-spm-${{ hashFiles('**/Package.resolved') }}
+          key: ${{ runner.os }}-${{ runner.arch }}-build-v2-${{ hashFiles('**/*.swift', '**/project.yml') }}
           restore-keys: |
-            ${{ runner.os }}-${{ runner.arch }}-spm-
+            ${{ runner.os }}-${{ runner.arch }}-build-v2-
             
       - name: Install Tools
         if: runner.name != 'nestory-m1-imac'  # Self-hosted has tools pre-installed
@@ -113,9 +130,22 @@ jobs:
           fi
           
       - name: Build Project
+        id: build-step
         run: |
           echo "🔨 Building project..."
-          make fast-build
+          BUILD_START=$(date +%s)
+          
+          if timeout 600 make fast-build; then
+            BUILD_END=$(date +%s)
+            BUILD_TIME=$((BUILD_END - BUILD_START))
+            echo "✅ Build completed in ${BUILD_TIME} seconds"
+            echo "build-time=${BUILD_TIME}" >> $GITHUB_OUTPUT
+            echo "success=true" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Build failed or timed out"
+            echo "success=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
           
       - name: Build nestoryctl
         run: |
@@ -136,6 +166,47 @@ jobs:
         run: |
           echo "📊 Generating coverage report..."
           swift test --enable-code-coverage || true
+          
+      # Monitoring and metrics collection
+      - name: Build Metrics Collection
+        id: build-metrics
+        if: always()
+        env:
+          PROMETHEUS_PUSHGATEWAY_URL: http://192.168.1.5:9091
+        run: |
+          BUILD_TIME="${{ steps.build-step.outputs.build-time || '0' }}"
+          BUILD_SUCCESS="${{ steps.build-step.outputs.success || 'false' }}"
+          RUNNER_NAME="${{ runner.name || 'github-hosted' }}"
+          
+          echo "build-time=${BUILD_TIME}" >> $GITHUB_OUTPUT
+          
+          echo "📊 Collecting build metrics..."
+          echo "  Build Time: ${BUILD_TIME}s"
+          echo "  Build Success: ${BUILD_SUCCESS}"
+          echo "  Runner: ${RUNNER_NAME}"
+          
+          # Push metrics to Prometheus if available
+          if command -v curl &> /dev/null && [[ -n "${PROMETHEUS_PUSHGATEWAY_URL}" ]]; then
+            echo "📈 Pushing metrics to monitoring system..."
+            
+            # Build metrics
+            cat << EOF | curl -X POST "${PROMETHEUS_PUSHGATEWAY_URL}/metrics/job/nestory_ci_hybrid/instance/${GITHUB_RUN_ID}" --data-binary @- || echo "Failed to push metrics"
+          nestory_build_duration_seconds{branch="${GITHUB_REF_NAME}",runner="${RUNNER_NAME}",workflow="hybrid"} ${BUILD_TIME}
+          nestory_build_success{branch="${GITHUB_REF_NAME}",runner="${RUNNER_NAME}",workflow="hybrid"} ${{ steps.build-step.outputs.success == 'true' && '1' || '0' }}
+          nestory_workflow_runs_total{workflow="hybrid",status="${BUILD_SUCCESS}"} 1
+          EOF
+            
+            echo "✅ Metrics pushed to monitoring system"
+          else
+            echo "⚠️ Monitoring system not available"
+          fi
+          
+      # Status tracking for summary
+      - name: Build Status
+        id: build-status
+        if: always()
+        run: |
+          echo "success=${{ steps.build-step.outputs.success }}" >> $GITHUB_OUTPUT
           
       - name: Upload Artifacts
         if: always()
@@ -252,6 +323,11 @@ jobs:
           echo "iOS Build: ${{ needs.ios-build.result }}"
           echo "Documentation: ${{ needs.documentation.result }}"
           echo "Benchmarks: ${{ needs.benchmarks.result }}"
+          echo ""
+          echo "📈 Performance Metrics:"
+          echo "  Build Time: ${{ needs.ios-build.outputs.build-time || 'N/A' }}s"
+          echo "  Runner: ${{ needs.ios-build.outputs.runner-type || 'unknown' }}"
+          echo "  Branch: ${{ github.ref_name }}"
           echo ""
           
           if [[ "${{ needs.ios-build.result }}" == "success" ]]; then

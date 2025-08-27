@@ -73,18 +73,18 @@ final class LogTests: XCTestCase {
 
     func testNetworkLogging() {
         log.networkRequest(
-            url: "https://api.example.com/items",
             method: "GET",
+            url: "https://api.example.com/items",
             statusCode: 200,
-            duration: 0.523,
+            duration: 0.523
         )
 
         log.networkRequest(
-            url: "https://api.example.com/items",
             method: "POST",
+            url: "https://api.example.com/items",
             statusCode: 500,
             duration: 1.234,
-            error: NSError(domain: "Network", code: 500),
+            error: NSError(domain: "Network", code: 500)
         )
 
         XCTAssertTrue(true)
@@ -94,8 +94,7 @@ final class LogTests: XCTestCase {
         log.databaseOperation(
             "SELECT",
             table: "items",
-            duration: 0.012,
-            recordCount: 42,
+            duration: 0.012
         )
 
         log.databaseOperation(
@@ -247,7 +246,7 @@ final class SignpostTests: XCTestCase {
         XCTAssertEqual(metrics.count, 3)
 
         let avgDuration = collector.averageDuration(for: "NetworkRequest")
-        XCTAssertEqual(avgDuration, 0.4, accuracy: 0.01)
+        XCTAssertEqual(avgDuration ?? 0, 0.4, accuracy: 0.01)
 
         let p50 = collector.percentile(50, for: "NetworkRequest")
         XCTAssertNotNil(p50)
@@ -263,8 +262,10 @@ final class MetricKitCollectorTests: XCTestCase {
 
     override func setUp() {
         super.setUp()
-        if #available(iOS 13.0, *) {
-            collector = MetricKitCollector.shared
+        Task { @MainActor [weak self] in
+            if #available(iOS 13.0, *) {
+                self?.collector = MetricKitCollector.shared
+            }
         }
     }
 

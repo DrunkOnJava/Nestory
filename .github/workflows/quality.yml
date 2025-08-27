@@ -11,7 +11,8 @@ env:
 jobs:
   quality-checks:
     name: Quality Verification
-    runs-on: macos-latest
+    runs-on: macos-14
+    timeout-minutes: 15
     
     steps:
       - name: Checkout Repository
@@ -25,15 +26,26 @@ jobs:
           xcode-version: 'latest-stable'
       
       - name: Cache Swift Package Manager
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             .build
-            ~/Library/Developer/Xcode/DerivedData
+            ~/Library/Developer/Xcode/DerivedData/Nestory-*
             DevTools/nestoryctl/.build
-          key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
+            ~/Library/Caches/org.swift.swiftpm
+          key: quality-${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved', '**/project.yml') }}
           restore-keys: |
-            ${{ runner.os }}-spm-
+            quality-${{ runner.os }}-spm-
+            
+      - name: Cache Tools
+        uses: actions/cache@v4
+        with:
+          path: |
+            /opt/homebrew/bin/swiftlint
+            /opt/homebrew/bin/swiftformat
+          key: quality-tools-${{ runner.os }}-${{ hashFiles('.github/workflows/quality.yml') }}
+          restore-keys: |
+            quality-tools-${{ runner.os }}-
       
       - name: Install Tools
         run: |
@@ -91,6 +103,42 @@ jobs:
           echo "🔍 Running complete guard suite..."
           make guard
       
+      - name: Quality Metrics Collection
+        if: always()
+        env:
+          PROMETHEUS_PUSHGATEWAY_URL: http://192.168.1.5:9091
+        run: |
+          echo "📊 Collecting quality metrics..."
+          
+          # Count quality issues (simplified)
+          LINT_ISSUES=0
+          FORMAT_ISSUES=0
+          
+          # Run SwiftLint for metrics only (non-blocking)
+          if command -v swiftlint &> /dev/null; then
+            LINT_ISSUES=$(swiftlint lint --quiet 2>/dev/null | wc -l || echo 0)
+          fi
+          
+          # Check format issues
+          if command -v swiftformat &> /dev/null; then
+            FORMAT_ISSUES=$(swiftformat --lint . 2>/dev/null | wc -l || echo 0)
+          fi
+          
+          echo "Quality Metrics:"
+          echo "  Lint Issues: $LINT_ISSUES"
+          echo "  Format Issues: $FORMAT_ISSUES"
+          echo "  Job Status: ${{ job.status }}"
+          
+          # Push metrics to monitoring if available
+          if command -v curl &> /dev/null && [[ -n "${PROMETHEUS_PUSHGATEWAY_URL}" ]]; then
+            cat << EOF | curl -X POST "${PROMETHEUS_PUSHGATEWAY_URL}/metrics/job/nestory_quality/instance/${GITHUB_RUN_ID}" --data-binary @- || echo "Failed to push quality metrics"
+          nestory_lint_issues_total{branch="${GITHUB_HEAD_REF:-$GITHUB_REF_NAME}"} $LINT_ISSUES
+          nestory_format_issues_total{branch="${GITHUB_HEAD_REF:-$GITHUB_REF_NAME}"} $FORMAT_ISSUES
+          nestory_quality_check_success{branch="${GITHUB_HEAD_REF:-$GITHUB_REF_NAME}"} ${{ job.status == 'success' && '1' || '0' }}
+          EOF
+            echo "✅ Quality metrics pushed to monitoring"
+          fi
+          
       - name: Update Build Status
         if: always()
         run: |

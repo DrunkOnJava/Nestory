@@ -249,6 +249,26 @@ targets:
       - package: swift-composable-architecture
         product: ComposableArchitecture
 
+  NestoryTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: 17.0
+    sources:
+      - Tests
+    dependencies:
+      - target: Nestory
+      - package: swift-composable-architecture
+        product: ComposableArchitecture
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.drunkonjava.nestory.Tests
+        TEST_TARGET_NAME: Nestory
+        GENERATE_INFOPLIST_FILE: YES
+        SWIFT_VERSION: 6.0
+        SWIFT_STRICT_CONCURRENCY: minimal
+        SWIFT_TREAT_WARNINGS_AS_ERRORS: NO
+        ENABLE_TESTING_SEARCH_PATHS: YES
+
   NestoryUITests:
     type: bundle.ui-testing
     platform: iOS

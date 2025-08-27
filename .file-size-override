@@ -1,104 +1,12 @@
-Services/AppStoreConnect/MediaUploadService.swift
-Tests/Services/ImportExportServiceTests.swift # 2025-08-19 - Comprehensive test coverage for ImportExportService requires extensive test scenarios for CSV/JSON parsing, error handling, and edge cases. This ensures robust data import/export functionality.
-Tests/Services/InventoryServiceTests.swift # 2025-08-19 - Comprehensive test coverage for InventoryService requires extensive test scenarios for SwiftData operations, caching, search, categories, bulk operations, and error handling.
-Services/NotificationService.swift # 2025-08-19 - NotificationService provides comprehensive notification management including warranty alerts, insurance reminders, and document updates. The service requires extensive validation logic.
-NestoryUITests/Tests/ComprehensiveUIFlowTests.swift # 2025-08-20 - Large test file needed for comprehensive UI flow validation covering full app workflows - will modularize in future cleanup phase
-Tests/ServicesTests/WarrantyTrackingServiceTests.swift # 2025-08-20 - Comprehensive test suite for warranty tracking service - covers all protocols and edge cases. Will modularize into separate test files for different functionality areas in future iteration.
-Services/ClaimPackageAssemblerService.swift # 2025-08-20 - Comprehensive claim package assembly service with multiple scenario support, validation, and export formats - implements complete insurance claim workflow in one cohesive service per CLAUDE.md requirements for feature completeness
-App-Main/ClaimPackageAssemblyView.swift # 2025-08-20 - Comprehensive claim package assembly UI with step-by-step workflow, progress tracking, validation, and export options - implements complete user experience for claim package creation
-App-Main/DamageAssessmentViews/DamageAssessmentWorkflowView.swift # 2025-08-20 - Comprehensive damage assessment workflow with guided UI - core user experience that shouldn't be fragmented
-Services/InsuranceClaim/ClaimDocumentGenerator.swift # 2025-08-20 - Complex document generation with multiple format support - modular structure
-Services/ClaimExportService.swift # 2025-08-20 - Comprehensive insurance claim export service with multiple formats and submission methods - complex domain requirements necessitate single service file
-App-Main/WarrantyViews/WarrantyTrackingView.swift # 2025-08-20 - Comprehensive warranty tracking UI with smart detection, status visualization, and auto-detection features. Will split into separate components for form, status display, and detection in future iteration.
-App-Main/DamageAssessmentViews/RepairCostEstimationView.swift # 2025-08-20 - Comprehensive repair cost estimation tool with detailed UI components - integrated cost calculation experience
-App-Main/ClaimSubmissionView.swift # 2025-08-20 - Comprehensive claim submission UI with step-by-step workflow - complex user interface requirements necessitate single view file
-Services/ClaimTrackingService.swift # 2025-08-20 - Claim tracking with comprehensive status management and correspondence history - integrated tracking workflow
-Services/ClaimValidationService.swift # 2025-08-20 - Comprehensive claim validation with photo quality analysis and company-specific requirements - complex validation logic
-Services/DependencyKeys.swift # 2025-08-21 - Central TCA dependency key definitions - all service dependencies in one location for easier management during development phase, will modularize after TCA architecture stabilizes
-Features/Receipt/ReceiptFeature.swift # 2025-08-21 - TCA Receipt Feature with comprehensive state management - will modularize after TCA patterns stabilize
-Features/Insurance/InsuranceFeature.swift # 2025-08-21 - TCA Insurance Feature with complex claim workflows - will modularize after TCA patterns stabilize  
-Features/Warranty/WarrantyFeature.swift # 2025-08-21 - TCA Warranty Feature with tracking and notification logic - will modularize after TCA patterns stabilize
-Features/Settings/SettingsFeature.swift # 2025-08-21 - TCA Settings Feature with complex configuration state management - temporary approval to fix SwiftUI compilation errors
-App-Main/DamageAssessmentViews/RepairCostEstimation/RepairCostEstimationComponents.swift # 2025-08-21 - Complex repair cost components - temporary approval to fix SwiftUI compilation errors
-Services/InsuranceClaim/ClaimTemplateManager.swift # 2025-08-21 - Comprehensive claim template management - temporary approval to fix SwiftUI compilation errors
-Services/WarrantyTrackingService/LiveWarrantyTrackingService.swift # 2025-08-21 - Comprehensive warranty tracking service - temporary approval to fix SwiftUI compilation errors
-Temporarily bypassing file size check for TCA testing
-Features/Search/SearchView.swift # 2025-08-21 - Complex TCA search view with extracted computed properties - temporary approval to fix SwiftUI compilation errors
-Services/MockServiceImplementations.swift:Mock services consolidated for reliability testing and comprehensive service coverage. File contains realistic test data crucial for insurance documentation features.
-Features/Settings/SettingsView.swift # 2025-08-23 - Temporary approval to investigate Settings tab navigation bug - comprehensive settings view will be modularized after fixing routing issue
-Features/Settings/Components/SettingsViewComponents.swift # 2025-08-24 - WIRE.005 implementation: Added insurance/claims components for ClaimsDashboardView integration. Temporary expansion for systematic service-to-UI wiring initiative. Will modularize into separate InsuranceComponents.swift after completing wiring tasks.
-tca-composer/Sources/TCAComposerMacros/Composition.swift
-tca-composer/Sources/TCAComposerMacros/ReducerAnalyzer.swift
-Tests/Features/AddItemFeatureTests.swift # 2025-08-25 - Temporary override for dashboard testing workflow
-NestoryUITests/Flows/InsuranceReportingFlow.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive test flows required for production quality assurance
-NestoryUITests/Flows/InventoryManagementFlow.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive test flows required for production quality assurance
-NestoryUITests/Reporting/TestHealthDashboard.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive test flows required for production quality assurance
-NestoryUITests/Reporting/AlertingSystem.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive test flows required for production quality assurance
-NestoryUITests/Core/Framework/SelfHealingTestRunner.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive test flows required for production quality assurance
-NestoryUITests/Reporting/TestReporter.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive test flows required for production quality assurance
-NestoryUITests/Reporting/FailureAnalyzer.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive test flows required for production quality assurance
-Tests/UITestFramework/CI/CIIntegrationEngine.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-Tests/UITestFramework/CI/Adapters/CIPlatformAdapter.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-Tests/UITestFramework/Resources/ResourceManager.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-Tests/UITestFramework/SimulatorManagement/DeviceOrchestrator.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-Tests/UITestFramework/SimulatorManagement/SimulatorManager.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-Tests/UITestFramework/Orchestration/TestExecutionOrchestrator.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-Tests/UITestFramework/Environment/EnvironmentManager.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-Tests/UITestFramework/Monitoring/MonitoringIntegration.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-NestoryUITests/Reporting/TrendAnalysisEngine.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-NestoryUITests/Reporting/CoverageTracker.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-NestoryUITests/Reporting/CoverageSupport.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-NestoryUITests/Reporting/PerformanceAnalyzer.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-NestoryUITests/Reporting/ReportDistribution.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-NestoryUITests/Core/Framework/DynamicWaitEngine.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-NestoryUITests/Core/Framework/TestConfiguration.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-NestoryUITests/Core/Framework/MetricsCollector.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-NestoryUITests/Core/Framework/DeviceProfileManager.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-NestoryUITests/PageObjects/CapturePage.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-NestoryUITests/PageObjects/BasePage.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-NestoryUITests/PageObjects/InventoryListPage.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-NestoryUITests/PageObjects/AddItemPage.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-NestoryUITests/PageObjects/TabBarPage.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-NestoryUITests/PageObjects/ItemDetailPage.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-NestoryUITests/PageObjects/PageObjectFactory.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-NestoryUITests/iOS-Interactions/XCUIElement+SmartInteraction.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-NestoryUITests/iOS-Interactions/KeyboardInputManager.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-NestoryUITests/iOS-Interactions/DeviceSimulator.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-NestoryUITests/iOS-Interactions/PermissionManager.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-NestoryUITests/iOS-Interactions/NativeGestureEngine.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-NestoryUITests/iOS-Interactions/CameraPhotoSimulator.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-NestoryUITests/iOS-Interactions/NestoryiOSInteractionEngine.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-NestoryUITests/iOS-Interactions/AccessibilityTestEngine.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-NestoryUITests/TestDataManagement/Repository/TestDataRepository.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-NestoryUITests/TestDataManagement/Integration/TestDataManagementFramework.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-NestoryUITests/TestDataManagement/Seeding/TestDataSeeder.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-NestoryUITests/TestDataManagement/Models/TestDataModels.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-NestoryUITests/TestDataManagement/Scenarios/ScenarioBuilder.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-NestoryUITests/TestDataManagement/Generators/MockDataGenerator.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-NestoryUITests/TestDataManagement/Validation/DataValidationEngine.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-NestoryUITests/Flows/InsuranceFlowTypes.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-NestoryUITests/Flows/MasterTestFlowOrchestrator.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-NestoryUITests/Flows/InventoryFlowTypes.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-Features/Settings/Components/SettingsViewComponents.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-Features/Inventory/InventoryView.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-Tests/UI/ItemDetailViewTests.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-Tests/UI/AccessibilityTests.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-Tests/TestSupport/ServiceMocks.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-Tests/ServicesTests/WarrantyTrackingServiceIntegrationTests.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-NestoryUITests/Core/Framework/TestSessionManager.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-NestoryUITests/Core/Framework/TestFrameworkTypes.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-NestoryUITests/iOS-Interactions/XCUIApplication+Nestory.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-NestoryUITests/Flows/MasterFlowTypes.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-Scripts/generate-project-config.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-Services/DamageAssessmentService/DamageAssessmentService.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-Services/ClaimValidationService.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-Services/CloudBackupService/LiveCloudBackupService.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-Services/ReceiptOCR/MLReceiptProcessor.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-Services/InventoryService/InventoryService.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
-Services/MockServiceImplementations.swift:854:Comprehensive mock service implementations required for testing and development
-Services/MockServiceImplementations.swift # 2025-08-26 - Temporary approval while fixing compilation errors - large mock file will be modularized after successful build
+# File Size Override List
+# Files listed here are exempted from the 600-line size limit
+# Format: <file_path> # <date> - <justification>
 
-# Comprehensive test files - exceed size limits but represent complete test suites
-Tests/Services/InventoryServiceTests.swift # 2025-08-26 - Comprehensive test coverage for inventory service - 828 lines of essential test cases
-Tests/Services/ImportExportServiceTests.swift # 2025-08-26 - Complete import/export testing suite - 792 lines of critical validation tests
-Tests/Features/AddItemFeatureTests.swift # 2025-08-26 - Full TCA feature testing - 652 lines of comprehensive feature validation
+Tests/Services/ImportExportServiceTests.swift # 2025-08-27 - Comprehensive test suite for import/export functionality (792 lines). Contains critical test cases for CSV/JSON parsing, error handling, and edge cases. Test coverage essential for data integrity in insurance documentation workflows.
+
+Tests/Services/InventoryServiceTests.swift # 2025-08-27 - Comprehensive test suite for core inventory service (828 lines). Covers SwiftData operations, caching, search functionality, category management, and bulk operations. Critical test coverage for primary app functionality.
+
+Tests/Features/AddItemFeatureTests.swift # 2025-08-27 - Complete TCA feature testing suite (652 lines). Tests all aspects of item creation workflow including form validation, photo capture, category assignment, and state management. Essential for app stability and user experience validation.
+
+# Note: These overrides should be temporary. Plan to modularize these test files 
+# into separate focused test suites when time permits during maintenance cycles.

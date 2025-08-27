@@ -13,11 +13,12 @@ on:
 jobs:
   visualize:
     name: Generate Project Visualizations
-    runs-on: macos-latest
+    runs-on: macos-14
+    timeout-minutes: 20
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       
     - name: Setup Xcode
       uses: maxim-lobanov/setup-xcode@v1
@@ -97,6 +98,38 @@ jobs:
         python3 scripts/generate-html-reports.py \
           outputs/ci-$(date +%Y%m%d)
     
+    - name: Visualization Metrics Collection
+      if: always()
+      env:
+        PROMETHEUS_PUSHGATEWAY_URL: http://192.168.1.5:9091
+      run: |
+        echo "📊 Collecting visualization metrics..."
+        
+        # Count generated artifacts
+        ARTIFACTS_COUNT=0
+        TOTAL_SIZE_MB=0
+        
+        if [[ -d "project-visualization/outputs" ]]; then
+          ARTIFACTS_COUNT=$(find project-visualization/outputs -type f | wc -l || echo 0)
+          TOTAL_SIZE_KB=$(du -sk project-visualization/outputs 2>/dev/null | cut -f1 || echo 0)
+          TOTAL_SIZE_MB=$((TOTAL_SIZE_KB / 1024))
+        fi
+        
+        echo "Visualization Metrics:"
+        echo "  Artifacts Generated: $ARTIFACTS_COUNT"
+        echo "  Total Size: ${TOTAL_SIZE_MB}MB"
+        echo "  Job Status: ${{ job.status }}"
+        
+        # Push metrics to monitoring if available
+        if command -v curl &> /dev/null && [[ -n "${PROMETHEUS_PUSHGATEWAY_URL}" ]]; then
+          cat << EOF | curl -X POST "${PROMETHEUS_PUSHGATEWAY_URL}/metrics/job/nestory_visualization/instance/${GITHUB_RUN_ID}" --data-binary @- || echo "Failed to push visualization metrics"
+          nestory_visualization_artifacts_count{branch="${GITHUB_REF_NAME}"} $ARTIFACTS_COUNT
+          nestory_visualization_size_mb{branch="${GITHUB_REF_NAME}"} $TOTAL_SIZE_MB
+          nestory_visualization_success{branch="${GITHUB_REF_NAME}"} ${{ job.status == 'success' && '1' || '0' }}
+          EOF
+          echo "✅ Visualization metrics pushed to monitoring"
+        fi
+        
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
@@ -141,7 +174,7 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     
     - name: Check layer violations
       run: |
@@ -167,7 +200,7 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     
     - name: Install swiftlint
       run: brew install swiftlint
@@ -201,7 +234,7 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     
     - name: Generate comprehensive report
       run: |

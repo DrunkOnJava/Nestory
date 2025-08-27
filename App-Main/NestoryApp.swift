@@ -36,7 +36,7 @@ struct NestoryApp: App {
             // - Removed unique constraints from all model IDs
             // - Made Item.receipts optional relationship
             // - All properties have defaults or are optional
-            let schema = Schema([Item.self, Category.self, Room.self, Warranty.self, Receipt.self, ClaimSubmission.self])
+            let schema = Schema([Item.self, Category.self, Room.self, Warranty.self, Receipt.self])
             
             #if DEBUG
             // Development: Test with local-only first, then enable CloudKit
@@ -61,7 +61,7 @@ struct NestoryApp: App {
             
             // Fallback to local-only storage for development
             do {
-                let schema = Schema([Item.self, Category.self, Room.self, Warranty.self, Receipt.self, ClaimSubmission.self])
+                let schema = Schema([Item.self, Category.self, Room.self, Warranty.self, Receipt.self])
                 let fallbackConfig = ModelConfiguration(
                     schema: schema,
                     isStoredInMemoryOnly: false,
@@ -74,7 +74,7 @@ struct NestoryApp: App {
                 
                 // Last resort: in-memory storage
                 do {
-                    let schema = Schema([Item.self, Category.self, Room.self, Warranty.self, Receipt.self, ClaimSubmission.self])
+                    let schema = Schema([Item.self, Category.self, Room.self, Warranty.self, Receipt.self])
                     let emergencyConfig = ModelConfiguration(
                         schema: schema,
                         isStoredInMemoryOnly: true,

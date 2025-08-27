@@ -66,6 +66,15 @@ public struct RootFeature {
                 }
             }
         }
+        
+        // Equatable implementation excluding computed properties
+        public static func == (lhs: State, rhs: State) -> Bool {
+            return lhs.inventory == rhs.inventory &&
+                   lhs.search == rhs.search &&
+                   lhs.analytics == rhs.analytics &&
+                   lhs.settings == rhs.settings &&
+                   lhs.selectedTab == rhs.selectedTab
+        }
     }
 
     public enum Action {

@@ -297,3 +297,24 @@ enum WarrantyTrackingServiceKey: @preconcurrency DependencyKey {
     }
     static let testValue: any WarrantyTrackingService = MockWarrantyTrackingService()
 }
+
+enum CategoryServiceKey: @preconcurrency DependencyKey {
+    static var liveValue: any CategoryService {
+        do {
+            // CategoryService depends on InventoryService - use the same approach
+            let config = ModelConfiguration(isStoredInMemoryOnly: false, allowsSave: true)
+            let container = try ModelContainer(
+                for: Item.self, Category.self, Receipt.self, Warranty.self,
+                configurations: config
+            )
+            let context = ModelContext(container)
+            let inventoryService = try LiveInventoryService(modelContext: context)
+            return LiveCategoryService(inventoryService: inventoryService)
+        } catch {
+            print("⚠️ Failed to create CategoryService: \(error.localizedDescription)")
+            print("🔄 Falling back to MockCategoryService for graceful degradation")
+            return MockCategoryService()
+        }
+    }
+    static let testValue: any CategoryService = MockCategoryService()
+}

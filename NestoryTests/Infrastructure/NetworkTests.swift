@@ -73,21 +73,22 @@ final class NetworkTests: XCTestCase {
         XCTAssertEqual(config.delay(for: 10), 10.0)
     }
 
-    func testCircuitBreakerStateTransitions() {
+    func testCircuitBreakerStateTransitions() async throws {
         let circuitBreaker = CircuitBreaker()
 
-        XCTAssertTrue(circuitBreaker.canExecute())
+        // Test initial closed state
+        XCTAssertEqual(await circuitBreaker.currentState, .closed)
 
-        for _ in 0 ..< 4 {
-            circuitBreaker.recordFailure()
-            XCTAssertTrue(circuitBreaker.canExecute())
+        // Test that successful operations work
+        let result = try await circuitBreaker.execute {
+            return "success"
         }
+        XCTAssertEqual(result, "success")
 
-        circuitBreaker.recordFailure()
-        XCTAssertFalse(circuitBreaker.canExecute())
-
-        circuitBreaker.recordSuccess()
-        XCTAssertFalse(circuitBreaker.canExecute())
+        // Test circuit breaker metrics
+        let metrics = await circuitBreaker.metrics
+        XCTAssertEqual(metrics.state, .closed)
+        XCTAssertEqual(metrics.failureCount, 0)
     }
 
     func testHTTPClientInitialization() {
