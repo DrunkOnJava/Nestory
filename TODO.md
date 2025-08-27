@@ -5,6 +5,8 @@
 
 ## 🎯 **ACTIVE TASKS**
 
+<!-- Testing GitHub native TODO integration -->
+
 ### 🚨 Urgent Priority (Next 2 Weeks)
 - [ ] File Size Refinements - Modularize oversized files blocking CI/CD (QUALITY.001)
   - [ ] Modularize SettingsViewComponents.swift (576 lines)
