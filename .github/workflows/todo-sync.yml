@@ -1,0 +1,71 @@
+name: Auto-sync TODO.md to GitHub Issues
+
+on:
+  push:
+    paths:
+      - 'TODO.md'
+    branches: [ main, feat/*, feature/* ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  sync-todo:
+    runs-on: ubuntu-latest
+    name: Sync TODO.md to GitHub Issues
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 2
+    
+    - name: Setup dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y jq
+    
+    - name: Sync TODO.md to Issues
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        echo "🔄 Starting automated TODO.md → GitHub Issues sync"
+        chmod +x Scripts/github-todo-sync.sh
+        Scripts/github-todo-sync.sh sync
+        
+    - name: Cleanup orphaned issues
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        echo "🧹 Cleaning up orphaned issues"
+        Scripts/github-todo-sync.sh cleanup
+        
+    - name: Comment on commit
+      if: github.event_name == 'push'
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        echo "📊 Getting sync status"
+        SYNC_OUTPUT=$(Scripts/github-todo-sync.sh status 2>&1 || echo "Sync status unavailable")
+        
+        # Create a comment on the commit about the sync
+        gh api repos/${{ github.repository }}/commits/${{ github.sha }}/comments \
+          --method POST \
+          --field body="🤖 **TODO.md Auto-Sync Complete**
+
+        The TODO.md changes in this commit have been automatically synchronized with GitHub Issues.
+
+        **View synced issues:** [Issues labeled 'todo-sync'](https://github.com/${{ github.repository }}/issues?q=is%3Aissue+is%3Aopen+label%3Atodo-sync)
+
+        <details>
+        <summary>Sync Details</summary>
+
+        \`\`\`
+        $SYNC_OUTPUT
+        \`\`\`
+
+        </details>
+
+        *Automated by TODO.md sync workflow*"

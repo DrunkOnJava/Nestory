@@ -1,0 +1,99 @@
+name: 📋 Development Task
+description: Create a structured development task with clear acceptance criteria
+title: "[TASK] "
+labels: ["task", "todo-sync"]
+assignees: []
+
+body:
+  - type: input
+    id: task_id
+    attributes:
+      label: Task ID
+      description: Unique identifier for this task (e.g., QUALITY.001, WIRE.001)
+      placeholder: "TASK.001"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority Level
+      description: What priority level does this task have?
+      options:
+        - Urgent (Next 2 Weeks)
+        - High (Month 1)
+        - Medium (Month 2-3)
+        - Low (Future)
+      default: 1
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      description: Which category best describes this task?
+      options:
+        - Build System
+        - Architecture (TCA)
+        - UI/UX
+        - Backend Services
+        - Testing
+        - CI/CD
+        - Performance
+        - Apple Frameworks
+        - Documentation
+      default: 0
+    validations:
+      required: true
+
+  - type: input
+    id: estimate
+    attributes:
+      label: Time Estimate
+      description: Rough time estimate for completion
+      placeholder: "2-3 days"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Task Description
+      description: Detailed description of what needs to be accomplished
+      placeholder: "Describe the task, its context, and any relevant background information..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: Acceptance Criteria
+      description: List the specific criteria that must be met for this task to be considered complete
+      value: |
+        - [ ] Criterion 1
+        - [ ] Criterion 2
+        - [ ] Criterion 3
+    validations:
+      required: true
+
+  - type: textarea
+    id: implementation_notes
+    attributes:
+      label: Implementation Notes
+      description: Any specific implementation details, code snippets, or technical requirements
+      placeholder: "Include any specific files to modify, functions to implement, or technical constraints..."
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies
+      description: List any tasks, issues, or PRs that must be completed before this task
+      placeholder: "- Depends on #123\n- Requires completion of TASK.001"
+
+  - type: textarea
+    id: related_files
+    attributes:
+      label: Related Files
+      description: List the main files that will be modified for this task
+      placeholder: "- App-Main/SomeView.swift\n- Services/SomeService.swift"

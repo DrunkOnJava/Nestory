@@ -1,0 +1,96 @@
+name: ✨ Feature Request
+description: Suggest a new feature or enhancement for Nestory
+title: "[FEATURE] "
+labels: ["enhancement", "feature-request"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a new feature! Please provide as much detail as possible to help us understand your request.
+
+  - type: input
+    id: feature_summary
+    attributes:
+      label: Feature Summary
+      description: A brief summary of the feature you'd like to see
+      placeholder: "Add ability to..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: What problem would this feature solve?
+      placeholder: "I'm always frustrated when..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Describe the solution you'd like to see
+      placeholder: "I'd like to be able to..."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: feature_category
+    attributes:
+      label: Feature Category
+      description: Which area of the app would this feature affect?
+      options:
+        - Item Management
+        - Insurance & Claims
+        - Receipt Processing
+        - Photo Management
+        - Analytics & Reporting
+        - Settings & Preferences
+        - Search & Filtering
+        - Sync & Backup
+        - Notifications
+        - UI/UX Improvements
+        - Apple Integration
+        - Other
+      default: 0
+    validations:
+      required: true
+
+  - type: dropdown
+    id: user_type
+    attributes:
+      label: User Type
+      description: Who would primarily benefit from this feature?
+      options:
+        - All Users
+        - New Users
+        - Power Users
+        - Business Users
+        - Insurance Claim Users
+      default: 0
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternative Solutions
+      description: Describe any alternative solutions or workarounds you've considered
+      placeholder: "A clear and concise description of any alternative solutions..."
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context
+      description: Add any other context, mockups, or examples about the feature request
+      placeholder: "Add any other context or screenshots about the feature request here..."
+
+  - type: checkboxes
+    id: implementation_willingness
+    attributes:
+      label: Implementation
+      description: Are you willing to help implement this feature?
+      options:
+        - label: I would be willing to submit a pull request for this feature
+          required: false

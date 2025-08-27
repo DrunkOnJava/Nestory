@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📋 TODO.md Master Document
+    url: https://github.com/DrunkOnJava/Nestory/blob/main/TODO.md
+    about: View all active tasks and project priorities in our master TODO.md
+  - name: 📊 Project Board
+    url: https://github.com/DrunkOnJava/Nestory/projects
+    about: View project progress and task status on our GitHub Project board
+  - name: 🔍 Discussion & Questions
+    url: https://github.com/DrunkOnJava/Nestory/discussions
+    about: Ask questions and discuss ideas with the community

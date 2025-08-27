@@ -67,7 +67,11 @@
       "Bash(git pull:*)",
       "Bash(git cherry-pick:*)",
       "Bash(/Users/griffin/Projects/Nestory/test-navigation.sh)",
-      "Bash(docker-compose:*)"
+      "Bash(docker-compose:*)",
+      "Bash(gh api:*)",
+      "WebFetch(domain:docs.github.com)",
+      "Bash(gh issue list:*)",
+      "Bash(gh issue close:*)"
     ],
     "deny": [],
     "ask": [],
