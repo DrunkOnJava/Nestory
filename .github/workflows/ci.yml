@@ -105,14 +105,14 @@ jobs:
       
       - name: Upload Build Status
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: build-status-main
           path: BUILD_STATUS.md
       
       - name: Upload Coverage
         if: success()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-report
           path: |
