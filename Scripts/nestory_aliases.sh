@@ -19,5 +19,8 @@ alias nsim="open -a Simulator"
 alias nlog="tail -f $NESTORY_ROOT/optimization.log"
 alias nstats="$NESTORY_ROOT/Scripts/dev_stats.sh"
 
-echo "🚀 Nestory development aliases loaded!"
-echo "Available commands: nb, nt, ndc, nrun, nxcode, nclean, nsim, nlog, nstats"
+# Only show output if not using Powerlevel10k instant prompt
+if [[ -z "$POWERLEVEL9K_INSTANT_PROMPT" || "$POWERLEVEL9K_INSTANT_PROMPT" != "quiet" ]]; then
+    echo "🚀 Nestory development aliases loaded!"
+    echo "Available commands: nb, nt, ndc, nrun, nxcode, nclean, nsim, nlog, nstats"
+fi
