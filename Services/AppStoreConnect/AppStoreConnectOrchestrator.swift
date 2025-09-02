@@ -60,7 +60,7 @@ public final class AppStoreConnectOrchestrator: ObservableObject {
         case selectingBuild
         case submittingForReview
         case completed
-        case failed(Error)
+        case failed(any Error)
 
         var description: String {
             switch self {
@@ -93,7 +93,7 @@ public final class AppStoreConnectOrchestrator: ObservableObject {
 
     @Published public private(set) var currentProgress: WorkflowProgress?
     @Published public private(set) var isRunning = false
-    @Published public private(set) var lastError: Error?
+    @Published public private(set) var lastError: (any Error)?
 
     // MARK: - Initialization
 

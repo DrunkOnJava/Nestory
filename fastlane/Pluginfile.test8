@@ -1,0 +1,4 @@
+# Testing individual plugin: fastlane-plugin-frameit
+# Device frame screenshots for Nestory iOS project
+
+gem 'fastlane-plugin-frameit'

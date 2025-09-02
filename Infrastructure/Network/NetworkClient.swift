@@ -97,7 +97,7 @@ public actor NetworkClient {
             method: .delete,
             headers: headers,
         )
-        let _: EmptyResponse = try await execute(request)
+        _ = try await execute(request) as EmptyResponse
     }
 
     /// Download file

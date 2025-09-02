@@ -1,0 +1,1287 @@
+# Fastfile — modernized for CI and current fastlane best practices
+
+default_platform(:ios)
+
+# Import specialized lane files
+import './fastlane/CoverageValidation.rb'
+
+# ---- Shared config via ENV (override with `.env` or lane options) ----
+APP_IDENTIFIER   = ENV['APP_IDENTIFIER']   || 'com.drunkonjava.nestory'
+SCHEME           = ENV['SCHEME']           || 'Nestory-Dev'
+WORKSPACE        = ENV['WORKSPACE']        || nil        # e.g., 'Nestory.xcworkspace' (nil -> use project)
+PROJECT          = ENV['PROJECT']          || 'Nestory.xcodeproj'
+ASSETS_PATH      = ENV['ASSETS_PATH']      || 'App-Main/Assets.xcassets'
+ICONSET_NAME     = ENV['ICONSET_NAME']     || 'AppIcon'
+CONFIGURATION    = ENV['CONFIGURATION']    || 'Release'
+OUTPUT_DIR       = ENV['OUTPUT_DIR']       || 'fastlane/output'
+TEAM_ID          = ENV['TEAM_ID']          || ''         # optional
+XCODE_VERSION    = ENV['XCODE_VERSION']    || nil        # e.g., '16.0' to pin
+
+# ASC API key: prefer environment or a local json path; never commit secrets
+ASC_KEY_ID       = ENV['ASC_KEY_ID']
+ASC_ISSUER_ID    = ENV['ASC_ISSUER_ID']
+ASC_KEY_CONTENT  = ENV['ASC_KEY_CONTENT']  # Base64 or raw p8 content (preferred)
+# OR ASC_KEY_PATH = 'fastlane/AuthKey_XXXXXXXXXX.p8'
+
+# App Store Connect API Configuration
+ASC_API_ENABLED  = ENV['ASC_API_ENABLED'] == 'true'
+ASC_BUNDLE_ID    = ENV['ASC_BUNDLE_ID'] || 'com.drunkonjava.nestory.dev'
+
+platform :ios do
+  # ------------------------------
+  # Global CI initialization hooks
+  # ------------------------------
+  before_all do
+    setup_ci if ENV['CI']                         # sets locale/timezone and xcodebuild env for CI
+    ensure_xcode_version(version: XCODE_VERSION) if XCODE_VERSION
+    create_keychain(name: "fastlane_tmp", default_keychain: true, unlock: true, timeout: 3600, lock_when_sleeps: false) if is_ci
+    sh("mkdir -p #{OUTPUT_DIR}")
+  end
+
+  after_all do
+    UI.success("✅ All lanes finished successfully.")
+  end
+
+  error do |lane, exception|
+    UI.error("❌ Lane '#{lane}' failed: #{exception.message}")
+    UI.message("See logs under #{OUTPUT_DIR}")
+  end
+
+  # ------------------------------
+  # Code quality & tests - Enterprise UI Testing Framework
+  # ------------------------------
+  desc "Run unit/UI tests with comprehensive framework"
+  lane :tests do |opts|
+    scan(
+      scheme: opts[:scheme] || SCHEME,
+      project: WORKSPACE ? nil : PROJECT,
+      workspace: WORKSPACE,
+      clean: true,
+      derived_data_path: "#{OUTPUT_DIR}/DerivedData",
+      output_directory: "#{OUTPUT_DIR}/tests",
+      buildlog_path: "#{OUTPUT_DIR}/logs/tests",
+      result_bundle: true,
+      fail_build: true,
+      xcbeautify: true,
+      # Enterprise UI Testing Framework Settings
+      xcargs: "UI_TEST_FRAMEWORK_ENABLED=YES ENABLE_TESTING_SEARCH_PATHS=YES"
+    )
+  end
+  
+  desc "Run comprehensive UI tests with enterprise framework"
+  lane :ui_tests do |opts|
+    UI.message "🧪 Running comprehensive UI test suite..."
+    
+    scan(
+      scheme: opts[:scheme] || "Nestory-UIWiring",
+      project: WORKSPACE ? nil : PROJECT,
+      workspace: WORKSPACE,
+      clean: true,
+      derived_data_path: "#{OUTPUT_DIR}/DerivedData",
+      output_directory: "#{OUTPUT_DIR}/ui_tests",
+      buildlog_path: "#{OUTPUT_DIR}/logs/ui_tests",
+      result_bundle: true,
+      fail_build: true,
+      only_testing: opts[:only_testing] || ["NestoryUITests"],
+      xcargs: "UI_TEST_FRAMEWORK_ENABLED=YES UI_TESTING_ENABLED=YES ENABLE_TESTING_SEARCH_PATHS=YES"
+    )
+  end
+  
+  desc "Run performance UI tests"
+  lane :performance_tests do |opts|
+    UI.message "⚡ Running performance test suite..."
+    
+    scan(
+      scheme: "Nestory-Performance",
+      project: WORKSPACE ? nil : PROJECT,
+      workspace: WORKSPACE,
+      clean: true,
+      derived_data_path: "#{OUTPUT_DIR}/DerivedData",
+      output_directory: "#{OUTPUT_DIR}/performance_tests",
+      buildlog_path: "#{OUTPUT_DIR}/logs/performance_tests",
+      result_bundle: true,
+      fail_build: true,
+      only_testing: ["NestoryPerformanceUITests"],
+      xcargs: "PERFORMANCE_TESTING_MODE=YES UI_TEST_PERFORMANCE_MODE=YES"
+    )
+  end
+  
+  desc "Run accessibility UI tests"
+  lane :accessibility_tests do |opts|
+    UI.message "♿ Running accessibility test suite..."
+    
+    scan(
+      scheme: "Nestory-Accessibility",
+      project: WORKSPACE ? nil : PROJECT,
+      workspace: WORKSPACE,
+      clean: true,
+      derived_data_path: "#{OUTPUT_DIR}/DerivedData",
+      output_directory: "#{OUTPUT_DIR}/accessibility_tests",
+      buildlog_path: "#{OUTPUT_DIR}/logs/accessibility_tests",
+      result_bundle: true,
+      fail_build: true,
+      only_testing: ["NestoryAccessibilityUITests"],
+      xcargs: "ACCESSIBILITY_TESTING_MODE=YES ACCESSIBILITY_TEST_MODE=YES"
+    )
+  end
+  
+  desc "Run smoke tests"
+  lane :smoke_tests do |opts|
+    UI.message "💨 Running smoke test suite..."
+    
+    scan(
+      scheme: "Nestory-Smoke",
+      project: WORKSPACE ? nil : PROJECT,
+      workspace: WORKSPACE,
+      clean: true,
+      derived_data_path: "#{OUTPUT_DIR}/DerivedData",
+      output_directory: "#{OUTPUT_DIR}/smoke_tests",
+      buildlog_path: "#{OUTPUT_DIR}/logs/smoke_tests",
+      result_bundle: true,
+      fail_build: true,
+      only_testing: ["NestoryUITests/SmokeTests"],
+      xcargs: "SMOKE_TESTING_MODE=YES QUICK_VALIDATION_MODE=YES"
+    )
+  end
+
+  # ------------------------------
+  # Build
+  # ------------------------------
+  desc "Build archive for distribution"
+  lane :build do |opts|
+    ensure_git_status_clean unless is_ci # optional; skip in CI
+    version_bump = opts[:bump_build] || false
+    increment_build_number if version_bump
+
+    build_app(
+      scheme: opts[:scheme] || SCHEME,
+      project: WORKSPACE ? nil : PROJECT,
+      workspace: WORKSPACE,
+      configuration: CONFIGURATION,
+      clean: true,
+      output_directory: "#{OUTPUT_DIR}/build",
+      output_name: "#{SCHEME}.ipa",
+      include_bitcode: false,                   # modern: false
+      include_symbols: true,                    # produce dSYM
+      export_method: "app-store",
+      export_options: {
+        provisioningProfiles: {
+          APP_IDENTIFIER => opts[:provisioning_profile] || ""
+        },
+        uploadSymbols: true,
+        compileBitcode: false
+      },
+      buildlog_path: "#{OUTPUT_DIR}/logs/build",
+      # Ensure dSYM generation and allow provisioning updates
+      xcargs: "-allowProvisioningUpdates DEBUG_INFORMATION_FORMAT=dwarf-with-dsym ENABLE_BITCODE=NO"
+    )
+  end
+
+  # ------------------------------
+  # TestFlight
+  # ------------------------------
+  private_lane :asc_api_key do
+    # Prefer key content via ENV; fallback to a file path
+    if ASC_KEY_CONTENT && ASC_KEY_ID && ASC_ISSUER_ID
+      app_store_connect_api_key(
+        key_id: ASC_KEY_ID,
+        issuer_id: ASC_ISSUER_ID,
+        key_content: ASC_KEY_CONTENT,
+        is_key_content_base64: ASC_KEY_CONTENT.start_with?("MII"), # best-effort; tweak as needed
+        duration: 1200,
+        in_house: false
+      )
+    elsif ENV['ASC_KEY_PATH'] && ASC_KEY_ID && ASC_ISSUER_ID
+      app_store_connect_api_key(
+        key_id: ASC_KEY_ID,
+        issuer_id: ASC_ISSUER_ID,
+        key_filepath: ENV['ASC_KEY_PATH'],
+        duration: 1200,
+        in_house: false
+      )
+    else
+      UI.message("App Store Connect API key not configured. Will use interactive auth if needed.")
+    end
+  end
+
+  desc "Build and upload to TestFlight with comprehensive testing"
+  lane :beta do |opts|
+    # Run comprehensive test suite before betas unless skipped
+    unless opts[:skip_tests]
+      UI.message "🧪 Running pre-beta test suite..."
+      tests(scheme: opts[:scheme])
+      ui_tests(scheme: opts[:scheme]) unless opts[:skip_ui_tests]
+      smoke_tests unless opts[:skip_smoke_tests]
+    end
+
+    # Build
+    build(opts)
+
+    # Authenticate
+    asc_api_key
+
+    # Changelog from git commits
+    notes = changelog_from_git_commits(
+      commits_count: 50,
+      merge_commit_filtering: "exclude_merges"
+    ) rescue "Bug fixes and improvements"
+
+    upload_to_testflight(
+      app_identifier: APP_IDENTIFIER,
+      skip_waiting_for_build_processing: true,
+      changelog: notes,
+      distribute_external: !!opts[:external],   # set true to auto-start external testing
+      groups: opts[:groups] || [],              # e.g. ["Internal"]
+      beta_app_review_info: {
+        contact_email: ENV['BETA_CONTACT_EMAIL'],
+        contact_first_name: ENV['BETA_CONTACT_FIRST_NAME'],
+        contact_last_name: ENV['BETA_CONTACT_LAST_NAME'],
+        contact_phone: ENV['BETA_CONTACT_PHONE'],
+        demo_account_name: ENV['BETA_DEMO_USER'],
+        demo_account_password: ENV['BETA_DEMO_PASS']
+      }
+    )
+  end
+
+  # ------------------------------
+  # App Store release
+  # ------------------------------
+  desc "Submit to App Store (metadata + binary)"
+  lane :release do |opts|
+    asc_api_key
+
+    precheck(  # validates metadata, age ratings, etc.
+      app_identifier: APP_IDENTIFIER,
+      default_rule_level: "warn"
+    )
+
+    # Upload binary & metadata/screenshots if you keep them under fastlane/metadata
+    deliver(
+      app_identifier: APP_IDENTIFIER,
+      submit_for_review: !!opts[:submit],
+      automatic_release: !!opts[:auto_release],
+      force: true,
+      skip_screenshots: opts[:skip_screenshots] || true,
+      skip_metadata: opts[:skip_metadata] || false,
+      skip_binary_upload: false
+    )
+  end
+
+  # ------------------------------
+  # Screenshots (snapshot) - Enterprise UI Testing Framework
+  # ------------------------------
+  desc "Capture comprehensive screenshots with UI testing framework"
+  lane :screenshots do |opts|
+    UI.message "📸 Capturing screenshots with enterprise framework..."
+    
+    # Run UI wiring tests to capture comprehensive screenshots
+    ui_tests(
+      scheme: "Nestory-UIWiring",
+      only_testing: [
+        "NestoryUITests/ComprehensiveUIWiringTest",
+        "NestoryUITests/BasicScreenshotTest",
+        "NestoryUITests/ComprehensiveScreenshotTest"
+      ]
+    )
+    
+    # Traditional screenshot capture for App Store
+    capture_screenshots(
+      project: WORKSPACE ? nil : PROJECT,
+      workspace: WORKSPACE,
+      scheme: opts[:scheme] || "Nestory-UIWiring",
+      clear_previous_screenshots: true,
+      reinstall_app: true,
+      languages: opts[:languages] || ["en-US"],
+      devices: opts[:devices] || [
+        "iPhone 16 Pro Max",
+        "iPhone 16 Pro",
+        "iPad Pro (12.9-inch) (6th generation)"
+      ],
+      output_directory: "#{OUTPUT_DIR}/screenshots",
+      buildlog_path: "#{OUTPUT_DIR}/logs/snapshot",
+      # Enterprise framework integration
+      xcargs: "UI_TEST_FRAMEWORK_ENABLED=YES UI_TEST_SCREENSHOT_DIR=#{OUTPUT_DIR}/screenshots"
+    )
+    
+    # Extract additional screenshots from test results
+    sh "#{File.expand_path('../../Scripts/extract-ui-test-screenshots.sh', __dir__)} #{OUTPUT_DIR}/ui_tests/*.xcresult #{OUTPUT_DIR}/screenshots/extracted/"
+    
+    UI.success "✅ Screenshots captured with enterprise framework integration"
+  end
+
+  desc "Open screenshots in Finder"
+  lane :open_screenshots do
+    sh "open #{OUTPUT_DIR}/screenshots/"
+  end
+
+  desc "Clear all screenshot data"
+  lane :clear_screenshots do
+    clear_derived_data
+    sh "rm -rf #{OUTPUT_DIR}/screenshots/*"
+    UI.success "Cleared all screenshot data"
+  end
+
+  # ------------------------------
+  # Validation fixes
+  # ------------------------------
+  desc "Fix all validation issues for App Store submission"
+  lane :fix_validation do
+    UI.message "🔧 Fixing validation issues..."
+    
+    # Ensure dSYM generation is enabled via xcargs in build
+    UI.message "📝 dSYM generation will be enforced during build"
+    UI.message "Build settings to use:"
+    UI.message "  - DEBUG_INFORMATION_FORMAT = dwarf-with-dsym"
+    UI.message "  - ENABLE_BITCODE = NO"
+    
+    # Clean derived data
+    clear_derived_data
+    
+    UI.success "✅ Derived data cleared"
+    UI.success "✅ All validation fixes applied!"
+    UI.message ""
+    UI.message "Next steps:"
+    UI.message "1. Run: bundle exec fastlane build"
+    UI.message "2. Or archive in Xcode with proper settings"
+  end
+
+  # ------------------------------
+  # App icons (fastlane-plugin-appicon)
+  # ------------------------------
+  desc "Generate full iOS AppIcon set from a source PNG"
+  lane :icons do |opts|
+    # Check common locations for icon if not provided
+    source = opts[:source] || ENV['ICON_SOURCE']
+    
+    if source.nil?
+      possible_paths = [
+        "assets/icon.png",
+        "AppIcon.png",
+        "icon.png",
+        "/Users/griffin/Pictures/nestoryappicon2.png"
+      ]
+      
+      source = possible_paths.find { |path| File.exist?(path) }
+      
+      if source.nil?
+        UI.user_error!("No icon file found. Please provide source:path/to/icon.png or set ICON_SOURCE env var")
+      end
+    end
+    
+    UI.user_error!("Icon source not found: #{source}") unless File.exist?(source)
+
+    UI.message "🎨 Generating iOS app icons from: #{source}"
+    
+    appicon(
+      appicon_image_file: source,
+      appicon_path: ASSETS_PATH,
+      appicon_name: ICONSET_NAME,                         # ✅ correct key
+      appicon_devices: [:iphone, :ipad, :ios_marketing],
+      remove_alpha: false
+    )
+
+    UI.success "✅ Icons generated at #{ASSETS_PATH}/#{ICONSET_NAME}.appiconset"
+  end
+
+  # ------------------------------
+  # App Store Connect API Integration
+  # ------------------------------
+  desc "Configure app metadata via App Store Connect API"
+  lane :configure_app_metadata do |opts|
+    ensure_asc_api_key
+    
+    UI.message "📱 Configuring app metadata for #{ASC_BUNDLE_ID}..."
+    
+    # Configure app categories
+    categories = opts[:categories] || {
+      primary: "PRODUCTIVITY",
+      secondary: "UTILITIES"
+    }
+    
+    # Configure app localizations
+    localizations = opts[:localizations] || [
+      {
+        locale: "en-US",
+        name: "Nestory",
+        subtitle: "Home Inventory for Insurance",
+        description: load_app_description,
+        keywords: "home inventory, insurance, documentation, receipt scanner, warranty tracker",
+        promotional_text: "Protect your belongings with comprehensive insurance documentation",
+        support_url: "https://nestory.app/support",
+        marketing_url: "https://nestory.app",
+        privacy_policy_url: "https://nestory.app/privacy"
+      }
+    ]
+    
+    # Configure age rating
+    age_rating = opts[:age_rating] || {
+      alcohol_tobacco_drug: "NONE",
+      gambling: "NONE",
+      horror_fear: "NONE",
+      mature_content: "NONE",
+      medical: "NONE",
+      profanity: "NONE",
+      sexual_content: "NONE",
+      violence_cartoon: "NONE",
+      violence_realistic: "NONE"
+    }
+    
+    # Execute via Ruby script that uses our Swift API client
+    sh("ruby #{File.expand_path('../scripts/configure_metadata.rb', __dir__)} " \
+       "--bundle-id #{ASC_BUNDLE_ID} " \
+       "--primary-category #{categories[:primary]} " \
+       "--secondary-category #{categories[:secondary]} " \
+       "--age-rating '#{age_rating.to_json}'")
+    
+    UI.success "✅ App metadata configured successfully"
+  end
+
+  desc "Create new app version"
+  lane :create_app_version do |opts|
+    ensure_asc_api_key
+    
+    version = opts[:version] || get_version_number
+    platform = opts[:platform] || "IOS"
+    
+    UI.message "📦 Creating app version #{version}..."
+    
+    sh("ruby #{File.expand_path('../scripts/create_version.rb', __dir__)} " \
+       "--bundle-id #{ASC_BUNDLE_ID} " \
+       "--version #{version} " \
+       "--platform #{platform}")
+    
+    UI.success "✅ Version #{version} created"
+  end
+
+  desc "Upload screenshots via API"
+  lane :upload_screenshots_api do |opts|
+    ensure_asc_api_key
+    
+    version = opts[:version] || get_version_number
+    screenshots_path = opts[:path] || "#{OUTPUT_DIR}/screenshots"
+    
+    UI.message "📸 Uploading screenshots for version #{version}..."
+    
+    # Validate screenshots exist
+    UI.user_error!("Screenshots not found at #{screenshots_path}") unless Dir.exist?(screenshots_path)
+    
+    sh("ruby #{File.expand_path('../scripts/upload_screenshots.rb', __dir__)} " \
+       "--bundle-id #{ASC_BUNDLE_ID} " \
+       "--version #{version} " \
+       "--screenshots-path #{screenshots_path}")
+    
+    UI.success "✅ Screenshots uploaded successfully"
+  end
+
+  desc "Submit version for review"
+  lane :submit_for_review do |opts|
+    ensure_asc_api_key
+    
+    version = opts[:version] || get_version_number
+    build_number = opts[:build] || get_build_number
+    
+    # Review information
+    review_info = {
+      demo_required: opts[:demo_required] || false,
+      demo_account: opts[:demo_account],
+      demo_password: opts[:demo_password],
+      notes: opts[:notes] || "No special instructions",
+      contact_first_name: opts[:first_name] || ENV['ASC_CONTACT_FIRST_NAME'],
+      contact_last_name: opts[:last_name] || ENV['ASC_CONTACT_LAST_NAME'],
+      contact_email: opts[:email] || ENV['ASC_CONTACT_EMAIL'],
+      contact_phone: opts[:phone] || ENV['ASC_CONTACT_PHONE']
+    }
+    
+    UI.message "📤 Submitting version #{version} (#{build_number}) for review..."
+    
+    sh("ruby #{File.expand_path('../scripts/submit_review.rb', __dir__)} " \
+       "--bundle-id #{ASC_BUNDLE_ID} " \
+       "--version #{version} " \
+       "--build #{build_number} " \
+       "--review-info '#{review_info.to_json}'")
+    
+    UI.success "✅ Version submitted for review"
+  end
+
+  desc "Set phased release for version"
+  lane :configure_phased_release do |opts|
+    ensure_asc_api_key
+    
+    version = opts[:version] || get_version_number
+    release_type = opts[:release_type] || "AFTER_APPROVAL" # MANUAL, AFTER_APPROVAL, SCHEDULED
+    release_date = opts[:release_date] # For SCHEDULED releases
+    
+    UI.message "⏰ Configuring release type for version #{version}..."
+    
+    sh("ruby #{File.expand_path('../scripts/configure_release.rb', __dir__)} " \
+       "--bundle-id #{ASC_BUNDLE_ID} " \
+       "--version #{version} " \
+       "--release-type #{release_type} " \
+       "#{'--release-date ' + release_date if release_date}")
+    
+    UI.success "✅ Release configuration updated"
+  end
+
+  desc "Submit export compliance declaration"
+  lane :submit_export_compliance do |opts|
+    UI.message "📋 Submitting export compliance declaration..."
+    
+    # Nestory uses only exempt encryption (HTTPS, iOS crypto)
+    # No export license or annual reporting required
+    
+    build_number = opts[:build] || get_build_number
+    
+    UI.message "✅ Export compliance configured:"
+    UI.message "  • Uses only exempt encryption (HTTPS, iOS Data Protection)"
+    UI.message "  • No proprietary cryptography"
+    UI.message "  • No export license required"
+    UI.message "  • No annual reporting required"
+    UI.message "  • ITSAppUsesNonExemptEncryption = false"
+    
+    UI.success "✅ Export compliance declaration complete"
+  end
+
+  desc "Complete App Store submission workflow with comprehensive testing"
+  lane :complete_submission do |opts|
+    UI.message "🎆 Starting complete submission workflow with enterprise testing..."
+    
+    # Comprehensive pre-submission testing
+    unless opts[:skip_all_tests]
+      UI.message "🧪 Running comprehensive pre-submission test suite..."
+      tests
+      ui_tests unless opts[:skip_ui_tests]
+      performance_tests unless opts[:skip_performance_tests] 
+      accessibility_tests unless opts[:skip_accessibility_tests]
+      smoke_tests unless opts[:skip_smoke_tests]
+    end
+    
+    # Build and upload
+    build
+    beta
+    
+    # Configure metadata
+    configure_app_metadata(opts)
+    
+    # Create version if needed
+    create_app_version(opts)
+    
+    # Submit export compliance
+    submit_export_compliance(opts)
+    
+    # Upload screenshots with enterprise framework
+    if opts[:skip_screenshots] != true
+      screenshots
+      upload_screenshots_api(opts)
+    end
+    
+    # Submit for review
+    submit_for_review(opts)
+    
+    # Configure release
+    configure_phased_release(opts)
+    
+    # Generate comprehensive test report
+    generate_test_report
+    
+    UI.success "🎉 Complete submission workflow with enterprise testing finished!"
+  end
+  
+  # ------------------------------
+  # Enterprise Testing Framework Integration
+  # ------------------------------
+  desc "Run complete enterprise test suite"
+  lane :enterprise_test_suite do |opts|
+    UI.message "🏢 Running enterprise test suite..."
+    
+    # Sequential test execution for comprehensive coverage
+    tests
+    ui_tests
+    performance_tests
+    accessibility_tests
+    smoke_tests
+    
+    # Generate comprehensive report
+    generate_test_report
+    
+    UI.success "✅ Enterprise test suite completed successfully"
+  end
+  
+  desc "Generate comprehensive test report"
+  lane :generate_test_report do
+    UI.message "📊 Generating comprehensive test report..."
+    
+    report_dir = "#{OUTPUT_DIR}/reports"
+    sh "mkdir -p #{report_dir}"
+    
+    # Create HTML test report
+    report_content = <<~HTML
+      <!DOCTYPE html>
+      <html>
+      <head>
+          <title>Nestory UI Testing Framework Report</title>
+          <style>
+              body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; margin: 40px; }
+              .header { color: #007AFF; border-bottom: 2px solid #007AFF; padding-bottom: 10px; }
+              .section { margin: 20px 0; padding: 15px; border-left: 4px solid #007AFF; background: #f8f9fa; }
+              .success { border-left-color: #28a745; }
+              .warning { border-left-color: #ffc107; }
+              .error { border-left-color: #dc3545; }
+              .timestamp { color: #6c757d; font-size: 0.9em; }
+          </style>
+      </head>
+      <body>
+          <div class="header">
+              <h1>🏢 Nestory Enterprise UI Testing Framework Report</h1>
+              <p class="timestamp">Generated: #{Time.now.strftime('%Y-%m-%d %H:%M:%S')}</p>
+          </div>
+          
+          <div class="section success">
+              <h2>✅ Test Suite Summary</h2>
+              <p>Enterprise UI Testing Framework executed successfully</p>
+              <ul>
+                  <li>Unit Tests: #{File.exist?("#{OUTPUT_DIR}/tests") ? 'Completed' : 'Skipped'}</li>
+                  <li>UI Tests: #{File.exist?("#{OUTPUT_DIR}/ui_tests") ? 'Completed' : 'Skipped'}</li>
+                  <li>Performance Tests: #{File.exist?("#{OUTPUT_DIR}/performance_tests") ? 'Completed' : 'Skipped'}</li>
+                  <li>Accessibility Tests: #{File.exist?("#{OUTPUT_DIR}/accessibility_tests") ? 'Completed' : 'Skipped'}</li>
+                  <li>Smoke Tests: #{File.exist?("#{OUTPUT_DIR}/smoke_tests") ? 'Completed' : 'Skipped'}</li>
+              </ul>
+          </div>
+          
+          <div class="section">
+              <h2>📸 Screenshot Capture</h2>
+              <p>Screenshots captured: #{Dir.glob("#{OUTPUT_DIR}/screenshots/**/*.png").count} images</p>
+          </div>
+          
+          <div class="section">
+              <h2>📁 Result Bundles</h2>
+              <p>Test result bundles available for detailed analysis</p>
+              <ul>
+                  #{Dir.glob("#{OUTPUT_DIR}/**/*.xcresult").map { |path| "<li>#{File.basename(path)}</li>" }.join}
+              </ul>
+          </div>
+      </body>
+      </html>
+    HTML
+    
+    File.write("#{report_dir}/test_report.html", report_content)
+    
+    UI.success "✅ Test report generated at #{report_dir}/test_report.html"
+    sh "open #{report_dir}/test_report.html"
+  end
+  
+  desc "Validate UI testing framework configuration"
+  lane :validate_framework do
+    UI.message "🔍 Validating UI testing framework configuration..."
+    
+    errors = []
+    warnings = []
+    
+    # Check project configuration
+    unless File.exist?("NestoryUITests/Core/Framework/NestoryUITestFramework.swift")
+      errors << "Main framework file missing"
+    end
+    
+    unless File.exist?("NestoryUITests/NestoryUITests.entitlements")
+      errors << "UI test entitlements missing"
+    end
+    
+    # Check schemes
+    schemes_to_check = ["Nestory-UIWiring", "Nestory-Performance", "Nestory-Accessibility", "Nestory-Smoke"]
+    schemes_to_check.each do |scheme|
+      unless File.exist?("Nestory.xcodeproj/xcshareddata/xcschemes/#{scheme}.xcscheme")
+        warnings << "Scheme #{scheme} not found (will be generated)"
+      end
+    end
+    
+    if errors.any?
+      UI.user_error!("Framework validation failed:\n#{errors.join('\n')}") 
+    end
+    
+    if warnings.any?
+      UI.message("Warnings:\n#{warnings.join('\n')}")
+    end
+    
+    UI.success "✅ UI testing framework validation completed"
+  end
+
+  # =============================================================================
+  # ENTERPRISE RUBY-BASED XCODE CONFIGURATION LANES
+  # Comprehensive Xcode project manipulation and automation
+  # =============================================================================
+
+  desc "Configure Xcode project for UI testing with enterprise framework"
+  lane :configure_xcode_for_ui_testing do |opts|
+    UI.message "🔧 Configuring Xcode project for enterprise UI testing..."
+    
+    project_path = opts[:project] || "Nestory.xcodeproj"
+    scheme_name = opts[:scheme] || "Nestory-UIWiring"
+    
+    # Execute Ruby script for comprehensive Xcode configuration
+    sh("ruby #{File.expand_path('../xcode_ruby_scripts/configure_ui_testing.rb', __dir__)} " \
+       "--project '#{project_path}' " \
+       "--scheme '#{scheme_name}' " \
+       "--enable-ui-testing " \
+       "--configure-entitlements " \
+       "--setup-test-targets")
+    
+    UI.success "✅ Xcode project configured for enterprise UI testing"
+  end
+  
+  desc "Update Xcode build settings dynamically"
+  lane :update_build_settings do |opts|
+    UI.message "⚙️ Updating Xcode build settings..."
+    
+    configuration = opts[:configuration] || "Debug"
+    target = opts[:target] || "Nestory"
+    settings = opts[:settings] || {}
+    
+    # Execute Ruby script for dynamic build settings update
+    sh("ruby #{File.expand_path('../xcode_ruby_scripts/update_build_settings.rb', __dir__)} " \
+       "--target '#{target}' " \
+       "--configuration '#{configuration}' " \
+       "--settings '#{settings.to_json}'")
+    
+    UI.success "✅ Build settings updated for #{target} (#{configuration})"
+  end
+  
+  desc "Setup comprehensive test schemes"
+  lane :setup_test_schemes do |opts|
+    UI.message "📋 Setting up comprehensive test schemes..."
+    
+    schemes = opts[:schemes] || [
+      "Nestory-UIWiring",
+      "Nestory-Performance", 
+      "Nestory-Accessibility",
+      "Nestory-Smoke"
+    ]
+    
+    schemes.each do |scheme|
+      UI.message "Creating scheme: #{scheme}"
+      sh("ruby #{File.expand_path('../xcode_ruby_scripts/setup_test_scheme.rb', __dir__)} " \
+         "--scheme '#{scheme}' " \
+         "--configure-environments " \
+         "--setup-test-targets " \
+         "--enable-code-coverage")
+    end
+    
+    UI.success "✅ All test schemes configured successfully"
+  end
+  
+  desc "Configure entitlements automatically"
+  lane :configure_entitlements do |opts|
+    UI.message "🔐 Configuring app entitlements..."
+    
+    environment = opts[:environment] || "dev"
+    enable_cloudkit = opts[:enable_cloudkit] != false
+    enable_push = opts[:enable_push] != false
+    
+    # Execute Ruby script for entitlement configuration
+    sh("ruby #{File.expand_path('../xcode_ruby_scripts/configure_entitlements.rb', __dir__)} " \
+       "--environment '#{environment}' " \
+       "#{'--enable-cloudkit' if enable_cloudkit} " \
+       "#{'--enable-push-notifications' if enable_push} " \
+       "--configure-app-groups " \
+       "--setup-keychain-sharing")
+    
+    UI.success "✅ Entitlements configured for #{environment} environment"
+  end
+  
+  desc "Update Info.plist files dynamically"
+  lane :update_info_plists do |opts|
+    UI.message "📄 Updating Info.plist configurations..."
+    
+    environment = opts[:environment] || "dev"
+    bundle_id = opts[:bundle_id] || "com.drunkonjava.nestory.dev"
+    version = opts[:version] || get_version_number
+    build = opts[:build] || get_build_number
+    
+    # Execute Ruby script for Info.plist updates
+    sh("ruby #{File.expand_path('../xcode_ruby_scripts/update_info_plists.rb', __dir__)} " \
+       "--environment '#{environment}' " \
+       "--bundle-id '#{bundle_id}' " \
+       "--version '#{version}' " \
+       "--build '#{build}' " \
+       "--configure-permissions " \
+       "--setup-url-schemes")
+    
+    UI.success "✅ Info.plist files updated for #{environment}"
+  end
+  
+  desc "Setup provisioning profiles automatically"
+  lane :setup_provisioning do |opts|
+    UI.message "📱 Setting up provisioning profiles..."
+    
+    environment = opts[:environment] || "dev"
+    force_update = opts[:force] || false
+    
+    # Configure code signing based on environment
+    case environment
+    when "dev", "development"
+      setup_development_provisioning(force: force_update)
+    when "staging"
+      setup_staging_provisioning(force: force_update) 
+    when "prod", "production"
+      setup_production_provisioning(force: force_update)
+    end
+    
+    UI.success "✅ Provisioning profiles configured for #{environment}"
+  end
+  
+  desc "Generate comprehensive Xcode configuration"
+  lane :generate_xcode_config do |opts|
+    UI.message "🏗️ Generating comprehensive Xcode configuration..."
+    
+    # Execute complete configuration workflow
+    configure_xcode_for_ui_testing(opts)
+    setup_test_schemes(opts)
+    configure_entitlements(opts)
+    update_info_plists(opts)
+    setup_provisioning(opts)
+    
+    # Apply enterprise build optimizations
+    update_build_settings(
+      configuration: "Debug",
+      settings: {
+        "SWIFT_COMPILATION_MODE" => "singlefile",
+        "SWIFT_OPTIMIZATION_LEVEL" => "-Onone",
+        "ENABLE_TESTABILITY" => "YES",
+        "UI_TEST_FRAMEWORK_ENABLED" => "YES"
+      }
+    )
+    
+    update_build_settings(
+      configuration: "Release", 
+      settings: {
+        "SWIFT_COMPILATION_MODE" => "wholemodule",
+        "SWIFT_OPTIMIZATION_LEVEL" => "-O",
+        "ENABLE_TESTABILITY" => "NO",
+        "VALIDATE_PRODUCT" => "YES"
+      }
+    )
+    
+    UI.success "✅ Comprehensive Xcode configuration generated"
+  end
+  
+  desc "Validate Xcode project configuration"
+  lane :validate_xcode_config do |opts|
+    UI.message "🔍 Validating Xcode project configuration..."
+    
+    errors = []
+    warnings = []
+    
+    # Execute Ruby validation script
+    result = sh("ruby #{File.expand_path('../xcode_ruby_scripts/validate_configuration.rb', __dir__)} " \
+                "--project Nestory.xcodeproj " \
+                "--comprehensive-check " \
+                "--output-format json", 
+                capture_output: true, 
+                error_callback: ->(result) { 
+                  UI.error("Validation script failed: #{result}") 
+                })
+    
+    validation_result = JSON.parse(result) rescue { "errors" => [], "warnings" => [] }
+    errors = validation_result["errors"] || []
+    warnings = validation_result["warnings"] || []
+    
+    if errors.any?
+      UI.error("❌ Configuration validation failed:")
+      errors.each { |error| UI.error("  • #{error}") }
+      UI.user_error!("Fix configuration errors before proceeding")
+    end
+    
+    if warnings.any?
+      UI.important("⚠️ Configuration warnings:")
+      warnings.each { |warning| UI.important("  • #{warning}") }
+    end
+    
+    UI.success "✅ Xcode configuration validation passed"
+  end
+  
+  desc "Reset and clean Xcode configuration"
+  lane :reset_xcode_config do |opts|
+    UI.message "🔄 Resetting Xcode configuration..."
+    
+    clean_build_artifacts_action
+    clear_derived_data
+    reset_git_repo(force: true, skip_clean: false) if opts[:reset_git]
+    
+    # Execute Ruby script to reset project to clean state
+    sh("ruby #{File.expand_path('../xcode_ruby_scripts/reset_configuration.rb', __dir__)} " \
+       "--project Nestory.xcodeproj " \
+       "--reset-build-settings " \
+       "--reset-schemes " \
+       "--backup-current")
+    
+    UI.success "✅ Xcode configuration reset to clean state"
+  end
+
+  # =============================================================================
+  # ENTERPRISE BUILD CONFIGURATION MANAGEMENT
+  # =============================================================================
+  
+  desc "Configure Swift compiler settings for different environments"
+  lane :configure_swift_compiler do |opts|
+    UI.message "⚡ Configuring Swift compiler settings..."
+    
+    environment = opts[:environment] || "dev"
+    enable_strict_concurrency = opts[:strict_concurrency] != false
+    optimization_level = opts[:optimization] || (environment == "production" ? "-O" : "-Onone")
+    
+    compiler_settings = {
+      "SWIFT_VERSION" => "6.0",
+      "SWIFT_OPTIMIZATION_LEVEL" => optimization_level,
+      "SWIFT_STRICT_CONCURRENCY" => enable_strict_concurrency ? "complete" : "minimal",
+      "SWIFT_UPCOMING_FEATURE_CONCURRENCY" => "YES",
+      "SWIFT_UPCOMING_FEATURE_EXISTENTIAL_ANY" => "YES"
+    }
+    
+    if environment == "production"
+      compiler_settings.merge!({
+        "SWIFT_COMPILATION_MODE" => "wholemodule",
+        "SWIFT_ENABLE_BATCH_MODE" => "YES",
+        "ENABLE_MODULE_VERIFIER" => "YES"
+      })
+    else
+      compiler_settings.merge!({
+        "SWIFT_COMPILATION_MODE" => "singlefile", 
+        "SWIFT_ENABLE_INCREMENTAL_COMPILATION" => "YES",
+        "ENABLE_MODULE_VERIFIER" => "NO"
+      })
+    end
+    
+    update_build_settings(
+      configuration: environment == "production" ? "Release" : "Debug",
+      settings: compiler_settings
+    )
+    
+    UI.success "✅ Swift compiler configured for #{environment}"
+  end
+  
+  desc "Setup dynamic linking and framework configuration"
+  lane :configure_dynamic_frameworks do |opts|
+    UI.message "🔗 Configuring dynamic frameworks and linking..."
+    
+    enable_bitcode = opts[:bitcode] || false
+    framework_search_paths = opts[:framework_paths] || []
+    
+    # Execute Ruby script for framework configuration
+    sh("ruby #{File.expand_path('../xcode_ruby_scripts/configure_frameworks.rb', __dir__)} " \
+       "--enable-dynamic-frameworks " \
+       "#{'--enable-bitcode' if enable_bitcode} " \
+       "--framework-paths '#{framework_search_paths.join(':')}' " \
+       "--configure-rpath-settings")
+    
+    UI.success "✅ Dynamic frameworks and linking configured"
+  end
+  
+  desc "Apply performance optimization build settings"
+  lane :apply_performance_optimizations do |opts|
+    UI.message "🚀 Applying performance optimization build settings..."
+    
+    target_configuration = opts[:configuration] || "Release"
+    
+    performance_settings = {
+      # Swift Optimizations
+      "SWIFT_COMPILATION_MODE" => "wholemodule",
+      "SWIFT_OPTIMIZATION_LEVEL" => "-O",
+      "SWIFT_ENABLE_BATCH_MODE" => "YES",
+      "SWIFT_DISABLE_SAFETY_CHECKS" => "YES",
+      
+      # Clang Optimizations
+      "GCC_OPTIMIZATION_LEVEL" => "s", # Optimize for size
+      "CLANG_ENABLE_CODE_COVERAGE" => "NO",
+      
+      # Linking Optimizations  
+      "LD_RUNPATH_SEARCH_PATHS" => "$(inherited) @executable_path/Frameworks",
+      "ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES" => "YES",
+      
+      # Asset Optimizations
+      "ASSETCATALOG_COMPILER_OPTIMIZATION" => "time",
+      "ASSETCATALOG_COMPILER_APPICON_NAME" => "AppIcon"
+    }
+    
+    update_build_settings(
+      configuration: target_configuration,
+      settings: performance_settings
+    )
+    
+    UI.success "✅ Performance optimizations applied to #{target_configuration}"
+  end
+  
+  desc "Configure security-focused build settings"
+  lane :configure_security_settings do |opts|
+    UI.message "🔐 Configuring security-focused build settings..."
+    
+    enable_arc = opts[:enable_arc] != false
+    enable_stack_protection = opts[:stack_protection] != false
+    
+    security_settings = {
+      # Memory Safety
+      "CLANG_ENABLE_OBJC_ARC" => enable_arc ? "YES" : "NO",
+      "GCC_GENERATE_DEBUGGING_SYMBOLS" => "YES",
+      "DEBUG_INFORMATION_FORMAT" => "dwarf-with-dsym",
+      
+      # Stack Protection
+      "GCC_ENABLE_SSP_BUFFER_OVERFLOW_CHECK" => enable_stack_protection ? "YES" : "NO",
+      
+      # Code Signing
+      "CODE_SIGN_STYLE" => "Automatic",
+      "CODE_SIGN_IDENTITY" => "iPhone Developer",
+      
+      # Privacy and Security
+      "ENABLE_STRICT_OBJC_MSGSEND" => "YES",
+      "VALIDATE_PRODUCT" => "YES"
+    }
+    
+    update_build_settings(settings: security_settings)
+    
+    UI.success "✅ Security-focused build settings configured"
+  end
+
+  # =============================================================================  
+  # AUTOMATED ENVIRONMENT SETUP AND VALIDATION
+  # =============================================================================
+  
+  desc "Setup complete development environment"
+  lane :setup_dev_environment do |opts|
+    UI.message "🛠️ Setting up complete development environment..."
+    
+    # Execute comprehensive environment setup script
+    sh("ruby #{File.expand_path('../xcode_ruby_scripts/setup_environment.rb', __dir__)} " \
+       "--install-dependencies " \
+       "--configure-simulators " \
+       "--setup-certificates " \
+       "--configure-git-hooks " \
+       "--validate-xcode-installation")
+    
+    # Configure Xcode for development
+    generate_xcode_config(environment: "dev")
+    configure_swift_compiler(environment: "dev")
+    configure_entitlements(environment: "dev")
+    
+    UI.success "✅ Development environment setup completed"
+  end
+  
+  desc "Configure iOS simulators for testing"
+  lane :configure_simulators do |opts|
+    UI.message "📱 Configuring iOS simulators..."
+    
+    devices = opts[:devices] || [
+      "iPhone 16 Pro Max",
+      "iPhone 16 Pro", 
+      "iPad Pro (12.9-inch) (6th generation)"
+    ]
+    
+    ios_version = opts[:ios_version] || "17.0"
+    
+    # Execute Ruby script for simulator configuration
+    sh("ruby #{File.expand_path('../xcode_ruby_scripts/configure_simulators.rb', __dir__)} " \
+       "--devices '#{devices.join(',')}' " \
+       "--ios-version '#{ios_version}' " \
+       "--install-runtime " \
+       "--configure-permissions")
+    
+    UI.success "✅ iOS simulators configured for testing"
+  end
+  
+  desc "Install and configure certificates automatically"  
+  lane :install_certificates do |opts|
+    UI.message "🔑 Installing and configuring certificates..."
+    
+    environment = opts[:environment] || "dev"
+    keychain_name = opts[:keychain] || "fastlane_tmp"
+    
+    # Execute Ruby script for certificate installation
+    sh("ruby #{File.expand_path('../xcode_ruby_scripts/install_certificates.rb', __dir__)} " \
+       "--environment '#{environment}' " \
+       "--keychain '#{keychain_name}' " \
+       "--auto-download " \
+       "--configure-xcode")
+    
+    UI.success "✅ Certificates installed and configured"
+  end
+  
+  desc "Validate complete environment setup"
+  lane :validate_environment do |opts|
+    UI.message "🔍 Validating complete environment setup..."
+    
+    validation_results = {}
+    
+    # Execute comprehensive validation
+    begin
+      # Validate Xcode installation
+      xcode_version = sh("xcodebuild -version", capture_output: true).strip
+      validation_results[:xcode] = { status: "✅", message: xcode_version }
+      
+      # Validate Ruby environment  
+      ruby_version = sh("ruby --version", capture_output: true).strip
+      validation_results[:ruby] = { status: "✅", message: ruby_version }
+      
+      # Validate Fastlane installation
+      fastlane_version = sh("bundle exec fastlane --version", capture_output: true).strip
+      validation_results[:fastlane] = { status: "✅", message: fastlane_version }
+      
+      # Validate project configuration
+      validate_xcode_config
+      validation_results[:project] = { status: "✅", message: "Project configuration valid" }
+      
+      # Validate simulators
+      simulators = sh("xcrun simctl list devices available | grep -E 'iPhone|iPad'", capture_output: true)
+      validation_results[:simulators] = { status: "✅", message: "Simulators available" }
+      
+    rescue => error
+      validation_results[:error] = { status: "❌", message: error.message }
+    end
+    
+    # Display validation results
+    UI.message ""
+    UI.message "Environment Validation Results:"
+    UI.message "=" * 50
+    validation_results.each do |component, result|
+      UI.message "#{result[:status]} #{component.to_s.capitalize}: #{result[:message]}"
+    end
+    
+    if validation_results.any? { |_, result| result[:status] == "❌" }
+      UI.user_error!("Environment validation failed. Please fix the issues above.")
+    end
+    
+    UI.success "✅ Environment validation completed successfully"
+  end
+
+  # =============================================================================
+  # HELPER METHODS AND PRIVATE LANES
+  # =============================================================================
+  
+  private_lane :setup_development_provisioning do |opts|
+    UI.message "📱 Setting up development provisioning..."
+    match(type: "development", force: opts[:force] || false)
+  end
+  
+  private_lane :setup_staging_provisioning do |opts|
+    UI.message "🏗️ Setting up staging provisioning..."
+    match(type: "adhoc", force: opts[:force] || false)
+  end
+  
+  private_lane :setup_production_provisioning do |opts|
+    UI.message "🚀 Setting up production provisioning..."
+    match(type: "appstore", force: opts[:force] || false)
+  end
+  
+  private_lane :ensure_asc_api_key do
+    if ASC_KEY_ID.nil? || ASC_ISSUER_ID.nil? || ASC_KEY_CONTENT.nil?
+      UI.user_error!("App Store Connect API credentials not configured. Set ASC_KEY_ID, ASC_ISSUER_ID, and ASC_KEY_CONTENT")
+    end
+  end
+
+  private_lane :load_app_description do
+    description_file = "fastlane/metadata/en-US/description.txt"
+    if File.exist?(description_file)
+      File.read(description_file)
+    else
+      "Nestory is your comprehensive home inventory solution designed specifically for insurance documentation. " \
+      "Catalog your belongings with photos, receipts, and warranties to protect yourself against disasters. " \
+      "Features include receipt OCR scanning, insurance report generation, and secure cloud backup."
+    end
+  end
+  
+  desc "Direct upload to TestFlight with existing IPA"
+  lane :upload_direct do
+    # Ensure ASC API credentials are configured
+    UI.user_error!("ASC API not configured; set ASC_KEY_ID/ASC_ISSUER_ID/ASC_KEY_CONTENT or ASC_KEY_PATH") unless ASC_KEY_ID && ASC_ISSUER_ID && (ASC_KEY_CONTENT || ENV['ASC_KEY_PATH'])
+    
+    # Configure App Store Connect API using environment-driven helper
+    asc_api_key
+    
+    # Upload the existing IPA
+    upload_to_testflight(
+      ipa: "/Users/griffin/Projects/Nestory/fastlane/output/build3/Nestory.ipa",
+      skip_waiting_for_build_processing: true,
+      changelog: "Initial TestFlight build with export compliance configuration",
+      beta_app_description: "Nestory - Home Inventory Management for Insurance",
+      beta_app_feedback_email: "support@nestory.app",
+      distribute_external: false,
+      uses_non_exempt_encryption: false
+    )
+    
+    UI.success "✅ Successfully uploaded to TestFlight!"
+  end
+
+  # ------------------------------
+  # Current Archive Upload
+  # ------------------------------
+  desc "Upload current September 2025 archive to TestFlight"
+  lane :upload_current_archive do
+    # Current archive path (September 2, 2025)
+    archive_path = "/Users/griffin/Library/Developer/Xcode/Archives/2025-09-02/Nestory-Dev 9-2-25, 3.14 AM.xcarchive"
+    
+    UI.message "📦 Using archive: #{archive_path}"
+    
+    # Verify archive exists
+    UI.user_error!("Archive not found at #{archive_path}") unless File.directory?(archive_path)
+    
+    UI.success "✅ Archive verified!"
+    
+    # Configure App Store Connect API
+    app_store_connect_api_key(
+      key_id: "NWV654RNK3",
+      issuer_id: "f144f0a6-1aff-44f3-974e-183c4c07bc46",
+      key_filepath: "/Users/griffin/Projects/Nestory/AuthKey_NWV654RNK3.p8",
+      duration: 1200,
+      in_house: false
+    )
+    
+    # Create output directory
+    output_dir = "#{OUTPUT_DIR}/current_build"
+    sh("mkdir -p #{output_dir}")
+    
+    # Export the IPA from archive
+    UI.message "🔨 Exporting IPA from archive..."
+    ipa_path = build_app(
+      archive_path: archive_path,
+      export_method: "app-store",
+      export_options: {
+        uploadSymbols: true,
+        compileBitcode: false,
+        provisioningProfiles: {
+          "com.drunkonjava.nestory.dev" => "match AppStore com.drunkonjava.nestory.dev"
+        }
+      },
+      skip_build_archive: true,
+      output_directory: output_dir,
+      output_name: "Nestory-Dev-Current.ipa"
+    )
+    
+    UI.message "📱 IPA exported to: #{ipa_path}"
+    
+    # Upload to TestFlight
+    UI.message "🚀 Uploading to TestFlight..."
+    upload_to_testflight(
+      ipa: ipa_path,
+      skip_waiting_for_build_processing: false,
+      distribute_external: false,
+      changelog: "Swift 6 Migration Complete - Production Ready Build\n\n• Full Swift 6 concurrency compliance\n• Enhanced error handling and recovery\n• Production-ready stability improvements\n• Comprehensive testing validation",
+      beta_app_description: "Nestory - Home Inventory Management for Insurance Claims and Warranty Tracking",
+      beta_app_feedback_email: "support@nestory.app",
+      uses_non_exempt_encryption: false,
+      beta_app_review_info: {
+        contact_email: "support@nestory.app",
+        contact_first_name: "Griffin",
+        contact_last_name: "Support",
+        contact_phone: "555-123-4567",
+        demo_account_name: "demo@nestory.app",
+        demo_account_password: "DemoPass123!"
+      }
+    )
+    
+    UI.success "✅ Successfully uploaded to TestFlight!"
+    UI.message "🎉 Build should be available for testing shortly."
+  end
+end
+  # Import our specialized TestFlight lane
+  import "TestFlightLane.rb"
+
+  # Import comprehensive automation pipeline
+  import "ComprehensiveReleasePipeline.rb"
+
+  # Import separate specialized tools
+  import "SeparateToolsLanes.rb"

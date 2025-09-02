@@ -429,14 +429,34 @@ struct ReceiptCaptureView: View {
 }
 
 #Preview {
-    do {
-        let container = try ModelContainer(for: Item.self, configurations: .init(isStoredInMemoryOnly: true))
-        let item = Item(name: "Sample Item")
-        container.mainContext.insert(item)
+    ReceiptCapturePreview()
+}
 
-        return ReceiptCaptureView(item: item)
-            .modelContainer(container)
-    } catch {
-        return Text("Preview Error: \(error.localizedDescription)")
+private struct ReceiptCapturePreview: View {
+    let container: ModelContainer?
+    let item: Item?
+    
+    init() {
+        do {
+            let container = try ModelContainer(for: Item.self, configurations: .init(isStoredInMemoryOnly: true))
+            let item = Item(name: "Sample Item")
+            container.mainContext.insert(item)
+            
+            self.container = container
+            self.item = item
+        } catch {
+            self.container = nil
+            self.item = nil
+        }
+    }
+    
+    var body: some View {
+        if let container = container, let item = item {
+            ReceiptCaptureView(item: item)
+                .modelContainer(container)
+        } else {
+            Text("Preview Error: Failed to initialize")
+                .foregroundColor(.red)
+        }
     }
 }

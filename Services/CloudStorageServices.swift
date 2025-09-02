@@ -23,7 +23,7 @@ public struct GoogleDriveStorageService: CloudStorageService {
 
     public func upload(fileURL _: URL, fileName _: String) async throws -> String {
         // Simplified implementation - would integrate with Google Drive API
-        let uploadEndpoint = "https://www.googleapis.com/upload/drive/v3/files"
+        _ = "https://www.googleapis.com/upload/drive/v3/files" // Future: Google Drive API endpoint
 
         // For demo purposes, return a mock URL
         return "https://drive.google.com/file/d/\(UUID().uuidString)/view"
@@ -36,7 +36,7 @@ public struct DropboxStorageService: CloudStorageService {
 
     public func upload(fileURL _: URL, fileName: String) async throws -> String {
         // Simplified implementation - would integrate with Dropbox API
-        let uploadEndpoint = "https://content.dropboxapi.com/2/files/upload"
+        _ = "https://content.dropboxapi.com/2/files/upload" // Future: Dropbox API endpoint
 
         // For demo purposes, return a mock URL
         return "https://www.dropbox.com/s/\(UUID().uuidString)/\(fileName)"
@@ -49,7 +49,7 @@ public struct OneDriveStorageService: CloudStorageService {
 
     public func upload(fileURL _: URL, fileName: String) async throws -> String {
         // Simplified implementation - would integrate with OneDrive API
-        let uploadEndpoint = "https://graph.microsoft.com/v1.0/me/drive/items/root:/\(fileName):/content"
+        _ = "https://graph.microsoft.com/v1.0/me/drive/items/root:/\(fileName):/content" // Future: OneDrive API endpoint
 
         // For demo purposes, return a mock URL
         return "https://1drv.ms/u/s!\(UUID().uuidString)"
@@ -62,7 +62,7 @@ public struct BoxStorageService: CloudStorageService {
 
     public func upload(fileURL _: URL, fileName _: String) async throws -> String {
         // Simplified implementation - would integrate with Box API
-        let uploadEndpoint = "https://upload.box.com/api/2.0/files/content"
+        _ = "https://upload.box.com/api/2.0/files/content" // Future: Box API endpoint
 
         // For demo purposes, return a mock URL
         return "https://app.box.com/s/\(UUID().uuidString)"
@@ -82,8 +82,8 @@ public struct iCloudDriveStorageService: CloudStorageService {
     public func upload(fileURL: URL, fileName: String) async throws -> String {
         // Create CloudKit record with file asset
         let record = CKRecord(recordType: "ClaimDocument")
-        record["fileName"] = fileName as CKRecordValue
-        record["uploadDate"] = Date() as CKRecordValue
+        record["fileName"] = fileName as any CKRecordValue
+        record["uploadDate"] = Date() as any CKRecordValue
 
         // Create asset from file URL
         let asset = CKAsset(fileURL: fileURL)
@@ -107,7 +107,7 @@ public struct iCloudDriveStorageService: CloudStorageService {
 // Simulator-safe CloudStorageManager that doesn't perform real uploads
 @MainActor
 public final class CloudStorageManager: ObservableObject {
-    @Published public var availableServices: [CloudStorageService] = []
+    @Published public var availableServices: [any CloudStorageService] = []
     @Published public var isUploading = false
     @Published public var uploadProgress = 0.0
 
@@ -121,7 +121,7 @@ public final class CloudStorageManager: ObservableObject {
     }
 
     public func uploadToService(
-        _ service: CloudStorageService,
+        _ service: any CloudStorageService,
         fileURL: URL,
         fileName: String
     ) async throws -> String {
@@ -145,7 +145,7 @@ public final class CloudStorageManager: ObservableObject {
 // Real device CloudStorageManager with actual upload functionality
 @MainActor
 public final class CloudStorageManager: ObservableObject {
-    @Published public var availableServices: [CloudStorageService] = []
+    @Published public var availableServices: [any CloudStorageService] = []
     @Published public var isUploading = false
     @Published public var uploadProgress = 0.0
 
@@ -164,7 +164,7 @@ public final class CloudStorageManager: ObservableObject {
     }
 
     public func uploadToService(
-        _ service: CloudStorageService,
+        _ service: any CloudStorageService,
         fileURL: URL,
         fileName: String
     ) async throws -> String {
@@ -193,7 +193,7 @@ public enum SecureFileTransferService {
     /// Encrypts and uploads file to secure storage
     public static func secureUpload(
         fileURL: URL,
-        to service: CloudStorageService,
+        to service: any CloudStorageService,
         encryptionKey: Data
     ) async throws -> String {
         // Read original file

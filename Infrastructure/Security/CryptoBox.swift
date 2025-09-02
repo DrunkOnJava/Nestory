@@ -83,7 +83,11 @@ public final class CryptoBox {
     public func generateSalt() -> Data {
         var salt = Data(count: 32)
         _ = salt.withUnsafeMutableBytes { bytes in
-            SecRandomCopyBytes(kSecRandomDefault, 32, bytes.baseAddress!)
+            guard let baseAddress = bytes.baseAddress else {
+                // This should never happen with non-empty Data, but provide fallback
+                return errSecMemoryError
+            }
+            return SecRandomCopyBytes(kSecRandomDefault, 32, baseAddress)
         }
         return salt
     }
@@ -177,7 +181,7 @@ public struct EncryptedData: Codable {
     }
 }
 
-public enum CryptoError: LocalizedError {
+public enum CryptoError: Error, LocalizedError, Sendable {
     case encryptionFailed
     case decryptionFailed
     case invalidInput

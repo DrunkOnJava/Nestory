@@ -38,7 +38,7 @@ public class ServiceHealthManager: ObservableObject {
         logger.info("Service \(service.rawValue) reported success")
     }
     
-    public func recordFailure(for service: ServiceType, error: Error) {
+    public func recordFailure(for service: ServiceType, error: any Error) {
         let current = serviceStates[service] ?? ServiceHealth()
         let newFailureCount = current.consecutiveFailures + 1
         

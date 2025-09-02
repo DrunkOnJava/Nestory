@@ -11,7 +11,7 @@ import XCTest
 
 @MainActor
 final class ImportExportServiceExportTests: XCTestCase {
-    var service: ImportExportService!
+    var service: any ImportExportService!
 
     override func setUp() async throws {
         super.setUp()

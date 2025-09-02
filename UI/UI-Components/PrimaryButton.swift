@@ -45,6 +45,10 @@ public struct PrimaryButton: View {
         }
         .disabled(isDisabled || isLoading)
         .animation(Theme.Animation.spring, value: isLoading)
+        // MARK: - Accessibility
+        .accessibilityLabel(isLoading ? "Loading, please wait" : title)
+        .accessibilityHint(isLoading ? "Action in progress" : "Tap to \(title.lowercased())")
+        .accessibilityAddTraits(.isButton)
     }
 }
 
@@ -70,6 +74,10 @@ public struct SecondaryButton: View {
                 .foregroundColor(.primaryText)
                 .cornerRadius(Theme.CornerRadius.md)
         }
+        // MARK: - Accessibility
+        .accessibilityLabel(title)
+        .accessibilityHint("Tap to \(title.lowercased())")
+        .accessibilityAddTraits(.isButton)
     }
 }
 
@@ -95,6 +103,11 @@ public struct DestructiveButton: View {
                 .foregroundColor(.white)
                 .cornerRadius(Theme.CornerRadius.md)
         }
+        // MARK: - Accessibility
+        .accessibilityLabel(title)
+        .accessibilityHint("Warning: This will \(title.lowercased())")
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAddTraits(.playsSound) // Indicate this is a destructive action
     }
 }
 

@@ -6,10 +6,14 @@
 
 import Foundation
 import SwiftData
+import os.log
 
 // MARK: - Service Protocol
 
+@MainActor
 public protocol DamageAssessmentServiceProtocol: Sendable {
+    var isLoading: Bool { get }
+    
     func createAssessment(for item: Item, damageType: DamageType, incidentDescription: String) async throws -> DamageAssessmentWorkflow
     func updateAssessment(_ assessment: DamageAssessment) async throws
     func completeWorkflowStep(_ workflow: inout DamageAssessmentWorkflow, step: DamageAssessmentStep) async throws
@@ -28,7 +32,7 @@ public final class DamageAssessmentService: ObservableObject, DamageAssessmentSe
 
     @Published public var activeAssessments: [DamageAssessmentWorkflow] = []
     @Published public var isLoading = false
-    @Published public var lastError: Error?
+    @Published public var lastError: (any Error)?
 
     private let modelContext: ModelContext
     private let templateProvider: AssessmentTemplateProvider
@@ -46,27 +50,18 @@ public final class DamageAssessmentService: ObservableObject, DamageAssessmentSe
     
     // MARK: - Mock Instance Factory
     
-    public static func createMockInstance() -> DamageAssessmentService {
+    public static func createMockInstance() -> any DamageAssessmentServiceProtocol {
         // Create a minimal in-memory ModelContext for the mock instance
         do {
             let config = ModelConfiguration(isStoredInMemoryOnly: true)
             let container = try ModelContainer(for: Item.self, configurations: config)
             let context = ModelContext(container)
-            return try DamageAssessmentService(modelContext: context)
+            return try DamageAssessmentService(modelContext: context) as any DamageAssessmentServiceProtocol
         } catch {
-            print("⚠️ Could not create mock DamageAssessmentService: \(error)")
-            print("🔄 Creating ultra-minimal fallback instance")
-            // Return a version that won't crash - use an empty container
-            do {
-                let config = ModelConfiguration(isStoredInMemoryOnly: true)
-                let container = try ModelContainer(for: Item.self, configurations: config)
-                let context = ModelContext(container)
-                return try DamageAssessmentService(modelContext: context)
-            } catch {
-                print("❌ Critical: Unable to create any DamageAssessmentService")
-                // Fatal error is appropriate here as the service cannot function without storage
-                fatalError("Unable to create DamageAssessmentService: \(error)")
-            }
+            Logger.service.critical("Unable to create any DamageAssessmentService: \(error.localizedDescription)")
+            Logger.service.info("Falling back to mock implementation for graceful degradation")
+            // Return mock implementation to prevent app crash
+            return MockDamageAssessmentService()
         }
     }
 
@@ -188,11 +183,14 @@ public final class DamageAssessmentService: ObservableObject, DamageAssessmentSe
     }
 
     public func loadAssessments() async throws {
-        isLoading = true
-        defer { isLoading = false }
-
-        // In a real implementation, this would load from persistent storage
-        // For now, we keep assessments in memory
+        do {
+            isLoading = true
+            
+            // In a real implementation, this would load from persistent storage
+            // For now, we keep assessments in memory
+            
+            isLoading = false
+        }
     }
 
     // MARK: - Private Helpers
@@ -560,7 +558,7 @@ public class DamagePhotoManager {
 
 // MARK: - Errors
 
-public enum DamageAssessmentError: LocalizedError {
+public enum DamageAssessmentError: Error, LocalizedError {
     case missingPurchasePrice
     case invalidWorkflowState
     case photoProcessingFailed

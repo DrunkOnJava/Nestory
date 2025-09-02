@@ -40,7 +40,7 @@ extension LiveImportExportService {
 
         var itemsImported = 0
         let itemsSkipped = 0
-        var errors: [String] = []
+        let errors: [String] = []
 
         // Try to decode as array of items
         if let jsonItems = try? decoder.decode([ImportableItem].self, from: data) {

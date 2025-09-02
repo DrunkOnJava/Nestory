@@ -9,7 +9,7 @@ import SwiftUI
 public struct InsuranceReportOptionsView: View {
     let items: [Item]
     let categories: [Category]
-    let insuranceReportService: InsuranceReportService
+    let insuranceReportService: any InsuranceReportService
     @Binding var isGenerating: Bool
     @Environment(\.dismiss) private var dismiss
     // UI components should not handle logging - delegate to parent layer
@@ -24,7 +24,7 @@ public struct InsuranceReportOptionsView: View {
     @State private var propertyAddress = ""
     @State private var policyNumber = ""
 
-    public init(items: [Item], categories: [Category], insuranceReportService: InsuranceReportService, isGenerating: Binding<Bool>) {
+    public init(items: [Item], categories: [Category], insuranceReportService: any InsuranceReportService, isGenerating: Binding<Bool>) {
         self.items = items
         self.categories = categories
         self.insuranceReportService = insuranceReportService
@@ -160,7 +160,7 @@ public struct InsuranceReportOptionsView: View {
     InsuranceReportOptionsView(
         items: [],
         categories: [],
-        insuranceReportService: InsuranceReportService(),
+        insuranceReportService: MockInsuranceReportService(),
         isGenerating: .constant(false),
     )
 }

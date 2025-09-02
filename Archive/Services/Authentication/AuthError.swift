@@ -4,7 +4,7 @@
 
 import Foundation
 
-public enum AuthError: LocalizedError, Equatable {
+public enum AuthError: Error, LocalizedError, Equatable {
     case notAuthenticated
     case signInFailed(String)
     case biometricFailed(String)

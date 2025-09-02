@@ -174,7 +174,6 @@ public final class NotificationScheduler: @unchecked Sendable {
         logger.info("Starting batch scheduling for \(items.count) items with load balancing")
 
         var scheduleRequests: [NotificationScheduleRequest] = []
-        var successCount = 0
         var errors: [String] = []
 
         // Generate all potential notification dates

@@ -51,7 +51,7 @@ extension LiveNotificationService {
                 ) as? [Int] ?? NotificationDefaults.defaultNotificationDays
 
                 var scheduledCount = 0
-                var lastError: Error?
+                var lastError: (any Error)?
 
                 // Schedule notifications for each reminder period
                 for days in notificationDays {

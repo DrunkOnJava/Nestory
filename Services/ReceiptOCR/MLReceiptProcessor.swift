@@ -182,7 +182,6 @@ public final class MLReceiptProcessor: @unchecked Sendable {
     // MARK: - Structured Data Extraction
 
     private func extractStructuredData(from ocrResults: OCRResults) async throws -> StructuredReceiptData {
-        let text = ocrResults.rawText
         let lines = ocrResults.lines
 
         // Extract vendor using ML-enhanced patterns
@@ -292,7 +291,7 @@ public final class MLReceiptProcessor: @unchecked Sendable {
 
         for line in lines {
             for pattern in itemPatterns {
-                if let match = pattern.firstMatch(in: line, options: [], range: NSRange(location: 0, length: line.count)) {
+                if pattern.firstMatch(in: line, options: [], range: NSRange(location: 0, length: line.count)) != nil {
                     if let item = parseReceiptItem(from: line) {
                         items.append(item)
                     }

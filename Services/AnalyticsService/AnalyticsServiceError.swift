@@ -8,7 +8,7 @@ import Foundation
 
 // MARK: - Analytics Service Errors
 
-public enum AnalyticsServiceError: LocalizedError {
+public enum AnalyticsServiceError: Error, LocalizedError, Sendable {
     case currencyConversionFailed(from: String, to: String, amount: Decimal)
     case currencyServiceUnavailable
     case invalidData(reason: String)

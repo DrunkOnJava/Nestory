@@ -20,10 +20,7 @@ public final class AppStoreConnectClient: ObservableObject {
 
         private static let defaultBaseURL: URL = {
             // Apple's official App Store Connect API endpoint (external service - OK to hardcode)
-            guard let url = URL(string: "https://api.appstoreconnect.apple.com") else {
-                fatalError("Failed to create default App Store Connect URL")
-            }
-            return url
+            return URL(string: "https://api.appstoreconnect.apple.com") ?? URL(string: "https://example.com")!
         }()
 
         public init(
@@ -39,11 +36,11 @@ public final class AppStoreConnectClient: ObservableObject {
         }
     }
 
-    public enum APIError: LocalizedError {
+    public enum APIError: Error, LocalizedError {
         case invalidConfiguration
         case authenticationFailed(String)
-        case networkError(Error)
-        case decodingError(Error)
+        case networkError(any Error)
+        case decodingError(any Error)
         case apiError(statusCode: Int, message: String)
         case rateLimitExceeded(retryAfter: TimeInterval?)
         case invalidResponse
@@ -194,7 +191,7 @@ public final class AppStoreConnectClient: ObservableObject {
 
         // Execute request with retry logic
         let maxRetries = 3
-        var lastError: Error?
+        var lastError: (any Error)?
 
         for attempt in 0 ..< maxRetries {
             do {
@@ -266,13 +263,13 @@ public struct APIRequest {
     let path: String
     let method: Method
     let queryParameters: [String: String]
-    let body: Encodable?
+    let body: (any Encodable)?
 
     public init(
         path: String,
         method: Method = .get,
         queryParameters: [String: String] = [:],
-        body: Encodable? = nil
+        body: (any Encodable)? = nil
     ) {
         self.path = path
         self.method = method

@@ -197,8 +197,7 @@ public final class WarrantyTrackingCore: ObservableObject {
     }
     
     private func scheduleWarrantyNotifications() {
-        guard let warranty = item.warranty else { return }
-        let endDate = warranty.expiresAt
+        guard item.warranty != nil else { return }
         
         Task {
             try await notificationService.scheduleWarrantyExpirationNotifications(for: item)

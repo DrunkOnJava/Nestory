@@ -24,10 +24,32 @@ BUILD_SUCCESS="true"
 BUILD_ERRORS=0
 BUILD_WARNINGS=0
 
-# Parse build log if available
+# Parse build log if available, prefer JSON parsing for accuracy
 if [ -n "${BUILD_LOG_PATH:-}" ] && [ -f "$BUILD_LOG_PATH" ]; then
-    BUILD_ERRORS=$(grep -c "error:" "$BUILD_LOG_PATH" 2>/dev/null || echo 0)
-    BUILD_WARNINGS=$(grep -c "warning:" "$BUILD_LOG_PATH" 2>/dev/null || echo 0)
+    # Try JSON parsing first if xcbeautify is available
+    JSON_LOG="${BUILD_LOG_PATH%.log}.json"
+    
+    if command -v xcbeautify >/dev/null 2>&1 && command -v jq >/dev/null 2>&1; then
+        # Generate JSON output for parsing
+        cat "$BUILD_LOG_PATH" | xcbeautify --reporter json > "$JSON_LOG" 2>/dev/null || true
+        
+        if [ -f "$JSON_LOG" ] && [ -s "$JSON_LOG" ]; then
+            # Parse JSON for accurate counts
+            BUILD_ERRORS=$(jq '[.[] | select(.type == "error")] | length' "$JSON_LOG" 2>/dev/null || echo 0)
+            BUILD_WARNINGS=$(jq '[.[] | select(.type == "warning")] | length' "$JSON_LOG" 2>/dev/null || echo 0)
+            
+            # Clean up temp JSON file
+            rm -f "$JSON_LOG"
+        else
+            # Fallback to text parsing
+            BUILD_ERRORS=$(grep -c "error:" "$BUILD_LOG_PATH" 2>/dev/null || echo 0)
+            BUILD_WARNINGS=$(grep -c "warning:" "$BUILD_LOG_PATH" 2>/dev/null || echo 0)
+        fi
+    else
+        # Use text parsing if tools aren't available
+        BUILD_ERRORS=$(grep -c "error:" "$BUILD_LOG_PATH" 2>/dev/null || echo 0)
+        BUILD_WARNINGS=$(grep -c "warning:" "$BUILD_LOG_PATH" 2>/dev/null || echo 0)
+    fi
     
     if [ "$BUILD_ERRORS" -gt 0 ]; then
         BUILD_SUCCESS="false"

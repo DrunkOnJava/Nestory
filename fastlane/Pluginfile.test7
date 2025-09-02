@@ -1,0 +1,4 @@
+# Testing individual plugin: fastlane-plugin-versioning
+# Automated version management for Nestory iOS project
+
+gem 'fastlane-plugin-versioning'

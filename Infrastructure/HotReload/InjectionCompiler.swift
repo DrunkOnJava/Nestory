@@ -134,7 +134,7 @@
 
 #endif
 
-public enum InjectionError: LocalizedError {
+public enum InjectionError: Error, LocalizedError, Sendable {
     case compilationFailed(String)
     case loadingFailed(String)
     case injectionFailed(String)

@@ -173,7 +173,7 @@ class MockAnalyticsService: AnalyticsServiceProtocol {
     var trackItemUpdateCalls: [Item] = []
     var trackItemDeletionCalls: [UUID] = []
     var shouldFail = false
-    var error: Error?
+    var error: (any Error)?
 
     func trackEvent(_ eventName: String, parameters: [String: Any]) {
         trackEventCalls.append((eventName, parameters))
@@ -215,7 +215,7 @@ class MockCloudBackupService: CloudBackupService {
     var backupCalls: [BackupOperation] = []
     var restoreCalls: [RestoreOperation] = []
     var shouldFail = false
-    var error: Error?
+    var error: (any Error)?
     
     func checkCloudKitAvailability() async -> Bool {
         return isCloudKitAvailable

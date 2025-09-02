@@ -222,7 +222,7 @@ public struct EncryptedEnclaveData: Codable {
     public let ephemeralPublicKey: Data
 }
 
-public enum SecureEnclaveError: LocalizedError {
+public enum SecureEnclaveError: Error, LocalizedError, Sendable {
     case notAvailable
     case keyGenerationFailed
     case keyLoadingFailed

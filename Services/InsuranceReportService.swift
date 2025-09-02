@@ -38,7 +38,7 @@ public protocol InsuranceReportService: Sendable {
 public final class LiveInsuranceReportService: InsuranceReportService, ObservableObject {
     // MARK: - Types
 
-    public enum ReportError: LocalizedError {
+    public enum ReportError: Error, LocalizedError, Sendable {
         case noItems
         case pdfGenerationFailed
         case dataAccessError

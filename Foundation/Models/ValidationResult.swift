@@ -7,7 +7,7 @@
 import Foundation
 
 public struct ValidationResult: Equatable, Sendable, Codable, Identifiable {
-    public let id = UUID()
+    public let id: UUID
     public let isComplete: Bool
     public let missingItems: [String]
     public let totalValue: Decimal
@@ -29,11 +29,13 @@ public struct ValidationResult: Equatable, Sendable, Codable, Identifiable {
     }
     
     public init(
+        id: UUID = UUID(),
         isComplete: Bool,
         missingItems: [String] = [],
         totalValue: Decimal = 0,
         validationDate: Date = Date()
     ) {
+        self.id = id
         self.isComplete = isComplete
         self.missingItems = missingItems
         self.totalValue = totalValue

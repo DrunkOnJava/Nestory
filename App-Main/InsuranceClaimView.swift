@@ -183,19 +183,43 @@ struct InsuranceClaimView: View {
 // MARK: - Preview Support
 
 #Preview {
-    let config = ModelConfiguration(isStoredInMemoryOnly: true)
-    let container = try! ModelContainer(for: Item.self, configurations: config)
-    let context = ModelContext(container)
+    InsuranceClaimPreview()
+}
 
-    // Create sample items
-    let item1 = Item(name: "MacBook Pro", itemDescription: "Laptop computer", quantity: 1)
-    item1.purchasePrice = 2499.00
-    item1.purchaseDate = Date()
+private struct InsuranceClaimPreview: View {
+    let container: ModelContainer?
+    let items: [Item]?
+    
+    init() {
+        do {
+            let config = ModelConfiguration(isStoredInMemoryOnly: true)
+            let container = try ModelContainer(for: Item.self, configurations: config)
+            _ = ModelContext(container)
 
-    let item2 = Item(name: "iPhone", itemDescription: "Smartphone", quantity: 1)
-    item2.purchasePrice = 999.00
-    item2.purchaseDate = Date()
+            // Create sample items
+            let item1 = Item(name: "MacBook Pro", itemDescription: "Laptop computer", quantity: 1)
+            item1.purchasePrice = 2499.00
+            item1.purchaseDate = Date()
 
-    return InsuranceClaimView(items: [item1, item2])
-        .modelContainer(container)
+            let item2 = Item(name: "iPhone", itemDescription: "Smartphone", quantity: 1)
+            item2.purchasePrice = 999.00
+            item2.purchaseDate = Date()
+
+            self.container = container
+            self.items = [item1, item2]
+        } catch {
+            self.container = nil
+            self.items = nil
+        }
+    }
+    
+    var body: some View {
+        if let container = container, let items = items {
+            InsuranceClaimView(items: items)
+                .modelContainer(container)
+        } else {
+            Text("Preview Error: Failed to initialize")
+                .foregroundColor(.red)
+        }
+    }
 }

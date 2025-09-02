@@ -61,8 +61,8 @@ public final class ClaimDocumentProcessor {
 
     public func collectItemWarranties(item: Item) -> [Data] {
         // Collect warranty documents
-        var warranties: [Data] = []
-        if let warranty = item.warranty {
+        let warranties: [Data] = []
+        if item.warranty != nil {
             // Add warranty document data if available
         }
         return warranties

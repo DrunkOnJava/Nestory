@@ -1,0 +1,4 @@
+# Testing individual plugin: fastlane-plugin-appicon
+# App icon generation and management for Nestory iOS project
+
+gem 'fastlane-plugin-appicon'

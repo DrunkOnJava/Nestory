@@ -12,7 +12,7 @@ import SwiftData
 public enum StepContentBuilder {
     @ViewBuilder
     @MainActor
-    public static func stepContentView(for step: DamageAssessmentStep, workflow: DamageAssessmentWorkflow, damageService: DamageAssessmentService) -> some View {
+    public static func stepContentView(for step: DamageAssessmentStep, workflow: DamageAssessmentWorkflow, damageService: any DamageAssessmentServiceProtocol) -> some View {
         switch step {
         case .initialDocumentation:
             InitialDocumentationStepView(workflow: workflow, damageService: damageService)
@@ -30,9 +30,9 @@ public enum StepContentBuilder {
 
 public struct InitialDocumentationStepView: View {
     let workflow: DamageAssessmentWorkflow
-    let damageService: DamageAssessmentService
+    let damageService: any DamageAssessmentServiceProtocol
 
-    public init(workflow: DamageAssessmentWorkflow, damageService: DamageAssessmentService) {
+    public init(workflow: DamageAssessmentWorkflow, damageService: any DamageAssessmentServiceProtocol) {
         self.workflow = workflow
         self.damageService = damageService
     }
@@ -60,11 +60,11 @@ public struct InitialDocumentationStepView: View {
 
 public struct CostEstimationStepView: View {
     let workflow: DamageAssessmentWorkflow
-    let damageService: DamageAssessmentService
+    let damageService: any DamageAssessmentServiceProtocol
     @State private var repairCost = ""
     @State private var replacementCost = ""
 
-    public init(workflow: DamageAssessmentWorkflow, damageService: DamageAssessmentService) {
+    public init(workflow: DamageAssessmentWorkflow, damageService: any DamageAssessmentServiceProtocol) {
         self.workflow = workflow
         self.damageService = damageService
     }
@@ -99,9 +99,9 @@ public struct CostEstimationStepView: View {
 
 public struct ReportGenerationStepView: View {
     let workflow: DamageAssessmentWorkflow
-    let damageService: DamageAssessmentService
+    let damageService: any DamageAssessmentServiceProtocol
 
-    public init(workflow: DamageAssessmentWorkflow, damageService: DamageAssessmentService) {
+    public init(workflow: DamageAssessmentWorkflow, damageService: any DamageAssessmentServiceProtocol) {
         self.workflow = workflow
         self.damageService = damageService
     }
@@ -121,9 +121,9 @@ public struct ReportGenerationStepView: View {
 public struct GenericStepView: View {
     let step: DamageAssessmentStep
     let workflow: DamageAssessmentWorkflow
-    let damageService: DamageAssessmentService
+    let damageService: any DamageAssessmentServiceProtocol
 
-    public init(step: DamageAssessmentStep, workflow: DamageAssessmentWorkflow, damageService: DamageAssessmentService) {
+    public init(step: DamageAssessmentStep, workflow: DamageAssessmentWorkflow, damageService: any DamageAssessmentServiceProtocol) {
         self.step = step
         self.workflow = workflow
         self.damageService = damageService
@@ -189,9 +189,8 @@ public struct CurrentStepView: View {
             }
 
             // Step Content
-            if let damageService = try? DamageAssessmentService(modelContext: ModelContext(
-                try! ModelContainer(for: Item.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
-            )) {
+            if let container = try? ModelContainer(for: Item.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true)),
+               let damageService = try? DamageAssessmentService(modelContext: ModelContext(container)) {
                 StepContentBuilder.stepContentView(
                     for: workflow.currentStep,
                     workflow: workflow,

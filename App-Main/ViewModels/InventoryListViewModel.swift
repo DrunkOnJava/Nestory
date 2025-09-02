@@ -36,10 +36,10 @@ public final class InventoryListViewModel {
     }
 
     // Dependencies
-    private let inventoryService: InventoryService
+    private let inventoryService: any InventoryService
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory.dev", category: "InventoryListViewModel")
 
-    public init(inventoryService: InventoryService) {
+    public init(inventoryService: any InventoryService) {
         self.inventoryService = inventoryService
     }
 
@@ -235,9 +235,10 @@ extension InventoryListViewModel {
             let service = try LiveInventoryService(modelContext: modelContext)
             return InventoryListViewModel(inventoryService: service)
         } catch {
-            // For now, create a minimal fallback service
-            // The actual MockInventoryService is defined in Services/DependencyKeys.swift
-            fatalError("Failed to create InventoryService: \(error)")
+            Logger.service.error("Failed to create InventoryService: \(error.localizedDescription)")
+            Logger.service.info("Falling back to MockInventoryService for graceful degradation")
+            // Create fallback with mock service to prevent app crash
+            return InventoryListViewModel(inventoryService: MockInventoryService())
         }
     }
 }

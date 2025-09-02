@@ -522,7 +522,7 @@ public struct LiveInventoryService: InventoryService, @unchecked Sendable {
 
 // Note: ExportFormat is now defined in Foundation/Models/ExportFormat.swift
 
-public enum InventoryError: LocalizedError {
+public enum InventoryError: Error, LocalizedError, Sendable {
     case fetchFailed(String)
     case saveFailed(String)
     case updateFailed(String)

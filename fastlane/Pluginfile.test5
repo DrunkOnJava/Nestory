@@ -1,0 +1,4 @@
+# Testing individual plugin: fastlane-plugin-slack
+# Slack integration for Nestory iOS project
+
+gem 'fastlane-plugin-slack'

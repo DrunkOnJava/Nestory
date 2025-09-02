@@ -17,15 +17,10 @@ public final class LiveBarcodeScannerService: BarcodeScannerService, ObservableO
     @Published public var errorMessage: String?
 
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory", category: "BarcodeScannerService")
-    private let productLookupService: ProductLookupService
+    private let productLookupService: any ProductLookupService
 
     public init() {
-        do {
-            self.productLookupService = try LiveProductLookupService()
-        } catch {
-            // Fallback to mock service if initialization fails
-            self.productLookupService = MockProductLookupService()
-        }
+        self.productLookupService = LiveProductLookupService()
     }
 
     // MARK: - BarcodeScannerService Protocol Implementation

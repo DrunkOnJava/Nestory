@@ -241,27 +241,18 @@ struct ClaimsDashboardView: View {
     private func loadClaimData() async {
         isLoading = true
         
-        do {
-            // Load real data from SwiftData
-            await MainActor.run {
-                loadActivitiesFromDatabase()
-                loadFollowUpActionsFromDatabase()
-            }
-            
-            // If no data exists, create sample data for demonstration
-            if claimActivities.isEmpty && followUpActions.isEmpty {
-                await MainActor.run {
-                    createSampleData()
-                }
-                logger.info("Created sample claim data for dashboard demonstration")
-            }
-            
-        } catch {
-            logger.error("Failed to load claim data: \(error.localizedDescription)")
-            // Fall back to sample data
+        // Load real data from SwiftData
+        await MainActor.run {
+            loadActivitiesFromDatabase()
+            loadFollowUpActionsFromDatabase()
+        }
+        
+        // If no data exists, create sample data for demonstration
+        if claimActivities.isEmpty && followUpActions.isEmpty {
             await MainActor.run {
                 createSampleData()
             }
+            logger.info("Created sample claim data for dashboard demonstration")
         }
         
         await MainActor.run {

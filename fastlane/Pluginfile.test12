@@ -1,0 +1,4 @@
+# Testing individual plugin: fastlane-plugin-changelog
+# Automated changelog generation for Nestory iOS project
+
+gem 'fastlane-plugin-changelog'

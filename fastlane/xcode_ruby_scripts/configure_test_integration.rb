@@ -800,7 +800,7 @@ class TestFrameworkIntegrator
         -scheme Nestory-Accessibility \\
         -destination 'platform=iOS Simulator,name=iPhone 16 Pro Max' \\
         -only-testing:NestoryAccessibilityUITests \\
-        | xcpretty --test --color
+        | xcbeautify --test --color
       
       echo "✅ Accessibility validation completed"
     SCRIPT

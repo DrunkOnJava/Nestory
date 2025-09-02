@@ -1,7 +1,7 @@
 #!/bin/bash
 # Setup script for Fastlane dependencies
 
-set -e
+set -euo pipefail
 
 echo "🔧 Setting up Fastlane dependencies..."
 

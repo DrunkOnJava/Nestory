@@ -86,7 +86,7 @@ extension LiveImportExportService {
                 }
 
                 // Parse and validate headers
-                let rawHeaders = await self.parseCSVLine(lines[0])
+                let rawHeaders = self.parseCSVLine(lines[0])
                 let headers = rawHeaders.map { $0.lowercased().trimmingCharacters(in: .whitespaces) }
 
                 let requiredFields = ["name"]
@@ -107,47 +107,41 @@ extension LiveImportExportService {
                 for (index, line) in dataLines.enumerated() {
                     let rowNumber = index + 2 // +2 because we skipped header and are 1-indexed
 
-                    do {
-                        let values = await self.parseCSVLine(line)
+                    let values = self.parseCSVLine(line)
 
-                        if values.count != headers.count {
-                            let error = "Row \(rowNumber): Expected \(headers.count) columns, got \(values.count)"
-                            errors.append(error)
-                            itemsSkipped += 1
-                            continue
+                    if values.count != headers.count {
+                        let error = "Row \(rowNumber): Expected \(headers.count) columns, got \(values.count)"
+                        errors.append(error)
+                        itemsSkipped += 1
+                        continue
+                    }
+
+                    // Create item with enhanced error handling
+                    do {
+                        let item = try self.createItemFromCSVRow(headers: headers, values: values)
+
+                        // Validate item before insertion
+                        if item.name.isEmpty {
+                            warnings.append("Row \(rowNumber): Empty item name")
                         }
 
-                        // Create item with enhanced error handling
-                        do {
-                            let item = try await self.createItemFromCSVRow(headers: headers, values: values)
+                        if item.purchasePrice == nil {
+                            warnings.append("Row \(rowNumber): No purchase price specified")
+                        }
 
-                            // Validate item before insertion
-                            if item.name.isEmpty {
-                                warnings.append("Row \(rowNumber): Empty item name")
-                            }
+                        modelContext.insert(item)
+                        itemsImported += 1
 
-                            if item.purchasePrice == nil {
-                                warnings.append("Row \(rowNumber): No purchase price specified")
-                            }
-
-                            modelContext.insert(item)
-                            itemsImported += 1
-
-                            // Periodic save to avoid memory issues
-                            if itemsImported % 100 == 0 {
-                                try modelContext.save()
-                                logger.debug("Saved batch of 100 items (total: \(itemsImported))")
-                            }
-                        } catch {
-                            let errorMsg = "Row \(rowNumber): Failed to create item - \(error.localizedDescription)"
-                            errors.append(errorMsg)
-                            itemsSkipped += 1
-                            logger.warning("\(errorMsg)")
+                        // Periodic save to avoid memory issues
+                        if itemsImported % 100 == 0 {
+                            try modelContext.save()
+                            logger.debug("Saved batch of 100 items (total: \(itemsImported))")
                         }
                     } catch {
-                        let errorMsg = "Row \(rowNumber): Failed to parse CSV line - \(error.localizedDescription)"
+                        let errorMsg = "Row \(rowNumber): Failed to create item - \(error.localizedDescription)"
                         errors.append(errorMsg)
                         itemsSkipped += 1
+                        logger.warning("\(errorMsg)")
                     }
                 }
 

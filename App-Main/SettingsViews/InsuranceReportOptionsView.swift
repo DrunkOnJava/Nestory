@@ -10,7 +10,7 @@ import os.log
 struct InsuranceReportOptionsView: View {
     let items: [Item]
     let categories: [Category]
-    let insuranceReportService: InsuranceReportService
+    let insuranceReportService: any InsuranceReportService
     @Binding var isGenerating: Bool
     @Environment(\.dismiss) private var dismiss
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory.dev", category: "InsuranceReportSettings")
@@ -25,7 +25,7 @@ struct InsuranceReportOptionsView: View {
     @State private var propertyAddress = ""
     @State private var policyNumber = ""
 
-    init(items: [Item], categories: [Category], insuranceReportService: InsuranceReportService, isGenerating: Binding<Bool>) {
+    init(items: [Item], categories: [Category], insuranceReportService: any InsuranceReportService, isGenerating: Binding<Bool>) {
         self.items = items
         self.categories = categories
         self.insuranceReportService = insuranceReportService
@@ -161,7 +161,7 @@ struct InsuranceReportOptionsView: View {
     InsuranceReportOptionsView(
         items: [],
         categories: [],
-        insuranceReportService: try! LiveInsuranceReportService(),
+        insuranceReportService: MockInsuranceReportService(),
         isGenerating: .constant(false),
     )
 }

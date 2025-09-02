@@ -9,7 +9,7 @@ import UIKit
 import Vision
 
 public struct VisionTextExtractor: @unchecked Sendable {
-    public enum ExtractionError: LocalizedError {
+    public enum ExtractionError: Error, LocalizedError {
         case imageProcessingFailed
         case textRecognitionFailed
         case noTextFound

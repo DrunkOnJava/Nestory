@@ -50,6 +50,9 @@ public struct InventoryFeature: Sendable {
         case alert(PresentationAction<Alert>)
         case path(StackAction<Path.State, Path.Action>)
         
+        // Direct actions for UI bindings
+        case searchTextChanged(String)
+        
         // Nested action types for better organization
         public enum LifecycleAction: Sendable {
             case onAppear
@@ -77,7 +80,7 @@ public struct InventoryFeature: Sendable {
         
         public enum NavigationAction: Sendable {
             case showItemDetail(Item)
-            case showItemEdit(ItemEditFeature.State.Mode)
+            case showItemEdit(ItemEditFeature.State.EditMode)
         }
         
         public enum Alert: Equatable, Sendable {
@@ -197,9 +200,12 @@ struct LoadingReducer: Reducer {
     // Extract complex logic into focused functions
     private func loadItemsEffect(send: Send<Action>) async {
         do {
+            print("🔄 TCA InventoryFeature: Starting to load items...")
             let items = try await inventoryService.fetchItems()
+            print("✅ TCA InventoryFeature: Successfully loaded \(items.count) items")
             await send(.loading(.itemsLoaded(items)))
         } catch {
+            print("❌ TCA InventoryFeature: Failed to load items: \(error)")
             await send(.loading(.loadItemsFailed(error)))
         }
     }
@@ -243,6 +249,10 @@ struct FilteringReducer: Reducer {
     var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
+            case let .searchTextChanged(text):
+                state.searchText = text
+                return .none
+                
             case let .filtering(.searchTextChanged(text)):
                 state.searchText = text
                 return .none

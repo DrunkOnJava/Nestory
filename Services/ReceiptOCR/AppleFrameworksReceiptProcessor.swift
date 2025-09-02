@@ -206,7 +206,6 @@ public final class AppleFrameworksReceiptProcessor: ObservableObject, @unchecked
 
         // Use Natural Language to identify currency mentions
         nlTagger.string = text
-        let fullRange = NSRange(location: 0, length: text.count)
 
         // Enhanced pattern matching with NL context
         for line in lines.reversed() { // Start from bottom for totals
@@ -263,7 +262,7 @@ public final class AppleFrameworksReceiptProcessor: ObservableObject, @unchecked
     private func extractItemsWithNL(_ recognizedText: RecognizedText) -> [ReceiptItem] {
         var items: [ReceiptItem] = []
 
-        for (index, line) in recognizedText.lines.enumerated() {
+        for (_, line) in recognizedText.lines.enumerated() {
             // Use NL tagging to identify product-like text
             nlTagger.string = line
 

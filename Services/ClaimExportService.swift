@@ -71,7 +71,7 @@ public final class ClaimExportService: ObservableObject {
 
     public func uploadToCloudStorage(
         claim: ClaimSubmission,
-        service: CloudStorageService
+        service: any CloudStorageService
     ) async throws -> String {
         try await core.uploadToCloudStorage(claim: claim, service: service)
     }

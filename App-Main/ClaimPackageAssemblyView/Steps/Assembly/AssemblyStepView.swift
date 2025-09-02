@@ -7,12 +7,12 @@
 import SwiftUI
 
 public struct AssemblyStepView: View {
-    public let assemblyService: ClaimPackageAssemblerService
+    public let assemblyService: any ClaimPackageAssemblerService
     public let generatedPackage: ClaimPackage?
     public let errorAlert: ErrorAlert?
     
     public init(
-        assemblyService: ClaimPackageAssemblerService,
+        assemblyService: any ClaimPackageAssemblerService,
         generatedPackage: ClaimPackage?,
         errorAlert: ErrorAlert?
     ) {

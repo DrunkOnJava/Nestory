@@ -192,7 +192,7 @@ struct ReceiptsSection_Previews: PreviewProvider {
 
         item.receipts = [receipt1, receipt2]
 
-        ReceiptsSection(item: item, showingReceiptCapture: .constant(false))
+        return ReceiptsSection(item: item, showingReceiptCapture: .constant(false))
             .padding()
     }
 }

@@ -28,7 +28,7 @@ public struct ClaimTemplateManager {
     
     // MARK: - Errors
     
-    public enum TemplateError: LocalizedError {
+    public enum TemplateError: Error, LocalizedError {
         case templateNotFound
         case invalidTemplate
         case templateLoadingFailed

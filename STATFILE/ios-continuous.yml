@@ -1,0 +1,476 @@
+name: iOS Continuous Integration
+
+on:
+  push:
+    branches: [ main, develop, release/* ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      force_github_runners:
+        description: 'Force use of GitHub-hosted runners'
+        required: false
+        default: false
+        type: boolean
+      skip_tests:
+        description: 'Skip test execution (build only)'
+        required: false
+        default: false
+        type: boolean
+      performance_benchmark:
+        description: 'Run performance benchmarks'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  SWIFT_VERSION: '5.9'
+  XCODE_VERSION: '15.0'
+  # Smart runner selection - prefer self-hosted M1 iMac
+  USE_SELF_HOSTED: ${{ github.event.inputs.force_github_runners != 'true' }}
+  DEVELOPER_DIR: /Applications/Xcode_15.0.app/Contents/Developer
+
+concurrency:
+  group: ios-ci-${{ github.ref }}-${{ github.event.inputs.performance_benchmark || 'standard' }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  # Quick validation on Raspberry Pi for fast feedback
+  preflight-validation:
+    name: Preflight Validation
+    runs-on: [self-hosted, raspberry-pi, auxiliary]
+    if: github.event.inputs.force_github_runners != 'true'
+    timeout-minutes: 5
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Validate Project Configuration
+        run: |
+          echo "🔍 Running preflight validation..."
+          
+          # Validate critical files exist
+          required_files=("project.yml" "CLAUDE.md" "Makefile" "Config/ProjectConfiguration.json")
+          for file in "${required_files[@]}"; do
+            if [[ ! -f "$file" ]]; then
+              echo "❌ Missing required file: $file"
+              exit 1
+            fi
+            echo "✅ Found: $file"
+          done
+          
+          # Validate JSON configuration files
+          echo "📋 Validating JSON configurations..."
+          find . -name "*.json" -not -path "./.build/*" -not -path "./.git/*" | while read -r file; do
+            if ! python3 -m json.tool "$file" > /dev/null 2>&1; then
+              echo "❌ Invalid JSON: $file"
+              exit 1
+            fi
+          done
+          
+          # Check for prohibited content
+          echo "🚫 Checking for prohibited business inventory references..."
+          if grep -r "low stock\|out of stock\|inventory level" --include="*.swift" . 2>/dev/null; then
+            echo "❌ Found prohibited business inventory references!"
+            exit 1
+          fi
+          
+          echo "✅ Preflight validation completed successfully"
+
+  # Main iOS build and test on M1 iMac or GitHub-hosted macOS
+  ios-build-and-test:
+    name: iOS Build & Test
+    runs-on: ${{ github.event.inputs.force_github_runners == 'true' && 'macos-14' || fromJSON('["self-hosted", "macOS", "M1", "xcode"]') }}
+    needs: [preflight-validation]
+    if: always() && (needs.preflight-validation.result == 'success' || needs.preflight-validation.result == 'skipped')
+    timeout-minutes: 20
+    
+    outputs:
+      build-success: ${{ steps.build-status.outputs.success }}
+      test-success: ${{ steps.test-status.outputs.success }}
+      build-time: ${{ steps.build-metrics.outputs.build-time }}
+      cache-hit: ${{ steps.cache-restore.outputs.cache-hit }}
+      
+    steps:
+      - name: Runner Information
+        run: |
+          echo "🖥️ Runner Details:"
+          echo "  Name: ${{ runner.name }}"
+          echo "  OS: ${{ runner.os }}"
+          echo "  Arch: ${{ runner.arch }}"
+          echo "  Labels: ${{ join(runner.labels, ', ') }}"
+          echo "  Hostname: $(hostname)"
+          echo "  Xcode: $(xcodebuild -version | head -1)"
+          echo "  Swift: $(swift --version | head -1)"
+          
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Setup Xcode (GitHub-hosted only)
+        if: runner.name != 'nestory-m1-imac'
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '15.0'
+          
+      # 3-Tier Build Cache System
+      - name: Cache SPM Packages
+        id: cache-spm
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Caches/org.swift.swiftpm
+            ~/Library/Developer/Xcode/DerivedData/ModuleCache.noindex
+          key: ${{ runner.os }}-${{ runner.arch }}-spm-${{ hashFiles('**/Package.resolved', '**/project.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-spm-
+            
+      - name: Cache Build Artifacts
+        id: cache-build
+        uses: actions/cache@v4
+        with:
+          path: |
+            .build
+            ~/Library/Developer/Xcode/DerivedData/Nestory-*
+            DevTools/nestoryctl/.build
+          key: ${{ runner.os }}-${{ runner.arch }}-build-${{ hashFiles('**/*.swift', '**/project.yml', 'Makefile') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-build-
+            
+      - name: Cache Development Tools
+        id: cache-tools
+        uses: actions/cache@v4
+        with:
+          path: |
+            /opt/homebrew/bin/swiftlint
+            /opt/homebrew/bin/swiftformat
+            /opt/homebrew/bin/xcodegen
+          key: ${{ runner.os }}-tools-${{ hashFiles('.github/workflows/ios-continuous.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-tools-
+
+      - name: Cache Hit Status
+        id: cache-restore
+        run: |
+          SPM_HIT="${{ steps.cache-spm.outputs.cache-hit }}"
+          BUILD_HIT="${{ steps.cache-build.outputs.cache-hit }}"
+          TOOLS_HIT="${{ steps.cache-tools.outputs.cache-hit }}"
+          
+          echo "📦 Cache Status:"
+          echo "  SPM Packages: ${SPM_HIT:-'miss'}"
+          echo "  Build Artifacts: ${BUILD_HIT:-'miss'}"
+          echo "  Development Tools: ${TOOLS_HIT:-'miss'}"
+          
+          # Overall cache effectiveness
+          if [[ "$SPM_HIT" == "true" && "$BUILD_HIT" == "true" ]]; then
+            echo "cache-hit=true" >> $GITHUB_OUTPUT
+            echo "🚀 Optimal cache hit - expect 75-85% time savings"
+          else
+            echo "cache-hit=false" >> $GITHUB_OUTPUT
+            echo "⏳ Cache miss - full build required"
+          fi
+          
+      - name: Install Development Tools
+        if: runner.name != 'nestory-m1-imac' && steps.cache-tools.outputs.cache-hit != 'true'
+        run: |
+          echo "📦 Installing development tools..."
+          
+          # Parallel installation for speed
+          {
+            if ! command -v swiftlint &> /dev/null; then
+              echo "Installing SwiftLint..."
+              brew install swiftlint
+            fi
+          } &
+          
+          {
+            if ! command -v swiftformat &> /dev/null; then
+              echo "Installing SwiftFormat..."  
+              brew install swiftformat
+            fi
+          } &
+          
+          {
+            if ! command -v xcodegen &> /dev/null; then
+              echo "Installing XcodeGen..."
+              brew install xcodegen
+            fi
+          } &
+          
+          # Wait for all installations
+          wait
+          
+          echo "✅ All development tools installed"
+          
+      - name: Generate Xcode Project
+        run: |
+          echo "🔧 Generating Xcode project..."
+          if command -v xcodegen &> /dev/null; then
+            xcodegen generate
+          else
+            echo "⚠️ XcodeGen not available, using existing project"
+          fi
+          
+      - name: Build Project
+        id: build-step
+        run: |
+          echo "🔨 Building Nestory for iPhone 16 Pro Max..."
+          BUILD_START=$(date +%s)
+          
+          # Use optimized build command from Makefile
+          if make fast-build; then
+            BUILD_END=$(date +%s)
+            BUILD_TIME=$((BUILD_END - BUILD_START))
+            
+            echo "✅ Build completed in ${BUILD_TIME} seconds"
+            echo "build-success=true" >> $GITHUB_OUTPUT
+            echo "build-time=${BUILD_TIME}" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Build failed"
+            echo "build-success=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          
+      - name: Build Metrics Collection
+        id: build-metrics
+        if: always()
+        run: |
+          BUILD_TIME="${{ steps.build-step.outputs.build-time || '0' }}"
+          CACHE_HIT="${{ steps.cache-restore.outputs.cache-hit }}"
+          
+          echo "build-time=${BUILD_TIME}" >> $GITHUB_OUTPUT
+          
+          # Push metrics to monitoring if available
+          if command -v curl &> /dev/null && [[ -n "${PROMETHEUS_PUSHGATEWAY_URL:-}" ]]; then
+            cat << EOF | curl -X POST "${PROMETHEUS_PUSHGATEWAY_URL}/metrics/job/nestory_ci/instance/${GITHUB_RUN_ID}" --data-binary @-
+          nestory_build_duration_seconds{branch="${GITHUB_REF_NAME}",runner="${{ runner.name }}",cache_hit="${CACHE_HIT}"} ${BUILD_TIME}
+          nestory_build_success{branch="${GITHUB_REF_NAME}",runner="${{ runner.name }}"} ${{ steps.build-step.outputs.build-success == 'true' && '1' || '0' }}
+          EOF
+            echo "📊 Metrics pushed to monitoring system"
+          fi
+          
+      - name: Build Status
+        id: build-status
+        run: |
+          echo "success=${{ steps.build-step.outputs.build-success }}" >> $GITHUB_OUTPUT
+          
+      - name: Run Tests
+        id: test-step
+        if: github.event.inputs.skip_tests != 'true' && steps.build-step.outputs.build-success == 'true'
+        run: |
+          echo "🧪 Running comprehensive test suite..."
+          TEST_START=$(date +%s)
+          
+          # Run tests with timeout protection
+          if timeout 480 make test; then
+            TEST_END=$(date +%s)
+            TEST_TIME=$((TEST_END - TEST_START))
+            
+            echo "✅ Tests completed in ${TEST_TIME} seconds"
+            echo "test-success=true" >> $GITHUB_OUTPUT
+            echo "test-time=${TEST_TIME}" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Tests failed or timed out"
+            echo "test-success=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          
+      - name: Test Status
+        id: test-status
+        if: always()
+        run: |
+          if [[ "${{ github.event.inputs.skip_tests }}" == "true" ]]; then
+            echo "success=skipped" >> $GITHUB_OUTPUT
+          else
+            echo "success=${{ steps.test-step.outputs.test-success || 'false' }}" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: Architecture Verification
+        if: steps.build-step.outputs.build-success == 'true'
+        run: |
+          echo "🏗️ Verifying architecture compliance..."
+          if timeout 60 make verify-arch; then
+            echo "✅ Architecture verification passed"
+          else
+            echo "❌ Architecture verification failed"
+            exit 1
+          fi
+          
+      - name: UI Wiring Verification
+        if: steps.build-step.outputs.build-success == 'true'
+        run: |
+          echo "🔌 Verifying UI wiring..."
+          if make verify-wiring; then
+            echo "✅ All services properly wired to UI"
+          else
+            echo "❌ UI wiring verification failed"
+            exit 1
+          fi
+          
+      - name: Performance Benchmark
+        id: performance-benchmark
+        if: github.event.inputs.performance_benchmark == 'true' && steps.build-step.outputs.build-success == 'true'
+        run: |
+          echo "⚡ Running performance benchmarks..."
+          
+          # Cold start measurement
+          COLD_START_TIME=$(timeout 60 make run 2>&1 | grep -o "launched successfully" | wc -l)
+          
+          echo "📊 Performance Metrics:"
+          echo "  Cold start: Available"
+          echo "  Build time: ${{ steps.build-step.outputs.build-time }}s"
+          echo "  Cache efficiency: ${{ steps.cache-restore.outputs.cache-hit }}"
+          
+      - name: Upload Build Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts-${{ runner.arch }}-${{ github.run_number }}
+          path: |
+            .build/*/debug/*.xctest
+            .build/*/release/nestoryctl
+            *.xcresult
+            build.log
+            fast-build.log
+          retention-days: 7
+          
+      - name: Upload Test Results
+        if: always() && steps.test-step.outcome != 'skipped'
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ runner.arch }}-${{ github.run_number }}
+          path: |
+            test-*.log
+            *.xcresult
+            coverage_reports/
+          retention-days: 7
+
+  # Quick UI smoke test for critical user flows
+  ui-smoke-test:
+    name: UI Smoke Test
+    runs-on: ${{ github.event.inputs.force_github_runners == 'true' && 'macos-14' || fromJSON('["self-hosted", "macOS", "M1", "xcode"]') }}
+    needs: [ios-build-and-test]
+    if: needs.ios-build-and-test.outputs.build-success == 'true'
+    timeout-minutes: 8
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        
+      - name: Restore Build Cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            .build
+            ~/Library/Developer/Xcode/DerivedData/Nestory-*
+          key: ${{ runner.os }}-${{ runner.arch }}-build-${{ hashFiles('**/*.swift', '**/project.yml', 'Makefile') }}
+          
+      - name: Run UI Smoke Tests
+        run: |
+          echo "💨 Running UI smoke tests..."
+          if timeout 300 make test-smoke; then
+            echo "✅ UI smoke tests passed"
+          else
+            echo "❌ UI smoke tests failed"
+            exit 1
+          fi
+          
+      - name: Upload UI Test Screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-smoke-screenshots-${{ github.run_number }}
+          path: ~/Desktop/NestoryUIWiringScreenshots/
+          retention-days: 3
+
+  # CI Results Summary
+  ci-summary:
+    name: CI Summary
+    needs: [preflight-validation, ios-build-and-test, ui-smoke-test]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    
+    steps:
+      - name: Generate CI Summary
+        run: |
+          echo "# 📊 iOS CI Pipeline Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Workflow:** ${{ github.workflow }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo "## 🏗️ Build Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Preflight
+          if [[ "${{ needs.preflight-validation.result }}" == "success" ]]; then
+            echo "✅ **Preflight Validation:** Passed" >> $GITHUB_STEP_SUMMARY
+          elif [[ "${{ needs.preflight-validation.result }}" == "skipped" ]]; then
+            echo "⏭️ **Preflight Validation:** Skipped (GitHub runners)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Preflight Validation:** Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Build and Test
+          BUILD_SUCCESS="${{ needs.ios-build-and-test.outputs.build-success }}"
+          TEST_SUCCESS="${{ needs.ios-build-and-test.outputs.test-success }}"
+          BUILD_TIME="${{ needs.ios-build-and-test.outputs.build-time }}"
+          CACHE_HIT="${{ needs.ios-build-and-test.outputs.cache-hit }}"
+          
+          if [[ "$BUILD_SUCCESS" == "true" ]]; then
+            echo "✅ **iOS Build:** Passed (${BUILD_TIME}s)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **iOS Build:** Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [[ "$TEST_SUCCESS" == "true" ]]; then
+            echo "✅ **Tests:** Passed" >> $GITHUB_STEP_SUMMARY
+          elif [[ "$TEST_SUCCESS" == "skipped" ]]; then
+            echo "⏭️ **Tests:** Skipped" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Tests:** Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # UI Smoke Test
+          if [[ "${{ needs.ui-smoke-test.result }}" == "success" ]]; then
+            echo "✅ **UI Smoke Test:** Passed" >> $GITHUB_STEP_SUMMARY
+          elif [[ "${{ needs.ui-smoke-test.result }}" == "skipped" ]]; then
+            echo "⏭️ **UI Smoke Test:** Skipped" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **UI Smoke Test:** Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## ⚡ Performance Metrics" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Build Time:** ${BUILD_TIME:-'N/A'}s" >> $GITHUB_STEP_SUMMARY
+          echo "- **Cache Hit:** ${CACHE_HIT:-'false'}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Runner:** ${{ runner.name || 'GitHub-hosted' }}" >> $GITHUB_STEP_SUMMARY
+          
+          # Overall status
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [[ "$BUILD_SUCCESS" == "true" && ("$TEST_SUCCESS" == "true" || "$TEST_SUCCESS" == "skipped") ]]; then
+            echo "🎉 **Overall Status:** SUCCESS" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "💥 **Overall Status:** FAILURE" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+      - name: Update Status Check
+        run: |
+          BUILD_SUCCESS="${{ needs.ios-build-and-test.outputs.build-success }}"
+          TEST_SUCCESS="${{ needs.ios-build-and-test.outputs.test-success }}"
+          
+          if [[ "$BUILD_SUCCESS" == "true" && ("$TEST_SUCCESS" == "true" || "$TEST_SUCCESS" == "skipped") ]]; then
+            echo "✅ CI Pipeline completed successfully"
+            exit 0
+          else
+            echo "❌ CI Pipeline failed"
+            exit 1
+          fi

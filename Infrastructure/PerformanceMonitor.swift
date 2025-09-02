@@ -374,7 +374,7 @@ public class NetworkRequestTracker {
         self.monitor = monitor
     }
     
-    public func complete(statusCode: Int, error: Error? = nil) {
+    public func complete(statusCode: Int, error: (any Error)? = nil) {
         let duration = Date().timeIntervalSince(startTime)
         
         monitor?.trackCustomMetric(

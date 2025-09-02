@@ -10,7 +10,7 @@ import SwiftData
 import UIKit
 import UniformTypeIdentifiers
 
-public enum InsuranceExportError: LocalizedError {
+public enum InsuranceExportError: Error, LocalizedError {
     case dataConversionFailed
     case fileWriteFailed
     case missingData

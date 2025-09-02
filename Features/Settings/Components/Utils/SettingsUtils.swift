@@ -32,17 +32,11 @@ public func applyThemeChange(_ theme: AppTheme) async {
 
 public func calculateStorageUsage() async -> String {
     // Calculate actual storage usage with graceful error handling
-    do {
-        // This would typically scan app documents and data directories
-        let bytes = 1024 * 1024 * 5 // Placeholder: 5MB - in production, calculate actual usage
-        let formatter = ByteCountFormatter()
-        formatter.countStyle = .file
-        return formatter.string(fromByteCount: Int64(bytes))
-    } catch {
-        // If storage calculation fails, return a safe fallback
-        print("⚠️ Storage calculation error: \(error.localizedDescription)")
-        return "Unknown"
-    }
+    // This would typically scan app documents and data directories
+    let bytes = 1024 * 1024 * 5 // Placeholder: 5MB - in production, calculate actual usage
+    let formatter = ByteCountFormatter()
+    formatter.countStyle = .file
+    return formatter.string(fromByteCount: Int64(bytes))
 }
 
 public func performDataReset() async throws {
@@ -63,28 +57,21 @@ public struct SettingsValidator: Sendable {
     public init() {}
     
     public func validateSettings(_ state: SettingsState) -> SettingsValidationStatus {
-        // Wrap validation logic in error handling to prevent crashes
-        do {
-            var issues: [SettingsIssue] = []
+        var issues: [SettingsIssue] = []
 
-            if state.notificationsEnabled && !state.hasNotificationPermission {
-                issues.append(.notificationPermissionRequired)
-            }
-
-            if state.cloudBackupEnabled && !state.isCloudBackupAvailable {
-                issues.append(.cloudBackupUnavailable)
-            }
-
-            if state.selectedCurrency.isEmpty || !CurrencyConstants.supportedCurrencies.contains(state.selectedCurrency) {
-                issues.append(.invalidCurrency)
-            }
-
-            return SettingsValidationStatus(issues: issues)
-        } catch {
-            // If validation fails completely, return an empty validation status (assume valid)
-            print("⚠️ Settings validation error: \(error.localizedDescription)")
-            return SettingsValidationStatus(issues: [])
+        if state.notificationsEnabled && !state.hasNotificationPermission {
+            issues.append(.notificationPermissionRequired)
         }
+
+        if state.cloudBackupEnabled && !state.isCloudBackupAvailable {
+            issues.append(.cloudBackupUnavailable)
+        }
+
+        if state.selectedCurrency.isEmpty || !CurrencyConstants.supportedCurrencies.contains(state.selectedCurrency) {
+            issues.append(.invalidCurrency)
+        }
+
+        return SettingsValidationStatus(issues: issues)
     }
 }
 

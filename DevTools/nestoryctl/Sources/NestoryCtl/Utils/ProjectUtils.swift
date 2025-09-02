@@ -1,4 +1,5 @@
 import Foundation
+import CommonCrypto
 
 // MARK: - Core Functions
 
@@ -20,7 +21,7 @@ func computeSHA256(of file: URL) throws -> String {
     let data = try Data(contentsOf: file)
     let digest = data.withUnsafeBytes { bytes in
         var hash = [UInt8](repeating: 0, count: Int(32))
-        CC_SHA256(bytes.bindMemory(to: UInt8.self).baseAddress, CC_LONG(data.count), &hash)
+        let _ = CC_SHA256(bytes.bindMemory(to: UInt8.self).baseAddress, CC_LONG(data.count), &hash)
         return hash
     }
     return digest.map { String(format: "%02x", $0) }.joined()

@@ -9,11 +9,11 @@ import SwiftUI
 
 struct SingleItemInsuranceReportView: View {
     let item: Item
-    let insuranceReportService: InsuranceReportService
+    let insuranceReportService: any InsuranceReportService
     @Environment(\.dismiss) private var dismiss
 
     @State private var isGenerating = false
-    @State private var reportError: Error?
+    @State private var reportError: (any Error)?
     @State private var showingError = false
     @State private var includePhotos = true
     @State private var includeReceipts = true

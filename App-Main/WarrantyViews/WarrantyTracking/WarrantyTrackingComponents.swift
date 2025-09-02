@@ -260,7 +260,7 @@ public struct WarrantyDetailsCard: View {
                 
                 VStack(spacing: 8) {
                     DetailRow(label: "Type", value: warranty.type.rawValue)
-                    DetailRow(label: "Provider", value: warranty.provider ?? "Not specified")
+                    DetailRow(label: "Provider", value: warranty.provider.isEmpty ? "Not specified" : warranty.provider)
                     
                     DetailRow(label: "Start Date", value: DateFormatter.medium.string(from: warranty.startDate))
                     DetailRow(label: "End Date", value: DateFormatter.medium.string(from: warranty.endDate))

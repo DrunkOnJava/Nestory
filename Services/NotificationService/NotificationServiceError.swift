@@ -8,7 +8,7 @@ import Foundation
 
 // MARK: - Notification Service Errors
 
-public enum NotificationServiceError: LocalizedError {
+public enum NotificationServiceError: Error, LocalizedError, Sendable {
     case authorizationDenied
     case authorizationNotDetermined
     case systemNotificationsDisabled

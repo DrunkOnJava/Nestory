@@ -23,7 +23,7 @@ public protocol ClaimPackageAssemblerService: Sendable {
     func prepareForEmail(package: ClaimPackage) async throws -> EmailPackage
 }
 
-public enum ClaimPackageError: LocalizedError {
+public enum ClaimPackageError: Error, LocalizedError, Sendable {
     case noItemsSelected
     case missingDocumentation
     case packageGenerationFailed

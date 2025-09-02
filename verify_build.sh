@@ -1,7 +1,7 @@
 #!/bin/bash
 # Build verification script
 
-set -e
+set -euo pipefail
 
 cd /Users/griffin/Projects/Nestory
 
@@ -25,7 +25,7 @@ xcodebuild \
     -destination "platform=iOS Simulator,name=iPhone 16 Pro Max" \
     -configuration Debug \
     -quiet \
-    clean build | xcpretty
+    clean build | xcbeautify
 
 if [ $? -eq 0 ]; then
     echo ""

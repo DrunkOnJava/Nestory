@@ -1,0 +1,11 @@
+# Minimal fastlane plugins for TestFlight upload
+# Core plugins that are proven to work
+
+# Essential App Store Connect integration
+gem 'fastlane-plugin-semantic_release'      # Automated versioning
+gem 'fastlane-plugin-changelog'             # Changelog generation
+gem 'fastlane-plugin-slack'                 # Build notifications
+
+# Build and deployment essentials  
+gem 'fastlane-plugin-versioning'            # Version management
+gem 'fastlane-plugin-retry'                 # Retry failed operations

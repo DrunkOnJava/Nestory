@@ -11,7 +11,7 @@ import XCTest
 
 @MainActor
 final class ImportExportServiceImportTests: XCTestCase {
-    var service: ImportExportService!
+    var service: any ImportExportService!
     var modelContainer: ModelContainer!
     var modelContext: ModelContext!
     var tempDirectory: URL!

@@ -12,8 +12,8 @@ public protocol RetryStrategy: Sendable {
     /// Executes an operation with retry logic
     func execute<T: Sendable>(
         operation: @escaping @Sendable () async throws -> T,
-        shouldRetry: @escaping @Sendable (Error) -> Bool,
-        logger: FoundationLogger?
+        shouldRetry: @escaping @Sendable (any Error) -> Bool,
+        logger: (any FoundationLogger)?
     ) async throws -> T
 
     /// Maximum number of retry attempts
@@ -45,10 +45,10 @@ public struct ExponentialBackoffRetry: RetryStrategy, Sendable {
 
     public func execute<T: Sendable>(
         operation: @escaping @Sendable () async throws -> T,
-        shouldRetry: @escaping @Sendable (Error) -> Bool = { _ in true },
-        logger: FoundationLogger? = nil
+        shouldRetry: @escaping @Sendable (any Error) -> Bool = { _ in true },
+        logger: (any FoundationLogger)? = nil
     ) async throws -> T {
-        var lastError: Error?
+        var lastError: (any Error)?
 
         for attempt in 0 ... maxRetries {
             do {
@@ -105,10 +105,10 @@ public struct LinearBackoffRetry: RetryStrategy, Sendable {
 
     public func execute<T: Sendable>(
         operation: @escaping @Sendable () async throws -> T,
-        shouldRetry: @escaping @Sendable (Error) -> Bool = { _ in true },
-        logger: FoundationLogger? = nil
+        shouldRetry: @escaping @Sendable (any Error) -> Bool = { _ in true },
+        logger: (any FoundationLogger)? = nil
     ) async throws -> T {
-        var lastError: Error?
+        var lastError: (any Error)?
 
         for attempt in 0 ... maxRetries {
             do {
@@ -158,13 +158,13 @@ public actor CircuitBreaker {
     private var successCount = 0
     private var lastFailureTime: Date?
     private var state: State = .closed
-    private let logger: FoundationLogger?
+    private let logger: (any FoundationLogger)?
 
     public init(
         failureThreshold: Int = 5,
         recoveryTimeout: TimeInterval = 60.0,
         successThreshold: Int = 2,
-        logger: FoundationLogger? = nil
+        logger: (any FoundationLogger)? = nil
     ) {
         self.failureThreshold = failureThreshold
         self.recoveryTimeout = recoveryTimeout
@@ -179,10 +179,10 @@ public actor CircuitBreaker {
 
         do {
             let result = try await operation()
-            await recordSuccess()
+            recordSuccess()
             return result
         } catch {
-            await recordFailure()
+            recordFailure()
             throw error
         }
     }
@@ -303,14 +303,14 @@ public struct CircuitBreakerMetrics: Sendable {
 // MARK: - Service Operation Executor
 
 public actor ServiceOperationExecutor {
-    private let retryStrategy: RetryStrategy
+    private let retryStrategy: any RetryStrategy
     private let circuitBreaker: CircuitBreaker?
-    private let logger: FoundationLogger?
+    private let logger: (any FoundationLogger)?
 
     public init(
-        retryStrategy: RetryStrategy = ExponentialBackoffRetry(),
+        retryStrategy: any RetryStrategy = ExponentialBackoffRetry(),
         enableCircuitBreaker: Bool = true,
-        logger: FoundationLogger? = nil
+        logger: (any FoundationLogger)? = nil
     ) {
         self.retryStrategy = retryStrategy
         self.logger = logger
@@ -320,7 +320,7 @@ public actor ServiceOperationExecutor {
     /// Execute an operation with retry and circuit breaker protection
     public func execute<T: Sendable>(
         operation: @escaping @Sendable () async throws -> T,
-        shouldRetry: @escaping @Sendable (Error) -> Bool = { error in
+        shouldRetry: @escaping @Sendable (any Error) -> Bool = { error in
             if let serviceError = error as? ServiceError {
                 return serviceError.isRetryable
             }
@@ -349,7 +349,7 @@ public actor ServiceOperationExecutor {
     public func execute<T: Sendable>(
         operation: @escaping @Sendable () async throws -> T,
         maxRetries: Int,
-        shouldRetry: @escaping @Sendable (Error) -> Bool = { error in
+        shouldRetry: @escaping @Sendable (any Error) -> Bool = { error in
             if let serviceError = error as? ServiceError {
                 return serviceError.isRetryable
             }
@@ -389,11 +389,11 @@ public actor ServiceOperationExecutor {
 // MARK: - Convenience Functions
 
 /// Execute an operation with default retry strategy
-public func performWithRetry<T>(
+public func performWithRetry<T: Sendable>(
     operation: @escaping @Sendable () async throws -> T,
     maxRetries: Int = 3,
-    logger: FoundationLogger? = nil,
-    shouldRetry: @escaping @Sendable (Error) -> Bool = { error in
+    logger: (any FoundationLogger)? = nil,
+    shouldRetry: @escaping @Sendable (any Error) -> Bool = { error in
         if let serviceError = error as? ServiceError {
             return serviceError.isRetryable
         }

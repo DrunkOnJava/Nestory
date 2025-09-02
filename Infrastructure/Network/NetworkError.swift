@@ -2,7 +2,7 @@
 
 import Foundation
 
-public enum NetworkError: LocalizedError, Equatable, Sendable {
+public enum NetworkError: Error, LocalizedError, Equatable, Sendable {
     case invalidURL(path: String)
     case noData
     case decodingError(String)

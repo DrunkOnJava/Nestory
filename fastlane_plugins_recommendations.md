@@ -24,14 +24,13 @@ fastlane add_plugin test_center
 - `suppress_tests` - Selectively skip flaky tests
 - `collate_test_result_bundles` - Merge test results from multiple runs
 
-#### `fastlane-plugin-xcov` ⭐⭐
-**Why you need it:**
-- Generate beautiful code coverage reports
-- Track coverage trends over time
-- Perfect for your 80% coverage requirement
+#### ~~`fastlane-plugin-xcov`~~ ❌ DEPRECATED
+**Status**: DOES NOT EXIST - Use built-in xccov instead  
+**Alternative**: Use Xcode's built-in xccov tool directly  
 
 ```bash
-fastlane add_plugin xcov
+# Use xccov directly instead of the non-existent plugin
+xcrun xccov view --report --json result.xcresult > coverage.json
 ```
 
 ### 2. App Store Optimization
@@ -118,14 +117,13 @@ fastlane add_plugin app_store_connect_api
 
 ### 7. Code Quality
 
-#### `fastlane-plugin-swiftlint` ⭐⭐
-**Why you need it:**
-- Integrate SwiftLint into your FastLane pipeline
-- Fail builds on lint errors
-- Ensure consistent code quality
+#### ~~`fastlane-plugin-swiftlint`~~ ❌ DEPRECATED
+**Status**: DOES NOT EXIST - Use built-in SwiftLint instead  
+**Alternative**: Run SwiftLint directly in build scripts or GitHub Actions  
 
 ```bash
-fastlane add_plugin swiftlint
+# Use SwiftLint directly instead of the non-existent plugin
+swiftlint lint --reporter html > swiftlint-report.html
 ```
 
 ## 🎨 Nice-to-Have Plugins
@@ -151,8 +149,8 @@ fastlane add_plugin swiftlint
 ```bash
 # Install critical testing plugins
 fastlane add_plugin test_center
-fastlane add_plugin xcov
 fastlane add_plugin store_sizer
+# Note: xcov plugin does not exist - use built-in xccov instead
 ```
 
 ### Phase 2: Enhanced Distribution (Week 2)

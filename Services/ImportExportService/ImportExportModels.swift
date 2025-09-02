@@ -8,7 +8,7 @@ import Foundation
 
 // MARK: - Import/Export Error Types
 
-public enum ImportError: LocalizedError {
+public enum ImportError: Error, LocalizedError, Sendable {
     case invalidFormat(String)
     case missingRequiredFields([String])
     case parsingError(row: Int, detail: String)

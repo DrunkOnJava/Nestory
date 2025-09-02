@@ -21,13 +21,13 @@ public final class FileStore: @unchecked Sendable {
         var url: URL {
             switch self {
             case .documents:
-                FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+                FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first ?? FileManager.default.temporaryDirectory.appendingPathComponent("Documents")
             case .caches:
-                FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
+                FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first ?? FileManager.default.temporaryDirectory.appendingPathComponent("Caches")
             case .temporary:
                 FileManager.default.temporaryDirectory
             case .applicationSupport:
-                FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+                FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first ?? FileManager.default.temporaryDirectory.appendingPathComponent("ApplicationSupport")
             case let .custom(url):
                 url
             }

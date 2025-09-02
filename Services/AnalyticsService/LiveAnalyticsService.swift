@@ -239,7 +239,7 @@ public struct LiveAnalyticsService: AnalyticsService, Sendable {
             .prefix(10)
             .map(\.self)
 
-        var dashboard = DashboardData(
+        let dashboard = DashboardData(
             totalItems: items.count,
             totalValue: value,
             categoryBreakdowns: categories,

@@ -18,7 +18,7 @@ struct InsuranceExportOptionsView: View {
     @State private var selectedFormat = InsuranceExportService.ExportFormat.standardForm
     @State private var exportOptions = ExportOptions()
     @State private var isExporting = false
-    @State private var exportError: Error?
+    @State private var exportError: (any Error)?
     @State private var showingExportError = false
     @State private var showingShareSheet = false
     @State private var exportedFileURL: URL?

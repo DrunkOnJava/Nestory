@@ -9,7 +9,7 @@ import Foundation
 // Note: EmptyResponse is defined in NetworkClient.swift and imported via Infrastructure layer
 
 // Common error types for App Store Connect services
-enum AppStoreConnectError: LocalizedError {
+enum AppStoreConnectError: Error, LocalizedError {
     case invalidResponse
     case missingData
     case uploadFailed(String)

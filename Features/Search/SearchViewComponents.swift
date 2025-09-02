@@ -14,6 +14,7 @@ public struct TCASearchBarView: View {
     @Binding var text: String
     let isSearching: Bool
     let onCommit: () -> Void
+    @FocusState private var isSearchFieldFocused: Bool
 
     public init(text: Binding<String>, isSearching: Bool, onCommit: @escaping () -> Void) {
         self._text = text
@@ -30,11 +31,16 @@ public struct TCASearchBarView: View {
                 
                 TextField("Search items, categories, notes...", text: $text)
                     .textFieldStyle(PlainTextFieldStyle())
-                    .onSubmit(onCommit)
+                    .focused($isSearchFieldFocused)
+                    .onSubmit {
+                        isSearchFieldFocused = false
+                        onCommit()
+                    }
                 
                 if !text.isEmpty {
                     Button {
                         text = ""
+                        isSearchFieldFocused = false
                     } label: {
                         Image(systemName: "xmark.circle.fill")
                             .foregroundColor(.secondary)
@@ -47,6 +53,15 @@ public struct TCASearchBarView: View {
             .background(Color(.systemGray6))
             .cornerRadius(12)
             
+            if isSearchFieldFocused {
+                Button("Cancel") {
+                    text = ""
+                    isSearchFieldFocused = false
+                }
+                .foregroundColor(.accentColor)
+                .transition(.move(edge: .trailing).combined(with: .opacity))
+            }
+            
             if isSearching {
                 ProgressView()
                     .scaleEffect(0.8)
@@ -54,7 +69,14 @@ public struct TCASearchBarView: View {
             }
         }
         .padding(.horizontal)
+        .animation(.easeInOut(duration: 0.2), value: isSearchFieldFocused)
         .animation(.easeInOut(duration: 0.2), value: isSearching)
+        .onTapGesture {
+            // Dismiss keyboard when tapping outside the search field
+            if isSearchFieldFocused {
+                isSearchFieldFocused = false
+            }
+        }
     }
 }
 

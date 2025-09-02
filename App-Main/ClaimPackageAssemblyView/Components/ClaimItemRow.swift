@@ -59,11 +59,14 @@ public struct ClaimItemRow: View {
 }
 
 #Preview {
-    let item = Item(name: "MacBook Pro", itemDescription: "Laptop", quantity: 1)
-    item.purchasePrice = 2500.00
+    @Previewable @State var sampleItem: Item = {
+        let item = Item(name: "MacBook Pro", itemDescription: "Laptop", quantity: 1)
+        item.purchasePrice = 2500.00
+        return item
+    }()
     
     List {
-        ClaimItemRow(item: item, isSelected: true, onToggle: {})
-        ClaimItemRow(item: item, isSelected: false, onToggle: {})
+        ClaimItemRow(item: sampleItem, isSelected: true, onToggle: {})
+        ClaimItemRow(item: sampleItem, isSelected: false, onToggle: {})
     }
 }

@@ -5,6 +5,10 @@ default_platform(:ios)
 # Import specialized lane files
 import './fastlane/CoverageValidation.rb'
 
+# Environment configuration for CI predictability
+ENV["FASTLANE_SKIP_UPDATE_CHECK"] = "1"
+ENV["LC_ALL"] = "C"
+
 # ---- Shared config via ENV (override with `.env` or lane options) ----
 APP_IDENTIFIER   = ENV['APP_IDENTIFIER']   || 'com.drunkonjava.nestory'
 SCHEME           = ENV['SCHEME']           || 'Nestory-Dev'
@@ -1172,6 +1176,12 @@ platform :ios do
       UI.user_error!("App Store Connect API credentials not configured. Set ASC_KEY_ID, ASC_ISSUER_ID, and ASC_KEY_CONTENT")
     end
   end
+  
+  def require_asc!
+    missing = %w[ASC_KEY_ID ASC_ISSUER_ID].reject { |k| ENV[k].to_s.strip != "" }
+    missing << "ASC_KEY_CONTENT or ASC_KEY_PATH" if (ENV["ASC_KEY_CONTENT"].to_s + ENV["ASC_KEY_PATH"].to_s).strip.empty?
+    UI.user_error!("Missing credentials: #{missing.join(', ')}") unless missing.empty?
+  end
 
   private_lane :load_app_description do
     description_file = "fastlane/metadata/en-US/description.txt"
@@ -1188,9 +1198,14 @@ platform :ios do
     archives_dir = File.expand_path("~/Library/Developer/Xcode/Archives")
     return nil unless Dir.exist?(archives_dir)
     
-    # Find the most recent .xcarchive
-    archives = Dir.glob("#{archives_dir}/**/*.xcarchive").sort_by { |f| File.mtime(f) }
-    latest = archives.last
+    # Find all .xcarchive files
+    archives = Dir.glob("#{archives_dir}/**/*.xcarchive")
+    
+    # Filter by scheme if available
+    archives.select! { |p| File.basename(p).include?(SCHEME) } if SCHEME && !SCHEME.empty?
+    
+    # Get the most recent archive
+    latest = archives.max_by { |f| File.mtime(f) }
     
     if latest
       UI.message "📦 Auto-discovered latest archive: #{File.basename(latest)}"
@@ -1202,8 +1217,8 @@ platform :ios do
   
   desc "Direct upload to TestFlight with existing IPA"
   lane :upload_direct do |opts|
-    # Ensure ASC API credentials are configured
-    UI.user_error!("ASC API not configured; set ASC_KEY_ID/ASC_ISSUER_ID/ASC_KEY_CONTENT or ASC_KEY_PATH") unless ASC_KEY_ID && ASC_ISSUER_ID && (ASC_KEY_CONTENT || ENV['ASC_KEY_PATH'])
+    # Preflight credential check with clear error message
+    require_asc!
     
     # Configure App Store Connect API using environment-driven helper
     asc_api_key
@@ -1232,6 +1247,9 @@ platform :ios do
   # ------------------------------
   desc "Upload current archive to TestFlight"
   lane :upload_current_archive do |opts|
+    # Preflight credential check with clear error message
+    require_asc!
+    
     # Archive path - prefer environment variable, fallback to discovery or user input
     archive_path = opts[:archive_path] || ENV['ARCHIVE_PATH'] || discover_latest_archive
     
@@ -1243,9 +1261,6 @@ platform :ios do
     UI.user_error!("Archive not found at #{archive_path}") unless File.directory?(archive_path)
     
     UI.success "✅ Archive verified!"
-    
-    # Ensure ASC API credentials are configured
-    UI.user_error!("ASC API not configured; set ASC_KEY_ID/ASC_ISSUER_ID/ASC_KEY_CONTENT or ASC_KEY_PATH") unless ASC_KEY_ID && ASC_ISSUER_ID && (ASC_KEY_CONTENT || ENV['ASC_KEY_PATH'])
     
     # Configure App Store Connect API using environment-driven helper
     asc_api_key

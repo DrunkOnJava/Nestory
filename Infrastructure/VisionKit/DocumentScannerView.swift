@@ -71,7 +71,7 @@ public struct DocumentScannerView: UIViewControllerRepresentable {
 
         public func documentCameraViewController(
             _: VNDocumentCameraViewController,
-            didFailWithError _: Error,
+            didFailWithError _: any Error,
         ) {
             Task { @MainActor in
                 self.handleDismiss()

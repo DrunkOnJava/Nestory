@@ -78,14 +78,14 @@ extension Log {
     ///   - statusCode: Response status code (optional)
     ///   - duration: Request duration in seconds (optional)
     ///   - responseSize: Response size in bytes (optional)
-    ///   - error: Error if request failed (optional)
+    ///   - error: any Error if request failed (optional)
     public func networkRequest(
         method: String,
         url: String,
         statusCode: Int? = nil,
         duration: TimeInterval? = nil,
         responseSize: Int? = nil,
-        error: Error? = nil,
+        error: (any Error)? = nil,
     ) {
         let logger = logger(for: .network)
 
@@ -116,14 +116,14 @@ extension Log {
     ///   - table: Table or entity name (optional)
     ///   - duration: Operation duration in seconds (optional)
     ///   - rowsAffected: Number of rows affected (optional)
-    ///   - error: Error if operation failed (optional)
+    ///   - error: any Error if operation failed (optional)
     ///   - metadata: Additional metadata (optional)
     public func databaseOperation(
         _ operation: String,
         table: String? = nil,
         duration: TimeInterval? = nil,
         rowsAffected: Int? = nil,
-        error: Error? = nil,
+        error: (any Error)? = nil,
         metadata: [String: Any]? = nil,
     ) {
         let logger = logger(for: .database)

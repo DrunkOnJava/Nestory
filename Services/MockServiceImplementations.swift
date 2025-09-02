@@ -261,7 +261,10 @@ class MockWarrantyTrackingService: WarrantyTrackingService, Sendable {
     func updateWarrantiesFromReceipts() async throws -> Int { 0 }
 }
 
+@MainActor
 struct MockDamageAssessmentService: DamageAssessmentServiceProtocol, Sendable {
+    var isLoading: Bool { false }
+    
     func createAssessment(for item: Item, damageType: DamageType, incidentDescription: String) async throws -> DamageAssessmentWorkflow {
         let assessment = DamageAssessment(
             itemId: item.id,

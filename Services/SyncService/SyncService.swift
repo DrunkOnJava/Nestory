@@ -199,12 +199,12 @@ public struct SyncOperation: Sendable, Identifiable {
 /// Sync record with metadata
 public struct SyncRecord: Sendable {
     public let id: String
-    public let data: [String: Sendable]
+    public let data: [String: any Sendable]
     public let lastModified: Date
     public let version: Int
     public let checksum: String
     
-    public init(id: String, data: [String: Sendable], lastModified: Date, version: Int, checksum: String) {
+    public init(id: String, data: [String: any Sendable], lastModified: Date, version: Int, checksum: String) {
         self.id = id
         self.data = data
         self.lastModified = lastModified
@@ -252,7 +252,7 @@ public struct SyncStatistics: Sendable {
 
 // MARK: - Error Types
 
-public enum SyncError: LocalizedError, Sendable {
+public enum SyncError: Error, LocalizedError, Sendable {
     case networkUnavailable
     case authenticationRequired
     case serverError(String)

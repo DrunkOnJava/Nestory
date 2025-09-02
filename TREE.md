@@ -1,10 +1,11 @@
 # Project Structure
 
-_Last updated: 2025-08-26 20:09:45_
+_Last updated: 2025-09-02 02:53:03_
 
 ```
 [01;34m.[0m
 ├── [01;34mApp-Main[0m
+│   ├── [01;34mAdvancedSearch[0m
 │   ├── [01;34mAnalyticsViews[0m
 │   │   ├── AnalyticsCharts.swift
 │   │   ├── AnalyticsDataProvider.swift
@@ -171,7 +172,6 @@ _Last updated: 2025-08-26 20:09:45_
 │   │   ├── DamageAssessmentComponents.swift
 │   │   ├── DamageAssessmentCore.swift
 │   │   ├── DamageAssessmentReportView.swift
-│   │   ├── DamageAssessmentReportView.swift.backup
 │   │   ├── DamageAssessmentSteps.swift
 │   │   ├── DamageAssessmentWorkflowView.swift
 │   │   ├── DamageSeverityAssessmentView.swift
@@ -265,11 +265,9 @@ _Last updated: 2025-08-26 20:09:45_
 │   │   ├── WarrantyStatusCalculator.swift
 │   │   ├── WarrantySubviews.swift
 │   │   └── WarrantyTrackingView.swift
-│   ├── AddItemView.swift
 │   ├── AdvancedSearchView.swift
 │   ├── BarcodeScannerView.swift
 │   ├── CaptureView.swift
-│   ├── CategoriesView.swift
 │   ├── ClaimExportView.swift
 │   ├── ClaimPackageAssemblyView.swift
 │   ├── ClaimPreviewView.swift
@@ -287,6 +285,7 @@ _Last updated: 2025-08-26 20:09:45_
 │   ├── LiveReceiptScannerView.swift
 │   ├── ManualBarcodeEntryView.swift
 │   ├── NavigationRouter.swift
+│   ├── Nestory-Dev.entitlements
 │   ├── Nestory.entitlements
 │   ├── NestoryApp.swift
 │   ├── PhotoCaptureView.swift
@@ -331,33 +330,6 @@ _Last updated: 2025-08-26 20:09:45_
 ├── [01;34mAssets[0m
 │   └── [01;34mIcons[0m
 │       └── [01;35mAppIcon.png[0m
-├── [01;34mBuild Nestory-Dev_2025-08-24T23-09-45.xcresult[0m
-│   ├── [01;34mData[0m
-│   │   ├── data.0~7YQ_MLyAqo7ri2cXac82gdkL22g_WyezLK_hq7MveL7My3jTsZvQFal3MxLv3ERhY-5enwx5PXE8wwVb18L0pg==
-│   │   ├── data.0~ElKWofrgaY7W2t_qKuOnu4cp3j05HBrr2j0u3lKiSC5uhYEaZXLa_3vcdECxey1DzUGN9b_R05_SjYoFwYzlKA==
-│   │   ├── data.0~MLuS0mc1vHporETNbUVAv7PH6fbFGMK6By8lZQcozXEfPOUIzILWGCy2pH8BKzW6X72kidpCKab697Avn33lUQ==
-│   │   ├── refs.0~7YQ_MLyAqo7ri2cXac82gdkL22g_WyezLK_hq7MveL7My3jTsZvQFal3MxLv3ERhY-5enwx5PXE8wwVb18L0pg==
-│   │   ├── refs.0~ElKWofrgaY7W2t_qKuOnu4cp3j05HBrr2j0u3lKiSC5uhYEaZXLa_3vcdECxey1DzUGN9b_R05_SjYoFwYzlKA==
-│   │   └── refs.0~MLuS0mc1vHporETNbUVAv7PH6fbFGMK6By8lZQcozXEfPOUIzILWGCy2pH8BKzW6X72kidpCKab697Avn33lUQ==
-│   └── Info.plist
-├── [01;34mBuild Nestory-Dev_2025-08-26T08-02-40.xcresult[0m
-│   ├── [01;34mData[0m
-│   │   ├── data.0~D8nMEh_M0LshtqVgufG4G4FtWqpeEZ0O6z8Qi1e9VHVBi9Fm0S6d0E_vtwnbPb-6MRXVf1UhK4V9jRuf6MUI1Q==
-│   │   ├── data.0~JhMbfL2XmADSRnjCQUsK06zA3YMOBPWKpddxS_mJb1987evhxs809HlDH8QuLt2b0knWHtPrPhYYKWksqVLH-Q==
-│   │   ├── data.0~vI86MBufssvIr7fpFKlMEPrZ2UPu_yICitll-ILXu-Eqo3rAtaqYM0TpIOCeOFP303G-UXBcEAOgmRs3PJwPwQ==
-│   │   ├── refs.0~D8nMEh_M0LshtqVgufG4G4FtWqpeEZ0O6z8Qi1e9VHVBi9Fm0S6d0E_vtwnbPb-6MRXVf1UhK4V9jRuf6MUI1Q==
-│   │   ├── refs.0~JhMbfL2XmADSRnjCQUsK06zA3YMOBPWKpddxS_mJb1987evhxs809HlDH8QuLt2b0knWHtPrPhYYKWksqVLH-Q==
-│   │   └── refs.0~vI86MBufssvIr7fpFKlMEPrZ2UPu_yICitll-ILXu-Eqo3rAtaqYM0TpIOCeOFP303G-UXBcEAOgmRs3PJwPwQ==
-│   └── Info.plist
-├── [01;34mBuild Nestory-Prod_2025-08-21T23-12-46.xcresult[0m
-│   ├── [01;34mData[0m
-│   │   ├── data.0~GFXXcyxcbzYnBO9L2RXnA6zyfOsVUS6550FeHMo8hyrNIRCXt1lxmG6YfMFzF61GBMuXUjLkkE_Xf76Etp5abA==
-│   │   ├── data.0~K5Q6HRt4Pr67KyOvy1fGcV6w44GkWgvcJM4loj9SeUG3YRuOJihe56c_flRY0yqH8Bd5tQueyfDCQ7vHwe8ApA==
-│   │   ├── data.0~zW6qUCHSMumkKZzjOn9Xelo3jixiPF7yGWyKn0vTcMKO8aB6vHWuimvETkzhM8mCRXpidRrxenEHrAHRaKJfKA==
-│   │   ├── refs.0~GFXXcyxcbzYnBO9L2RXnA6zyfOsVUS6550FeHMo8hyrNIRCXt1lxmG6YfMFzF61GBMuXUjLkkE_Xf76Etp5abA==
-│   │   ├── refs.0~K5Q6HRt4Pr67KyOvy1fGcV6w44GkWgvcJM4loj9SeUG3YRuOJihe56c_flRY0yqH8Bd5tQueyfDCQ7vHwe8ApA==
-│   │   └── refs.0~zW6qUCHSMumkKZzjOn9Xelo3jixiPF7yGWyKn0vTcMKO8aB6vHWuimvETkzhM8mCRXpidRrxenEHrAHRaKJfKA==
-│   └── Info.plist
 ├── [01;34mConfig[0m
 │   ├── [01;34mStoreKit[0m
 │   │   └── StoreKitConfiguration.storekit
@@ -398,10 +370,12 @@ _Last updated: 2025-08-26 20:09:45_
 │   ├── [01;32menhanced-pre-commit.sh[0m
 │   └── [01;32minstall_hooks.sh[0m
 ├── [01;34mdocs[0m
-│   └── [01;34madr[0m
-│       ├── ADR-001-tca-state-management.md
-│       ├── ADR-002-swiftdata-persistence.md
-│       └── ADR-003-six-layer-architecture.md
+│   ├── [01;34madr[0m
+│   │   ├── ADR-001-tca-state-management.md
+│   │   ├── ADR-002-swiftdata-persistence.md
+│   │   └── ADR-003-six-layer-architecture.md
+│   └── [01;34mreports[0m
+│       └── ARCHAEOLOGICAL_LAYERS.md
 ├── [01;34mDocumentation[0m
 │   ├── CRITICAL_FIXES_AUDIT_TEMPLATE.md
 │   ├── CRITICAL_FIXES_COMPLETION_REPORT.md
@@ -433,6 +407,7 @@ _Last updated: 2025-08-26 20:09:45_
 │   ├── Deliverfile
 │   ├── ExportOptions.plist
 │   ├── Fastfile
+│   ├── Gemfile.lock
 │   ├── Pluginfile
 │   ├── rating_config.json
 │   ├── README.md
@@ -452,7 +427,6 @@ _Last updated: 2025-08-26 20:09:45_
 │   │   ├── CategoriesView.swift
 │   │   └── CategoryFeature.swift
 │   ├── [01;34mInventory[0m
-│   │   ├── InventoryFeature-Refactored.swift
 │   │   ├── InventoryFeature.swift
 │   │   ├── InventoryView.swift
 │   │   ├── ItemDetailFeature.swift
@@ -488,12 +462,18 @@ _Last updated: 2025-08-26 20:09:45_
 │       │   │   └── SettingsTypes.swift
 │       │   ├── [01;34mUtils[0m
 │       │   │   └── SettingsUtils.swift
+│       │   ├── CloudStorageComponent.swift
+│       │   ├── CurrencyConverterComponent.swift
+│       │   ├── HelperViewsComponent.swift
+│       │   ├── InsuranceClaimsComponent.swift
+│       │   ├── NotificationSettingsComponent.swift
+│       │   ├── ReceiptProcessingComponent.swift
 │       │   ├── SettingsIndex.swift
 │       │   ├── SettingsReceiptComponents.swift
 │       │   ├── SettingsViewComponents.swift
+│       │   ├── SupportComponent.swift
 │       │   └── ThemeComponents.swift
 │       ├── SettingsFeature.swift
-│       ├── SettingsFeature.swift.backup
 │       └── SettingsView.swift
 ├── [01;34mFoundation[0m
 │   ├── [01;34mCore[0m
@@ -525,6 +505,7 @@ _Last updated: 2025-08-26 20:09:45_
 │   │   ├── AnalyticsModels.swift
 │   │   ├── AuthTypes.swift
 │   │   ├── BackupMetadata.swift
+│   │   ├── BarcodeModels.swift
 │   │   ├── Category.swift
 │   │   ├── ClaimInfo.swift
 │   │   ├── CorrespondenceTypes.swift
@@ -588,6 +569,7 @@ _Last updated: 2025-08-26 20:09:45_
 │   │   └── PerformanceProfiler.swift
 │   ├── [01;34mPhotos[0m
 │   │   └── PhotoPicker.swift
+│   ├── [01;34mQuality[0m
 │   ├── [01;34mSecurity[0m
 │   │   ├── CryptoBox.swift
 │   │   ├── KeychainStore.swift
@@ -608,11 +590,9 @@ _Last updated: 2025-08-26 20:09:45_
 │   ├── [01;34malerts[0m
 │   │   ├── build-health.yml
 │   │   └── critical-build-health.yml
-│   ├── [01;34mbuild-logs[0m
 │   ├── [01;34mconfig[0m
 │   │   ├── [01;34mschemas[0m
 │   │   │   └── environments-schema.json
-│   │   ├── [01;34mversions[0m
 │   │   ├── environments.json
 │   │   ├── grafana.json
 │   │   ├── prometheus-recording-rules.yml
@@ -748,7 +728,6 @@ _Last updated: 2025-08-26 20:09:45_
 │   │   ├── tls_test.go
 │   │   ├── tools_test.go
 │   │   └── tools.go
-│   ├── [01;34mpromtail-config.yml[0m
 │   ├── [01;34mscripts[0m
 │   │   ├── [01;32mauth_integration.py[0m
 │   │   ├── [01;32mcollect-metrics-fixed.sh[0m
@@ -822,11 +801,6 @@ _Last updated: 2025-08-26 20:09:45_
 │   ├── [01;32mtest-mcp.sh[0m
 │   └── [01;32mupload-dashboard.sh[0m
 ├── [01;34mNestory.xcodeproj[0m
-│   ├── [01;34mNestory.xcodeproj[0m
-│   │   ├── [01;34mxcshareddata[0m
-│   │   │   └── [01;34mxcschemes[0m
-│   │   │       └── Nestory-Dev.xcscheme
-│   │   └── project.pbxproj
 │   ├── [01;34mxcshareddata[0m
 │   │   └── [01;34mxcschemes[0m
 │   │       ├── Nestory-Accessibility.xcscheme
@@ -845,6 +819,19 @@ _Last updated: 2025-08-26 20:09:45_
 │   │   └── StorageTests.swift
 │   └── NestoryTests.swift
 ├── [01;34mNestoryUITests[0m
+│   ├── [01;34mAccessibilityTests[0m
+│   │   └── AccessibilityTests.swift
+│   ├── [01;34mBase[0m
+│   │   └── BaseTest.swift
+│   ├── [01;34mCore[0m
+│   │   └── [01;34mFramework[0m
+│   │       └── TestFramework.swift
+│   ├── [01;34mExtensions[0m
+│   │   └── Extensions.swift
+│   ├── [01;34mHelpers[0m
+│   │   └── Helpers.swift
+│   ├── [01;34mPerformanceTests[0m
+│   │   └── PerformanceTests.swift
 │   └── CriticalPathUITests.swift
 ├── [01;34mproject-visualization[0m
 │   ├── [01;34moutputs[0m
@@ -860,7 +847,294 @@ _Last updated: 2025-08-26 20:09:45_
 │   ├── baseline-metrics.json
 │   ├── current-metrics.json
 │   └── metrics-history.jsonl
+├── [01;34mScreenshots[0m
+│   ├── [01;34marchive[0m
+│   ├── [01;34mcalibration[0m
+│   │   └── [01;35mcalibration-initial-20250831-172428.png[0m
+│   ├── [01;34mcoordinate-test[0m
+│   ├── [01;34mgeneral[0m
+│   ├── [01;34mnavigation[0m
+│   │   ├── [01;35mcalibration-analytics-tab-corrected-20250831-172445.png[0m
+│   │   ├── [01;35mcalibration-capture-tab-corrected-20250831-172441.png[0m
+│   │   ├── [01;35mcalibration-inventory-tab-corrected-20250831-172433.png[0m
+│   │   ├── [01;35mcalibration-search-tab-corrected-20250831-172437.png[0m
+│   │   ├── [01;35mcalibration-settings-tab-corrected-20250831-172449.png[0m
+│   │   ├── [01;35menhanced-navigation-analytics-verification-20250831-174325.png[0m
+│   │   ├── enhanced-navigation-analytics-verification-20250831-174325.png.meta
+│   │   ├── [01;35menhanced-navigation-analytics-verification-20250831-174329.png[0m
+│   │   ├── enhanced-navigation-analytics-verification-20250831-174329.png.meta
+│   │   ├── [01;35menhanced-navigation-analytics-verification-20250831-174333.png[0m
+│   │   ├── enhanced-navigation-analytics-verification-20250831-174333.png.meta
+│   │   ├── [01;35menhanced-navigation-analytics-verification-20250831-174828.png[0m
+│   │   ├── enhanced-navigation-analytics-verification-20250831-174828.png.meta
+│   │   ├── [01;35menhanced-navigation-analytics-verification-20250831-174832.png[0m
+│   │   ├── enhanced-navigation-analytics-verification-20250831-174832.png.meta
+│   │   ├── [01;35menhanced-navigation-analytics-verification-20250831-174836.png[0m
+│   │   ├── enhanced-navigation-analytics-verification-20250831-174836.png.meta
+│   │   ├── [01;35menhanced-navigation-analytics-verification-20250831-175104.png[0m
+│   │   ├── enhanced-navigation-analytics-verification-20250831-175104.png.meta
+│   │   ├── [01;35menhanced-navigation-analytics-verification-20250831-175108.png[0m
+│   │   ├── enhanced-navigation-analytics-verification-20250831-175108.png.meta
+│   │   ├── [01;35menhanced-navigation-analytics-verification-20250831-175111.png[0m
+│   │   ├── enhanced-navigation-analytics-verification-20250831-175111.png.meta
+│   │   ├── [01;35menhanced-navigation-capture-verification-20250831-174310.png[0m
+│   │   ├── enhanced-navigation-capture-verification-20250831-174310.png.meta
+│   │   ├── [01;35menhanced-navigation-capture-verification-20250831-174313.png[0m
+│   │   ├── enhanced-navigation-capture-verification-20250831-174313.png.meta
+│   │   ├── [01;35menhanced-navigation-capture-verification-20250831-174317.png[0m
+│   │   ├── enhanced-navigation-capture-verification-20250831-174317.png.meta
+│   │   ├── [01;35menhanced-navigation-capture-verification-20250831-174813.png[0m
+│   │   ├── enhanced-navigation-capture-verification-20250831-174813.png.meta
+│   │   ├── [01;35menhanced-navigation-capture-verification-20250831-174816.png[0m
+│   │   ├── enhanced-navigation-capture-verification-20250831-174816.png.meta
+│   │   ├── [01;35menhanced-navigation-capture-verification-20250831-174820.png[0m
+│   │   ├── enhanced-navigation-capture-verification-20250831-174820.png.meta
+│   │   ├── [01;35menhanced-navigation-capture-verification-20250831-175048.png[0m
+│   │   ├── enhanced-navigation-capture-verification-20250831-175048.png.meta
+│   │   ├── [01;35menhanced-navigation-capture-verification-20250831-175052.png[0m
+│   │   ├── enhanced-navigation-capture-verification-20250831-175052.png.meta
+│   │   ├── [01;35menhanced-navigation-capture-verification-20250831-175056.png[0m
+│   │   ├── enhanced-navigation-capture-verification-20250831-175056.png.meta
+│   │   ├── [01;35menhanced-navigation-inventory-verification-20250831-174237.png[0m
+│   │   ├── enhanced-navigation-inventory-verification-20250831-174237.png.meta
+│   │   ├── [01;35menhanced-navigation-inventory-verification-20250831-174241.png[0m
+│   │   ├── enhanced-navigation-inventory-verification-20250831-174241.png.meta
+│   │   ├── [01;35menhanced-navigation-inventory-verification-20250831-174245.png[0m
+│   │   ├── enhanced-navigation-inventory-verification-20250831-174245.png.meta
+│   │   ├── [01;35menhanced-navigation-inventory-verification-20250831-174740.png[0m
+│   │   ├── enhanced-navigation-inventory-verification-20250831-174740.png.meta
+│   │   ├── [01;35menhanced-navigation-inventory-verification-20250831-174744.png[0m
+│   │   ├── enhanced-navigation-inventory-verification-20250831-174744.png.meta
+│   │   ├── [01;35menhanced-navigation-inventory-verification-20250831-174749.png[0m
+│   │   ├── enhanced-navigation-inventory-verification-20250831-174749.png.meta
+│   │   ├── [01;35menhanced-navigation-inventory-verification-20250831-175016.png[0m
+│   │   ├── enhanced-navigation-inventory-verification-20250831-175016.png.meta
+│   │   ├── [01;35menhanced-navigation-inventory-verification-20250831-175020.png[0m
+│   │   ├── enhanced-navigation-inventory-verification-20250831-175020.png.meta
+│   │   ├── [01;35menhanced-navigation-inventory-verification-20250831-175024.png[0m
+│   │   ├── enhanced-navigation-inventory-verification-20250831-175024.png.meta
+│   │   ├── [01;35menhanced-navigation-search-verification-20250831-174254.png[0m
+│   │   ├── enhanced-navigation-search-verification-20250831-174254.png.meta
+│   │   ├── [01;35menhanced-navigation-search-verification-20250831-174258.png[0m
+│   │   ├── enhanced-navigation-search-verification-20250831-174258.png.meta
+│   │   ├── [01;35menhanced-navigation-search-verification-20250831-174301.png[0m
+│   │   ├── enhanced-navigation-search-verification-20250831-174301.png.meta
+│   │   ├── [01;35menhanced-navigation-search-verification-20250831-174757.png[0m
+│   │   ├── enhanced-navigation-search-verification-20250831-174757.png.meta
+│   │   ├── [01;35menhanced-navigation-search-verification-20250831-174801.png[0m
+│   │   ├── enhanced-navigation-search-verification-20250831-174801.png.meta
+│   │   ├── [01;35menhanced-navigation-search-verification-20250831-174804.png[0m
+│   │   ├── enhanced-navigation-search-verification-20250831-174804.png.meta
+│   │   ├── [01;35menhanced-navigation-search-verification-20250831-175033.png[0m
+│   │   ├── enhanced-navigation-search-verification-20250831-175033.png.meta
+│   │   ├── [01;35menhanced-navigation-search-verification-20250831-175036.png[0m
+│   │   ├── enhanced-navigation-search-verification-20250831-175036.png.meta
+│   │   ├── [01;35menhanced-navigation-search-verification-20250831-175040.png[0m
+│   │   ├── enhanced-navigation-search-verification-20250831-175040.png.meta
+│   │   ├── [01;35menhanced-navigation-settings-verification-20250831-174341.png[0m
+│   │   ├── enhanced-navigation-settings-verification-20250831-174341.png.meta
+│   │   ├── [01;35menhanced-navigation-settings-verification-20250831-174346.png[0m
+│   │   ├── enhanced-navigation-settings-verification-20250831-174346.png.meta
+│   │   ├── [01;35menhanced-navigation-settings-verification-20250831-174349.png[0m
+│   │   ├── enhanced-navigation-settings-verification-20250831-174349.png.meta
+│   │   ├── [01;35menhanced-navigation-settings-verification-20250831-174844.png[0m
+│   │   ├── enhanced-navigation-settings-verification-20250831-174844.png.meta
+│   │   ├── [01;35menhanced-navigation-settings-verification-20250831-174848.png[0m
+│   │   ├── enhanced-navigation-settings-verification-20250831-174848.png.meta
+│   │   ├── [01;35menhanced-navigation-settings-verification-20250831-174852.png[0m
+│   │   ├── enhanced-navigation-settings-verification-20250831-174852.png.meta
+│   │   ├── [01;35menhanced-navigation-settings-verification-20250831-175120.png[0m
+│   │   ├── enhanced-navigation-settings-verification-20250831-175120.png.meta
+│   │   ├── [01;35menhanced-navigation-settings-verification-20250831-175124.png[0m
+│   │   ├── enhanced-navigation-settings-verification-20250831-175124.png.meta
+│   │   ├── [01;35menhanced-navigation-settings-verification-20250831-175128.png[0m
+│   │   ├── enhanced-navigation-settings-verification-20250831-175128.png.meta
+│   │   ├── [01;35mreliable-analytics-tab-20250831-172736.png[0m
+│   │   ├── [01;35mreliable-capture-tab-20250831-172757.png[0m
+│   │   ├── [01;35mreliable-inventory-tab-20250831-172746.png[0m
+│   │   └── [01;35mreliable-settings-tab-20250831-172807.png[0m
+│   ├── [01;34mthumbs[0m
+│   │   ├── [01;35menhanced-navigation-analytics-verification-20250831-174325.png[0m
+│   │   ├── [01;35menhanced-navigation-analytics-verification-20250831-174329.png[0m
+│   │   ├── [01;35menhanced-navigation-analytics-verification-20250831-174333.png[0m
+│   │   ├── [01;35menhanced-navigation-analytics-verification-20250831-174828.png[0m
+│   │   ├── [01;35menhanced-navigation-analytics-verification-20250831-174832.png[0m
+│   │   ├── [01;35menhanced-navigation-analytics-verification-20250831-174836.png[0m
+│   │   ├── [01;35menhanced-navigation-analytics-verification-20250831-175104.png[0m
+│   │   ├── [01;35menhanced-navigation-analytics-verification-20250831-175108.png[0m
+│   │   ├── [01;35menhanced-navigation-analytics-verification-20250831-175111.png[0m
+│   │   ├── [01;35menhanced-navigation-analytics-verification-20250831-184754.png[0m
+│   │   ├── [01;35menhanced-navigation-analytics-verification-20250831-184800.png[0m
+│   │   ├── [01;35menhanced-navigation-analytics-verification-20250831-184805.png[0m
+│   │   ├── [01;35menhanced-navigation-analytics-verification-20250831-190553.png[0m
+│   │   ├── [01;35menhanced-navigation-analytics-verification-20250831-190557.png[0m
+│   │   ├── [01;35menhanced-navigation-analytics-verification-20250831-190600.png[0m
+│   │   ├── [01;35menhanced-navigation-capture-verification-20250831-174310.png[0m
+│   │   ├── [01;35menhanced-navigation-capture-verification-20250831-174313.png[0m
+│   │   ├── [01;35menhanced-navigation-capture-verification-20250831-174317.png[0m
+│   │   ├── [01;35menhanced-navigation-capture-verification-20250831-174813.png[0m
+│   │   ├── [01;35menhanced-navigation-capture-verification-20250831-174816.png[0m
+│   │   ├── [01;35menhanced-navigation-capture-verification-20250831-174820.png[0m
+│   │   ├── [01;35menhanced-navigation-capture-verification-20250831-175048.png[0m
+│   │   ├── [01;35menhanced-navigation-capture-verification-20250831-175052.png[0m
+│   │   ├── [01;35menhanced-navigation-capture-verification-20250831-175056.png[0m
+│   │   ├── [01;35menhanced-navigation-capture-verification-20250831-184732.png[0m
+│   │   ├── [01;35menhanced-navigation-capture-verification-20250831-184737.png[0m
+│   │   ├── [01;35menhanced-navigation-capture-verification-20250831-184742.png[0m
+│   │   ├── [01;35menhanced-navigation-capture-verification-20250831-190539.png[0m
+│   │   ├── [01;35menhanced-navigation-capture-verification-20250831-190542.png[0m
+│   │   ├── [01;35menhanced-navigation-capture-verification-20250831-190545.png[0m
+│   │   ├── [01;35menhanced-navigation-inventory-verification-20250831-174237.png[0m
+│   │   ├── [01;35menhanced-navigation-inventory-verification-20250831-174241.png[0m
+│   │   ├── [01;35menhanced-navigation-inventory-verification-20250831-174245.png[0m
+│   │   ├── [01;35menhanced-navigation-inventory-verification-20250831-174740.png[0m
+│   │   ├── [01;35menhanced-navigation-inventory-verification-20250831-174744.png[0m
+│   │   ├── [01;35menhanced-navigation-inventory-verification-20250831-174749.png[0m
+│   │   ├── [01;35menhanced-navigation-inventory-verification-20250831-175016.png[0m
+│   │   ├── [01;35menhanced-navigation-inventory-verification-20250831-175020.png[0m
+│   │   ├── [01;35menhanced-navigation-inventory-verification-20250831-175024.png[0m
+│   │   ├── [01;35menhanced-navigation-inventory-verification-20250831-184645.png[0m
+│   │   ├── [01;35menhanced-navigation-inventory-verification-20250831-184651.png[0m
+│   │   ├── [01;35menhanced-navigation-inventory-verification-20250831-184656.png[0m
+│   │   ├── [01;35menhanced-navigation-inventory-verification-20250831-190509.png[0m
+│   │   ├── [01;35menhanced-navigation-inventory-verification-20250831-190512.png[0m
+│   │   ├── [01;35menhanced-navigation-inventory-verification-20250831-190516.png[0m
+│   │   ├── [01;35menhanced-navigation-inventory-verification-20250831-191532.png[0m
+│   │   ├── [01;35menhanced-navigation-inventory-verification-20250831-191537.png[0m
+│   │   ├── [01;35menhanced-navigation-inventory-verification-20250831-191541.png[0m
+│   │   ├── [01;35menhanced-navigation-inventory-verification-20250831-191652.png[0m
+│   │   ├── [01;35menhanced-navigation-search-verification-20250831-174254.png[0m
+│   │   ├── [01;35menhanced-navigation-search-verification-20250831-174258.png[0m
+│   │   ├── [01;35menhanced-navigation-search-verification-20250831-174301.png[0m
+│   │   ├── [01;35menhanced-navigation-search-verification-20250831-174757.png[0m
+│   │   ├── [01;35menhanced-navigation-search-verification-20250831-174801.png[0m
+│   │   ├── [01;35menhanced-navigation-search-verification-20250831-174804.png[0m
+│   │   ├── [01;35menhanced-navigation-search-verification-20250831-175033.png[0m
+│   │   ├── [01;35menhanced-navigation-search-verification-20250831-175036.png[0m
+│   │   ├── [01;35menhanced-navigation-search-verification-20250831-175040.png[0m
+│   │   ├── [01;35menhanced-navigation-search-verification-20250831-184709.png[0m
+│   │   ├── [01;35menhanced-navigation-search-verification-20250831-184714.png[0m
+│   │   ├── [01;35menhanced-navigation-search-verification-20250831-184719.png[0m
+│   │   ├── [01;35menhanced-navigation-search-verification-20250831-190524.png[0m
+│   │   ├── [01;35menhanced-navigation-search-verification-20250831-190528.png[0m
+│   │   ├── [01;35menhanced-navigation-search-verification-20250831-190531.png[0m
+│   │   ├── [01;35menhanced-navigation-search-verification-20250831-191549.png[0m
+│   │   ├── [01;35menhanced-navigation-search-verification-20250831-191553.png[0m
+│   │   ├── [01;35menhanced-navigation-search-verification-20250831-191556.png[0m
+│   │   ├── [01;35menhanced-navigation-search-verification-20250831-191700.png[0m
+│   │   ├── [01;35menhanced-navigation-settings-verification-20250831-174341.png[0m
+│   │   ├── [01;35menhanced-navigation-settings-verification-20250831-174346.png[0m
+│   │   ├── [01;35menhanced-navigation-settings-verification-20250831-174349.png[0m
+│   │   ├── [01;35menhanced-navigation-settings-verification-20250831-174844.png[0m
+│   │   ├── [01;35menhanced-navigation-settings-verification-20250831-174848.png[0m
+│   │   ├── [01;35menhanced-navigation-settings-verification-20250831-174852.png[0m
+│   │   ├── [01;35menhanced-navigation-settings-verification-20250831-175120.png[0m
+│   │   ├── [01;35menhanced-navigation-settings-verification-20250831-175124.png[0m
+│   │   ├── [01;35menhanced-navigation-settings-verification-20250831-175128.png[0m
+│   │   ├── [01;35menhanced-navigation-settings-verification-20250831-184818.png[0m
+│   │   ├── [01;35menhanced-navigation-settings-verification-20250831-184823.png[0m
+│   │   └── [01;35menhanced-navigation-settings-verification-20250831-184828.png[0m
+│   ├── [01;35m01-inventory-main-20250831-170256.png[0m
+│   ├── [01;35m02-item-detail-20250831-170300.png[0m
+│   ├── [01;35m03-add-item-sheet-20250831-170308.png[0m
+│   ├── [01;35m04-search-view-20250831-170314.png[0m
+│   ├── [01;35m05-search-active-20250831-170318.png[0m
+│   ├── [01;35m06-analytics-view-20250831-170323.png[0m
+│   ├── [01;35m07-settings-view-20250831-170326.png[0m
+│   ├── [01;35m08-settings-scrolled-20250831-170336.png[0m
+│   ├── [01;35mautomation-test-20250831-164821.png[0m
+│   ├── [01;35mcoordinate-calibration-base-20250831-190223.png[0m
+│   ├── [01;35mcoordinate-test-analytics-20250831-191034.png[0m
+│   ├── [01;35mcoordinate-test-inventory-20250831-191434.png[0m
+│   ├── [01;35mcoordinate-test-search-20250831-191235.png[0m
+│   ├── [01;35mcoordinate-test-settings-20250831-190838.png[0m
+│   ├── [01;35menhanced-navigation-analytics-verification-20250831-184754.png[0m
+│   ├── enhanced-navigation-analytics-verification-20250831-184754.png.meta
+│   ├── [01;35menhanced-navigation-analytics-verification-20250831-184800.png[0m
+│   ├── enhanced-navigation-analytics-verification-20250831-184800.png.meta
+│   ├── [01;35menhanced-navigation-analytics-verification-20250831-184805.png[0m
+│   ├── enhanced-navigation-analytics-verification-20250831-184805.png.meta
+│   ├── [01;35menhanced-navigation-analytics-verification-20250831-190553.png[0m
+│   ├── enhanced-navigation-analytics-verification-20250831-190553.png.meta
+│   ├── [01;35menhanced-navigation-analytics-verification-20250831-190557.png[0m
+│   ├── enhanced-navigation-analytics-verification-20250831-190557.png.meta
+│   ├── [01;35menhanced-navigation-analytics-verification-20250831-190600.png[0m
+│   ├── enhanced-navigation-analytics-verification-20250831-190600.png.meta
+│   ├── [01;35menhanced-navigation-capture-verification-20250831-184732.png[0m
+│   ├── enhanced-navigation-capture-verification-20250831-184732.png.meta
+│   ├── [01;35menhanced-navigation-capture-verification-20250831-184737.png[0m
+│   ├── enhanced-navigation-capture-verification-20250831-184737.png.meta
+│   ├── [01;35menhanced-navigation-capture-verification-20250831-184742.png[0m
+│   ├── enhanced-navigation-capture-verification-20250831-184742.png.meta
+│   ├── [01;35menhanced-navigation-capture-verification-20250831-190539.png[0m
+│   ├── enhanced-navigation-capture-verification-20250831-190539.png.meta
+│   ├── [01;35menhanced-navigation-capture-verification-20250831-190542.png[0m
+│   ├── enhanced-navigation-capture-verification-20250831-190542.png.meta
+│   ├── [01;35menhanced-navigation-capture-verification-20250831-190545.png[0m
+│   ├── enhanced-navigation-capture-verification-20250831-190545.png.meta
+│   ├── [01;35menhanced-navigation-inventory-verification-20250831-184645.png[0m
+│   ├── enhanced-navigation-inventory-verification-20250831-184645.png.meta
+│   ├── [01;35menhanced-navigation-inventory-verification-20250831-184651.png[0m
+│   ├── enhanced-navigation-inventory-verification-20250831-184651.png.meta
+│   ├── [01;35menhanced-navigation-inventory-verification-20250831-184656.png[0m
+│   ├── enhanced-navigation-inventory-verification-20250831-184656.png.meta
+│   ├── [01;35menhanced-navigation-inventory-verification-20250831-190509.png[0m
+│   ├── enhanced-navigation-inventory-verification-20250831-190509.png.meta
+│   ├── [01;35menhanced-navigation-inventory-verification-20250831-190512.png[0m
+│   ├── enhanced-navigation-inventory-verification-20250831-190512.png.meta
+│   ├── [01;35menhanced-navigation-inventory-verification-20250831-190516.png[0m
+│   ├── enhanced-navigation-inventory-verification-20250831-190516.png.meta
+│   ├── [01;35menhanced-navigation-inventory-verification-20250831-191532.png[0m
+│   ├── enhanced-navigation-inventory-verification-20250831-191532.png.meta
+│   ├── [01;35menhanced-navigation-inventory-verification-20250831-191537.png[0m
+│   ├── enhanced-navigation-inventory-verification-20250831-191537.png.meta
+│   ├── [01;35menhanced-navigation-inventory-verification-20250831-191541.png[0m
+│   ├── enhanced-navigation-inventory-verification-20250831-191541.png.meta
+│   ├── [01;35menhanced-navigation-inventory-verification-20250831-191652.png[0m
+│   ├── enhanced-navigation-inventory-verification-20250831-191652.png.meta
+│   ├── [01;35menhanced-navigation-search-verification-20250831-184709.png[0m
+│   ├── enhanced-navigation-search-verification-20250831-184709.png.meta
+│   ├── [01;35menhanced-navigation-search-verification-20250831-184714.png[0m
+│   ├── enhanced-navigation-search-verification-20250831-184714.png.meta
+│   ├── [01;35menhanced-navigation-search-verification-20250831-184719.png[0m
+│   ├── enhanced-navigation-search-verification-20250831-184719.png.meta
+│   ├── [01;35menhanced-navigation-search-verification-20250831-190524.png[0m
+│   ├── enhanced-navigation-search-verification-20250831-190524.png.meta
+│   ├── [01;35menhanced-navigation-search-verification-20250831-190528.png[0m
+│   ├── enhanced-navigation-search-verification-20250831-190528.png.meta
+│   ├── [01;35menhanced-navigation-search-verification-20250831-190531.png[0m
+│   ├── enhanced-navigation-search-verification-20250831-190531.png.meta
+│   ├── [01;35menhanced-navigation-search-verification-20250831-191549.png[0m
+│   ├── enhanced-navigation-search-verification-20250831-191549.png.meta
+│   ├── [01;35menhanced-navigation-search-verification-20250831-191553.png[0m
+│   ├── enhanced-navigation-search-verification-20250831-191553.png.meta
+│   ├── [01;35menhanced-navigation-search-verification-20250831-191556.png[0m
+│   ├── enhanced-navigation-search-verification-20250831-191556.png.meta
+│   ├── [01;35menhanced-navigation-search-verification-20250831-191700.png[0m
+│   ├── enhanced-navigation-search-verification-20250831-191700.png.meta
+│   ├── [01;35menhanced-navigation-settings-verification-20250831-184818.png[0m
+│   ├── enhanced-navigation-settings-verification-20250831-184818.png.meta
+│   ├── [01;35menhanced-navigation-settings-verification-20250831-184823.png[0m
+│   ├── enhanced-navigation-settings-verification-20250831-184823.png.meta
+│   ├── [01;35menhanced-navigation-settings-verification-20250831-184828.png[0m
+│   ├── enhanced-navigation-settings-verification-20250831-184828.png.meta
+│   ├── gallery.html
+│   ├── [01;35mpython-test-20250831-170537.png[0m
+│   └── [01;35msearch-keyboard-fix-test-20250831-193553.png[0m
 ├── [01;34mScripts[0m
+│   ├── [01;34mautomation[0m
+│   │   ├── AUTOMATION_QUALITY_ASSESSMENT.md
+│   │   ├── [01;32mcoordinate-calibration.sh[0m
+│   │   ├── [01;32menhanced-navigator.sh[0m
+│   │   ├── [01;32mios_simulator_controller.py[0m
+│   │   ├── ios-simulator-automation.applescript
+│   │   ├── NAVIGATION_FIX_SUCCESS_REPORT.md
+│   │   ├── README.md
+│   │   ├── [01;32mreliable-navigator.sh[0m
+│   │   ├── SCREENSHOT_AUDIT_REPORT.md
+│   │   ├── [01;32mscreenshot-manager.sh[0m
+│   │   ├── [01;32msimulator-navigator.sh[0m
+│   │   └── ui-automation-advanced.swift
 │   ├── [01;34mCI[0m
 │   │   ├── [01;32mbuild-health-monitor.sh[0m
 │   │   ├── [01;32mbuild-with-timeout.sh[0m
@@ -913,6 +1187,7 @@ _Last updated: 2025-08-26 20:09:45_
 │   ├── [01;32msmart-file-size-check.sh[0m
 │   ├── [01;32mupdate_bundle_identifiers.sh[0m
 │   ├── [01;32mvalidate-configuration.sh[0m
+│   ├── [01;32mvalidate-entitlements.sh[0m
 │   └── [01;32mverify_app_store_setup.sh[0m
 ├── [01;34mServices[0m
 │   ├── [01;34mAnalyticsService[0m
@@ -965,6 +1240,7 @@ _Last updated: 2025-08-26 20:09:45_
 │   │   ├── CloudBackupService.swift
 │   │   ├── CloudKitAssetManager.swift
 │   │   ├── CloudKitBackupOperations.swift
+│   │   ├── CloudKitConflictResolver.swift
 │   │   ├── LiveCloudBackupService.swift
 │   │   ├── MockCloudBackupService.swift
 │   │   └── RestoreDataTransformer.swift
@@ -973,8 +1249,6 @@ _Last updated: 2025-08-26 20:09:45_
 │   ├── [01;34mDamageAssessmentService[0m
 │   │   ├── DamageAssessmentModels.swift
 │   │   └── DamageAssessmentService.swift
-│   ├── [01;34mDependencies[0m
-│   │   └── CoreServiceKeys.swift.backup
 │   ├── [01;34mExportService[0m
 │   │   └── ExportService.swift
 │   ├── [01;34mImportExportService[0m
@@ -1004,8 +1278,7 @@ _Last updated: 2025-08-26 20:09:45_
 │   │   │   ├── ClaimTemplateIndex.swift
 │   │   │   └── ClaimTemplateTypes.swift
 │   │   ├── ClaimDocumentGenerator.swift
-│   │   ├── ClaimTemplateManager.swift
-│   │   └── ClaimTemplateManager.swift.backup
+│   │   └── ClaimTemplateManager.swift
 │   ├── [01;34mInsuranceExport[0m
 │   │   ├── DataFormatHelpers.swift
 │   │   ├── HTMLTemplateGenerator.swift
@@ -1062,7 +1335,6 @@ _Last updated: 2025-08-26 20:09:45_
 │   │   │   │   └── WarrantyStatusManager.swift
 │   │   │   └── WarrantyOperationsIndex.swift
 │   │   ├── LiveWarrantyTrackingService.swift
-│   │   ├── LiveWarrantyTrackingService.swift.backup
 │   │   └── WarrantyTrackingService.swift
 │   ├── CategoryService.swift
 │   ├── ClaimContentGenerator.swift
@@ -1073,7 +1345,6 @@ _Last updated: 2025-08-26 20:09:45_
 │   ├── ClaimPackageCore.swift
 │   ├── ClaimPackageExporter.swift
 │   ├── ClaimTrackingService.swift
-│   ├── ClaimTrackingService.swift.backup
 │   ├── ClaimValidationService.swift
 │   ├── CloudStorageServices.swift
 │   ├── DependencyKeys.swift
@@ -1096,22 +1367,41 @@ _Last updated: 2025-08-26 20:09:45_
 ├── [01;34mTests[0m
 │   ├── [01;34mArchitectureTests[0m
 │   │   └── ArchitectureTests.swift
+│   ├── [01;34mCoverage[0m
+│   │   ├── CoverageAnalyzer.swift
+│   │   ├── CoverageDataCollector.swift
+│   │   ├── CoverageReporter.swift
+│   │   ├── CoverageThresholdValidator.swift
+│   │   └── CoverageVisualization.swift
 │   ├── [01;34mFeatures[0m
-│   │   └── AddItemFeatureTests.swift
+│   │   └── [01;34mAddItem[0m
+│   │       ├── AddItemFeatureIntegrationTests.swift
+│   │       ├── AddItemFeatureMocks.swift
+│   │       ├── AddItemFeatureOperationTests.swift
+│   │       ├── AddItemFeatureStateTests.swift
+│   │       └── AddItemFeatureUITests.swift
 │   ├── [01;34mInfrastructure[0m
 │   │   └── CloudKitSyncTests.swift
 │   ├── [01;34mPerformance[0m
 │   │   ├── baselines.json
 │   │   └── BatchOperationsPerformanceTests.swift
 │   ├── [01;34mServices[0m
+│   │   ├── [01;34mImportExportService[0m
+│   │   │   ├── ImportExportServiceExportTests.swift
+│   │   │   ├── ImportExportServiceImportTests.swift
+│   │   │   ├── ImportExportServiceModelTests.swift
+│   │   │   └── ImportExportServicePerformanceTests.swift
 │   │   ├── [01;34mInventoryService[0m
+│   │   │   ├── InventoryServiceBulkTests.swift
+│   │   │   ├── InventoryServiceCategoryTests.swift
+│   │   │   ├── InventoryServiceCRUDTests.swift
+│   │   │   ├── InventoryServiceErrorTests.swift
+│   │   │   └── InventoryServiceSearchTests.swift
 │   │   ├── AnalyticsServiceTests.swift
 │   │   ├── AuthServiceTests.swift
 │   │   ├── CloudBackupServiceTests.swift
 │   │   ├── ComprehensiveServiceTests.swift
 │   │   ├── CurrencyServiceTests.swift
-│   │   ├── ImportExportServiceTests.swift
-│   │   ├── InventoryServiceTests.swift
 │   │   ├── NotificationServiceTests.swift
 │   │   └── SyncServiceTests.swift
 │   ├── [01;34mServicesTests[0m
@@ -1164,6 +1454,7 @@ _Last updated: 2025-08-26 20:09:45_
 │   │   └── SummaryCardsView.swift
 │   ├── [01;34mPerformance[0m
 │   │   └── UIPerformanceOptimizer.swift
+│   ├── [01;34mShared[0m
 │   ├── [01;34mUI-Components[0m
 │   │   ├── EmptyStateView.swift
 │   │   ├── ItemCard.swift
@@ -1171,34 +1462,22 @@ _Last updated: 2025-08-26 20:09:45_
 │   │   ├── SearchBar.swift
 │   │   └── ShareSheet.swift
 │   └── [01;34mUI-Core[0m
+│       ├── AccessibilityConstants.swift
 │       ├── Extensions.swift
 │       ├── Theme.swift
 │       └── Typography.swift
+├── [01;34mUITests[0m
+│   └── NestoryUITests.swift
 ├── [01;32manalyze_architecture.sh[0m
 ├── APP_STORE_CONNECT_API.md
 ├── APP_STORE_SUBMISSION_GUIDE.md
 ├── APPLESCRIPT_IOS_SIMULATOR_NAVIGATION.md
-├── ARCHAEOLOGICAL_LAYERS.md
 ├── ARCHITECTURE_NOTES.md
 ├── architecture_report.md
 ├── ARCHITECTURE_STATUS.md
 ├── AuthKey_NWV654RNK3.p8
 ├── [01;32mautomated-navigation.sh[0m
 ├── AUTOMATION_SYSTEM.md
-├── Build Nestory-Dev_2025-08-21T23-51-02.txt
-├── Build Nestory-Dev_2025-08-22T02-30-40.txt
-├── Build Nestory-Dev_2025-08-22T03-11-00.txt
-├── Build Nestory-Dev_2025-08-22T04-47-37.txt
-├── Build Nestory-Dev_2025-08-22T06-19-48.txt
-├── Build Nestory-Dev_2025-08-22T07-17-10.txt
-├── Build Nestory-Dev_2025-08-22T09-24-12.txt
-├── Build Nestory-Dev_2025-08-22T12-53-20.txt
-├── Build Nestory-Dev_2025-08-22T16-06-39.txt
-├── Build Nestory-Dev_2025-08-22T16-27-30.txt
-├── Build Nestory-Dev_2025-08-22T16-53-38.txt
-├── Build Nestory-Dev_2025-08-22T19-25-50.txt
-├── Build Nestory-Dev_2025-08-22T22-11-24.txt
-├── Build Nestory-Prod_2025-08-21T23-12-46.txt
 ├── BUILD_FIXES_COMPLETED.md
 ├── BUILD_INSTRUCTIONS.md
 ├── [01;32mbuild_ios.sh[0m
@@ -1221,7 +1500,9 @@ _Last updated: 2025-08-26 20:09:45_
 ├── DEVELOPMENT_CHECKLIST.md
 ├── emergency_fix.sh
 ├── EMERGENCY_MODULARIZATION.md
+├── [01;32menhanced-xcuitest-runner.sh[0m
 ├── ENTERPRISE_RUBY_XCODE_SYSTEM.md
+├── [01;32menterprise-dependency-resolver.sh[0m
 ├── [01;32menterprise-test-framework.sh[0m
 ├── [01;32menterprise-xcuitest-runner.sh[0m
 ├── EXPORT_COMPLIANCE.md
@@ -1230,11 +1511,11 @@ _Last updated: 2025-08-26 20:09:45_
 ├── [01;32mfix_build.sh[0m
 ├── FOLLOW_UP_INTEGRATION_AUDIT_REPORT.md
 ├── Gemfile
-├── Gemfile.lock
 ├── [01;32mgenerate_app_icons.sh[0m
 ├── GITHUB-CLEANUP-BATCH1-SUMMARY.md
 ├── HOT_RELOAD_AUDIT_REPORT.md
 ├── HOT_RELOAD_DOCUMENTATION.md
+├── [01;32mintelligent-build-monitor.sh[0m
 ├── IOS_TELEMETRY_INTEGRATION.md
 ├── LICENSE
 ├── LINTING.md
@@ -1243,12 +1524,14 @@ _Last updated: 2025-08-26 20:09:45_
 ├── [01;32mmetrics.sh[0m
 ├── MODULARIZATION_PLAN.md
 ├── navigate_simulator.applescript
+├── [01;35mnestory-after-cancel-20250831-162349.png[0m
+├── [01;35mnestory-after-fix-20250831-162654.png[0m
+├── [01;35mnestory-inventory-debug-20250831-161020.png[0m
 ├── NEXT_STEPS.md
 ├── [01;32mnon-intrusive-navigation.sh[0m
 ├── Observability.md
 ├── open_xcode.sh
 ├── package.json
-├── Package.resolved
 ├── Package.swift
 ├── PERFORMANCE_OPTIMIZATION_SUMMARY.md
 ├── PHASE2_COMPLETION_REPORT.md
@@ -1260,7 +1543,6 @@ _Last updated: 2025-08-26 20:09:45_
 ├── project.yml
 ├── [01;32mquick_build.sh[0m
 ├── README.md
-├── RESONANCE.txt
 ├── run_app_final.sh
 ├── run_app.sh
 ├── [01;32mrun_screenshots.sh[0m
@@ -1279,6 +1561,7 @@ _Last updated: 2025-08-26 20:09:45_
 ├── [01;32mtest-navigation.sh[0m
 ├── TESTING_WORKFLOW.md
 ├── THIRD_PARTY_LICENSES.md
+├── TODO-BACKUP-20250827_144054.md
 ├── TODO.md
 ├── TRANSFORMATION_SUMMARY.md
 ├── TREE.md
@@ -1287,11 +1570,13 @@ _Last updated: 2025-08-26 20:09:45_
 ├── [01;32mupdate_tree.sh[0m
 ├── [01;32mupload_to_testflight.sh[0m
 ├── verify_build.sh
+├── WARP.md
+├── WORKFLOW_OPTIMIZATION_SUMMARY.md
 ├── XCODE_FIX.md
 ├── XCODE_UI_TESTING_GUIDE.md
 └── XCUIAutomation-Definitive-Documentation.md
 
-247 directories, 1040 files
+257 directories, 1315 files
 ```
 
 _📁 Directories:  | 📄 Files: 

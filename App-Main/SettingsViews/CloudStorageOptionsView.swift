@@ -13,7 +13,7 @@ struct CloudStorageOptionsView: View {
     let onUploadComplete: (String) -> Void
     
     @Environment(\.dismiss) private var dismiss
-    @State private var selectedService: CloudStorageService?
+    @State private var selectedService: (any CloudStorageService)?
     @State private var uploadError: String?
     
     var body: some View {
@@ -177,7 +177,7 @@ struct CloudStorageOptionsView: View {
 }
 
 struct ServiceSelectionRow: View {
-    let service: CloudStorageService
+    let service: any CloudStorageService
     let isSelected: Bool
     let action: () -> Void
     

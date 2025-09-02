@@ -50,14 +50,17 @@ public struct ValidationStepView: View {
 }
 
 #Preview {
-    let items = [
-        Item(name: "MacBook Pro", itemDescription: "Laptop", quantity: 1),
-        Item(name: "iPhone", itemDescription: "Phone", quantity: 1)
-    ]
-    items[0].purchasePrice = 2500.00
+    @Previewable @State var sampleItems: [Item] = {
+        let items = [
+            Item(name: "MacBook Pro", itemDescription: "Laptop", quantity: 1),
+            Item(name: "iPhone", itemDescription: "Phone", quantity: 1)
+        ]
+        items[0].purchasePrice = 2500.00
+        return items
+    }()
     
     ValidationStepView(
-        selectedItems: items,
+        selectedItems: sampleItems,
         scenario: ClaimScenario(
             type: .fire,
             incidentDate: Date(),

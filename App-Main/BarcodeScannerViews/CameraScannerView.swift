@@ -7,7 +7,7 @@
 import SwiftUI
 
 struct CameraScannerView: UIViewControllerRepresentable {
-    let scanner: BarcodeScannerService
+    let scanner: any BarcodeScannerService
     let onScan: (BarcodeResult) -> Void
     @Environment(\.dismiss) private var dismiss
 

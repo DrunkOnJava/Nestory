@@ -59,7 +59,7 @@ public struct RestoreResult {
 
 // MARK: - Backup Errors
 
-public enum BackupError: LocalizedError {
+public enum BackupError: Error, LocalizedError {
     case iCloudUnavailable
     case notInitialized
     case noBackupFound

@@ -109,18 +109,65 @@ check_required_files() {
 validate_source_paths() {
     print_header "📁 Source Path Validation"
     
-    # Extract source paths from project.yml
+    # Extract source paths from project.yml using YAML->JSON parsing for accuracy
     local declared_paths=()
     
-    # Use awk to extract paths from the sources section
-    while IFS= read -r line; do
-        if [[ "$line" =~ ^[[:space:]]*-[[:space:]]*path:[[:space:]]*(.+)$ ]]; then
-            path="${BASH_REMATCH[1]}"
-            # Remove quotes if present
-            path=$(echo "$path" | sed 's/^["'\'']*//;s/["'\'']*$//')
-            declared_paths+=("$path")
-        fi
-    done < <(awk '/sources:/,/^[[:space:]]*[a-zA-Z]/ {print}' "$PROJECT_YML" | head -n -1)
+    if command -v yq >/dev/null 2>&1; then
+        # Use yq to convert YAML to JSON, then parse with jq
+        log_check "INFO" "Using yq/jq for accurate YAML parsing"
+        while IFS= read -r path; do
+            [ -n "$path" ] && declared_paths+=("$path")
+        done < <(yq eval '.targets[].sources[].path' "$PROJECT_YML" 2>/dev/null | grep -v "null" || true)
+        
+        # Also check if sources are defined at root level
+        while IFS= read -r path; do
+            [ -n "$path" ] && declared_paths+=("$path")
+        done < <(yq eval '.sources[].path' "$PROJECT_YML" 2>/dev/null | grep -v "null" || true)
+    elif command -v python3 >/dev/null 2>&1; then
+        # Fallback to Python YAML parsing
+        log_check "INFO" "Using Python YAML parsing (yq not available)"
+        python3 -c "
+import yaml
+import json
+import sys
+try:
+    with open('$PROJECT_YML', 'r') as f:
+        data = yaml.safe_load(f)
+    paths = []
+    if 'targets' in data:
+        for target in data['targets'].values():
+            if 'sources' in target:
+                for source in target['sources']:
+                    if isinstance(source, dict) and 'path' in source:
+                        paths.append(source['path'])
+                    elif isinstance(source, str):
+                        paths.append(source)
+    if 'sources' in data:
+        for source in data['sources']:
+            if isinstance(source, dict) and 'path' in source:
+                paths.append(source['path'])
+            elif isinstance(source, str):
+                paths.append(source)
+    for path in paths:
+        print(path)
+except Exception as e:
+    print(f'Error: {e}', file=sys.stderr)
+    sys.exit(1)
+" | while IFS= read -r path; do
+            [ -n "$path" ] && declared_paths+=("$path")
+        done
+    else
+        # Fallback to regex-based parsing (original method)
+        log_check "WARN" "Using regex parsing (yq and python3 not available)"
+        while IFS= read -r line; do
+            if [[ "$line" =~ ^[[:space:]]*-[[:space:]]*path:[[:space:]]*(.+)$ ]]; then
+                path="${BASH_REMATCH[1]}"
+                # Remove quotes if present
+                path=$(echo "$path" | sed 's/^["'\'']*//;s/["'\'']*$//')
+                declared_paths+=("$path")
+            fi
+        done < <(awk '/sources:/,/^[[:space:]]*[a-zA-Z]/ {print}' "$PROJECT_YML" | head -n -1)
+    fi
     
     log_check "INFO" "Found ${#declared_paths[@]} declared source paths"
     

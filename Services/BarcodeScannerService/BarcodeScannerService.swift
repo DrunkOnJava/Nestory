@@ -23,53 +23,10 @@ public protocol BarcodeScannerService: Sendable {
     func lookupProduct(barcode: String, type: String) async -> ProductInfo?
 }
 
-// MARK: - Data Types
-
-public struct BarcodeResult: Equatable, Sendable {
-    public let value: String
-    public let type: String
-    public let confidence: Float
-
-    public init(value: String, type: String, confidence: Float) {
-        self.value = value
-        self.type = type
-        self.confidence = confidence
-    }
-
-    public var isSerialNumber: Bool {
-        // Check if this looks like a serial number vs product barcode
-        !type.contains("EAN") && !type.contains("UPC") && !type.contains("QR")
-    }
-}
-
-public struct ProductInfo: Equatable, Sendable {
-    public let barcode: String
-    public let name: String
-    public let brand: String?
-    public let model: String?
-    public let category: String?
-    public let estimatedValue: Decimal?
-
-    public init(
-        barcode: String,
-        name: String,
-        brand: String? = nil,
-        model: String? = nil,
-        category: String? = nil,
-        estimatedValue: Decimal? = nil
-    ) {
-        self.barcode = barcode
-        self.name = name
-        self.brand = brand
-        self.model = model
-        self.category = category
-        self.estimatedValue = estimatedValue
-    }
-}
-
 // MARK: - Errors
+// Note: BarcodeResult and ProductInfo are defined in Foundation/Models/BarcodeModels.swift
 
-public enum BarcodeScanError: LocalizedError, Sendable {
+public enum BarcodeScanError: Error, LocalizedError, Sendable {
     case cameraAccessDenied
     case invalidImage
     case processingFailed

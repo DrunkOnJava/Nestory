@@ -273,7 +273,7 @@ struct ClaimExportView: View {
         for (index, format) in selectedFormats.enumerated() {
             do {
                 // Create new request with different format
-                var modifiedRequest = claim.request
+                let modifiedRequest = claim.request
                 let newRequest = ClaimRequest(
                     claimType: modifiedRequest.claimType,
                     insuranceCompany: modifiedRequest.insuranceCompany,

@@ -248,7 +248,7 @@ public struct ImageMetadata: Sendable, Equatable {
     public let orientation: UIImage.Orientation
 }
 
-public enum ImageError: LocalizedError {
+public enum ImageError: Error, LocalizedError, Sendable {
     case cannotLoadImage(String)
     case cannotDecodeImage
     case cannotEncodeImage

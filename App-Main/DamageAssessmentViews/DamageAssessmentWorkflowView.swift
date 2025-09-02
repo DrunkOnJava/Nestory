@@ -6,6 +6,7 @@
 
 import SwiftUI
 import SwiftData
+import os.log
 
 struct DamageAssessmentWorkflowView: View {
     let item: Item
@@ -18,7 +19,10 @@ struct DamageAssessmentWorkflowView: View {
             do {
                 return try DamageAssessmentCore(item: item, modelContext: modelContext)
             } catch {
-                fatalError("Failed to initialize DamageAssessmentCore: \(error)")
+                Logger.service.error("Failed to initialize DamageAssessmentCore: \(error.localizedDescription)")
+                Logger.service.info("Using fallback DamageAssessmentCore with limited functionality")
+                // Return a minimal working instance instead of crashing
+                return DamageAssessmentCore.createFallback(item: item)
             }
         }())
     }
@@ -183,10 +187,21 @@ struct DamageAssessmentWorkflowView: View {
 }
 
 #Preview {
-    DamageAssessmentWorkflowView(
-        item: Item(name: "Test Item"),
-        modelContext: ModelContext(
-            try! ModelContainer(for: Item.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
-        )
-    )
+    @MainActor
+    struct PreviewContainer: View {
+        var body: some View {
+            // Use a simple fallback approach for previews
+            if let container = try? ModelContainer(for: Item.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true)) {
+                DamageAssessmentWorkflowView(
+                    item: Item(name: "Test Item"),
+                    modelContext: ModelContext(container)
+                )
+            } else {
+                Text("Preview Error: Failed to create ModelContainer")
+                    .foregroundColor(.red)
+            }
+        }
+    }
+    
+    return PreviewContainer()
 }

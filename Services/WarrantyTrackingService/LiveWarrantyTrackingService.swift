@@ -24,12 +24,12 @@ public final class LiveWarrantyTrackingService: WarrantyTrackingService {
     // MARK: - Dependencies
     
     private let modelContext: ModelContext
-    private let notificationService: NotificationService
+    private let notificationService: any NotificationService
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory", category: "WarrantyTracking")
 
     // MARK: - Initialization
     
-    public init(modelContext: ModelContext, notificationService: NotificationService) {
+    public init(modelContext: ModelContext, notificationService: any NotificationService) {
         self.modelContext = modelContext
         self.notificationService = notificationService
         
@@ -142,7 +142,7 @@ public final class LiveWarrantyTrackingService: WarrantyTrackingService {
         return allItems.filter { item in
             item.warranty == nil || 
             (item.warranty?.provider.isEmpty ?? true) ||
-            (item.warranty != nil && item.warranty!.expiresAt <= item.warranty!.startDate)
+            (item.warranty?.expiresAt ?? Date.distantPast) <= (item.warranty?.startDate ?? Date.distantFuture)
         }
     }
 

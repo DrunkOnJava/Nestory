@@ -97,10 +97,53 @@ class BuildSettingsManager
       
       # Handle different value types
       processed_value = process_setting_value(value)
-      config_settings[key] = processed_value
       
-      puts "     #{key}: #{old_value.inspect} → #{processed_value.inspect}"
+      # Merge array values instead of overwriting (if merge mode enabled)
+      if @options.fetch(:merge, true) && should_merge_setting?(key) && old_value.is_a?(Array) && processed_value.is_a?(Array)
+        merged_value = merge_array_setting(old_value, processed_value)
+        config_settings[key] = merged_value
+        puts "     #{key}: #{old_value.inspect} merged with #{processed_value.inspect} → #{merged_value.inspect}"
+      else
+        config_settings[key] = processed_value
+        puts "     #{key}: #{old_value.inspect} → #{processed_value.inspect}"
+      end
     end
+  end
+  
+  def should_merge_setting?(key)
+    # Settings that should be merged (additive) instead of overwritten
+    mergeable_settings = [
+      'OTHER_SWIFT_FLAGS',
+      'OTHER_CFLAGS',
+      'OTHER_LDFLAGS',
+      'FRAMEWORK_SEARCH_PATHS',
+      'LIBRARY_SEARCH_PATHS',
+      'HEADER_SEARCH_PATHS',
+      'USER_HEADER_SEARCH_PATHS',
+      'SWIFT_INCLUDE_PATHS',
+      'LD_RUNPATH_SEARCH_PATHS',
+      'GCC_PREPROCESSOR_DEFINITIONS',
+      'SWIFT_ACTIVE_COMPILATION_CONDITIONS'
+    ]
+    mergeable_settings.include?(key)
+  end
+  
+  def merge_array_setting(old_value, new_value)
+    # Convert to arrays if needed
+    old_array = Array(old_value)
+    new_array = Array(new_value)
+    
+    # Merge and remove duplicates, preserving order
+    merged = old_array + new_array
+    merged = merged.uniq
+    
+    # Ensure $(inherited) stays first if present
+    if (i = merged.index('$(inherited)')) && i > 0
+      merged.delete_at(i)
+      merged.unshift('$(inherited)')
+    end
+    
+    merged
   end
   
   def process_setting_value(value)
@@ -358,6 +401,14 @@ def main
       options[:validate] = true
     end
     
+    opts.on("--merge", "Merge array settings instead of overwriting (default: true)") do
+      options[:merge] = true
+    end
+    
+    opts.on("--no-merge", "Overwrite settings instead of merging") do
+      options[:merge] = false
+    end
+    
     opts.on("-h", "--help", "Show this help") do
       puts opts
       puts
@@ -403,7 +454,8 @@ def main
       settings, 
       {
         backup: options[:backup] || true,
-        validate: options[:validate] || true
+        validate: options[:validate] || true,
+        merge: options.fetch(:merge, true)
       }
     )
     

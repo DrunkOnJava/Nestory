@@ -337,7 +337,7 @@ public struct SyncConflict: Sendable {
     public let remoteChange: SyncChange
 }
 
-public enum SyncError: LocalizedError, Sendable {
+public enum SyncError: Error, LocalizedError, Sendable {
     case iCloudAccountUnavailable
     case setupFailed(String)
     case fetchFailed(String)

@@ -137,7 +137,7 @@ public enum ClaimStatus: String, CaseIterable, Codable, Sendable {
 
 /// Communication record with insurance company
 public struct CorrespondenceRecord: Codable, Identifiable {
-    public let id = UUID()
+    public let id: UUID
     public let date: Date
     public let type: CorrespondenceType
     public let direction: CommunicationDirection
@@ -146,12 +146,14 @@ public struct CorrespondenceRecord: Codable, Identifiable {
     public let attachments: [String] // File names
 
     public init(
+        id: UUID = UUID(),
         type: CorrespondenceType,
         direction: CommunicationDirection,
         subject: String,
         content: String,
         attachments: [String] = []
     ) {
+        self.id = id
         self.date = Date()
         self.type = type
         self.direction = direction
@@ -224,7 +226,7 @@ public struct ClaimValidationRequirements: Sendable {
     let maximumFileSize: Int // bytes
     let supportedFileTypes: [UTType]
 
-    static let standard = ClaimValidationRequirements(
+    public static let standard = ClaimValidationRequirements(
         requiresPhotos: true,
         requiresReceipts: false,
         requiresSerialNumbers: false,
@@ -238,12 +240,12 @@ public struct ClaimValidationRequirements: Sendable {
 
 // MARK: - Errors
 
-public enum ClaimExportError: LocalizedError {
+public enum ClaimExportError: Error, LocalizedError, Sendable {
     case validationFailed([String])
     case fileNotFound
     case uploadFailed(String)
     case invalidFormat
-    case networkError(Error)
+    case networkError(any Error)
 
     public var errorDescription: String? {
         switch self {

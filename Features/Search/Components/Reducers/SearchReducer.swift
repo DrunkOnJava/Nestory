@@ -183,15 +183,15 @@ public struct SearchReducer: Reducer {
                 return .none
                 
             // Analytics Actions
-            case let .trackSearchPerformed(query, filters):
+            case .trackSearchPerformed:
                 // Analytics tracking would be implemented here
                 return .none
                 
-            case let .trackFilterApplied(filterType):
+            case .trackFilterApplied:
                 // Filter analytics would be tracked here
                 return .none
                 
-            case let .trackItemSelected(itemId):
+            case .trackItemSelected:
                 // Item selection analytics would be tracked here
                 return .none
                 
@@ -207,6 +207,6 @@ public struct SearchReducer: Reducer {
                 return .none
             }
         }
-        .ifLet(\.$alert, action: /SearchAction.alert)
+        .ifLet(\.$alert, action: \.alert)
     }
 }

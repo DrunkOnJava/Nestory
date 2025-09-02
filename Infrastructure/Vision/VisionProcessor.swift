@@ -9,6 +9,8 @@ import Vision
 import VisionKit
 import UIKit
 
+// Import BarcodeResult from Foundation to use consistent types
+
 // MARK: - Vision Processor Protocol
 
 /// Abstract computer vision interface for Services layer
@@ -82,33 +84,7 @@ public struct TextExtractionResult: Sendable {
     }
 }
 
-/// Result of barcode detection
-public struct BarcodeResult: Sendable, Equatable {
-    public let barcode: String
-    public let format: BarcodeFormat
-    public let confidence: Float
-    public let boundingBox: CGRect
-    
-    public init(barcode: String, format: BarcodeFormat, confidence: Float, boundingBox: CGRect) {
-        self.barcode = barcode
-        self.format = format
-        self.confidence = confidence
-        self.boundingBox = boundingBox
-    }
-    
-    public enum BarcodeFormat: String, Sendable, CaseIterable {
-        case qr = "QR"
-        case ean13 = "EAN-13"
-        case ean8 = "EAN-8"
-        case upca = "UPC-A"
-        case upce = "UPC-E"
-        case code128 = "Code 128"
-        case code39 = "Code 39"
-        case pdf417 = "PDF417"
-        case dataMatrix = "Data Matrix"
-        case aztec = "Aztec"
-    }
-}
+/// Result of barcode detection - using Foundation BarcodeResult and BarcodeFormat
 
 /// Result of document scanning
 public struct DocumentScanResult: Sendable {
@@ -209,8 +185,8 @@ public final class AppleVisionProcessor: VisionProcessor {
                         }
                         
                         return BarcodeResult(
-                            barcode: payloadStringValue,
-                            format: format,
+                            value: payloadStringValue,
+                            type: format.rawValue,
                             confidence: observation.confidence,
                             boundingBox: observation.boundingBox
                         )
@@ -230,7 +206,7 @@ public final class AppleVisionProcessor: VisionProcessor {
         throw VisionError.documentScanningNotAvailable
     }
     
-    private func mapVisionBarcodeFormat(_ symbology: VNBarcodeSymbology) -> BarcodeResult.BarcodeFormat? {
+    private func mapVisionBarcodeFormat(_ symbology: VNBarcodeSymbology) -> BarcodeFormat? {
         switch symbology {
         case .qr: return .qr
         case .ean13: return .ean13
@@ -296,7 +272,7 @@ public final class MockVisionProcessor: VisionProcessor {
 
 // MARK: - Error Types
 
-public enum VisionError: LocalizedError, Sendable {
+public enum VisionError: Error, LocalizedError, Sendable {
     case invalidImage
     case textExtractionFailed(String)
     case barcodeDetectionFailed(String)

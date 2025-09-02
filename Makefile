@@ -1311,7 +1311,11 @@ lint: ## Run SwiftLint code quality analysis
 
 lint-fix: ## Autocorrect SwiftLint violations
 	@echo "$(YELLOW)🧹 Autocorrecting with SwiftLint...$(NC)"
-	@swiftlint autocorrect --config .swiftlint.yml || true
+	@if [ -x "./bin/fastlane" ]; then \
+		./bin/fastlane run swiftlint mode:autocorrect config_file:.swiftlint.yml || true; \
+	else \
+		echo "$(RED)bin/fastlane missing. Run: make bootstrap$(NC)"; exit 1; \
+	fi
 	@echo "$(GREEN)✅ SwiftLint autocorrect completed!$(NC)"
 
 test: ## Run tests via fastlane

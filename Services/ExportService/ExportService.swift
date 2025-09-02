@@ -164,7 +164,7 @@ public struct ReceiptData: Sendable, Codable {
 
 // MARK: - Error Types
 
-public enum ExportError: LocalizedError, Sendable {
+public enum ExportError: Error, LocalizedError, Sendable {
     case invalidData(String)
     case formatNotSupported(ExportFormat)
     case fileSizeTooLarge(Int)

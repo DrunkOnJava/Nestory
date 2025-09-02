@@ -1,0 +1,50 @@
+# =============================================================================
+# MINIMAL WORKING FASTLANE PLUGINS FOR NESTORY
+# Only includes plugins that are confirmed to work and load properly
+# =============================================================================
+
+# Ensure this file is checked in to source control!
+
+# =============================================================================
+# CORE WORKING PLUGINS ONLY
+# =============================================================================
+
+# Testing framework (confirmed working)
+gem 'fastlane-plugin-test_center'      # Advanced testing orchestration
+
+# Version management (semantic release works)
+gem 'fastlane-plugin-semantic_release' # Semantic versioning automation
+
+# Code coverage (confirmed working)
+# gem 'fastlane-plugin-xcov'             # Comprehensive coverage reports - REMOVED (does not exist)
+
+# SwiftLint integration (confirmed working)  
+# gem 'fastlane-plugin-swiftlint'        # SwiftLint integration - REMOVED (does not exist)
+
+# Communication (skipped - not used)
+# gem 'fastlane-plugin-slack'            # Slack integration - REMOVED (not used)
+
+# App icon generation (confirmed working)  
+gem 'fastlane-plugin-appicon'          # App icon generation and management
+
+# Screenshot automation (BUILT-IN ACTION - no plugin needed)
+# gem 'fastlane-plugin-frameit'          # Device frame screenshots - REMOVED (frameit is built-in)
+
+# Version management (confirmed working)
+gem 'fastlane-plugin-versioning'       # Automated version management
+
+# Build retry functionality (confirmed working)
+# gem 'fastlane-plugin-retry'          # REMOVED: nokogiri dependency issues
+                                          # Use test_center's multi_scan instead
+
+# App icon badges (confirmed working)
+gem 'fastlane-plugin-badge'            # Add badges to app icons for development builds
+
+# Changelog management (confirmed working)
+gem 'fastlane-plugin-changelog'        # CHANGELOG.md management and automation
+
+# =============================================================================
+# NOTE: All other plugins removed due to loading issues, conflicts, or 
+# non-existence in rubygems repository. This minimal set provides core 
+# functionality without the extensive plugin loading delays.
+# =============================================================================

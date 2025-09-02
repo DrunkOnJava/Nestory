@@ -13,23 +13,23 @@ import Foundation
 public actor ErrorLogger {
     public static let shared = ErrorLogger()
 
-    private let logger: FoundationLogger?
+    private let logger: (any FoundationLogger)?
     private var errorHistory: [LoggedError] = []
     private let maxHistorySize = 1000
 
-    private init(logger: FoundationLogger? = nil) {
+    private init(logger: (any FoundationLogger)? = nil) {
         self.logger = logger
     }
 
     /// Configure the logger with an Infrastructure-provided implementation
-    public func setLogger(_: FoundationLogger) {
+    public func setLogger(_: any FoundationLogger) {
         // Note: Can't modify the shared instance logger after init
         // This would be better implemented with dependency injection
     }
 
     /// Log an error with comprehensive context
     public func logError(
-        _ error: Error,
+        _ error: any Error,
         category: ErrorCategory = .general,
         source: String = #function,
         file: String = #file,
@@ -122,7 +122,7 @@ public actor ErrorLogger {
         return report
     }
 
-    private func determineSeverity(for error: Error) -> LogSeverity {
+    private func determineSeverity(for error: any Error) -> LogSeverity {
         if let serviceError = error as? ServiceError {
             switch serviceError.priority {
             case .critical:
@@ -148,7 +148,7 @@ public actor ErrorLogger {
 // MARK: - Supporting Types
 
 public struct LoggedError {
-    public let error: Error
+    public let error: any Error
     public let category: ErrorCategory
     public let source: String
     public let file: String
@@ -192,7 +192,7 @@ public final class ErrorPresenter: ObservableObject {
 
     /// Present an error to the user with appropriate messaging and recovery options
     public func presentError(
-        _ error: Error,
+        _ error: any Error,
         title: String? = nil,
         context: String? = nil,
         source: String = #function,
@@ -224,7 +224,7 @@ public final class ErrorPresenter: ObservableObject {
     }
 
     private func createPresentableError(
-        from error: Error,
+        from error: any Error,
         title: String?,
         context: String?,
     ) -> PresentableError {
@@ -250,7 +250,7 @@ public final class ErrorPresenter: ObservableObject {
         )
     }
 
-    private func generateTitle(for error: Error) -> String {
+    private func generateTitle(for error: any Error) -> String {
         if error is NotificationServiceError {
             return "Notification Error"
         } else if error is AnalyticsServiceError {
@@ -273,7 +273,7 @@ public final class ErrorPresenter: ObservableObject {
         return "Unexpected Error"
     }
 
-    private func getUserFriendlyMessage(for error: Error, context: String?) -> String {
+    private func getUserFriendlyMessage(for error: any Error, context: String?) -> String {
         var message = error.localizedDescription
 
         // Add context if available
@@ -298,7 +298,7 @@ public final class ErrorPresenter: ObservableObject {
         return message
     }
 
-    private func getRecoverySuggestions(for error: Error) -> [String] {
+    private func getRecoverySuggestions(for error: any Error) -> [String] {
         var suggestions: [String] = []
 
         if let serviceError = error as? ServiceError {
@@ -307,7 +307,7 @@ public final class ErrorPresenter: ObservableObject {
             }
         }
 
-        if let localizedError = error as? LocalizedError {
+        if let localizedError = error as? any LocalizedError {
             if let recoverySuggestion = localizedError.recoverySuggestion {
                 suggestions.append(recoverySuggestion)
             }
@@ -325,7 +325,7 @@ public final class ErrorPresenter: ObservableObject {
         return suggestions
     }
 
-    private func canRetry(_ error: Error) -> Bool {
+    private func canRetry(_ error: any Error) -> Bool {
         if let serviceError = error as? ServiceError {
             return serviceError.isRetryable
         }
@@ -333,7 +333,7 @@ public final class ErrorPresenter: ObservableObject {
         return false
     }
 
-    private func determineSeverity(for error: Error) -> ErrorSeverity {
+    private func determineSeverity(for error: any Error) -> ErrorSeverity {
         if let serviceError = error as? ServiceError {
             switch serviceError.priority {
             case .critical:

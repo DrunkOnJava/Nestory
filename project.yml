@@ -244,8 +244,8 @@ targets:
         ENABLE_PREVIEWS: YES
         SWIFT_UPCOMING_FEATURE_CONCURRENCY: YES
         SWIFT_UPCOMING_FEATURE_EXISTENTIAL_ANY: YES
-    SWIFT_EXEC: /usr/bin/xcrun swift
-    ENABLE_TESTABILITY: YES
+        SWIFT_EXEC: /usr/bin/xcrun swift
+        ENABLE_TESTABILITY: YES
         
     dependencies:
       - sdk: SwiftData.framework

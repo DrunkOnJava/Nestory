@@ -192,7 +192,6 @@ public final class CategoryClassifier: @unchecked Sendable {
 
     private func calculateKeywordConfidence(_ keyword: String, in text: String) -> Double {
         let keywordLength = keyword.count
-        let textLength = text.count
 
         // Base confidence based on keyword specificity
         var confidence = 0.5

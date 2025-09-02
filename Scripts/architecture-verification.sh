@@ -4,7 +4,9 @@
 # Validates 6-layer TCA architecture with modular component compliance
 # Prevents re-introduction of monolithic patterns
 
-set -e
+set -Eeuo pipefail
+IFS=$'\n\t'
+trap 'echo "❌ ${BASH_SOURCE[0]} failed at line $LINENO: $BASH_COMMAND" >&2' ERR
 
 # Color codes for enhanced output
 BLUE='\033[0;34m'

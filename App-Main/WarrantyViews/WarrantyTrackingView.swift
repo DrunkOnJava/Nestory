@@ -129,17 +129,41 @@ struct WarrantyTrackingView: View {
 }
 
 #Preview {
-    let config = ModelConfiguration(isStoredInMemoryOnly: true)
-    let container = try! ModelContainer(for: Item.self, configurations: config)
-    let context = ModelContext(container)
+    WarrantyTrackingPreview()
+}
+
+private struct WarrantyTrackingPreview: View {
+    let container: ModelContainer?
+    let item: Item?
     
-    // Create and configure sample item outside the ViewBuilder
-    let item = Item(name: "MacBook Pro")
-    item.brand = "Apple"
-    item.modelNumber = "MacBook Pro 16-inch"
-    item.serialNumber = "ABC123DEF456"
+    init() {
+        do {
+            let config = ModelConfiguration(isStoredInMemoryOnly: true)
+            let container = try ModelContainer(for: Item.self, configurations: config)
+            _ = ModelContext(container)
     
-    return WarrantyTrackingView(item: item, modelContext: context)
-        .modelContainer(container)
-        .environmentObject(LiveNotificationService())
+            // Create and configure sample item outside the ViewBuilder
+            let item = Item(name: "MacBook Pro")
+            item.brand = "Apple"
+            item.modelNumber = "MacBook Pro 16-inch"
+            item.serialNumber = "ABC123DEF456"
+            
+            self.container = container
+            self.item = item
+        } catch {
+            self.container = nil
+            self.item = nil
+        }
+    }
+    
+    var body: some View {
+        if let container = container, let item = item {
+            WarrantyTrackingView(item: item, modelContext: ModelContext(container))
+                .modelContainer(container)
+                .environmentObject(LiveNotificationService())
+        } else {
+            Text("Preview Error: Failed to initialize")
+                .foregroundColor(.red)
+        }
+    }
 }

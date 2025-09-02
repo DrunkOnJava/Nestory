@@ -317,7 +317,7 @@ struct NotificationSettingsView: View {
 // MARK: - Notification List View
 
 struct NotificationListView: View {
-    let notificationService: NotificationService
+    let notificationService: any NotificationService
     @State private var pendingNotifications: [NotificationRequestData] = []
     @State private var isLoading = true
 

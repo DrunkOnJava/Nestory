@@ -6,7 +6,9 @@
 # Detects stuck builds, performance degradation, and system issues
 #
 
-set -euo pipefail
+set -Eeuo pipefail
+IFS=$'\n\t'
+trap 'echo "❌ ${BASH_SOURCE[0]} failed at line $LINENO: $BASH_COMMAND" >&2' ERR
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_FILE="${SCRIPT_DIR}/../../monitoring/config/build-health.conf"

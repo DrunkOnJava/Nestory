@@ -21,9 +21,9 @@ public protocol CategoryService: Sendable {
 // MARK: - Live Implementation
 
 public struct LiveCategoryService: CategoryService {
-    private let inventoryService: InventoryService
+    private let inventoryService: any InventoryService
     
-    public init(inventoryService: InventoryService) {
+    public init(inventoryService: any InventoryService) {
         self.inventoryService = inventoryService
     }
     

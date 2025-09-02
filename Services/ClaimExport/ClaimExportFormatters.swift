@@ -159,7 +159,7 @@ public final class ClaimExportFormatters {
                 "id": item.id.uuidString,
                 "name": item.name,
                 "category": item.category?.name ?? "",
-                "purchasePrice": item.purchasePrice ?? 0,
+                "purchasePrice": item.purchasePrice ?? Decimal(0),
                 "serialNumber": item.serialNumber ?? "",
                 "hasPhotos": item.imageData != nil || !item.conditionPhotos.isEmpty,
                 "hasReceipts": !(item.receipts?.isEmpty ?? true),

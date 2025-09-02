@@ -3,7 +3,7 @@
 # Setup App Store Connect API Credentials
 # This script helps store App Store Connect API credentials securely in macOS Keychain
 
-set -e
+set -euo pipefail
 
 KEYCHAIN_SERVICE="com.drunkonjava.nestory.appstoreconnect"
 

@@ -13,12 +13,12 @@ public struct FollowUpManager {
     
     private let modelContext: ModelContext
     private let operations: ClaimTrackingOperations
-    private let notificationService: NotificationService?
+    private let notificationService: (any NotificationService)?
     
     public init(
         modelContext: ModelContext, 
         operations: ClaimTrackingOperations,
-        notificationService: NotificationService? = nil
+        notificationService: (any NotificationService)? = nil
     ) {
         self.modelContext = modelContext
         self.operations = operations
@@ -231,7 +231,7 @@ public struct FollowUpManager {
     @MainActor
     private func scheduleFollowUpNotification(
         followUp: FollowUpAction,
-        notificationService: NotificationService
+        notificationService: any NotificationService
     ) async throws {
         // Schedule notification for the due date
         let content = UNMutableNotificationContent()

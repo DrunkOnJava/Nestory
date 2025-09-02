@@ -1,0 +1,4 @@
+# Testing individual plugin: fastlane-plugin-swiftlint
+# SwiftLint integration for Nestory iOS project
+
+gem 'fastlane-plugin-swiftlint'

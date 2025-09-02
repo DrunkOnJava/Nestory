@@ -121,7 +121,7 @@ public final class Log {
     public func error(
         _ message: String,
         category: LogCategory = .app,
-        error: Error? = nil,
+        error: (any Error)? = nil,
         metadata: [String: Any]? = nil,
     ) {
         let logger = logger(for: category)
@@ -147,7 +147,7 @@ public final class Log {
     public func critical(
         _ message: String,
         category: LogCategory = .app,
-        error: Error? = nil,
+        error: (any Error)? = nil,
         metadata: [String: Any]? = nil,
     ) {
         let logger = logger(for: category)
@@ -173,7 +173,7 @@ public final class Log {
     public func fault(
         _ message: String,
         category: LogCategory = .app,
-        error: Error? = nil,
+        error: (any Error)? = nil,
         metadata: [String: Any]? = nil,
     ) {
         let logger = logger(for: category)
@@ -205,7 +205,7 @@ public final class Log {
     /// Create a Foundation-compatible logger adapter
     /// - Parameter category: The log category to use
     /// - Returns: A FoundationLogger that bridges to the Infrastructure layer
-    public func foundationLogger(for category: LogCategory = .app) -> FoundationLogger {
+    public func foundationLogger(for category: LogCategory = .app) -> any FoundationLogger {
         InfrastructureFoundationLogger(log: self, category: category)
     }
 }

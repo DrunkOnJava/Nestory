@@ -76,7 +76,7 @@ struct DocumentManagementView: View {
         }
     }
 
-    private func handleDocumentImport(_ result: Result<[URL], Error>) {
+    private func handleDocumentImport(_ result: Result<[URL], any Error>) {
         switch result {
         case let .success(urls):
             for url in urls {

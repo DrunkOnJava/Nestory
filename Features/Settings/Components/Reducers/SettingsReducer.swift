@@ -31,55 +31,30 @@ public struct SettingsReducer: Reducer, Sendable {
                     .send(.loadSettings),
                     .send(.refreshStorageInfo),
                     .run { send in
-                        // Wrap all service calls in comprehensive error handling
-                        do {
-                            try await notificationService.checkAuthorizationStatus()
-                            let status = await notificationService.authorizationStatus
-                            await send(.notificationStatusLoaded(mapNotificationStatus(status)))
-                        } catch {
-                            // Record service failure and provide graceful fallback
-                            Task { @MainActor in
-                                ServiceHealthManager.shared.recordFailure(for: .notifications, error: error)
-                            }
-                            await send(.notificationStatusLoaded(.notDetermined))
-                        }
+                        await notificationService.checkAuthorizationStatus()
+                        let status = await notificationService.authorizationStatus
+                        await send(.notificationStatusLoaded(mapNotificationStatus(status)))
                     }
                 )
 
             case .loadSettings:
                 return .run { [persistence] send in
-                    // Wrap persistence operations in error handling for graceful fallback
-                    do {
-                        let theme = persistence.loadTheme()
-                        let currency = persistence.loadCurrency()
-                        let notifications = persistence.loadNotificationSettings()
-                        let export = persistence.loadExportSettings()
-                        
-                        await send(.themeChanged(theme))
-                        await send(.currencyChanged(currency))
-                        await send(.notificationsToggled(notifications.enabled))
-                        await send(.warrantyNotificationsToggled(notifications.warranty))
-                        await send(.insuranceNotificationsToggled(notifications.insurance))
-                        await send(.documentNotificationsToggled(notifications.document))
-                        await send(.maintenanceNotificationsToggled(notifications.maintenance))
-                        await send(.exportFormatChanged(export.format))
-                        await send(.includeImagesToggled(export.includeImages))
-                        await send(.includeReceiptsToggled(export.includeReceipts))
-                        await send(.compressExportToggled(export.compress))
-                    } catch {
-                        // If persistence fails, load safe defaults
-                        await send(.themeChanged(.system))
-                        await send(.currencyChanged("USD"))
-                        await send(.notificationsToggled(false))
-                        await send(.warrantyNotificationsToggled(false))
-                        await send(.insuranceNotificationsToggled(false))
-                        await send(.documentNotificationsToggled(false))
-                        await send(.maintenanceNotificationsToggled(false))
-                        await send(.exportFormatChanged(.csv))
-                        await send(.includeImagesToggled(true))
-                        await send(.includeReceiptsToggled(true))
-                        await send(.compressExportToggled(true))
-                    }
+                    let theme = persistence.loadTheme()
+                    let currency = persistence.loadCurrency()
+                    let notifications = persistence.loadNotificationSettings()
+                    let export = persistence.loadExportSettings()
+                    
+                    await send(.themeChanged(theme))
+                    await send(.currencyChanged(currency))
+                    await send(.notificationsToggled(notifications.enabled))
+                    await send(.warrantyNotificationsToggled(notifications.warranty))
+                    await send(.insuranceNotificationsToggled(notifications.insurance))
+                    await send(.documentNotificationsToggled(notifications.document))
+                    await send(.maintenanceNotificationsToggled(notifications.maintenance))
+                    await send(.exportFormatChanged(export.format))
+                    await send(.includeImagesToggled(export.includeImages))
+                    await send(.includeReceiptsToggled(export.includeReceipts))
+                    await send(.compressExportToggled(export.compress))
                 }
 
             case let .themeChanged(theme):
@@ -178,7 +153,7 @@ public struct SettingsReducer: Reducer, Sendable {
             case .requestNotificationPermission:
                 return .run { send in
                     do {
-                        try await notificationService.requestAuthorization()
+                        _ = try await notificationService.requestAuthorization()
                         let status = await notificationService.authorizationStatus
                         await send(.notificationStatusLoaded(mapNotificationStatus(status)))
                         

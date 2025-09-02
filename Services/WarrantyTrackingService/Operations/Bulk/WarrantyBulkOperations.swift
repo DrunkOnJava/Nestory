@@ -14,14 +14,14 @@ public struct WarrantyBulkOperations {
     private let coreOperations: WarrantyCoreOperations
     private let detectionEngine: WarrantyDetectionEngine
     private let statusManager: WarrantyStatusManager
-    private let notificationService: NotificationService
+    private let notificationService: any NotificationService
     private let logger: Logger
     
     public init(
         coreOperations: WarrantyCoreOperations,
         detectionEngine: WarrantyDetectionEngine,
         statusManager: WarrantyStatusManager,
-        notificationService: NotificationService,
+        notificationService: any NotificationService,
         logger: Logger
     ) {
         self.coreOperations = coreOperations

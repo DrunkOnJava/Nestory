@@ -1,6 +1,10 @@
 # Nestory SwiftLint Configuration
 # Enforces architecture and code quality standards
 
+# Reporter configuration for CI-friendly output
+reporter: github-actions-logging
+strict: false
+
 excluded:
   - .build
   - build
@@ -15,7 +19,9 @@ excluded:
   - Package.resolved
   - "*.xcodeproj"
   - "*.xcworkspace"
-  # Note: Tests are NOT excluded - we lint test code too
+  - fastlane
+  - vendor
+  - Tests  # Exclude Tests to focus on app sources
 
 included:
   - App-Main
@@ -25,7 +31,6 @@ included:
   - Services
   - Infrastructure
   - Foundation
-  - Tests
 
 opt_in_rules:
   # Code Quality
@@ -80,21 +85,23 @@ opt_in_rules:
 disabled_rules:
   - trailing_whitespace  # Let formatter handle this
   - orphaned_doc_comment
-  - layer_header_required  # Regex is broken - disable until fixed
-  - todo  # We have custom todo rule
-  - fixme  # We have custom fixme rule
   - trailing_comma  # Don't enforce trailing commas
 
 # Custom Rules
 custom_rules:
+  layer_header_required:
+    included: ".*\\.swift"
+    name: "Layer Header Required"
+    regex: '(^//\\s+Layer:\\s+.+\\n//\\s+Module:\\s+.+)'
+    match_kinds: comment
+    message: "Missing required layer header."
+    severity: warning
+    
   todo_must_reference_adr:
     name: "TODO Must Reference ADR"
     regex: '(//\s*(TODO|FIXME)(?!.*ADR-\d{4}))'
     message: "TODOs and FIXMEs must reference an ADR (e.g., // TODO: ADR-0001)"
     severity: warning  # Changed from error to warning for now
-    
-  # Removed layer_header_check - SwiftLint can't properly do "once per file" checks
-  # Consider using a separate script for architecture validation instead
 
   no_print_statements:
     name: "No Print Statements"
@@ -206,5 +213,4 @@ multiline_arguments:
 trailing_closure:
   only_single_muted_parameter: true
 
-# Reporter
-reporter: "xcode"
+# Note: Reporter already configured at top of file

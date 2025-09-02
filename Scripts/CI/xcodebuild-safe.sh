@@ -219,22 +219,68 @@ export XCODEBUILD_EXIT_CODE
 echo -e "\n${BLUE}📊 Capturing build metrics...${NC}"
 "$(dirname "$0")/capture-build-metrics.sh"
 
-# Parse and display summary
+# Parse and display summary using JSON when available
 if [ -f "$BUILD_LOG" ]; then
-    ERRORS=$(grep -c "error:" "$BUILD_LOG" 2>/dev/null || echo 0)
-    WARNINGS=$(grep -c "warning:" "$BUILD_LOG" 2>/dev/null || echo 0)
     DURATION=$(($(date +%s) - BUILD_START_TIME))
     
-    echo -e "\n${BLUE}Build Summary:${NC}"
-    echo "  Errors: $ERRORS"
-    echo "  Warnings: $WARNINGS"
-    echo "  Duration: ${DURATION}s"
-    echo "  Exit Code: $XCODEBUILD_EXIT_CODE"
-    
-    # Show errors if any
-    if [ "$ERRORS" -gt 0 ]; then
-        echo -e "\n${RED}Build Errors:${NC}"
-        grep "error:" "$BUILD_LOG" | head -10
+    # Try to use xcodebuild JSON output for more accurate parsing
+    JSON_LOG="${BUILD_LOG%.log}.json"
+    if command -v xcbeautify >/dev/null 2>&1 && [ "$XCODEBUILD_EXIT_CODE" -ne 0 ]; then
+        # Generate JSON summary from build log
+        cat "$BUILD_LOG" | xcbeautify --reporter json > "$JSON_LOG" 2>/dev/null || true
+        
+        if [ -f "$JSON_LOG" ] && [ -s "$JSON_LOG" ] && command -v jq >/dev/null 2>&1; then
+            # Parse JSON output for accurate counts
+            ERRORS=$(jq '[.[] | select(.type == "error")] | length' "$JSON_LOG" 2>/dev/null || echo 0)
+            WARNINGS=$(jq '[.[] | select(.type == "warning")] | length' "$JSON_LOG" 2>/dev/null || echo 0)
+            
+            echo -e "\n${BLUE}Build Summary (JSON-parsed):${NC}"
+            echo "  Errors: $ERRORS"
+            echo "  Warnings: $WARNINGS"
+            echo "  Duration: ${DURATION}s"
+            echo "  Exit Code: $XCODEBUILD_EXIT_CODE"
+            
+            # Show structured error details
+            if [ "$ERRORS" -gt 0 ]; then
+                echo -e "\n${RED}Build Errors:${NC}"
+                jq -r '.[] | select(.type == "error") | "  \(.file // "Unknown"):\(.line // 0): \(.message)"' "$JSON_LOG" 2>/dev/null | head -10
+            fi
+            
+            # Clean up JSON log
+            rm -f "$JSON_LOG"
+        else
+            # Fallback to text parsing if JSON parsing fails
+            ERRORS=$(grep -c "error:" "$BUILD_LOG" 2>/dev/null || echo 0)
+            WARNINGS=$(grep -c "warning:" "$BUILD_LOG" 2>/dev/null || echo 0)
+            
+            echo -e "\n${BLUE}Build Summary (text-parsed):${NC}"
+            echo "  Errors: $ERRORS"
+            echo "  Warnings: $WARNINGS"
+            echo "  Duration: ${DURATION}s"
+            echo "  Exit Code: $XCODEBUILD_EXIT_CODE"
+            
+            # Show errors if any
+            if [ "$ERRORS" -gt 0 ]; then
+                echo -e "\n${RED}Build Errors:${NC}"
+                grep "error:" "$BUILD_LOG" | head -10
+            fi
+        fi
+    else
+        # No errors or xcbeautify not available - use simple text parsing
+        ERRORS=$(grep -c "error:" "$BUILD_LOG" 2>/dev/null || echo 0)
+        WARNINGS=$(grep -c "warning:" "$BUILD_LOG" 2>/dev/null || echo 0)
+        
+        echo -e "\n${BLUE}Build Summary:${NC}"
+        echo "  Errors: $ERRORS"
+        echo "  Warnings: $WARNINGS"
+        echo "  Duration: ${DURATION}s"
+        echo "  Exit Code: $XCODEBUILD_EXIT_CODE"
+        
+        # Show errors if any
+        if [ "$ERRORS" -gt 0 ]; then
+            echo -e "\n${RED}Build Errors:${NC}"
+            grep "error:" "$BUILD_LOG" | head -10
+        fi
     fi
 fi
 

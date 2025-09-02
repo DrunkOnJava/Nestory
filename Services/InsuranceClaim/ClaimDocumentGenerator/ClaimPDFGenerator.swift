@@ -168,7 +168,7 @@ public struct ClaimPDFGenerator {
         "Incident Details".draw(at: CGPoint(x: margin, y: currentY), withAttributes: sectionAttributes)
         currentY += 25
 
-        let incidentDescription = request.incidentDescription ?? "No description provided"
+        let incidentDescription = request.incidentDescription
         let descriptionRect = CGRect(
             x: margin,
             y: currentY,

@@ -1,0 +1,4 @@
+# Testing individual plugin: fastlane-plugin-semantic_release
+# Semantic versioning automation for Nestory iOS project
+
+gem 'fastlane-plugin-semantic_release'

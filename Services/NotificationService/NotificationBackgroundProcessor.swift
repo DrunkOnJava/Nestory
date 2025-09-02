@@ -52,21 +52,36 @@ public final class NotificationBackgroundProcessor: @unchecked Sendable {
         // App refresh background task
         BGTaskScheduler.shared.register(forTaskWithIdentifier: BackgroundTaskIdentifier.notificationProcessing, using: nil) { task in
             Task { @MainActor in
-                await self.handleNotificationProcessingTask(task as! BGAppRefreshTask)
+                guard let appRefreshTask = task as? BGAppRefreshTask else {
+                    self.logger.error("Invalid task type for notification processing: \(type(of: task))")
+                    task.setTaskCompleted(success: false)
+                    return
+                }
+                await self.handleNotificationProcessingTask(appRefreshTask)
             }
         }
 
         // Warranty check background task
         BGTaskScheduler.shared.register(forTaskWithIdentifier: BackgroundTaskIdentifier.warrantyCheck, using: nil) { task in
             Task { @MainActor in
-                await self.handleWarrantyCheckTask(task as! BGAppRefreshTask)
+                guard let appRefreshTask = task as? BGAppRefreshTask else {
+                    self.logger.error("Invalid task type for warranty check: \(type(of: task))")
+                    task.setTaskCompleted(success: false)
+                    return
+                }
+                await self.handleWarrantyCheckTask(appRefreshTask)
             }
         }
 
         // Analytics collection background task
         BGTaskScheduler.shared.register(forTaskWithIdentifier: BackgroundTaskIdentifier.analyticsCollection, using: nil) { task in
             Task { @MainActor in
-                await self.handleAnalyticsCollectionTask(task as! BGAppRefreshTask)
+                guard let appRefreshTask = task as? BGAppRefreshTask else {
+                    self.logger.error("Invalid task type for analytics collection: \(type(of: task))")
+                    task.setTaskCompleted(success: false)
+                    return
+                }
+                await self.handleAnalyticsCollectionTask(appRefreshTask)
             }
         }
 
@@ -303,7 +318,7 @@ public final class NotificationBackgroundProcessor: @unchecked Sendable {
         let (optimalHour, optimalDay) = try await analytics.calculateOptimalNotificationTiming()
 
         // Update notification preferences based on analytics
-        let effectivenessReport = try await analytics.generateEffectivenessReport()
+        _ = try await analytics.generateEffectivenessReport()
 
         // Log insights
         logger.info("Analytics: \(String(format: "%.1f", currentAnalytics.interactionRate * 100))% interaction rate")
@@ -352,7 +367,7 @@ public final class NotificationBackgroundProcessor: @unchecked Sendable {
                 try await persistence.clearPersistedState()
             } else if issue.contains("Notification storage directory missing") {
                 // Recreate storage directory
-                let persistence = NotificationPersistence()
+                _ = NotificationPersistence()
                 // Directory recreation is handled in init
             }
         }

@@ -189,7 +189,7 @@ public final class PerceptualHash: @unchecked Sendable {
     }
 }
 
-public enum PerceptualHashError: LocalizedError {
+public enum PerceptualHashError: Error, LocalizedError, Sendable {
     case invalidImage
     case filterCreationFailed
     case grayscaleConversionFailed

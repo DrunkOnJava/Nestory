@@ -7,7 +7,7 @@
 import Foundation
 import os.log
 import SwiftData
-import UserNotifications
+@preconcurrency import UserNotifications
 import BackgroundTasks
 
 // MARK: - Advanced Notification Operations
@@ -25,9 +25,6 @@ extension LiveNotificationService {
 
         let scheduler = NotificationScheduler(modelContext: modelContext)
         let result = try await scheduler.scheduleNotificationsWithLoadBalancing(for: items)
-
-        // Schedule all the requests
-        try await batchScheduleNotifications(result.totalRequests > 0 ? [] : [])
 
         logger.info("Smart scheduling completed: \(result.successfullyScheduled) successful, \(result.failed) failed")
     }
@@ -370,35 +367,31 @@ extension LiveNotificationService {
         return
         #else
         // Real device implementation with proper UNNotificationRequest handling
-        let pendingRequests: [UNNotificationRequest] = try await withUnsafeThrowingContinuation { continuation in
-            Task {
-                do {
-                    let requests = await notificationActor.getPendingNotificationRequests()
-                    continuation.resume(returning: requests)
-                } catch {
-                    continuation.resume(throwing: error)
-                }
-            }
-        }
+        let pendingRequests = await notificationActor.getPendingNotificationRequests()
         
         let now = Date()
-        var cancelledCount = 0
-
-        for request in pendingRequests {
+        
+        // Collect expired requests first to avoid data race
+        let expiredRequests = pendingRequests.compactMap { request -> String? in
             if let calendarTrigger = request.trigger as? UNCalendarNotificationTrigger,
                let triggerDate = calendarTrigger.nextTriggerDate(),
                triggerDate < now
             {
-                await notificationActor.removePendingNotificationRequests(withIdentifiers: [request.identifier])
-                cancelledCount += 1
+                return request.identifier
             }
+            return nil
+        }
+        
+        // Remove expired requests
+        if !expiredRequests.isEmpty {
+            await notificationActor.removePendingNotificationRequests(withIdentifiers: expiredRequests)
         }
 
         // Also clean up persistence data
         let persistence = NotificationPersistence()
         try await persistence.performCleanup()
 
-        logger.info("Cleaned up \(cancelledCount) expired notifications")
+        logger.info("Cleaned up \(expiredRequests.count) expired notifications")
         #endif
     }
 }

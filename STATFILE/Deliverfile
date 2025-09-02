@@ -1,0 +1,77 @@
+# Deliverfile - Configuration for App Store metadata delivery
+
+# App identifier
+app_identifier "com.drunkonjava.nestory.dev"
+
+# Username (your Apple ID)
+# username "your@email.com" # Set via DELIVER_USER environment variable
+
+# Team ID
+team_id "2VXBQV4XC9"
+
+# Platform
+platform :ios
+
+# Skip HTML report generation
+force true
+
+# Skip screenshots for now (until we generate them)
+skip_screenshots true
+
+# Submit for review automatically
+submit_for_review false
+
+# Automatic release after approval
+automatic_release false
+
+# Phased release
+phased_release true
+
+# Price tier (0 = free)
+price_tier 0
+
+# App rating configuration (4+ rating)
+app_rating_config_path "./fastlane/rating_config.json"
+
+# Primary and secondary categories
+primary_category "PRODUCTIVITY"
+secondary_category "UTILITIES"
+
+# Copyright
+copyright "#{Date.today.year} Nestory"
+
+# App Review Information
+app_review_information(
+  first_name: "Griffin",
+  last_name: "Admin",
+  phone_number: "+1234567890",
+  email_address: "support@nestory.app",
+  demo_user: "",
+  demo_password: "",
+  notes: "This is a home inventory app for insurance documentation. No special account needed for testing."
+)
+
+# Export Compliance
+export_compliance_uses_encryption(false) # We use only exempt encryption
+export_compliance_encryption_updated(false)
+export_compliance_compliance_required(false)
+export_compliance_contains_third_party_cryptography(false)
+export_compliance_contains_proprietary_cryptography(false)
+export_compliance_is_exempt(true)
+
+# Trade compliance documentation
+trade_representative_contact_information(
+  first_name: "Griffin",
+  last_name: "Admin", 
+  address_line1: "",
+  address_line2: "",
+  city_name: "",
+  state: "",
+  country: "United States",
+  postal_code: "",
+  phone_number: "+1234567890",
+  email_address: "compliance@nestory.app",
+  is_displayed_on_app_store: false
+)
+
+# Description, keywords, etc. are loaded from ./metadata/ directory

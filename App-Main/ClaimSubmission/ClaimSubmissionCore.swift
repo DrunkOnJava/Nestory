@@ -45,13 +45,13 @@ public final class ClaimSubmissionCore: ObservableObject {
     @Published public var showingSubmissionOptions = false
     @Published public var showingEmailComposer = false
     @Published public var showingCloudUpload = false
-    @Published public var selectedCloudService: CloudStorageService?
+    @Published public var selectedCloudService: (any CloudStorageService)?
     @Published public var recipientEmail = ""
 
     // Processing State
     @Published public var isProcessing = false
     @Published public var currentClaim: ClaimSubmission?
-    @Published public var processingError: Error?
+    @Published public var processingError: (any Error)?
     @Published public var showingError = false
 
     // UI State
@@ -60,7 +60,7 @@ public final class ClaimSubmissionCore: ObservableObject {
 
     // MARK: - Computed Properties
 
-    public var cloudServices: [CloudStorageService] {
+    public var cloudServices: [any CloudStorageService] {
         cloudStorageManager.availableServices
     }
 

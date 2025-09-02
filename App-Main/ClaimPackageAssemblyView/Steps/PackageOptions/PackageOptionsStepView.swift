@@ -36,8 +36,8 @@ public struct PackageOptionsStepView: View {
 }
 
 #Preview {
-    @State var options = ClaimPackageOptions()
-    return PackageOptionsStepView(
+    @Previewable @State var options = ClaimPackageOptions()
+    PackageOptionsStepView(
         options: $options,
         onAdvancedOptions: {}
     )

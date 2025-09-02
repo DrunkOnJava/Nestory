@@ -314,7 +314,7 @@ struct LazyView<Content: View, PlaceholderContent: View>: View {
 
 // MARK: - Error Types
 
-enum ImageLoadError: LocalizedError {
+enum ImageLoadError: Error, LocalizedError {
     case invalidData
 
     var errorDescription: String? {

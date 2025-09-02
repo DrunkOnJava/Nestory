@@ -1,0 +1,4 @@
+# Testing individual plugin: fastlane-plugin-test_center
+# Advanced testing orchestration for Nestory iOS project
+
+gem 'fastlane-plugin-test_center'

@@ -177,7 +177,7 @@ struct ItemDetailView: View {
                             HStack {
                                 Image(systemName: warrantyStatus.icon)
                                     .font(.title2)
-                                    .foregroundColor(Color(hex: warrantyStatus.color ?? "#007AFF"))
+                                    .foregroundColor(Color(hex: warrantyStatus.color))
                                 VStack(alignment: .leading) {
                                     Text("Warranty Status")
                                         .font(.headline)
@@ -445,23 +445,47 @@ struct ItemDetailView: View {
 // DetailRow is now available from WarrantyTrackingComponents.swift
 // Removed local definition to avoid redeclaration conflict
 
-#Preview {
-    let config = ModelConfiguration(isStoredInMemoryOnly: true)
-    let container = try! ModelContainer(for: Item.self, Category.self, Warranty.self, configurations: config)
-    let context = ModelContext(container)
+#Preview("Item Detail") {
+    ItemDetailPreview()
+}
 
-    let category = Category(name: "Electronics", icon: "tv.fill", colorHex: "#FF6B6B")
-    let item = Item(name: "MacBook Pro", itemDescription: "13-inch M2", quantity: 1, category: category)
-    item.purchaseDate = Date()
-    item.purchasePrice = 1299.00
-    item.brand = "Apple"
+private struct ItemDetailPreview: View {
+    let container: ModelContainer?
+    let item: Item?
+    
+    init() {
+        do {
+            let config = ModelConfiguration(isStoredInMemoryOnly: true)
+            let container = try ModelContainer(for: Item.self, Category.self, Warranty.self, configurations: config)
+            let context = ModelContext(container)
 
-    context.insert(category)
-    context.insert(item)
+            let category = Category(name: "Electronics", icon: "tv.fill", colorHex: "#FF6B6B")
+            let item = Item(name: "MacBook Pro", itemDescription: "13-inch M2", quantity: 1, category: category)
+            item.purchaseDate = Date()
+            item.purchasePrice = 1299.00
+            item.brand = "Apple"
 
-    return NavigationStack {
-        ItemDetailView(item: item)
-            .modelContainer(container)
+            context.insert(category)
+            context.insert(item)
+            
+            self.container = container
+            self.item = item
+        } catch {
+            self.container = nil
+            self.item = nil
+        }
+    }
+    
+    var body: some View {
+        if let container = container, let item = item {
+            NavigationStack {
+                ItemDetailView(item: item)
+                    .modelContainer(container)
+            }
+        } else {
+            Text("Preview Error: Failed to initialize")
+                .foregroundColor(.red)
+        }
     }
 }
 

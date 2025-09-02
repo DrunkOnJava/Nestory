@@ -30,7 +30,14 @@ public final class NotificationPersistence: @unchecked Sendable {
         self.fileManager = fileManager
 
         // Set up documents directory for persistent storage
-        self.documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
+        if let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first {
+            self.documentsURL = documentsURL
+        } else {
+            // Create fallback temporary directory if documents directory unavailable
+            let tempDir = fileManager.temporaryDirectory.appendingPathComponent("NestoryNotifications", isDirectory: true)
+            self.documentsURL = tempDir
+            logger.warning("Documents directory unavailable, using temporary directory: \(tempDir.path)")
+        }
 
         // Ensure recovery directory exists
         setupStorageDirectories()

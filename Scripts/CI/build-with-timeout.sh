@@ -5,7 +5,9 @@
 # Follows industry standards for CI/CD build management
 #
 
-set -euo pipefail
+set -Eeuo pipefail
+IFS=$'\n\t'
+trap 'echo "❌ ${BASH_SOURCE[0]} failed at line $LINENO: $BASH_COMMAND" >&2' ERR
 
 # Default configuration
 DEFAULT_TIMEOUT=${BUILD_TIMEOUT:-600}  # 10 minutes default

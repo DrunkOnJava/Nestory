@@ -1,7 +1,7 @@
 //
 // Layer: Foundation
 // Module: Foundation/Core
-// Purpose: Error recovery strategies and fallback mechanisms
+// Purpose: any Error recovery strategies and fallback mechanisms
 //
 
 import Foundation
@@ -12,10 +12,10 @@ import Foundation
 
 public protocol ErrorRecoveryStrategy: Sendable {
     /// Attempts to recover from an error
-    func recover(from error: ServiceError, logger: FoundationLogger?) async throws
+    func recover(from error: ServiceError, logger: (any FoundationLogger)?) async throws
 
     /// Provides fallback data when recovery is not possible
-    func fallback<T>(for operationType: String, defaultValue: T, logger: FoundationLogger?) async -> T
+    func fallback<T>(for operationType: String, defaultValue: T, logger: (any FoundationLogger)?) async -> T
 
     /// Indicates if this strategy can handle the given error
     func canHandle(_ error: ServiceError) -> Bool
@@ -26,7 +26,7 @@ public protocol ErrorRecoveryStrategy: Sendable {
 public struct NetworkRecoveryStrategy: ErrorRecoveryStrategy, Sendable {
     public init() {}
 
-    public func recover(from error: ServiceError, logger: FoundationLogger?) async throws {
+    public func recover(from error: ServiceError, logger: (any FoundationLogger)?) async throws {
         switch error {
         case .networkUnavailable:
             // Wait for network to become available
@@ -54,7 +54,7 @@ public struct NetworkRecoveryStrategy: ErrorRecoveryStrategy, Sendable {
         }
     }
 
-    public func fallback<T>(for operationType: String, defaultValue: T, logger: FoundationLogger?) async -> T {
+    public func fallback<T>(for operationType: String, defaultValue: T, logger: (any FoundationLogger)?) async -> T {
         logger?.info("Using fallback for \(operationType)")
         return defaultValue
     }
@@ -84,7 +84,7 @@ public struct NetworkRecoveryStrategy: ErrorRecoveryStrategy, Sendable {
 public struct AuthenticationRecoveryStrategy: ErrorRecoveryStrategy, Sendable {
     public init() {}
 
-    public func recover(from error: ServiceError, logger: FoundationLogger?) async throws {
+    public func recover(from error: ServiceError, logger: (any FoundationLogger)?) async throws {
         switch error {
         case .unauthorized, .authenticationExpired:
             logger?.info("Authentication expired, requesting re-authentication...")
@@ -105,7 +105,7 @@ public struct AuthenticationRecoveryStrategy: ErrorRecoveryStrategy, Sendable {
         }
     }
 
-    public func fallback<T>(for operationType: String, defaultValue: T, logger: FoundationLogger?) async -> T {
+    public func fallback<T>(for operationType: String, defaultValue: T, logger: (any FoundationLogger)?) async -> T {
         logger?.info("Authentication required for \(operationType), using fallback")
         return defaultValue
     }
@@ -125,7 +125,7 @@ public struct AuthenticationRecoveryStrategy: ErrorRecoveryStrategy, Sendable {
 public struct CloudKitRecoveryStrategy: ErrorRecoveryStrategy, Sendable {
     public init() {}
 
-    public func recover(from error: ServiceError, logger: FoundationLogger?) async throws {
+    public func recover(from error: ServiceError, logger: (any FoundationLogger)?) async throws {
         switch error {
         case .cloudKitUnavailable:
             logger?.info("CloudKit unavailable, waiting for service...")
@@ -154,7 +154,7 @@ public struct CloudKitRecoveryStrategy: ErrorRecoveryStrategy, Sendable {
         }
     }
 
-    public func fallback<T>(for operationType: String, defaultValue: T, logger: FoundationLogger?) async -> T {
+    public func fallback<T>(for operationType: String, defaultValue: T, logger: (any FoundationLogger)?) async -> T {
         logger?.info("CloudKit unavailable for \(operationType), using local fallback")
         return defaultValue
     }
@@ -180,7 +180,7 @@ public struct CloudKitRecoveryStrategy: ErrorRecoveryStrategy, Sendable {
 public struct FileSystemRecoveryStrategy: ErrorRecoveryStrategy, Sendable {
     public init() {}
 
-    public func recover(from error: ServiceError, logger: FoundationLogger?) async throws {
+    public func recover(from error: ServiceError, logger: (any FoundationLogger)?) async throws {
         switch error {
         case let .fileNotFound(path):
             logger?.info("File not found at \(path), attempting to recreate...")
@@ -204,7 +204,7 @@ public struct FileSystemRecoveryStrategy: ErrorRecoveryStrategy, Sendable {
         }
     }
 
-    public func fallback<T>(for operationType: String, defaultValue: T, logger: FoundationLogger?) async -> T {
+    public func fallback<T>(for operationType: String, defaultValue: T, logger: (any FoundationLogger)?) async -> T {
         logger?.info("File system error for \(operationType), using fallback")
         return defaultValue
     }
@@ -233,13 +233,13 @@ public struct FileSystemRecoveryStrategy: ErrorRecoveryStrategy, Sendable {
 // MARK: - Composite Recovery Strategy
 
 public struct CompositeRecoveryStrategy: ErrorRecoveryStrategy, Sendable {
-    private let strategies: [ErrorRecoveryStrategy]
+    private let strategies: [any ErrorRecoveryStrategy]
 
-    public init(strategies: [ErrorRecoveryStrategy] = Self.defaultStrategies()) {
+    public init(strategies: [any ErrorRecoveryStrategy] = Self.defaultStrategies()) {
         self.strategies = strategies
     }
 
-    public static func defaultStrategies() -> [ErrorRecoveryStrategy] {
+    public static func defaultStrategies() -> [any ErrorRecoveryStrategy] {
         [
             NetworkRecoveryStrategy(),
             AuthenticationRecoveryStrategy(),
@@ -248,7 +248,7 @@ public struct CompositeRecoveryStrategy: ErrorRecoveryStrategy, Sendable {
         ]
     }
 
-    public func recover(from error: ServiceError, logger: FoundationLogger?) async throws {
+    public func recover(from error: ServiceError, logger: (any FoundationLogger)?) async throws {
         for strategy in strategies {
             if strategy.canHandle(error) {
                 logger?.info("Attempting recovery with \(type(of: strategy))")
@@ -267,7 +267,7 @@ public struct CompositeRecoveryStrategy: ErrorRecoveryStrategy, Sendable {
         throw error
     }
 
-    public func fallback<T>(for operationType: String, defaultValue: T, logger: FoundationLogger?) async -> T {
+    public func fallback<T>(for operationType: String, defaultValue: T, logger: (any FoundationLogger)?) async -> T {
         for strategy in strategies {
             // Use first available fallback
             return await strategy.fallback(for: operationType, defaultValue: defaultValue, logger: logger)
@@ -285,14 +285,14 @@ public struct CompositeRecoveryStrategy: ErrorRecoveryStrategy, Sendable {
 // MARK: - Resilient Operation Executor
 
 public actor ResilientOperationExecutor {
-    private let recoveryStrategy: ErrorRecoveryStrategy
+    private let recoveryStrategy: any ErrorRecoveryStrategy
     private let retryExecutor: ServiceOperationExecutor
-    private let logger: FoundationLogger?
+    private let logger: (any FoundationLogger)?
 
     public init(
-        recoveryStrategy: ErrorRecoveryStrategy = CompositeRecoveryStrategy(),
+        recoveryStrategy: any ErrorRecoveryStrategy = CompositeRecoveryStrategy(),
         retryExecutor: ServiceOperationExecutor = ServiceOperationExecutor(),
-        logger: FoundationLogger? = nil
+        logger: (any FoundationLogger)? = nil
     ) {
         self.recoveryStrategy = recoveryStrategy
         self.retryExecutor = retryExecutor

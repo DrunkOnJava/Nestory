@@ -30,14 +30,14 @@ public final class ClaimPackageAssemblyCore: ObservableObject {
     
     // MARK: - Dependencies
     
-    private let assemblerService: ClaimPackageAssemblerService
+    private let assemblerService: any ClaimPackageAssemblerService
     private let contentGenerator: ClaimContentGenerator
     private let documentProcessor: ClaimDocumentProcessor
     private let packageCore: ClaimPackageCore
     private let packageExporter: ClaimPackageExporter
     
     // Public access to dependencies for view layer
-    public var assemblyService: ClaimPackageAssemblerService {
+    public var assemblyService: any ClaimPackageAssemblerService {
         assemblerService
     }
     
@@ -59,7 +59,7 @@ public final class ClaimPackageAssemblyCore: ObservableObject {
     
     // MARK: - Initialization
     
-    public init(assemblerService: ClaimPackageAssemblerService = LiveClaimPackageAssemblerService()) {
+    public init(assemblerService: any ClaimPackageAssemblerService = LiveClaimPackageAssemblerService()) {
         self.assemblerService = assemblerService
         self.contentGenerator = ClaimContentGenerator()
         self.documentProcessor = ClaimDocumentProcessor()

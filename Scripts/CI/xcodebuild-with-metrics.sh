@@ -5,7 +5,9 @@
 # Use this instead of direct xcodebuild for metric collection
 #
 
-set -euo pipefail
+set -Eeuo pipefail
+IFS=$'\n\t'
+trap 'echo "❌ ${BASH_SOURCE[0]} failed at line $LINENO: $BASH_COMMAND" >&2' ERR
 
 # Colors
 RED='\033[0;31m'

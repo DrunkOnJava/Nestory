@@ -264,7 +264,7 @@ public struct EmailValidationRequirements: Sendable {
 
 // MARK: - Email Error Types
 
-public enum EmailError: LocalizedError {
+public enum EmailError: Error, LocalizedError {
     case validationFailed([String])
     case composerNotAvailable
     case sendingFailed(String)
@@ -336,7 +336,7 @@ public struct MailComposerView: UIViewControllerRepresentable {
         @MainActor public func mailComposeController(
             _ controller: MFMailComposeViewController,
             didFinishWith result: MFMailComposeResult,
-            error: Error?
+            error: (any Error)?
         ) {
             controller.dismiss(animated: true) {
                 if let error {

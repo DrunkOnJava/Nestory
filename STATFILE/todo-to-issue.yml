@@ -1,0 +1,156 @@
+name: TODO to Issue Sync
+description: Automatically create GitHub Issues from TODO items in TODO.md
+
+on:
+  push:
+    paths:
+      - 'TODO.md'
+    branches: 
+      - main
+      - feat/*
+      - feature/*
+  workflow_dispatch:
+    inputs:
+      scan_all:
+        description: 'Scan all TODOs (not just new ones)'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: read
+
+jobs:
+  todo-to-issue:
+    runs-on: ubuntu-latest
+    name: Create Issues from TODO.md
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          
+      - name: TODO to Issue
+        uses: alstr/todo-to-issue-action@v4.12.2
+        with:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CLOSE_ISSUES: true
+          AUTO_P: true
+          AUTO_ASSIGN: true
+          LABEL: "todo-sync"
+          ISSUE_TEMPLATE: |
+            **Automatically created from TODO.md**
+            
+            **Task ID**: $MARKER
+            **Priority**: $PRIORITY
+            **File**: TODO.md
+            **Line**: $LINE
+            
+            ---
+            
+            $BODY
+            
+            ---
+            
+            🤖 This issue was automatically created from TODO.md. 
+            
+            When this issue is closed, the corresponding checkbox in TODO.md will be automatically updated.
+            
+            **Acceptance Criteria** (from TODO.md):
+            $ACCEPTANCE_CRITERIA
+            
+            **Related**: View all tasks in [TODO.md](https://github.com/${{ github.repository }}/blob/main/TODO.md)
+
+  sync-completed-tasks:
+    runs-on: ubuntu-latest
+    name: Sync Completed Tasks Back to TODO.md
+    needs: todo-to-issue
+    if: always()
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          
+      - name: Sync closed issues back to TODO.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Create a simple script to sync closed issues back to TODO.md
+          cat > sync-todos.js << 'EOF'
+          const { execSync } = require('child_process');
+          const fs = require('fs');
+          
+          try {
+            // Get all closed issues with todo-sync label
+            const closedIssues = JSON.parse(
+              execSync('gh issue list --state closed --label "todo-sync" --json number,title,body --limit 100', 
+                { encoding: 'utf8' })
+            );
+            
+            let todoContent = fs.readFileSync('TODO.md', 'utf8');
+            let modified = false;
+            
+            // For each closed issue, mark corresponding TODO as complete
+            closedIssues.forEach(issue => {
+              // Extract task ID from issue body if present
+              const taskIdMatch = issue.body.match(/\*\*Task ID\*\*: ([A-Z]+\.[0-9]+)/);
+              if (taskIdMatch) {
+                const taskId = taskIdMatch[1];
+                
+                // Find and replace the TODO item
+                const todoPattern = new RegExp(`- \\[ \\] (.+\\(${taskId}\\))`, 'g');
+                const replacement = `- [x] $1`;
+                
+                if (todoContent.match(todoPattern)) {
+                  todoContent = todoContent.replace(todoPattern, replacement);
+                  modified = true;
+                  console.log(`✅ Marked task ${taskId} as completed`);
+                }
+              }
+            });
+            
+            if (modified) {
+              fs.writeFileSync('TODO.md', todoContent);
+              console.log('📝 Updated TODO.md with completed tasks');
+            } else {
+              console.log('ℹ️ No TODO.md updates needed');
+            }
+          } catch (error) {
+            console.error('Error syncing TODOs:', error.message);
+            // Don't fail the workflow for sync errors
+            process.exit(0);
+          }
+          EOF
+          
+          node sync-todos.js
+          
+      - name: Commit updated TODO.md
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+          # Clean up temporary files
+          rm -f sync-todos.js
+          
+          if [[ `git status --porcelain TODO.md` ]]; then
+            git add TODO.md
+            git commit -m "docs: sync completed issues back to TODO.md
+
+            🤖 Automatically updated TODO.md checkboxes for completed GitHub Issues
+            
+            Co-authored-by: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"
+            git push
+            echo "✅ Committed TODO.md updates"
+          else
+            echo "ℹ️ No changes to commit"
+          fi

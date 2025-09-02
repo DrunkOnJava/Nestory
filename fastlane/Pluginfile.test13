@@ -1,0 +1,4 @@
+# Testing individual plugin: fastlane-plugin-update_plist
+# Dynamic Info.plist updates for Nestory iOS project
+
+gem 'fastlane-plugin-update_plist'

@@ -92,7 +92,7 @@ public struct RestoreDataTransformer: @unchecked Sendable {
     // MARK: - Batch Restoration
 
     public func restoreCategories(
-        from records: [(CKRecord.ID, Result<CKRecord, Error>)],
+        from records: [(CKRecord.ID, Result<CKRecord, any Error>)],
         modelContext: ModelContext,
     ) -> [Category] {
         var categories: [Category] = []
@@ -109,7 +109,7 @@ public struct RestoreDataTransformer: @unchecked Sendable {
     }
 
     public func restoreRooms(
-        from records: [(CKRecord.ID, Result<CKRecord, Error>)],
+        from records: [(CKRecord.ID, Result<CKRecord, any Error>)],
         modelContext: ModelContext,
     ) -> [Room] {
         var rooms: [Room] = []
@@ -127,7 +127,7 @@ public struct RestoreDataTransformer: @unchecked Sendable {
 
     @MainActor
     public func restoreItems(
-        from records: [(CKRecord.ID, Result<CKRecord, Error>)],
+        from records: [(CKRecord.ID, Result<CKRecord, any Error>)],
         modelContext: ModelContext,
         progressHandler: ((Double) -> Void)? = nil,
     ) async throws -> [Item] {

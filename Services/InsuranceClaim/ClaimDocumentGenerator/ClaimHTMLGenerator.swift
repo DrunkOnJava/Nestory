@@ -199,7 +199,7 @@ public struct ClaimHTMLGenerator {
         return """
         <div class="section">
             <h2 class="section-title">Incident Details</h2>
-            <p>\(request.incidentDescription ?? "No description provided")</p>
+            <p>\(request.incidentDescription)</p>
         </div>
         """
     }

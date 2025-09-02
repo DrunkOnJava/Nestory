@@ -112,7 +112,7 @@ class EnvironmentSetup
       'carthage',         # Alternative dependency management  
       'swiftlint',        # Swift linting
       'swiftformat',      # Swift code formatting
-      'xcpretty',         # Pretty Xcode output
+      'xcbeautify',       # Beautiful Xcode output
       'imagemagick',      # Image processing for app icons
       'libpng',          # PNG processing
       'jpeg',            # JPEG processing

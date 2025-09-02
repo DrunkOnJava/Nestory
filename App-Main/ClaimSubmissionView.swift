@@ -8,7 +8,6 @@ import SwiftUI
 import SwiftData
 import MessageUI
 import Foundation
-import Nestory
 
 // Modular components are automatically available within the same target
 // ClaimSubmissionCore, ClaimSubmissionComponents, ClaimSubmissionSteps included

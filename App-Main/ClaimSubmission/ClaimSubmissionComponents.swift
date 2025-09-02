@@ -308,11 +308,11 @@ public struct SubmissionMethodCard: View {
 }
 
 public struct CloudServiceGrid: View {
-    let services: [CloudStorageService]
-    let selectedService: CloudStorageService?
-    let onSelect: (CloudStorageService) -> Void
+    let services: [any CloudStorageService]
+    let selectedService: (any CloudStorageService)?
+    let onSelect: (any CloudStorageService) -> Void
 
-    public init(services: [CloudStorageService], selectedService: CloudStorageService?, onSelect: @escaping (CloudStorageService) -> Void) {
+    public init(services: [any CloudStorageService], selectedService: (any CloudStorageService)?, onSelect: @escaping (any CloudStorageService) -> Void) {
         self.services = services
         self.selectedService = selectedService
         self.onSelect = onSelect

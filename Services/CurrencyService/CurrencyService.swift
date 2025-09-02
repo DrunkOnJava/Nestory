@@ -287,7 +287,7 @@ public struct Currency: Codable, Identifiable, Sendable {
     public var id: String { code }
 }
 
-public enum CurrencyError: LocalizedError {
+public enum CurrencyError: Error, LocalizedError, Sendable {
     case invalidAmount
     case rateNotAvailable(from: String, to: String)
     case updateFailed(String)

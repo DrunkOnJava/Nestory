@@ -271,7 +271,7 @@ public final class MockNotificationProvider: NotificationProvider {
 
 // MARK: - Error Types
 
-public enum NotificationError: LocalizedError, Sendable {
+public enum NotificationError: Error, LocalizedError, Sendable {
     case permissionDenied
     case schedulingFailed(String)
     case invalidNotification

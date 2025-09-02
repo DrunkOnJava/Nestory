@@ -10,7 +10,7 @@ import SwiftData
 
 @MainActor
 final class InsuranceClaimServiceTests: XCTestCase {
-    var claimService: InsuranceClaimService!
+    var claimService: any InsuranceClaimService!
     var modelContainer: ModelContainer!
     var modelContext: ModelContext!
     var testItems: [Item]!

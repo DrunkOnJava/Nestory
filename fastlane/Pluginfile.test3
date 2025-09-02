@@ -1,0 +1,4 @@
+# Testing individual plugin: fastlane-plugin-xcov
+# Comprehensive coverage reports for Nestory iOS project
+
+gem 'fastlane-plugin-xcov'

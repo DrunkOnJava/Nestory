@@ -1,7 +1,7 @@
 #!/bin/bash
 # Complete build solution for Nestory
 
-set -e
+set -euo pipefail
 
 cd /Users/griffin/Projects/Nestory
 

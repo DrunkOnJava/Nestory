@@ -75,6 +75,16 @@ public struct SearchView: View {
             FilterPillsSection(store: store)
             SearchContentSection(store: store)
         }
+        .contentShape(Rectangle())
+        .onTapGesture {
+            // Dismiss keyboard when tapping anywhere in the search content area
+            hideKeyboard()
+        }
+    }
+    
+    // Helper function to dismiss keyboard
+    private func hideKeyboard() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
 
     @ViewBuilder

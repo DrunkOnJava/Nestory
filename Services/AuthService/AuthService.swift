@@ -131,7 +131,7 @@ public struct UserProfileUpdate: Sendable {
 
 // MARK: - Error Types
 
-public enum AuthError: LocalizedError, Sendable {
+public enum AuthError: Error, LocalizedError, Sendable {
     case invalidCredentials
     case emailAlreadyExists
     case weakPassword

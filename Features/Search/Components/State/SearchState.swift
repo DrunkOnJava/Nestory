@@ -94,7 +94,7 @@ public struct SearchState: Equatable {
 
 // MARK: - Supporting Types
 
-public enum SearchError: LocalizedError, Equatable, Sendable {
+public enum SearchError: Error, LocalizedError, Equatable, Sendable {
     case searchExecutionFailed(String)
     case invalidQuery(String)
     case invalidFilters([String])

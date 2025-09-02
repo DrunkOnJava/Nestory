@@ -12,7 +12,7 @@ import Security
 public final class AppStoreConnectConfiguration: ObservableObject {
     // MARK: - Types
 
-    public enum ConfigurationError: LocalizedError {
+    public enum ConfigurationError: Error, LocalizedError {
         case missingCredentials
         case keychainError(OSStatus)
         case invalidPrivateKey

@@ -23,12 +23,12 @@ struct ImportExportSettingsView: View {
     @State private var insuranceExportService = InsuranceExportService()
     @StateObject private var cloudStorageManager = CloudStorageManager()
 
-    // REMINDER: InsuranceReportService, ImportExportService, InsuranceExportService, and CloudStorageManager are all wired here!
+    // REMINDER: any InsuranceReportService, ImportExportService, InsuranceExportService, and CloudStorageManager are all wired here!
 
     @State private var showingExportOptions = false
     @State private var showingInsuranceReportOptions = false
     @State private var isGeneratingReport = false
-    @State private var reportError: Error?
+    @State private var reportError: (any Error)?
     @State private var showingImportPicker = false
     @State private var importSuccessCount: Int?
     @State private var showingImportResult = false

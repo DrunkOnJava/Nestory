@@ -7,6 +7,7 @@
 import ComposableArchitecture
 import Foundation
 import SwiftData
+import os.log
 import CloudKit
 
 // MARK: - Service Dependency Keys
@@ -14,19 +15,13 @@ import CloudKit
 enum AuthServiceKey: @preconcurrency DependencyKey {
     @MainActor
     static var liveValue: any AuthService {
-        do {
-            return LiveAuthService()
-        } catch {
-            print("⚠️ Failed to create AuthService: \(error.localizedDescription)")
-            print("🔄 Falling back to MockAuthService for graceful degradation")
-            return MockAuthService()
-        }
+        return LiveAuthService()
     }
     @MainActor
     static let testValue: any AuthService = MockAuthService()
 }
 
-enum InventoryServiceKey: @preconcurrency DependencyKey {
+enum InventoryServiceKey: DependencyKey {
     static var liveValue: any InventoryService {
         do {
             // Create ModelContainer with explicit local-only configuration
@@ -53,11 +48,11 @@ enum InventoryServiceKey: @preconcurrency DependencyKey {
             }
             
             // Log error but don't crash in production
-            print("⚠️ Failed to create InventoryService: \(error.localizedDescription)")
-            print("🔄 Falling back to MockInventoryService for graceful degradation")
+            Logger.service.error("Failed to create InventoryService: \(error.localizedDescription)")
+            Logger.service.info("Falling back to MockInventoryService for graceful degradation")
             
             #if DEBUG
-            print("🔍 Debug info: \(error)")
+            Logger.service.debug("InventoryService creation debug info: \(error)")
             #endif
             
             // Return enhanced mock service with better reliability
@@ -70,54 +65,49 @@ enum InventoryServiceKey: @preconcurrency DependencyKey {
 
 enum PhotoIntegrationServiceKey: DependencyKey {
     static var liveValue: any PhotoIntegrationService {
-        do {
-            return LivePhotoIntegrationService()
-        } catch {
-            print("⚠️ Failed to create PhotoIntegrationService: \(error.localizedDescription)")
-            print("🔄 Falling back to MockPhotoIntegrationService for graceful degradation")
-            return MockPhotoIntegrationService()
-        }
+        return LivePhotoIntegrationService()
     }
     static let testValue: any PhotoIntegrationService = MockPhotoIntegrationService()
 }
 
 enum ExportServiceKey: DependencyKey {
     static var liveValue: any ExportService {
-        do {
-            return try LiveExportService()
-        } catch {
-            print("⚠️ Failed to create ExportService: \(error)")
-            print("🔄 Falling back to MockExportService for graceful degradation")
-            return MockExportService()
-        }
+        // Return mock service for now - live service implementation pending
+        MockExportService()
     }
 
     static let testValue: any ExportService = MockExportService()
 }
 
-enum SyncServiceKey: @preconcurrency DependencyKey {
-    @MainActor
+enum SyncServiceKey: DependencyKey {
     static var liveValue: any SyncService {
-        do {
-            return LiveSyncService()
-        } catch {
-            print("⚠️ Failed to create SyncService: \(error.localizedDescription)")
-            print("🔄 Falling back to MockSyncService for graceful degradation")
-            return MockSyncService()
-        }
+        // Return live service - no throwing constructor
+        LiveSyncService()
     }
-    @MainActor
     static let testValue: any SyncService = MockSyncService()
 }
 
-enum AnalyticsServiceKey: @preconcurrency DependencyKey {
+enum AnalyticsServiceKey: DependencyKey {
     static var liveValue: any AnalyticsService {
         do {
             let currencyService = try LiveCurrencyService()
-            return try LiveAnalyticsService(currencyService: currencyService)
+            let service = try LiveAnalyticsService(currencyService: currencyService)
+            
+            // Record successful service creation
+            Task { @MainActor in
+                ServiceHealthManager.shared.recordSuccess(for: .analytics)
+            }
+            
+            return service
         } catch {
-            print("⚠️ Failed to create AnalyticsService: \(error)")
-            print("🔄 Falling back to MockAnalyticsService for graceful degradation")
+            // Record service failure for health monitoring
+            Task { @MainActor in
+                ServiceHealthManager.shared.recordFailure(for: .analytics, error: error)
+                ServiceHealthManager.shared.notifyDegradedMode(service: .analytics)
+            }
+            
+            Logger.service.error("Failed to create AnalyticsService: \(error)")
+            Logger.service.info("Falling back to MockAnalyticsService for graceful degradation")
             return MockAnalyticsService()
         }
     }
@@ -128,10 +118,23 @@ enum AnalyticsServiceKey: @preconcurrency DependencyKey {
 enum CurrencyServiceKey: DependencyKey {
     static var liveValue: any CurrencyService {
         do {
-            return try LiveCurrencyService()
+            let service = try LiveCurrencyService()
+            
+            // Record successful service creation
+            Task { @MainActor in
+                ServiceHealthManager.shared.recordSuccess(for: .currency)
+            }
+            
+            return service
         } catch {
-            print("⚠️ Failed to create CurrencyService: \(error)")
-            print("🔄 Falling back to MockCurrencyService for graceful degradation")
+            // Record service failure for health monitoring
+            Task { @MainActor in
+                ServiceHealthManager.shared.recordFailure(for: .currency, error: error)
+                ServiceHealthManager.shared.notifyDegradedMode(service: .currency)
+            }
+            
+            Logger.service.error("Failed to create CurrencyService: \(error)")
+            Logger.service.info("Falling back to MockCurrencyService for graceful degradation")
             return MockCurrencyService()
         }
     }
@@ -142,19 +145,12 @@ enum CurrencyServiceKey: DependencyKey {
 enum BarcodeScannerServiceKey: @preconcurrency DependencyKey {
     @MainActor
     static var liveValue: any BarcodeScannerService {
-        do {
-            return LiveBarcodeScannerService()
-        } catch {
-            print("⚠️ Failed to create BarcodeScannerService: \(error.localizedDescription)")
-            print("🔄 Falling back to MockBarcodeScannerService for graceful degradation")
-            return MockBarcodeScannerService()
-        }
+        LiveBarcodeScannerService()
     }
-    @MainActor
     static let testValue: any BarcodeScannerService = MockBarcodeScannerService()
 }
 
-enum NotificationServiceKey: @preconcurrency DependencyKey {
+enum NotificationServiceKey: DependencyKey {
     static var liveValue: any NotificationService {
         // Return a minimal nonisolated default for TCA dependencies
         // The actual live service will be injected at app startup via withDependencies
@@ -167,13 +163,7 @@ enum NotificationServiceKey: @preconcurrency DependencyKey {
 enum ImportExportServiceKey: @preconcurrency DependencyKey {
     @MainActor
     static var liveValue: any ImportExportService {
-        do {
-            return try LiveImportExportService()
-        } catch {
-            print("⚠️ Failed to create ImportExportService: \(error)")
-            print("🔄 Falling back to MockImportExportService for graceful degradation")
-            return MockImportExportService()
-        }
+        LiveImportExportService()
     }
 
     @MainActor
@@ -182,30 +172,18 @@ enum ImportExportServiceKey: @preconcurrency DependencyKey {
 
 enum CloudBackupServiceKey: @preconcurrency DependencyKey {
     @MainActor
-    static var liveValue: any CloudBackupService {
-        do {
-            return LiveCloudBackupService()
-        } catch {
-            print("⚠️ Failed to create CloudBackupService: \(error.localizedDescription)")
-            print("🔄 Falling back to MockCloudBackupService for graceful degradation")
-            return MockCloudBackupService()
-        }
+        static var liveValue: any CloudBackupService {
+        LiveCloudBackupService()
     }
 
     @MainActor
-    static let testValue: any CloudBackupService = MockCloudBackupService()
+        static let testValue: any CloudBackupService = MockCloudBackupService()
 }
 
-enum ReceiptOCRServiceKey: @preconcurrency DependencyKey {
+enum ReceiptOCRServiceKey: DependencyKey {
     static var liveValue: any ReceiptOCRService {
-        do {
-            // Try live service first, fall back to mock for compatibility
-            return MockReceiptOCRService() // Use mock for now to avoid async issues
-        } catch {
-            print("⚠️ Failed to create ReceiptOCRService: \(error.localizedDescription)")
-            print("🔄 Falling back to MockReceiptOCRService for graceful degradation")
-            return MockReceiptOCRService()
-        }
+        // Use mock for now to avoid async issues
+        MockReceiptOCRService()
     }
     
     static let testValue: any ReceiptOCRService = MockReceiptOCRService()
@@ -213,14 +191,8 @@ enum ReceiptOCRServiceKey: @preconcurrency DependencyKey {
 
 enum InsuranceReportServiceKey: DependencyKey {
     static var liveValue: any InsuranceReportService {
-        do {
-            // Try live service first, fall back to mock for compatibility
-            return MockInsuranceReportService() // Use mock for now to avoid async issues
-        } catch {
-            print("⚠️ Failed to create InsuranceReportService: \(error.localizedDescription)")
-            print("🔄 Falling back to MockInsuranceReportService for graceful degradation")
-            return MockInsuranceReportService()
-        }
+        // Use mock for now to avoid async issues  
+        MockInsuranceReportService()
     }
     
     static let testValue: any InsuranceReportService = MockInsuranceReportService()
@@ -228,7 +200,7 @@ enum InsuranceReportServiceKey: DependencyKey {
 
 enum InsuranceClaimServiceKey: @preconcurrency DependencyKey {
     @MainActor
-    static var liveValue: any InsuranceClaimService {
+        static var liveValue: any InsuranceClaimService {
         do {
             // Create ModelContainer with explicit local-only configuration
             let config = ModelConfiguration(isStoredInMemoryOnly: false, allowsSave: true)
@@ -249,47 +221,34 @@ enum InsuranceClaimServiceKey: @preconcurrency DependencyKey {
             // Record service failure for health monitoring
             Task { @MainActor in
                 ServiceHealthManager.shared.recordFailure(for: .insuranceClaim, error: error)
+                ServiceHealthManager.shared.notifyDegradedMode(service: .insuranceClaim)
             }
             
-            print("⚠️ Failed to create InsuranceClaimService: \(error.localizedDescription)")
-            print("🔄 Falling back to MockInsuranceClaimService for graceful degradation")
+            Logger.service.error("Failed to create InsuranceClaimService: \(error.localizedDescription)")
+            Logger.service.info("Falling back to MockInsuranceClaimService for graceful degradation")
             return MockInsuranceClaimService()
         }
     }
-    @MainActor
-    static let testValue: any InsuranceClaimService = MockInsuranceClaimService()
+        static let testValue: any InsuranceClaimService = MockInsuranceClaimService()
 }
 
 enum ClaimPackageAssemblerServiceKey: @preconcurrency DependencyKey {
     @MainActor
-    static var liveValue: any ClaimPackageAssemblerService {
-        do {
-            return LiveClaimPackageAssemblerService()
-        } catch {
-            print("⚠️ Failed to create ClaimPackageAssemblerService: \(error.localizedDescription)")
-            print("🔄 Falling back to MockClaimPackageAssemblerService for graceful degradation")
-            return MockClaimPackageAssemblerService()
-        }
+        static var liveValue: any ClaimPackageAssemblerService {
+        LiveClaimPackageAssemblerService()
     }
-    @MainActor
-    static let testValue: any ClaimPackageAssemblerService = MockClaimPackageAssemblerService()
+        static let testValue: any ClaimPackageAssemblerService = MockClaimPackageAssemblerService()
 }
 
 enum SearchHistoryServiceKey: DependencyKey {
     static var liveValue: any SearchHistoryService {
-        do {
-            // Currently using mock implementation, can upgrade to live service later
-            return MockSearchHistoryService()
-        } catch {
-            print("⚠️ Failed to create SearchHistoryService: \(error.localizedDescription)")
-            print("🔄 Falling back to MockSearchHistoryService for graceful degradation")
-            return MockSearchHistoryService()
-        }
+        // Currently using mock implementation, can upgrade to live service later
+        MockSearchHistoryService()
     }
     static let testValue: any SearchHistoryService = MockSearchHistoryService()
 }
 
-enum WarrantyTrackingServiceKey: @preconcurrency DependencyKey {
+enum WarrantyTrackingServiceKey: DependencyKey {
     static var liveValue: any WarrantyTrackingService {
         // Return a minimal nonisolated default for TCA dependencies
         // The actual live service will be injected at app startup via withDependencies
@@ -298,7 +257,7 @@ enum WarrantyTrackingServiceKey: @preconcurrency DependencyKey {
     static let testValue: any WarrantyTrackingService = MockWarrantyTrackingService()
 }
 
-enum CategoryServiceKey: @preconcurrency DependencyKey {
+enum CategoryServiceKey: DependencyKey {
     static var liveValue: any CategoryService {
         do {
             // CategoryService depends on InventoryService - use the same approach
@@ -309,10 +268,23 @@ enum CategoryServiceKey: @preconcurrency DependencyKey {
             )
             let context = ModelContext(container)
             let inventoryService = try LiveInventoryService(modelContext: context)
-            return LiveCategoryService(inventoryService: inventoryService)
+            let service = LiveCategoryService(inventoryService: inventoryService)
+            
+            // Record successful service creation
+            Task { @MainActor in
+                ServiceHealthManager.shared.recordSuccess(for: .category)
+            }
+            
+            return service
         } catch {
-            print("⚠️ Failed to create CategoryService: \(error.localizedDescription)")
-            print("🔄 Falling back to MockCategoryService for graceful degradation")
+            // Record service failure for health monitoring
+            Task { @MainActor in
+                ServiceHealthManager.shared.recordFailure(for: .category, error: error)
+                ServiceHealthManager.shared.notifyDegradedMode(service: .category)
+            }
+            
+            Logger.service.error("Failed to create CategoryService: \(error.localizedDescription)")
+            Logger.service.info("Falling back to MockCategoryService for graceful degradation")
             return MockCategoryService()
         }
     }

@@ -72,6 +72,10 @@ public struct SettingsView: View {
                     NavigationLink("Notification Frequency") {
                         SettingsViewComponents.notificationFrequencyView()
                     }
+                    
+                    NavigationLink("Advanced Notification Settings") {
+                        SettingsViewComponents.notificationSettingsView()
+                    }
                 }
                 
                 // MARK: - Data Management
@@ -121,8 +125,7 @@ public struct SettingsView: View {
                     }
                     
                     NavigationLink("Backup Settings") {
-                        Text("Backup configuration options")
-                            .navigationTitle("Backup Settings")
+                        SettingsViewComponents.cloudBackupSettingsView()
                     }
                 }
                 
@@ -133,7 +136,7 @@ public struct SettingsView: View {
                     }
                     
                     NavigationLink("Submit New Claim") {
-                        ClaimSubmissionView()
+                        SettingsViewComponents.claimSubmissionView()
                     }
                     
                     NavigationLink("Insurance Reports") {
@@ -142,6 +145,26 @@ public struct SettingsView: View {
                     
                     NavigationLink("Claim Templates") {
                         SettingsViewComponents.claimTemplatesView()
+                    }
+                    
+                    NavigationLink("Package Claims") {
+                        SettingsViewComponents.claimPackageAssemblyView()
+                    }
+                    
+                    NavigationLink("Insurance Export Options") {
+                        SettingsViewComponents.insuranceExportOptionsView()
+                    }
+                    
+                    NavigationLink("Warranty Tracking") {
+                        SettingsViewComponents.warrantyTrackingView()
+                    }
+                    
+                    NavigationLink("Warranty Dashboard") {
+                        SettingsViewComponents.warrantyDashboardView()
+                    }
+                    
+                    NavigationLink("Warranty Documents") {
+                        SettingsViewComponents.warrantyDocumentsView()
                     }
                 }
                 

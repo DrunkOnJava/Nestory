@@ -423,7 +423,7 @@ Professional project generation via `project.yml`:
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+We welcome contributions! Please see @CONTRIBUTING.md for guidelines.
 
 ### Development Workflow
 
@@ -433,10 +433,49 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guid
 4. Push to branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
+### 🛠️ Specialized iOS Automation Tools
+
+Nestory includes a comprehensive suite of specialized iOS automation tools for production-ready development:
+
+#### Code Quality & Analysis
+```bash
+make quality-analysis          # SwiftLint analysis with auto-fixes
+make qa                        # Shortcut for quality analysis
+swiftlint autocorrect         # Direct auto-fix correctable issues
+```
+
+#### iOS Simulator Management  
+```bash
+make simulator-control         # Boot and manage iOS simulators
+make sim                       # Shortcut for simulator control
+xcrun simctl boot "iPhone 16 Pro Max"  # Direct simulator boot
+```
+
+#### Release Documentation
+```bash
+make semantic-changelog        # Generate comprehensive changelog
+make changelog                 # Shortcut for changelog generation
+```
+
+#### TestFlight Deployment
+```bash
+make testflight-upload         # Upload to TestFlight with validation
+make upload                    # Shortcut for TestFlight upload
+fastlane ios focused_testflight  # Direct fastlane upload
+```
+
+#### Comprehensive Automation
+```bash
+make automation-tools          # Run all specialized iOS tools
+make tools                     # Shortcut for all tools
+```
+
+**📋 Complete Documentation**: See @fastlane/SPECIALIZED_iOS_TOOLS_GUIDE.md for comprehensive tool documentation, technical specifications, and integration details.
+
 ### Code Style
 
 - Follow Swift API Design Guidelines
-- Use SwiftLint rules defined in `.swiftlint.yml`
+- Use SwiftLint rules defined in @.swiftlint.yml
 - Maintain 80% minimum test coverage
 - Document public APIs
 - Add layer comments to all files

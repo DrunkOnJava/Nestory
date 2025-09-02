@@ -84,10 +84,10 @@ struct CategoriesView: View {
     @ViewBuilder
     private func destinationView(for store: StoreOf<CategoryFeature.Path>) -> some View {
         switch store.state {
-        case .detail:
-            CategoryDetailView(store: store.scope(state: \.detail, action: \.detail))
-        case .add:
-            AddCategoryView(store: store.scope(state: \.add, action: \.add))
+        case let .detail(detailState):
+            CategoryDetailView(store: Store(initialState: detailState) { CategoryDetailFeature() })
+        case let .add(addState):
+            AddCategoryView(store: Store(initialState: addState) { AddCategoryFeature() })
         }
     }
 }

@@ -81,9 +81,9 @@ public class ReportActionManager {
 
 // MARK: - Supporting Types
 
-public enum ReportError: LocalizedError {
+public enum ReportError: Error, LocalizedError {
     case documentsDirectoryNotFound
-    case fileWriteError(Error)
+    case fileWriteError(any Error)
     case fileNotFound
     
     public var errorDescription: String? {

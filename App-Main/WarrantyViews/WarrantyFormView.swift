@@ -10,7 +10,7 @@ import SwiftData
 /// Form view for creating and editing warranty information
 struct WarrantyFormView: View {
     @Bindable var item: Item
-    let warrantyTrackingService: LiveWarrantyTrackingService
+    let warrantyTrackingService: any WarrantyTrackingService
 
     @Environment(\.dismiss) private var dismiss
     @State private var isEditing: Bool
@@ -29,7 +29,7 @@ struct WarrantyFormView: View {
     @State private var errorMessage: String?
     @State private var isSaving = false
 
-    init(item: Item, warrantyTrackingService: LiveWarrantyTrackingService) {
+    init(item: Item, warrantyTrackingService: any WarrantyTrackingService) {
         self.item = item
         self.warrantyTrackingService = warrantyTrackingService
 
@@ -324,21 +324,43 @@ struct WarrantyFormView: View {
 
 // MARK: - Preview
 
-#Preview {
-    let config = ModelConfiguration(isStoredInMemoryOnly: true)
-    let container = try! ModelContainer(for: Item.self, Category.self, Warranty.self, configurations: config)
-    let context = ModelContext(container)
+#Preview("Warranty Form") {
+    WarrantyFormPreview()
+}
 
-    let category = Category(name: "Electronics", icon: "tv.fill", colorHex: "#FF6B6B")
-    let item = Item(name: "MacBook Pro", itemDescription: "13-inch M2", quantity: 1, category: category)
-    item.purchaseDate = Date()
-    item.brand = "Apple"
+private struct WarrantyFormPreview: View {
+    let container: ModelContainer?
+    let item: Item?
+    
+    init() {
+        do {
+            let config = ModelConfiguration(isStoredInMemoryOnly: true)
+            let container = try ModelContainer(for: Item.self, Category.self, Warranty.self, configurations: config)
+            let context = ModelContext(container)
 
-    context.insert(category)
-    context.insert(item)
-
-    let notificationService = LiveNotificationService()
-    let warrantyService = LiveWarrantyTrackingService(modelContext: context, notificationService: notificationService)
-
-    return WarrantyFormView(item: item, warrantyTrackingService: warrantyService)
+            let category = Category(name: "Electronics", icon: "tv.fill", colorHex: "#FF6B6B")
+            let item = Item(name: "MacBook Pro", itemDescription: "13-inch M2", quantity: 1, category: category)
+            item.purchaseDate = Date()
+            item.brand = "Apple"
+            context.insert(category)
+            context.insert(item)
+            
+            self.container = container
+            self.item = item
+        } catch {
+            self.container = nil
+            self.item = nil
+        }
+    }
+    
+    var body: some View {
+        if let container = container, let item = item {
+            let notificationService = LiveNotificationService()
+            let warrantyService = LiveWarrantyTrackingService(modelContext: ModelContext(container), notificationService: notificationService)
+            WarrantyFormView(item: item, warrantyTrackingService: warrantyService)
+        } else {
+            Text("Preview Error: Failed to initialize")
+                .foregroundColor(.red)
+        }
+    }
 }

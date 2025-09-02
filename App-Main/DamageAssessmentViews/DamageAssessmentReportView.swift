@@ -10,12 +10,12 @@ import PDFKit
 
 struct DamageAssessmentReportView: View {
     let workflow: DamageAssessmentWorkflow
-    @StateObject private var damageService: DamageAssessmentService
+    @State private var damageService: (any DamageAssessmentServiceProtocol)?
     @State private var generatedReport: Data?
     @State private var isGeneratingReport = false
     @State private var showingShareSheet = false
     @State private var reportURL: URL?
-    @State private var reportError: Error?
+    @State private var reportError: (any Error)?
     @Environment(\.dismiss) private var dismiss
     
     // Report action manager
@@ -24,16 +24,12 @@ struct DamageAssessmentReportView: View {
     init(workflow: DamageAssessmentWorkflow, modelContext: ModelContext) {
         self.workflow = workflow
         self.actionManager = ReportActionManager(workflow: workflow)
-        self._damageService = StateObject(wrappedValue: {
-            do {
-                return try DamageAssessmentService(modelContext: modelContext)
-            } catch {
-                print("⚠️ Failed to initialize DamageAssessmentService: \(error)")
-                print("🔄 Creating minimal service instance for graceful degradation")
-                // Return a minimal service that can handle basic operations without crashing
-                return DamageAssessmentService.createMockInstance()
-            }
-        }())
+        do {
+            self.damageService = try DamageAssessmentService(modelContext: modelContext)
+        } catch {
+            print("⚠️ Failed to initialize DamageAssessmentService: \(error)")
+            self.damageService = MockDamageAssessmentService()
+        }
     }
 
     var body: some View {
@@ -116,7 +112,7 @@ struct DamageAssessmentReportView: View {
 
         Task {
             do {
-                let reportData = try await damageService.generateAssessmentReport(workflow)
+                let reportData = try await damageService?.generateAssessmentReport(workflow) ?? Data()
 
                 await MainActor.run {
                     self.generatedReport = reportData
@@ -163,22 +159,33 @@ struct DamageAssessmentReportView: View {
 // ShareSheet is imported from UI/UI-Components/ShareSheet.swift
 
 #Preview {
-    let workflow = DamageAssessmentWorkflow(
-        damageType: .fire,
-        assessment: DamageAssessment(
-            itemId: UUID(),
-            damageType: .fire,
-            severity: .moderate,
-            incidentDescription: "Fire damage from kitchen incident"
-        )
-    )
+    @MainActor
+    struct PreviewContainer: View {
+        var body: some View {
+            let workflow = DamageAssessmentWorkflow(
+                damageType: .fire,
+                assessment: DamageAssessment(
+                    itemId: UUID(),
+                    damageType: .fire,
+                    severity: .moderate,
+                    incidentDescription: "Fire damage from kitchen incident"
+                )
+            )
 
-    DamageAssessmentReportView(
-        workflow: workflow,
-        modelContext: ModelContext(
-            try! ModelContainer(for: Item.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
-        )
-    )
+            // Use simple fallback approach for previews
+            if let container = try? ModelContainer(for: Item.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true)) {
+                DamageAssessmentReportView(
+                    workflow: workflow,
+                    modelContext: ModelContext(container)
+                )
+            } else {
+                Text("Preview Error: Failed to create ModelContainer")
+                    .foregroundColor(.red)
+            }
+        }
+    }
+    
+    return PreviewContainer()
 }
 
 // MARK: - Architecture Documentation

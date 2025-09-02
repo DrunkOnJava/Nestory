@@ -11,7 +11,7 @@ import XCTest
 
 @MainActor
 final class CloudBackupServiceTests: XCTestCase {
-    var service: CloudBackupService!
+    var service: any CloudBackupService!
     var mockModelContainer: ModelContainer!
     var mockModelContext: ModelContext!
 

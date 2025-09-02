@@ -78,7 +78,7 @@ App → Features → UI → Services → Infrastructure → Foundation
         ↘     ↗
 ```
 
-**Layer Import Rules (SPEC.json is LAW):**
+**Layer Import Rules (@SPEC.json is LAW):**
 - **App**: Can import Features, UI, Services, Infrastructure, Foundation, ComposableArchitecture
 - **Features**: Can import UI, Services, Foundation, ComposableArchitecture ONLY
 - **UI**: Can import Foundation ONLY (pure components, NO business logic)
@@ -140,6 +140,37 @@ make stats        # Project statistics
 make todo         # List all TODOs
 make clean        # Clean build artifacts
 ```
+
+### Specialized iOS Automation Tools
+```bash
+# SwiftLint Code Quality Analysis
+fastlane ios swiftlint_quality           # Comprehensive code quality analysis with auto-fixes
+swiftlint lint --config .swiftlint.yml   # Direct SwiftLint analysis (no plugins)
+swiftlint autocorrect                     # Auto-fix correctable issues
+
+# iOS Simulator Control & Management  
+fastlane ios simulator_control           # Boot and manage multiple simulators
+fastlane ios simulator_cleanup           # Clean up simulator state
+xcrun simctl boot "iPhone 16 Pro Max"    # Boot specific simulator directly
+xcrun simctl list devices                # List available simulators
+xcrun simctl shutdown all                # Shutdown all simulators
+
+# Semantic Versioning & Changelog Generation
+fastlane ios semantic_versioning         # Generate comprehensive changelog
+git log --oneline --no-merges -25        # View recent commits for changelog
+
+# Focused TestFlight Upload Options
+fastlane ios focused_testflight          # Streamlined TestFlight upload
+fastlane ios upload_current_archive      # Upload specific archive to TestFlight
+ruby fastlane/DirectTestFlightUpload.rb  # Direct upload bypassing plugins
+
+# Run Multiple Tools
+fastlane ios run_tools tools:swiftlint,simulators,versioning  # Run specific tools
+fastlane ios run_tools tools:swiftlint   # Run only SwiftLint analysis
+fastlane ios run_tools tools:simulators  # Run only simulator control
+```
+
+**📋 Comprehensive Tool Documentation**: See @fastlane/SPECIALIZED_iOS_TOOLS_GUIDE.md for complete technical specifications, quality metrics, integration patterns, and production readiness guidelines.
 
 ### UI Testing Commands
 ```bash
@@ -282,7 +313,7 @@ All service dependencies must integrate with ServiceHealthManager:
 - Notify degraded mode: `ServiceHealthManager.shared.notifyDegradedMode(service: .serviceName)`
 
 ### Comprehensive Documentation
-See `Documentation/ERROR_HANDLING_GUIDE.md` for complete patterns and examples.
+See @Documentation/ERROR_HANDLING_GUIDE.md for complete patterns and examples.
 
 ## 🚨 COMMON PITFALLS TO AVOID
 
@@ -331,4 +362,5 @@ import InventoryService  // in UI layer
 import Foundation  // in any layer
 ```
 
-Remember: SPEC.json defines the architecture. When uncertain, check allowed imports there.
+Remember: @SPEC.json defines the architecture. When uncertain, check allowed imports there.
+- always check if the simulator is already running and which are booted, do not use beta versions

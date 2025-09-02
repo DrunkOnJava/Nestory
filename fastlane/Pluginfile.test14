@@ -1,0 +1,4 @@
+# Testing individual plugin: fastlane-plugin-build_number_ci
+# CI-aware build numbering for Nestory iOS project
+
+gem 'fastlane-plugin-build_number_ci'

@@ -1,0 +1,4 @@
+# Testing individual plugin: fastlane-plugin-retry
+# Build retry functionality for Nestory iOS project
+
+gem 'fastlane-plugin-retry'

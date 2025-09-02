@@ -8,7 +8,7 @@ import Foundation
 
 /// Data structure for exported inventory information
 public struct ExportData: Equatable, Sendable, Codable, Identifiable {
-    public let id = UUID()
+    public let id: UUID
     public let items: [Item]
     public let categories: [Category]
     public let rooms: [Room]
@@ -17,12 +17,14 @@ public struct ExportData: Equatable, Sendable, Codable, Identifiable {
     public let createdAt: Date
     
     public init(
+        id: UUID = UUID(),
         items: [Item],
         categories: [Category],
         rooms: [Room],
         metadata: BackupMetadata,
         exportFormat: ExportFormat
     ) {
+        self.id = id
         self.items = items
         self.categories = categories
         self.rooms = rooms
@@ -44,7 +46,7 @@ public struct ExportData: Equatable, Sendable, Codable, Identifiable {
 
 /// Package containing backup data and associated metadata
 public struct BackupPackage: Equatable, Sendable, Codable, Identifiable {
-    public let id = UUID()
+    public let id: UUID
     public let data: ExportData
     public let encryptionKey: String?
     public let compressionLevel: CompressionLevel
@@ -52,11 +54,13 @@ public struct BackupPackage: Equatable, Sendable, Codable, Identifiable {
     public let createdAt: Date
     
     public init(
+        id: UUID = UUID(),
         data: ExportData,
         encryptionKey: String? = nil,
         compressionLevel: CompressionLevel = .standard,
         packageVersion: String = "1.0"
     ) {
+        self.id = id
         self.data = data
         self.encryptionKey = encryptionKey
         self.compressionLevel = compressionLevel

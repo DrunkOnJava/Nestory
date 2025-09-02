@@ -90,7 +90,7 @@ public final class MockCloudBackupService: CloudBackupService {
 
     // MARK: - Restore Operations
 
-    public func performRestore(modelContext _: ModelContext) async throws -> RestoreResult {
+    public func performRestore(modelContext: ModelContext) async throws -> RestoreResult {
         restoreCalled = true
 
         if shouldFailRestore {

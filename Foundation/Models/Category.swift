@@ -70,7 +70,7 @@ extension Category: Codable {
         // Note: Relationship properties excluded for export simplicity
     }
     
-    public func encode(to encoder: Encoder) throws {
+    public func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(id, forKey: .id)
         try container.encode(name, forKey: .name)
@@ -81,7 +81,7 @@ extension Category: Codable {
         try container.encode(updatedAt, forKey: .updatedAt)
     }
     
-    public convenience init(from decoder: Decoder) throws {
+    public convenience init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let name = try container.decode(String.self, forKey: .name)
         let icon = try container.decode(String.self, forKey: .icon)

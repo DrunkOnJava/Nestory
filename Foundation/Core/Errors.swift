@@ -5,7 +5,7 @@
 import Foundation
 
 /// Core application errors that are domain-neutral
-public enum AppError: LocalizedError {
+public enum AppError: Error, LocalizedError, Sendable {
     // MARK: - Validation Errors
 
     case validation(String)

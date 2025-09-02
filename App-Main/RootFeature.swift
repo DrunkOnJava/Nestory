@@ -87,6 +87,22 @@ public struct RootFeature {
     }
 
     public var body: some ReducerOf<Self> {
+        Scope(state: \.inventory, action: \.inventory) {
+            InventoryFeature()
+        }
+
+        Scope(state: \.search, action: \.search) {
+            SearchFeature()
+        }
+
+        Scope(state: \.analytics, action: \.analytics) {
+            AnalyticsFeature()
+        }
+
+        Scope(state: \.settings, action: \.settings) {
+            SettingsFeature()
+        }
+        
         Reduce { state, action in
             switch action {
             case .inventory:
@@ -117,7 +133,7 @@ public struct RootFeature {
                 // Load data when switching to specific tabs
                 switch tab {
                 case .inventory:
-                    return .send(.inventory(.onAppear))
+                    return .send(.inventory(.lifecycle(.onAppear)))
                 case .search:
                     return .send(.search(.onAppear))
                 case .analytics:
@@ -136,29 +152,12 @@ public struct RootFeature {
                 
                 // Initialize services and load initial data
                 return .merge(
-                    .send(.inventory(.onAppear)),
+                    .send(.inventory(.lifecycle(.onAppear))),
                     .send(.search(.onAppear)),
                     .send(.analytics(.onAppear)),
                     .send(.settings(.onAppear))
                 )
             }
-        }
-
-        // ✅ SCOPE: Integrate child features as TCA reducers
-        Scope(state: \.inventory, action: \.inventory) {
-            InventoryFeature()
-        }
-
-        Scope(state: \.search, action: \.search) {
-            SearchFeature()
-        }
-
-        Scope(state: \.analytics, action: \.analytics) {
-            AnalyticsFeature()
-        }
-
-        Scope(state: \.settings, action: \.settings) {
-            SettingsFeature()
         }
     }
 }

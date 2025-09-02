@@ -17,6 +17,7 @@ import ComposableArchitecture
 import SwiftData
 import SwiftUI
 import UserNotifications
+import os.log
 
 // APPLE_FRAMEWORK_OPPORTUNITY: Replace with AdServices - Implement privacy-respecting ad attribution for app marketing
 // APPLE_FRAMEWORK_OPPORTUNITY: Replace with BackgroundAssets - Download insurance form templates and product databases in background
@@ -94,8 +95,22 @@ struct NestoryApp: App {
                     do {
                         return try ModelContainer(for: minimalSchema, configurations: [ultraMinimalConfig])
                     } catch {
-                        // Fatal error is appropriate here as the app cannot function without any storage
-                        fatalError("Critical: Unable to create any ModelContainer. Error: \(error)")
+                        Logger.service.critical("Critical: Unable to create any ModelContainer: \(error.localizedDescription)")
+                        // As final fallback, create an in-memory container with empty schema
+                        Logger.service.info("Using emergency read-only mode - app will have limited functionality")
+                        do {
+                            return try ModelContainer(for: Schema([]), configurations: [ModelConfiguration(isStoredInMemoryOnly: true)])
+                        } catch {
+                            // This should theoretically never fail, but if it does, we create the absolute minimum
+                            Logger.service.fault("Absolute final fallback - creating minimal container")
+                            do {
+                                return try ModelContainer(for: Schema([]))
+                            } catch {
+                                // If even an empty container fails, the app is in an unrecoverable state
+                                Logger.service.fault("Critical system failure: Cannot create empty ModelContainer")
+                                fatalError("Critical system failure: Cannot initialize SwiftData. App cannot continue.")
+                            }
+                        }
                     }
                 }
             }
@@ -103,12 +118,11 @@ struct NestoryApp: App {
     }()
 
     init() {
-        // Initialize notification service with model context
-        let modelContext = sharedModelContainer.mainContext
-        let service = LiveNotificationService(modelContext: modelContext)
+        // Initialize notification service with nil context initially - will be connected safely
+        let service = LiveNotificationService(modelContext: nil)
         _notificationService = StateObject(wrappedValue: service)
 
-        // Set up notification categories on app launch
+        // Set up notification categories on app launch and connect model context safely
         Task {
             await service.setupNotificationCategories()
             await service.checkAuthorizationStatus()

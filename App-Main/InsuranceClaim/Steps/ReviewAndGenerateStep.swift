@@ -153,7 +153,7 @@ public struct ReviewAndGenerateStep: View {
                     .padding()
             }
 
-            if let claim = generatedClaim {
+            if generatedClaim != nil {
                 GroupBox("Generated Claim") {
                     VStack(spacing: 12) {
                         HStack {
@@ -200,21 +200,27 @@ public struct ReviewAndGenerateStep: View {
 }
 
 #Preview {
-    let item = Item(name: "Test Item", itemDescription: "Test item", quantity: 1)
-    item.purchasePrice = 100.00
-    
-    return ReviewAndGenerateStep(
-        items: [item],
-        selectedClaimType: .fire,
-        selectedCompany: .aaa,
-        incidentDate: Date(),
-        validationIssues: ["Missing receipt for Test Item"],
-        estimatedValue: 100.00,
-        generatedClaim: nil,
-        isGenerating: false,
-        onGenerateClaim: {},
-        onShowPreview: {},
-        onShowExport: {}
-    )
-    .padding()
+    ReviewAndGenerateStepPreview()
+}
+
+private struct ReviewAndGenerateStepPreview: View {
+    var body: some View {
+        let item = Item(name: "Test Item", itemDescription: "Test item", quantity: 1)
+        item.purchasePrice = 100.00
+        
+        return ReviewAndGenerateStep(
+            items: [item],
+            selectedClaimType: .fire,
+            selectedCompany: .aaa,
+            incidentDate: Date(),
+            validationIssues: ["Missing receipt for Test Item"],
+            estimatedValue: 100.00,
+            generatedClaim: nil,
+            isGenerating: false,
+            onGenerateClaim: {},
+            onShowPreview: {},
+            onShowExport: {}
+        )
+        .padding()
+    }
 }

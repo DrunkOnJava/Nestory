@@ -146,7 +146,7 @@ public final class ClaimExportCore: ObservableObject {
 
     public func uploadToCloudStorage(
         claim: ClaimSubmission,
-        service: CloudStorageService
+        service: any CloudStorageService
     ) async throws -> String {
         guard let fileURL = claim.exportedFileURL,
               let url = URL(string: fileURL)

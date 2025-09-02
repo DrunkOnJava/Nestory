@@ -104,7 +104,7 @@ public enum CategoryWarrantyDefaults {
 }
 
 /// Errors that can occur during warranty tracking operations
-public enum WarrantyTrackingError: Error, LocalizedError {
+public enum WarrantyTrackingError: Error, LocalizedError, Sendable {
     case itemNotFound(UUID)
     case warrantyNotFound(UUID)
     case invalidWarrantyData(String)

@@ -226,6 +226,6 @@ struct ReceiptDetailView_Previews: PreviewProvider {
         let receipt = Receipt(vendor: "Target", total: money, purchaseDate: Date())
         receipt.setOCRResults(text: "Sample receipt text", confidence: 0.85, categories: ["Grocery", "Electronics"])
 
-        ReceiptDetailView(receipt: receipt)
+        return ReceiptDetailView(receipt: receipt)
     }
 }

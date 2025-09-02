@@ -57,6 +57,6 @@ struct WarrantyDocumentsView: View {
 
 #Preview {
     let item = Item(name: "Test Item")
-    return WarrantyDocumentsView(item: item)
+    WarrantyDocumentsView(item: item)
         .modelContainer(for: [Item.self, Room.self], inMemory: true)
 }

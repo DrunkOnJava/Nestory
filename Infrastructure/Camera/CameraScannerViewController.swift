@@ -4,18 +4,29 @@
 // Purpose: Camera scanner view controller for barcode detection
 //
 
-import AVFoundation
+@preconcurrency import AVFoundation
 import UIKit
+import Foundation
+
+// BarcodeResult is now defined in Foundation/Models/BarcodeModels.swift
 
 // APPLE_FRAMEWORK_OPPORTUNITY: Replace with VisionKit - Use VNDocumentCameraViewController for document scanning and VNBarcodeObservation for barcode detection
 
 public class CameraScannerViewController: UIViewController, AVCaptureMetadataOutputObjectsDelegate {
-    public var scanner: BarcodeScannerService?
+    public var scanner: (any BarcodeScannerService)?
     public var onScan: ((BarcodeResult) -> Void)?
 
     private var captureSession: AVCaptureSession?
     private var previewLayer: AVCaptureVideoPreviewLayer?
     private var hasScanned = false
+
+    public init() {
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required public init?(coder: NSCoder) {
+        super.init(coder: coder)
+    }
 
     override public func viewDidLoad() {
         super.viewDidLoad()
@@ -24,12 +35,18 @@ public class CameraScannerViewController: UIViewController, AVCaptureMetadataOut
 
     override public func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        captureSession?.startRunning()
+        let session = self.captureSession
+        DispatchQueue.global(qos: .userInitiated).async {
+            session?.startRunning()
+        }
     }
 
     override public func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        captureSession?.stopRunning()
+        let session = self.captureSession
+        DispatchQueue.global(qos: .userInitiated).async {
+            session?.stopRunning()
+        }
     }
 
     private func setupCamera() {
@@ -133,7 +150,7 @@ public class CameraScannerViewController: UIViewController, AVCaptureMetadataOut
             let result = BarcodeResult(
                 value: stringValue,
                 type: typeRawValue,
-                confidence: 1.0,
+                confidence: 1.0
             )
 
             onScan?(result)

@@ -79,17 +79,16 @@ public struct LiveWarrantyService: WarrantyService, @unchecked Sendable {
         let currentDate = Date()
         let futureDate = Calendar.current.date(byAdding: .day, value: days, to: currentDate) ?? currentDate
 
-        let descriptor = FetchDescriptor<Item>(
-            predicate: #Predicate { item in
-                item.warrantyExpirationDate != nil &&
-                    item.warrantyExpirationDate! > currentDate &&
-                    item.warrantyExpirationDate! <= futureDate
-            },
-            sortBy: [SortDescriptor(\.warrantyExpirationDate)]
-        )
+        // Fetch all items and filter in memory to avoid complex predicate
+        let descriptor = FetchDescriptor<Item>()
 
         do {
-            let items = try modelContext.fetch(descriptor)
+            let allItems = try modelContext.fetch(descriptor)
+            let items = allItems.filter { item in
+                guard let expirationDate = item.warrantyExpirationDate else { return false }
+                return expirationDate > currentDate && expirationDate <= futureDate
+            }.sorted { $0.warrantyExpirationDate ?? Date.distantPast < $1.warrantyExpirationDate ?? Date.distantPast }
+            
             logger.debug("Found \(items.count) items expiring within \(days) days")
             return items
         } catch {
@@ -100,16 +99,17 @@ public struct LiveWarrantyService: WarrantyService, @unchecked Sendable {
 
     public func fetchExpiredItems() async throws -> [Item] {
         let currentDate = Date()
-        let descriptor = FetchDescriptor<Item>(
-            predicate: #Predicate { item in
-                item.warrantyExpirationDate != nil &&
-                    item.warrantyExpirationDate! < currentDate
-            },
-            sortBy: [SortDescriptor(\.warrantyExpirationDate, order: .reverse)]
-        )
+        
+        // Fetch all items and filter in memory to avoid complex predicate
+        let descriptor = FetchDescriptor<Item>()
 
         do {
-            let items = try modelContext.fetch(descriptor)
+            let allItems = try modelContext.fetch(descriptor)
+            let items = allItems.filter { item in
+                guard let expirationDate = item.warrantyExpirationDate else { return false }
+                return expirationDate < currentDate
+            }.sorted { $0.warrantyExpirationDate ?? Date.distantPast > $1.warrantyExpirationDate ?? Date.distantPast }
+            
             logger.debug("Found \(items.count) items with expired warranties")
             return items
         } catch {
@@ -173,8 +173,13 @@ public struct LiveWarrantyService: WarrantyService, @unchecked Sendable {
             let allItems = try modelContext.fetch(descriptor)
             // Filter items with active warranties
             let items = allItems.filter { item in
-                (item.warrantyExpirationDate != nil && item.warrantyExpirationDate! > currentDate) ||
-                    (item.warranty != nil && item.warranty!.expiresAt > currentDate)
+                if let expirationDate = item.warrantyExpirationDate, expirationDate > currentDate {
+                    return true
+                }
+                if let warranty = item.warranty, warranty.expiresAt > currentDate {
+                    return true
+                }
+                return false
             }
             return items.compactMap(\.purchasePrice).reduce(0, +)
         } catch {
@@ -296,7 +301,7 @@ public struct CategoryCoverage: Sendable {
 
 // MARK: - Error Types
 
-public enum WarrantyError: LocalizedError {
+public enum WarrantyError: Error, LocalizedError, Sendable {
     case fetchFailed(String)
     case saveFailed(String)
     case updateFailed(String)

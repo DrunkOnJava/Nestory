@@ -261,12 +261,8 @@ struct AddItemFeature {
                 // Update temp item with barcode for downstream processing
                 state.tempItem.barcode = barcode
                 return .run { send in
-                    do {
-                        let productInfo = try await barcodeScannerService.lookupProduct(barcode: barcode, type: "")
-                        await send(.barcodeDataLoaded(productInfo))
-                    } catch {
-                        await send(.barcodeDataLoaded(nil))
-                    }
+                    let productInfo = await barcodeScannerService.lookupProduct(barcode: barcode, type: "")
+                    await send(.barcodeDataLoaded(productInfo))
                 }
                 
             case let .barcodeDataLoaded(productInfo):

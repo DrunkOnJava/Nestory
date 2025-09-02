@@ -11,7 +11,7 @@ import XCTest
 
 @MainActor
 final class NotificationServiceTests: XCTestCase {
-    var service: NotificationService!
+    var service: any NotificationService!
     var mockModelContainer: ModelContainer!
     var mockModelContext: ModelContext!
 

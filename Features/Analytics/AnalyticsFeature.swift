@@ -27,9 +27,6 @@ import SwiftData
 import SwiftUI
 import Foundation
 
-// Import analytics models from Foundation layer
-import Nestory
-
 @Reducer
 public struct AnalyticsFeature: Sendable {
     @ObservableState
@@ -132,7 +129,7 @@ public struct AnalyticsFeature: Sendable {
                         await send(.loadItems(loadedItems))
                         await send(.loadCategories(loadedCategories))
                         
-                        let dashboardData = try await analyticsService.generateDashboard(for: loadedItems)
+                        let dashboardData = await analyticsService.generateDashboard(for: loadedItems)
                         let summaryData = await calculateSummaryData(loadedItems)
                         
                         await send(.analyticsLoaded(dashboardData, summaryData))
@@ -233,7 +230,7 @@ public struct ItemStatusSummary: Equatable, Sendable {
 }
 
 public enum AnalyticsError: Error, Equatable {
-    case dataLoadError(Error)
+    case dataLoadError(any Error)
     case calculationError(String)
     case serviceUnavailable
 

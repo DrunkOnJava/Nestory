@@ -10,7 +10,7 @@ import Foundation
 // Foundation layer cannot import CloudKit
 
 /// Comprehensive service errors with standardized recovery strategies
-public enum ServiceError: LocalizedError, Equatable {
+public enum ServiceError: Error, LocalizedError, Equatable, Sendable {
     // MARK: - Network Errors
 
     case networkUnavailable
@@ -395,7 +395,7 @@ extension ServiceError {
     // Note: CloudKit-specific error conversion moved to Infrastructure layer
 
     /// Create a ServiceError from a URL/network error
-    public static func fromNetworkError(_ error: Error) -> ServiceError {
+    public static func fromNetworkError(_ error: any Error) -> ServiceError {
         if let urlError = error as? URLError {
             switch urlError.code {
             case .notConnectedToInternet, .networkConnectionLost:
@@ -412,7 +412,7 @@ extension ServiceError {
     }
 
     /// Create a ServiceError from a file system error
-    public static func fromFileSystemError(_ error: Error, path: String = "") -> ServiceError {
+    public static func fromFileSystemError(_ error: any Error, path: String = "") -> ServiceError {
         if let nsError = error as NSError? {
             switch nsError.code {
             case NSFileReadNoSuchFileError:
@@ -430,7 +430,7 @@ extension ServiceError {
 
     /// Create a ServiceError from a CloudKit error
     /// Since Foundation layer cannot import CloudKit, this accepts any Error and maps common patterns
-    public static func fromCloudKitError(_ error: Error) -> ServiceError {
+    public static func fromCloudKitError(_ error: any Error) -> ServiceError {
         let nsError = error as NSError
         
         // Map common CloudKit error codes (without importing CloudKit)
@@ -461,6 +461,20 @@ extension ServiceError {
             return .cloudKitUnavailable
         case 36: // CKErrorRequestRateLimited
             return .rateLimited(retryAfter: 60.0)
+        case 14: // CKErrorServerRecordChanged - Key conflict resolution case
+            // Extract conflict details from error userInfo if available
+            let serverRecord = nsError.userInfo["CKRecordChangedErrorServerRecordKey"] as? String ?? "unknown"
+            let clientRecord = nsError.userInfo["CKRecordChangedErrorClientRecordKey"] as? String ?? "unknown"
+            let conflictDetails = "Server: \(serverRecord), Client: \(clientRecord)"
+            return .cloudKitSyncConflict(details: conflictDetails)
+        case 15: // CKErrorAssetFileNotFound
+            return .notFound(resource: "CloudKit asset")
+        case 16: // CKErrorAssetFileModified
+            return .cloudKitSyncConflict(details: "Asset file modified during upload")
+        case 21: // CKErrorChangeTokenExpired
+            return .cloudKitSyncConflict(details: "Change token expired, full resync required")
+        case 22: // CKErrorBatchRequestFailed
+            return .cloudKitPartialFailure(successCount: 0, failures: ["Batch operation failed"])
         default:
             // Check for specific CloudKit error domain patterns
             if nsError.domain.contains("CKError") {
@@ -470,6 +484,9 @@ extension ServiceError {
                     return .cloudKitUnavailable
                 } else if nsError.localizedDescription.lowercased().contains("account") {
                     return .cloudKitAccountChanged
+                } else if nsError.localizedDescription.lowercased().contains("conflict") || 
+                         nsError.localizedDescription.lowercased().contains("changed") {
+                    return .cloudKitSyncConflict(details: nsError.localizedDescription)
                 } else {
                     return .wrapped(error: error, context: "CloudKit")
                 }

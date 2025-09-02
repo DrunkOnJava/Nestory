@@ -247,7 +247,7 @@ public struct KeychainWrapper {
 // MARK: - Supporting Types
 
 /// Storage errors
-public enum StorageError: LocalizedError {
+public enum StorageError: Error, LocalizedError, Sendable {
     case documentsDirectoryNotFound
     case encryptionFailed
     case decryptionFailed

@@ -220,7 +220,7 @@ public enum KeychainAccessibility {
     }
 }
 
-public enum KeychainError: LocalizedError {
+public enum KeychainError: Error, LocalizedError, Sendable {
     case saveFailed(OSStatus)
     case loadFailed(OSStatus)
     case updateFailed(OSStatus)

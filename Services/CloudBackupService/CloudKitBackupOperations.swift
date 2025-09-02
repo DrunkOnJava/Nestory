@@ -6,12 +6,14 @@
 
 import CloudKit
 import Foundation
+import os.log
 
 // APPLE_FRAMEWORK_OPPORTUNITY: Replace with CloudKit - Already using CloudKit but could leverage CKSyncEngine for automatic sync management
 
 public struct CloudKitBackupOperations: @unchecked Sendable {
     private let privateDatabase: CKDatabase
     private let backupZone: CKRecordZone
+    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory", category: "CloudKitOperations")
 
     public init(database: CKDatabase, zone: CKRecordZone) {
         privateDatabase = database
@@ -55,12 +57,25 @@ public struct CloudKitBackupOperations: @unchecked Sendable {
     // MARK: - Save Operations
 
     public func saveRecord(_ record: CKRecord) async throws {
-        _ = try await privateDatabase.save(record)
+        do {
+            _ = try await privateDatabase.save(record)
+        } catch {
+            // Enhanced error handling for CloudKit conflicts (will add intelligent resolution later)
+            if let ckError = error as? CKError,
+               ckError.code == CKError.serverRecordChanged {
+                logger.info("CloudKit conflict detected for record \(record.recordID), using simple retry")
+                // Simple retry strategy - will be enhanced with intelligent conflict resolution
+                try await Task.sleep(nanoseconds: 1_000_000_000) // 1 second delay
+                _ = try await privateDatabase.save(record) // Retry once
+            } else {
+                throw error
+            }
+        }
     }
 
     public func saveRecords(_ records: [CKRecord]) async throws {
         for record in records {
-            _ = try await privateDatabase.save(record)
+            try await saveRecord(record)
         }
     }
 
@@ -71,7 +86,7 @@ public struct CloudKitBackupOperations: @unchecked Sendable {
         predicate: NSPredicate = NSPredicate(value: true),
         sortDescriptors: [NSSortDescriptor]? = nil,
         limit: Int = CKQueryOperation.maximumResults,
-    ) async throws -> [(CKRecord.ID, Result<CKRecord, Error>)] {
+    ) async throws -> [(CKRecord.ID, Result<CKRecord, any Error>)] {
         let query = CKQuery(recordType: recordType, predicate: predicate)
         query.sortDescriptors = sortDescriptors
 

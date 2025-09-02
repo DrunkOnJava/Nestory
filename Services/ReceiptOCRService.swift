@@ -9,6 +9,7 @@
 
 import Foundation
 import SwiftUI
+import os.log
 
 // MARK: - ReceiptOCRService Protocol
 
@@ -47,7 +48,7 @@ public final class LiveReceiptOCRService: ReceiptOCRService, ObservableObject {
     // MARK: - Properties
 
     @Published public var isProcessing = false
-    @Published public var lastError: Error?
+    @Published public var lastError: (any Error)?
     @Published public var processingStage: ProcessingStage = .idle
     @Published public var confidenceScore = 0.0
 
@@ -70,7 +71,7 @@ public final class LiveReceiptOCRService: ReceiptOCRService, ObservableObject {
         do {
             self.mlProcessor = try MLReceiptProcessor()
         } catch {
-            print("Failed to initialize ML processor: \(error). Falling back to legacy processing.")
+            Logger.service.warning("Failed to initialize ML processor: \(error.localizedDescription). Falling back to legacy processing.")
             self.mlProcessor = nil
         }
     }

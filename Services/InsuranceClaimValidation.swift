@@ -194,7 +194,7 @@ public enum InsuranceClaimValidator {
 
 // MARK: - Error Types
 
-public enum ClaimError: LocalizedError {
+public enum ClaimError: Error, LocalizedError {
     case noItemsSelected
     case invalidClaimType
     case templateNotFound

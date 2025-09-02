@@ -40,10 +40,10 @@ public final class AdvancedSearchViewModel {
     }
 
     // Dependencies
-    private let inventoryService: InventoryService
+    private let inventoryService: any InventoryService
     // ViewModels should delegate logging to services
 
-    public init(inventoryService: InventoryService) {
+    public init(inventoryService: any InventoryService) {
         self.inventoryService = inventoryService
     }
 

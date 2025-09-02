@@ -1,0 +1,4 @@
+# Testing individual plugin: fastlane-plugin-junit
+# JUnit report processing for Nestory iOS project
+
+gem 'fastlane-plugin-junit'

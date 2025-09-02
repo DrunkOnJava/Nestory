@@ -297,7 +297,7 @@ extension ProcessedPhoto {
     }
 }
 
-public enum PhotoError: LocalizedError, Sendable {
+public enum PhotoError: Error, LocalizedError, Sendable {
     case cameraPermissionDenied
     case photoLibraryPermissionDenied
     case cameraUnavailable

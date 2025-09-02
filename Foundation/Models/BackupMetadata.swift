@@ -7,7 +7,7 @@
 import Foundation
 
 public struct BackupMetadata: Equatable, Sendable, Codable, Identifiable {
-    public let id = UUID()
+    public let id: UUID
     
     // Export metadata fields
     public let version: String
@@ -22,6 +22,7 @@ public struct BackupMetadata: Equatable, Sendable, Codable, Identifiable {
     public let totalValue: Decimal
     
     public init(
+        id: UUID = UUID(),
         version: String = "1.0",
         exportDate: Date = Date(),
         appVersion: String = "1.0.0",
@@ -29,6 +30,7 @@ public struct BackupMetadata: Equatable, Sendable, Codable, Identifiable {
         itemCount: Int,
         totalValue: Decimal = 0
     ) {
+        self.id = id
         self.version = version
         self.exportDate = exportDate
         self.appVersion = appVersion

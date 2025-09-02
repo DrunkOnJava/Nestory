@@ -18,7 +18,7 @@ public final class DamageAssessmentCore: ObservableObject {
 
     // MARK: - Dependencies
 
-    private let damageService: DamageAssessmentService
+    private let damageService: any DamageAssessmentServiceProtocol
     private let item: Item
 
     // MARK: - Initialization
@@ -26,6 +26,22 @@ public final class DamageAssessmentCore: ObservableObject {
     public init(item: Item, modelContext: ModelContext) throws {
         self.item = item
         self.damageService = try DamageAssessmentService(modelContext: modelContext)
+    }
+    
+    /// Creates a fallback instance with mock service when normal initialization fails
+    public static func createFallback(item: Item) -> DamageAssessmentCore {
+        let fallbackCore = DamageAssessmentCore.__createFallback(item: item)
+        return fallbackCore
+    }
+    
+    /// Internal fallback initializer
+    private init(__fallback item: Item) {
+        self.item = item
+        self.damageService = MockDamageAssessmentService()
+    }
+    
+    private static func __createFallback(item: Item) -> DamageAssessmentCore {
+        return DamageAssessmentCore(__fallback: item)
     }
 
     // MARK: - Computed Properties

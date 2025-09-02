@@ -85,7 +85,7 @@ public struct PerformanceLogger {
 
 extension Logger {
     /// Log an error with full context
-    public func logError(_ error: Error, context: String? = nil, file: String = #file, function: String = #function, line: Int = #line) {
+    public func logError(_ error: any Error, context: String? = nil, file: String = #file, function: String = #function, line: Int = #line) {
         let fileName = URL(fileURLWithPath: file).lastPathComponent
         var message = "Error in \(fileName):\(line) \(function)"
         
@@ -188,7 +188,7 @@ public struct LogEntry {
 /// Protocol for mockable logging in tests
 public protocol LoggerProtocol {
     func log(_ entry: LogEntry)
-    func logError(_ error: Error, context: String?)
+    func logError(_ error: any Error, context: String?)
     func logPerformanceStart(_ operation: String) -> OSSignpostID
     func logPerformanceEnd(_ operation: String, id: OSSignpostID)
 }
@@ -208,7 +208,7 @@ public struct DefaultLogger: LoggerProtocol {
         logger.log(level: entry.level, "\(entry.formattedMessage)")
     }
     
-    public func logError(_ error: Error, context: String?) {
+    public func logError(_ error: any Error, context: String?) {
         logger.logError(error, context: context)
     }
     

@@ -10,7 +10,7 @@ import UIKit
 
 @MainActor
 public struct ClaimDocumentCore {
-    public enum GenerationError: LocalizedError {
+    public enum GenerationError: Error, LocalizedError {
         case invalidTemplate
         case photoProcessingFailed
         case documentCreationFailed

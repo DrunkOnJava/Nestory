@@ -1,0 +1,4 @@
+# Testing individual plugin: fastlane-plugin-badge
+# Add badges to app icons for Nestory iOS project
+
+gem 'fastlane-plugin-badge'

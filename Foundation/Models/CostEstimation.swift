@@ -7,7 +7,7 @@
 import Foundation
 
 public struct CostEstimation: Equatable, Sendable, Codable, Identifiable {
-    public let id = UUID()
+    public let id: UUID
     
     // Basic costs
     public var replacementCost: Decimal?
@@ -37,6 +37,7 @@ public struct CostEstimation: Equatable, Sendable, Codable, Identifiable {
     }
     
     public init(
+        id: UUID = UUID(),
         replacementCost: Decimal? = nil,
         materialsCost: Decimal = 0,
         laborHours: Decimal = 0,
@@ -44,6 +45,7 @@ public struct CostEstimation: Equatable, Sendable, Codable, Identifiable {
         repairCosts: [RepairCost] = [],
         additionalCosts: [AdditionalCost] = []
     ) {
+        self.id = id
         self.replacementCost = replacementCost
         self.materialsCost = materialsCost
         self.laborHours = laborHours
@@ -55,12 +57,13 @@ public struct CostEstimation: Equatable, Sendable, Codable, Identifiable {
     // MARK: - Nested Types
     
     public struct RepairCost: Identifiable, Equatable, Sendable, Codable {
-        public let id = UUID()
+        public let id: UUID
         public let description: String
         public let amount: Decimal
         public let category: String
         
-        public init(description: String, amount: Decimal, category: String) {
+        public init(id: UUID = UUID(), description: String, amount: Decimal, category: String) {
+            self.id = id
             self.description = description
             self.amount = amount
             self.category = category
@@ -68,12 +71,13 @@ public struct CostEstimation: Equatable, Sendable, Codable, Identifiable {
     }
     
     public struct AdditionalCost: Identifiable, Equatable, Sendable, Codable {
-        public let id = UUID()
+        public let id: UUID
         public let description: String
         public let amount: Decimal
         public let type: CostType
         
-        public init(description: String, amount: Decimal, type: CostType) {
+        public init(id: UUID = UUID(), description: String, amount: Decimal, type: CostType) {
+            self.id = id
             self.description = description
             self.amount = amount
             self.type = type

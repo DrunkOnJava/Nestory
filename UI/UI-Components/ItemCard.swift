@@ -27,6 +27,25 @@ public struct ItemCard: View {
         self.badge = badge
     }
 
+    // MARK: - Accessibility Support
+    private var accessibilityLabelText: String {
+        var components: [String] = [title]
+        
+        if let subtitle = subtitle {
+            components.append("Category: \(subtitle)")
+        }
+        
+        if let price = price {
+            components.append("Price: \(price)")
+        }
+        
+        if let badge = badge {
+            components.append("Status: \(badge)")
+        }
+        
+        return components.joined(separator: ", ")
+    }
+
     public var body: some View {
         HStack(spacing: Theme.Spacing.md) {
             // Icon/Image
@@ -77,6 +96,11 @@ public struct ItemCard: View {
         .padding(Theme.Spacing.md)
         .background(Color.secondaryBackground)
         .cornerRadius(Theme.CornerRadius.lg)
+        // MARK: - Accessibility
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(accessibilityLabelText)
+        .accessibilityHint("Tap to view item details")
+        .accessibilityAddTraits(.isButton)
     }
 }
 
@@ -113,6 +137,9 @@ public struct BadgeView: View {
             .padding(.vertical, Theme.Spacing.xxs)
             .background(style.backgroundColor)
             .cornerRadius(Theme.CornerRadius.sm)
+            // MARK: - Accessibility
+            .accessibilityLabel("Status: \(text)")
+            .accessibilityAddTraits(.isStaticText)
     }
 }
 
