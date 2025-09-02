@@ -1224,5 +1224,114 @@ ta: test-accessibility ## Shortcut for 'make test-accessibility'
 ts: test-smoke ## Shortcut for 'make test-smoke'
 
 # ============================================================================
+# SPECIALIZED iOS AUTOMATION TOOLS
+# ============================================================================
+
+quality-analysis: ## Run comprehensive SwiftLint code quality analysis with auto-fixes
+	@echo "$(BLUE)🔍 Running SwiftLint Code Quality Analysis...$(NC)"
+	@if [ -x "./bin/fastlane" ]; then \
+		./bin/fastlane ios swiftlint_quality; \
+	else \
+		echo "$(YELLOW)⚠️  Fastlane binstub not available, running SwiftLint directly...$(NC)"; \
+		swiftlint autocorrect --config .swiftlint.yml || true; \
+		swiftlint lint --config .swiftlint.yml; \
+	fi
+	@echo "$(GREEN)✅ SwiftLint analysis completed$(NC)"
+
+simulator-control: ## Boot and manage iOS simulators for testing
+	@echo "$(BLUE)📱 Managing iOS Simulators...$(NC)"
+	@if [ -x "./bin/fastlane" ]; then \
+		./bin/fastlane ios simulator_control; \
+	else \
+		echo "$(YELLOW)⚠️  Fastlane binstub not available, using direct simctl commands...$(NC)"; \
+		xcrun simctl list devices | grep -E 'iPhone|iPad' | head -5; \
+		xcrun simctl boot "iPhone 16 Pro Max" 2>/dev/null || true; \
+		xcrun simctl list devices | grep "iPhone 16 Pro Max"; \
+	fi
+	@echo "$(GREEN)✅ iOS simulators ready$(NC)"
+
+semantic-changelog: ## Generate comprehensive semantic changelog
+	@echo "$(BLUE)📋 Generating Semantic Changelog...$(NC)"
+	@mkdir -p fastlane/output/changelog
+	@if [ -x "./bin/fastlane" ]; then \
+		./bin/fastlane ios semantic_versioning; \
+	else \
+		echo "$(YELLOW)⚠️  Fastlane binstub not available, generating basic changelog...$(NC)"; \
+		echo "# Nestory Changelog - $$(date +%Y-%m-%d)" > fastlane/output/changelog/BASIC_CHANGELOG.md; \
+		echo "" >> fastlane/output/changelog/BASIC_CHANGELOG.md; \
+		echo "## Recent Changes" >> fastlane/output/changelog/BASIC_CHANGELOG.md; \
+		git log --oneline --no-merges -10 >> fastlane/output/changelog/BASIC_CHANGELOG.md; \
+		echo "$(GREEN)✅ Basic changelog generated at fastlane/output/changelog/BASIC_CHANGELOG.md$(NC)"; \
+	fi
+
+testflight-upload: ## Upload current archive to TestFlight with comprehensive validation
+	@echo "$(BLUE)🚀 Preparing TestFlight Upload...$(NC)"
+	@if command -v fastlane >/dev/null 2>&1; then \
+		echo "$(BLUE)Using focused TestFlight upload...$(NC)"; \
+		fastlane ios focused_testflight; \
+	else \
+		echo "$(RED)❌ Fastlane required for TestFlight upload$(NC)"; \
+		echo "$(YELLOW)Install fastlane: gem install fastlane$(NC)"; \
+		exit 1; \
+	fi
+
+automation-tools: quality-analysis simulator-control semantic-changelog ## Run all specialized iOS automation tools
+	@echo "$(GREEN)🎉 All specialized iOS automation tools completed!$(NC)"
+
+# Tool shortcuts
+qa: quality-analysis ## Shortcut for 'make quality-analysis'
+sim: simulator-control ## Shortcut for 'make simulator-control'  
+changelog: semantic-changelog ## Shortcut for 'make semantic-changelog'
+upload: testflight-upload ## Shortcut for 'make testflight-upload'
+tools: automation-tools ## Shortcut for 'make automation-tools'
+
+# ============================================================================
+# FASTLANE CI/CD TARGETS
+# ============================================================================
+
+.PHONY: bootstrap lint test coverage
+
+bootstrap: ## Bootstrap project dependencies and fastlane setup
+	@echo "$(YELLOW)🚀 Bootstrapping project dependencies...$(NC)"
+	@bundle config set path vendor/bundle
+	@bundle config set bin bin
+	@bundle install --jobs=4 --retry=3
+	@./bin/fastlane update_plugins || bundle exec fastlane update_plugins
+	@bundle binstubs fastlane
+	@echo "$(GREEN)✅ Bootstrap completed!$(NC)"
+
+lint: ## Run SwiftLint code quality analysis
+	@echo "$(YELLOW)🔍 Running SwiftLint analysis...$(NC)"
+	@if [ -x "./bin/fastlane" ]; then \
+		./bin/fastlane run swiftlint mode:lint ignore_exit_status:true config_file:.swiftlint.yml; \
+	else \
+		echo "$(RED)bin/fastlane missing. Run: make bootstrap$(NC)"; exit 1; \
+	fi
+	@echo "$(GREEN)✅ Lint analysis completed!$(NC)"
+
+lint-fix: ## Autocorrect SwiftLint violations
+	@echo "$(YELLOW)🧹 Autocorrecting with SwiftLint...$(NC)"
+	@swiftlint autocorrect --config .swiftlint.yml || true
+	@echo "$(GREEN)✅ SwiftLint autocorrect completed!$(NC)"
+
+test: ## Run tests via fastlane
+	@echo "$(YELLOW)🧪 Running tests via fastlane...$(NC)"
+	@if [ -x "./bin/fastlane" ]; then \
+		./bin/fastlane tests; \
+	else \
+		echo "$(RED)bin/fastlane missing. Run: make bootstrap$(NC)"; exit 1; \
+	fi
+	@echo "$(GREEN)✅ Tests completed!$(NC)"
+
+coverage: ## Generate code coverage report
+	@echo "$(YELLOW)📊 Generating coverage report...$(NC)"
+	@if [ -x "./bin/fastlane" ]; then \
+		./bin/fastlane coverage_validation; \
+	else \
+		echo "$(RED)bin/fastlane missing. Run: make bootstrap$(NC)"; exit 1; \
+	fi
+	@echo "$(GREEN)✅ Coverage report generated!$(NC)"
+
+# ============================================================================
 # END OF MAKEFILE
 # ============================================================================
