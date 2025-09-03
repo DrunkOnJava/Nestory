@@ -229,6 +229,19 @@ EOF
 monitor_with_fswatch() {
     log "👁️ Starting fswatch-based monitoring..."
     
+    # Create PID file for monitoring process
+    local pid_file="/tmp/xcode-monitor-${$}.pid"
+    echo $$ > "$pid_file"
+    log "📝 Monitor PID file created: $pid_file"
+    
+    # Set up signal handler for graceful shutdown
+    trap 'log "🛑 Stopping monitor (signal received)"; rm -f "$pid_file"; exit 0' INT TERM QUIT
+    
+    # Maximum runtime: 2 hours to prevent infinite monitoring
+    local max_runtime=7200
+    local start_time=$(date +%s)
+    log "⏰ Monitor will auto-stop after $max_runtime seconds"
+    
     # Get directories to monitor
     local monitor_dirs=()
     while IFS= read -r dir; do
@@ -240,18 +253,31 @@ monitor_with_fswatch() {
     
     if [[ ${#monitor_dirs[@]} -eq 0 ]]; then
         log "❌ No directories to monitor found!"
+        rm -f "$pid_file"
         return 1
     fi
     
     # Use fswatch to monitor for new/modified files
     if [[ -z "$FSWATCH_PATH" ]]; then
         log "❌ fswatch not found in PATH or standard locations"
+        rm -f "$pid_file"
         return 1
     fi
     
     log "📱 Using fswatch at: $FSWATCH_PATH"
-    "$FSWATCH_PATH" -o "${monitor_dirs[@]}" | while read changes; do
-        log "🔍 Detected $changes file system changes"
+    
+    # Use timeout to prevent infinite fswatch
+    timeout $max_runtime "$FSWATCH_PATH" -o "${monitor_dirs[@]}" | while read changes; do
+        # Check if we should stop monitoring
+        local current_time=$(date +%s)
+        local elapsed=$((current_time - start_time))
+        
+        if [[ $elapsed -gt $max_runtime ]]; then
+            log "⏰ Maximum monitoring time reached ($max_runtime seconds)"
+            break
+        fi
+        
+        log "🔍 Detected $changes file system changes (${elapsed}s elapsed)"
         
         # Find recently modified log files
         for dir in "${monitor_dirs[@]}"; do
@@ -288,9 +314,13 @@ monitor_with_fswatch() {
             done
         done
         
-        # Small delay to prevent excessive processing
-        sleep 1
+        # Prevent excessive processing
+        sleep 2
     done
+    
+    # Cleanup
+    log "🧹 Monitor shutting down, cleaning up PID file"
+    rm -f "$pid_file"
 }
 
 # Process xcresult bundle

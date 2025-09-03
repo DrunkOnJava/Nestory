@@ -325,6 +325,7 @@ See @Documentation/ERROR_HANDLING_GUIDE.md for complete patterns and examples.
 6. **Print statements** - Use Logger.service instead of print() for debugging
 7. **Missing mock services** - Every service needs mock implementation for graceful degradation
 8. **Skipping verification** - Always run `make verify-arch` after changes
+9. **Runaway processes** - Always use timeout protection in scripts and fastlane lanes
 
 ## 📊 PROJECT STATUS
 
@@ -364,3 +365,39 @@ import Foundation  // in any layer
 
 Remember: @SPEC.json defines the architecture. When uncertain, check allowed imports there.
 - always check if the simulator is already running and which are booted, do not use beta versions
+
+## 🛡️ PROCESS MANAGEMENT & CLEANUP
+
+### Preventing Runaway Processes
+To prevent the Ruby process accumulation that previously affected this project, we've implemented comprehensive process management:
+
+**Key Commands:**
+```bash
+make cleanup-processes     # Clean up any runaway development processes  
+make emergency-cleanup     # Emergency cleanup - kill all development processes
+make process-status       # Show current development process status
+make install-process-monitor  # Install automatic process cleanup (cron job)
+```
+
+**Direct Script Usage:**
+```bash
+./Scripts/cleanup-runaway-processes.sh cleanup    # Normal cleanup
+./Scripts/cleanup-runaway-processes.sh emergency  # Emergency cleanup  
+./Scripts/cleanup-runaway-processes.sh status     # Process status
+./Scripts/cleanup-runaway-processes.sh install-cron # Install monitoring
+```
+
+### Automatic Protections Implemented
+1. **Fastlane Timeout Protection**: All test commands use timeout to prevent hanging
+2. **PID File Management**: Background processes create tracking files for cleanup  
+3. **Infinite Loop Prevention**: Build monitoring scripts have max runtime limits
+4. **Pre-commit Hooks**: Prevent committing scripts with infinite loop patterns
+5. **Emergency Cleanup**: Aggressive process termination when needed
+
+### Process Thresholds  
+- **Max Ruby/fastlane processes**: 5 (configurable via MAX_RUBY_PROCESSES)
+- **Max xcodebuild processes**: 3 (configurable via MAX_XCODEBUILD_PROCESSES)
+- **Monitoring runtime limit**: 2 hours before auto-shutdown
+- **Cleanup frequency**: Every 30 minutes when cron job installed
+
+**⚠️ Emergency Recovery**: If you encounter massive process accumulation again, run `make emergency-cleanup` to kill all development processes immediately.

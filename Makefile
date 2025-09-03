@@ -8,6 +8,14 @@
 # - All future features MUST use TCA patterns (Reducers, Actions, Dependencies)
 # - See ADR-0014 in DECISIONS.md for full rationale
 
+# Strict shell configuration for all targets
+SHELL := /bin/bash
+.SHELLFLAGS := -eu -o pipefail -c
+
+# Xcode 16.4 alignment - ensure consistent toolchain
+DEVELOPER_DIR := /Applications/Xcode.app/Contents/Developer
+export DEVELOPER_DIR
+
 # ============================================================================
 # CONFIGURATION
 # ============================================================================
@@ -747,6 +755,8 @@ clean-logs: ## Clean build logs
 .PHONY: clean-all
 clean-all: ## Comprehensive cleanup of all build artifacts and system files
 	@echo "$(YELLOW)🧹 Comprehensive project cleanup...$(NC)"
+	@echo "  Cleaning up runaway processes..."
+	@Scripts/cleanup-runaway-processes.sh cleanup
 	@echo "  Removing build artifacts..."
 	@rm -rf .build build */build
 	@rm -rf DerivedData
@@ -1040,11 +1050,31 @@ archive: gen ## Create app archive
 fix: clean reset-simulator build ## Emergency fix - clean everything and rebuild
 	@echo "$(GREEN)✅ Emergency fix completed!$(NC)"
 
+.PHONY: cleanup-processes
+cleanup-processes: ## Clean up any runaway development processes
+	@echo "$(YELLOW)🧹 Cleaning up runaway processes...$(NC)"
+	@Scripts/cleanup-runaway-processes.sh cleanup
+
+.PHONY: emergency-cleanup
+emergency-cleanup: ## Emergency cleanup - kill all development processes
+	@echo "$(RED)🚨 EMERGENCY: Killing all development processes!$(NC)"
+	@Scripts/cleanup-runaway-processes.sh emergency
+
+.PHONY: process-status
+process-status: ## Show current development process status
+	@Scripts/cleanup-runaway-processes.sh status
+
+.PHONY: install-process-monitor
+install-process-monitor: ## Install automatic process cleanup (cron job)
+	@echo "$(YELLOW)📅 Installing process monitor...$(NC)"
+	@Scripts/cleanup-runaway-processes.sh install-cron
+
 .PHONY: nuke
 nuke: ## Nuclear option - clean EVERYTHING (requires confirmation)
 	@echo "$(RED)⚠️  WARNING: This will delete all build artifacts and reset simulators!$(NC)"
 	@echo "Press Ctrl+C to cancel, or Enter to continue..."
 	@read confirm
+	@Scripts/cleanup-runaway-processes.sh emergency
 	@rm -rf $(DERIVED_DATA_PATH)
 	@rm -rf DerivedData
 	@rm -rf ~/Library/Developer/Xcode/DerivedData/*
