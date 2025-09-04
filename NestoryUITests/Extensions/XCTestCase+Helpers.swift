@@ -5,7 +5,7 @@
 //  Deterministic UI testing helpers
 //
 
-import XCTest
+@preconcurrency import XCTest
 
 @MainActor
 extension XCTestCase {

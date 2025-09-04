@@ -6,7 +6,7 @@
 // Provides reliable element queries, timeouts, and interaction patterns
 //
 
-import XCTest
+@preconcurrency import XCTest
 
 // MARK: - Element Query Extensions
 
@@ -89,9 +89,9 @@ extension XCUIElement {
         XCTFail("Failed to tap element after \(retries) attempts. Element exists: \(exists), isHittable: \(isHittable)")
     }
 
-    /// Type text with clearing existing content
+    /// Type text with clearing existing content (alternate implementation)
     /// - Parameter text: Text to type
-    func clearAndType(_ text: String) {
+    func clearTextAndType(_ text: String) {
         tap()
 
         // Select all and delete

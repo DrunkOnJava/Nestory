@@ -6,10 +6,15 @@
 //
 
 @testable import Nestory
-import Testing
+import XCTest
 
-struct NestoryTests {
-    @Test func example() async throws {
-        // Write your test here and use APIs like `#expect(...)` to check expected conditions.
+// Shared typealias to resolve Category ambiguity between CloudKit.Category and Nestory.Category
+typealias NestoryCategory = Nestory.Category
+
+@MainActor
+final class NestoryTests: XCTestCase {
+    func testExample() async throws {
+        // Write your test here and use APIs like `XCTAssert(...)` to check expected conditions.
+        XCTAssertTrue(true)
     }
 }

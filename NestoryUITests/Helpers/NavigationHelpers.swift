@@ -5,7 +5,7 @@
 //  Navigation helper functions for UI testing
 //
 
-import XCTest
+@preconcurrency import XCTest
 
 @MainActor
 enum NavigationHelpers {

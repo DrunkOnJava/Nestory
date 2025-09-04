@@ -6,24 +6,24 @@
 // Captures every screen to identify broken navigation and missing integrations
 //
 
-import XCTest
+@preconcurrency import XCTest
 
 /// Comprehensive UI wiring test that systematically captures every app screen
+@MainActor
 final class ComprehensiveUIWiringTest: XCTestCase {
     
     private var app: XCUIApplication!
     
-    override func setUpWithError() throws {
-        try super.setUpWithError()
+    override func setUp() async throws {
+        try await super.setUp()
         continueAfterFailure = false
     }
     
-    override func tearDownWithError() throws {
-        try super.tearDownWithError()
+    override func tearDown() async throws {
+        try await super.tearDown()
     }
     
     /// Comprehensive test that captures every major UI component to identify wiring issues
-    @MainActor
     func testCompleteUIWiring() async throws {
         app = XCUIApplication()
         app.launchArguments = [

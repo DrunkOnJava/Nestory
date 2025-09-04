@@ -1,6 +1,13 @@
 @testable import Nestory
 import XCTest
 
+enum NetworkTestError: Error {
+    case networkFailure
+    case timeout
+    case invalidData
+}
+
+@MainActor
 final class NetworkTests: XCTestCase {
     func testEndpointConstruction() {
         let endpoint = Endpoint(
@@ -73,21 +80,43 @@ final class NetworkTests: XCTestCase {
         XCTAssertEqual(config.delay(for: 10), 10.0)
     }
 
-    func testCircuitBreakerStateTransitions() {
-        let circuitBreaker = CircuitBreaker()
+    func testCircuitBreakerStateTransitions() async {
+        let circuitBreaker = CircuitBreaker(failureThreshold: 5, recoveryTimeout: 1.0)
 
-        XCTAssertTrue(circuitBreaker.canExecute())
+        // Initial state should be closed
+        let initialState = await circuitBreaker.currentState
+        XCTAssertEqual(initialState, .closed)
 
-        for _ in 0 ..< 4 {
-            circuitBreaker.recordFailure()
-            XCTAssertTrue(circuitBreaker.canExecute())
+        // Simulate failures to open the circuit
+        for _ in 0 ..< 5 {
+            do {
+                _ = try await circuitBreaker.execute {
+                    throw NetworkTestError.networkFailure
+                }
+            } catch {
+                // Expected to fail
+            }
         }
 
-        circuitBreaker.recordFailure()
-        XCTAssertFalse(circuitBreaker.canExecute())
+        // After 5 failures, circuit should be open
+        let openState = await circuitBreaker.currentState
+        XCTAssertEqual(openState, .open)
 
-        circuitBreaker.recordSuccess()
-        XCTAssertFalse(circuitBreaker.canExecute())
+        // Wait for recovery timeout
+        try? await Task.sleep(nanoseconds: 1_100_000_000) // 1.1 seconds
+
+        // Circuit should transition to half-open on next attempt
+        do {
+            _ = try await circuitBreaker.execute {
+                return "success"
+            }
+        } catch {
+            XCTFail("Should not fail after recovery timeout")
+        }
+
+        // After successful execution, circuit should be closed again
+        let finalState = await circuitBreaker.currentState
+        XCTAssertEqual(finalState, .closed)
     }
 
     func testHTTPClientInitialization() {
@@ -116,6 +145,7 @@ final class NetworkTests: XCTestCase {
     }
 }
 
+@MainActor
 final class HTTPClientPerformanceTests: XCTestCase {
     func testRetryDelayPerformance() {
         let config = RetryConfig()
@@ -127,18 +157,28 @@ final class HTTPClientPerformanceTests: XCTestCase {
         }
     }
 
-    func testCircuitBreakerPerformance() {
-        let circuitBreaker = CircuitBreaker()
+    func testCircuitBreakerPerformance() async {
+        let circuitBreaker = CircuitBreaker(failureThreshold: 10)
 
         measure {
-            for _ in 0 ..< 10000 {
-                _ = circuitBreaker.canExecute()
-                if Bool.random() {
-                    circuitBreaker.recordSuccess()
-                } else {
-                    circuitBreaker.recordFailure()
+            let semaphore = DispatchSemaphore(value: 0)
+            Task {
+                for _ in 0 ..< 1000 { // Reduced count for async operations
+                    do {
+                        _ = try await circuitBreaker.execute {
+                            if Bool.random() {
+                                return "success"
+                            } else {
+                                throw NetworkTestError.networkFailure
+                            }
+                        }
+                    } catch {
+                        // Expected failures for performance testing
+                    }
                 }
+                semaphore.signal()
             }
+            semaphore.wait()
         }
     }
 }

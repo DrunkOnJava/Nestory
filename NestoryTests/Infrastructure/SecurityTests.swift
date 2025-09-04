@@ -1,19 +1,23 @@
 import CryptoKit
 @testable import Nestory
-import XCTest
+@preconcurrency import XCTest
 
+@MainActor
 final class CryptoBoxTests: XCTestCase {
     var cryptoBox: CryptoBox!
 
-    override func setUp() {
-        super.setUp()
+    override func setUp() async throws {
+        try await super.setUp()
         cryptoBox = CryptoBox()
     }
 
     func testSymmetricEncryption() throws {
         let key = cryptoBox.generateKey()
         let plaintext = "Hello, World!"
-        let data = plaintext.data(using: .utf8)!
+        guard let data = plaintext.data(using: .utf8) else {
+            XCTFail("Failed to convert string to data")
+            return
+        }
 
         let encrypted = try cryptoBox.encrypt(data, using: key)
         let decrypted = try cryptoBox.decrypt(encrypted, using: key)
@@ -39,7 +43,10 @@ final class CryptoBoxTests: XCTestCase {
         let key1 = try cryptoBox.generateKey(from: password, salt: salt)
         let key2 = try cryptoBox.generateKey(from: password, salt: salt)
 
-        let testData = "Test".data(using: .utf8)!
+        guard let testData = "Test".data(using: .utf8) else {
+            XCTFail("Failed to convert string to data")
+            return
+        }
         let encrypted = try cryptoBox.encrypt(testData, using: key1)
         let decrypted = try cryptoBox.decrypt(encrypted, using: key2)
 
@@ -47,7 +54,10 @@ final class CryptoBoxTests: XCTestCase {
     }
 
     func testHashing() {
-        let data = "Hash this".data(using: .utf8)!
+        guard let data = "Hash this".data(using: .utf8) else {
+            XCTFail("Failed to convert string to data")
+            return
+        }
         let hash1 = cryptoBox.hash(data)
         let hash2 = cryptoBox.hash(data)
 
@@ -56,24 +66,36 @@ final class CryptoBoxTests: XCTestCase {
     }
 
     func testHashVerification() {
-        let data = "Verify this".data(using: .utf8)!
+        guard let data = "Verify this".data(using: .utf8) else {
+            XCTFail("Failed to convert string to data")
+            return
+        }
         let hash = cryptoBox.hash(data)
 
         XCTAssertTrue(cryptoBox.verify(data, matches: hash))
 
-        let differentData = "Different".data(using: .utf8)!
+        guard let differentData = "Different".data(using: .utf8) else {
+            XCTFail("Failed to convert different string to data")
+            return
+        }
         XCTAssertFalse(cryptoBox.verify(differentData, matches: hash))
     }
 
     func testSigningAndVerification() throws {
         let (privateKey, publicKey) = cryptoBox.generateSigningKeyPair()
-        let message = "Sign this message".data(using: .utf8)!
+        guard let message = "Sign this message".data(using: .utf8) else {
+            XCTFail("Failed to convert message string to data")
+            return
+        }
 
         let signature = try cryptoBox.sign(message, with: privateKey)
 
         XCTAssertTrue(cryptoBox.verify(signature, for: message, using: publicKey))
 
-        let tamperedMessage = "Tampered message".data(using: .utf8)!
+        guard let tamperedMessage = "Tampered message".data(using: .utf8) else {
+            XCTFail("Failed to convert tampered message string to data")
+            return
+        }
         XCTAssertFalse(cryptoBox.verify(signature, for: tamperedMessage, using: publicKey))
     }
 
@@ -81,7 +103,10 @@ final class CryptoBoxTests: XCTestCase {
         let (privateKey1, publicKey1) = cryptoBox.generateKeyAgreementKeyPair()
         let (privateKey2, publicKey2) = cryptoBox.generateKeyAgreementKeyPair()
 
-        let message = "Secret message".data(using: .utf8)!
+        guard let message = "Secret message".data(using: .utf8) else {
+            XCTFail("Failed to convert secret message string to data")
+            return
+        }
 
         let encrypted = try cryptoBox.encryptWithPublicKey(message, to: publicKey2, from: privateKey1)
         let decrypted = try cryptoBox.decryptWithPrivateKey(encrypted, from: publicKey1, using: privateKey2)
@@ -107,22 +132,26 @@ final class CryptoBoxTests: XCTestCase {
     }
 }
 
+@MainActor
 final class KeychainStoreTests: XCTestCase {
     var keychain: KeychainStore!
     let testKey = "test-key-\(UUID().uuidString)"
 
-    override func setUp() {
-        super.setUp()
+    override func setUp() async throws {
+        try await super.setUp()
         keychain = KeychainStore(service: "\(Bundle.main.bundleIdentifier ?? "com.drunkonjava.nestory.dev").test")
     }
 
-    override func tearDown() {
+    override func tearDown() async throws {
         try? keychain.delete(for: testKey)
-        super.tearDown()
+        try await super.tearDown()
     }
 
     func testSaveAndLoadData() throws {
-        let data = "Test data".data(using: .utf8)!
+        guard let data = "Test data".data(using: .utf8) else {
+            XCTFail("Failed to convert test data string to data")
+            return
+        }
 
         try keychain.save(data, for: testKey)
         let loaded = try keychain.load(for: testKey)
@@ -154,8 +183,14 @@ final class KeychainStoreTests: XCTestCase {
     }
 
     func testUpdateExistingItem() throws {
-        let data1 = "First".data(using: .utf8)!
-        let data2 = "Second".data(using: .utf8)!
+        guard let data1 = "First".data(using: .utf8) else {
+            XCTFail("Failed to convert first string to data")
+            return
+        }
+        guard let data2 = "Second".data(using: .utf8) else {
+            XCTFail("Failed to convert second string to data")
+            return
+        }
 
         try keychain.save(data1, for: testKey)
         try keychain.save(data2, for: testKey)
@@ -166,7 +201,10 @@ final class KeychainStoreTests: XCTestCase {
     }
 
     func testDeleteItem() throws {
-        let data = "Delete me".data(using: .utf8)!
+        guard let data = "Delete me".data(using: .utf8) else {
+            XCTFail("Failed to convert delete test string to data")
+            return
+        }
 
         try keychain.save(data, for: testKey)
         XCTAssertTrue(keychain.exists(for: testKey))
@@ -190,7 +228,10 @@ final class KeychainStoreTests: XCTestCase {
         try keychain.saveSymmetricKey(key, for: testKey)
         let loaded = try keychain.loadSymmetricKey(for: testKey)
 
-        let testData = "Test".data(using: .utf8)!
+        guard let testData = "Test".data(using: .utf8) else {
+            XCTFail("Failed to convert test string to data")
+            return
+        }
         let box = CryptoBox()
 
         let encrypted = try box.encrypt(testData, using: key)
@@ -209,7 +250,10 @@ final class KeychainStoreTests: XCTestCase {
         let loadedPrivate = try keychain.loadPrivateKey(for: testKey)
         let loadedPublic = try keychain.loadPublicKey(for: testKey + "-public")
 
-        let message = "Test message".data(using: .utf8)!
+        guard let message = "Test message".data(using: .utf8) else {
+            XCTFail("Failed to convert test message string to data")
+            return
+        }
         let signature = try loadedPrivate.signature(for: message)
 
         XCTAssertTrue(loadedPublic.isValidSignature(signature, for: message))
@@ -218,11 +262,12 @@ final class KeychainStoreTests: XCTestCase {
     }
 }
 
+@MainActor
 final class SecureEnclaveHelperTests: XCTestCase {
     var secureEnclave: SecureEnclaveHelper!
 
-    override func setUp() {
-        super.setUp()
+    override func setUp() async throws {
+        try await super.setUp()
         secureEnclave = SecureEnclaveHelper()
     }
 
@@ -248,11 +293,12 @@ final class SecureEnclaveHelperTests: XCTestCase {
     }
 }
 
+@MainActor
 final class CryptoPerformanceTests: XCTestCase {
     var cryptoBox: CryptoBox!
 
-    override func setUp() {
-        super.setUp()
+    override func setUp() async throws {
+        try await super.setUp()
         cryptoBox = CryptoBox()
     }
 

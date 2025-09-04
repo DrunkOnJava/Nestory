@@ -5,7 +5,7 @@
 // Rules for bounded interaction sampling to handle infinite states
 //
 
-import XCTest
+@preconcurrency import XCTest
 
 /// Rules and strategies for sampling UI interactions
 struct InteractionSampler {
@@ -14,28 +14,57 @@ struct InteractionSampler {
     
     struct Config {
         /// Maximum cells to sample in a list/table
-        let maxCellsToSample: Int = 3
+        let maxCellsToSample: Int
         
         /// Maximum depth for navigation chains
-        let maxNavigationDepth: Int = 3
+        let maxNavigationDepth: Int
         
         /// Maximum scroll attempts for infinite scroll views
-        let maxScrollAttempts: Int = 5
+        let maxScrollAttempts: Int
         
         /// Maximum carousel/page swipes
-        let maxPageSwipes: Int = 3
+        let maxPageSwipes: Int
         
         /// Maximum time to spend on any single screen (seconds)
-        let maxScreenTime: TimeInterval = 10
+        let maxScreenTime: TimeInterval
         
         /// Whether to sample modal presentations
-        let sampleModals: Bool = true
+        let sampleModals: Bool
         
         /// Whether to sample action sheets
-        let sampleActionSheets: Bool = false
+        let sampleActionSheets: Bool
         
         /// Whether to interact with text fields
-        let sampleTextInput: Bool = false
+        let sampleTextInput: Bool
+        
+        init() {
+            self.maxCellsToSample = 3
+            self.maxNavigationDepth = 3
+            self.maxScrollAttempts = 5
+            self.maxPageSwipes = 3
+            self.maxScreenTime = 10
+            self.sampleModals = true
+            self.sampleActionSheets = false
+            self.sampleTextInput = false
+        }
+        
+        init(maxCellsToSample: Int,
+             maxNavigationDepth: Int,
+             maxScrollAttempts: Int,
+             maxPageSwipes: Int,
+             maxScreenTime: TimeInterval,
+             sampleModals: Bool,
+             sampleActionSheets: Bool,
+             sampleTextInput: Bool) {
+            self.maxCellsToSample = maxCellsToSample
+            self.maxNavigationDepth = maxNavigationDepth
+            self.maxScrollAttempts = maxScrollAttempts
+            self.maxPageSwipes = maxPageSwipes
+            self.maxScreenTime = maxScreenTime
+            self.sampleModals = sampleModals
+            self.sampleActionSheets = sampleActionSheets
+            self.sampleTextInput = sampleTextInput
+        }
     }
     
     // MARK: - Properties
@@ -251,23 +280,23 @@ struct InteractionSampler {
     
     // MARK: - Helper Methods
     
-    private func hasTableView() -> Bool {
+    @MainActor private func hasTableView() -> Bool {
         app.tables.count > 0
     }
     
-    private func hasCollectionView() -> Bool {
+    @MainActor private func hasCollectionView() -> Bool {
         app.collectionViews.count > 0
     }
     
-    private func hasScrollView() -> Bool {
+    @MainActor private func hasScrollView() -> Bool {
         app.scrollViews.count > 0
     }
     
-    private func hasTabBar() -> Bool {
+    @MainActor private func hasTabBar() -> Bool {
         app.tabBars.count > 0
     }
     
-    private func hasSegmentedControl() -> Bool {
+    @MainActor private func hasSegmentedControl() -> Bool {
         app.segmentedControls.count > 0
     }
     
@@ -276,7 +305,7 @@ struct InteractionSampler {
         try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
     }
     
-    private func captureScreenshot(name: String) -> ScreenshotCapture {
+    @MainActor private func captureScreenshot(name: String) -> ScreenshotCapture {
         let screenshot = app.screenshot()
         return ScreenshotCapture(
             name: name,

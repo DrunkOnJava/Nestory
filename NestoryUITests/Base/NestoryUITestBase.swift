@@ -5,7 +5,7 @@
 // Base class for all UI tests with common setup and utilities
 //
 
-import XCTest
+@preconcurrency import XCTest
 
 /// Base class providing common UI test functionality
 @MainActor
@@ -30,8 +30,8 @@ class NestoryUITestBase: XCTestCase {
     
     // MARK: - Setup & Teardown
     
-    override func setUpWithError() throws {
-        try super.setUpWithError()
+    override func setUp() async throws {
+        try await super.setUp()
         
         // Continue testing after failures for comprehensive results
         continueAfterFailure = false
@@ -41,14 +41,14 @@ class NestoryUITestBase: XCTestCase {
         setupTestEnvironment()
     }
     
-    override func tearDownWithError() throws {
+    override func tearDown() async throws {
         // Capture screenshot on failure
         if testRun?.hasBeenSkipped == false && testRun?.hasSucceeded == false {
             captureFailureScreenshot()
         }
         
         app = nil
-        try super.tearDownWithError()
+        try await super.tearDown()
     }
     
     // MARK: - Test Environment Setup
@@ -202,7 +202,7 @@ class NestoryUITestBase: XCTestCase {
     // MARK: - Activity Helpers
     
     /// Run test step with activity logging
-    func runActivity<T>(named name: String, 
+    func runActivity<T: Sendable>(named name: String, 
                         block: () throws -> T) rethrows -> T {
         try XCTContext.runActivity(named: name) { _ in
             try block()
@@ -210,10 +210,12 @@ class NestoryUITestBase: XCTestCase {
     }
     
     /// Run async test step with activity logging
-    func runActivity<T>(named name: String,
+    func runActivity<T: Sendable>(named name: String,
                         block: () async throws -> T) async rethrows -> T {
-        try await XCTContext.runActivity(named: name) { _ in
-            try await block()
+        let result = try await block()
+        XCTContext.runActivity(named: name) { _ in
+            // Activity completion logged
         }
+        return result
     }
 }

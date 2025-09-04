@@ -6,7 +6,7 @@
 // Demonstrates working UI automation framework
 //
 
-import XCTest
+@preconcurrency import XCTest
 
 /// Basic screenshot test for immediate validation
 @MainActor
@@ -14,9 +14,13 @@ final class BasicScreenshotTest: XCTestCase {
     
     private var app: XCUIApplication!
     
-    override func setUpWithError() throws {
-        try super.setUpWithError()
+    override func setUp() async throws {
+        try await super.setUp()
         continueAfterFailure = false
+    }
+    
+    override func tearDown() async throws {
+        try await super.tearDown()
     }
     
     /// Simple test that captures key app screenshots

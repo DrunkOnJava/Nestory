@@ -5,20 +5,20 @@
 // Deterministic screenshot capture with structured logging and robust assertions
 //
 
-import XCTest
+@preconcurrency import XCTest
 
+@MainActor
 final class ComprehensiveScreenshotTest: XCTestCase {
     
-    override func setUpWithError() throws {
-        try super.setUpWithError()
+    override func setUp() async throws {
+        try await super.setUp()
         continueAfterFailure = false
     }
 
-    override func tearDownWithError() throws {
-        try super.tearDownWithError()
+    override func tearDown() async throws {
+        try await super.tearDown()
     }
 
-    @MainActor
     func testCompleteAppScreenshotCatalog() async throws {
         let app = XCUIApplication()
         app.launchArguments += [
@@ -75,14 +75,12 @@ final class ComprehensiveScreenshotTest: XCTestCase {
 
     // MARK: - Helpers
 
-    @MainActor
     private func step(_ name: String, _ block: () -> Void) async {
         await XCTContext.runActivity(named: name) { _ in 
             block() 
         }
     }
 
-    @MainActor
     private func navigateToTab(app: XCUIApplication, at index: Int) {
         let tabBar = app.tabBars.firstMatch
         XCTAssertTrue(tabBar.waitForExistence(timeout: 5), "Tab bar must exist")
@@ -96,7 +94,6 @@ final class ComprehensiveScreenshotTest: XCTestCase {
                       "Tab \(index) should be selected after tap")
     }
 
-    @MainActor
     @discardableResult
     private func waitForElement(_ element: XCUIElement, timeout: TimeInterval = 5.0) -> Bool {
         let pred = NSPredicate(format: "exists == true AND isHittable == true")
@@ -108,7 +105,6 @@ final class ComprehensiveScreenshotTest: XCTestCase {
         return res == .completed
     }
 
-    @MainActor
     private func captureScreenshot(app: XCUIApplication, name: String,
                                    lifetime: XCTAttachment.Lifetime = .keepAlways) {
         let screenshot = app.screenshot()
@@ -118,7 +114,6 @@ final class ComprehensiveScreenshotTest: XCTestCase {
         add(attachment)
     }
     
-    @MainActor
     private func waitForLoadingToComplete(app: XCUIApplication) {
         // Check for specific loading indicator first
         if app.activityIndicators["LoadingIndicator"].exists {
@@ -138,7 +133,6 @@ final class ComprehensiveScreenshotTest: XCTestCase {
     
     // MARK: - Settings Integration Testing
     
-    @MainActor
     private func testSettingsIntegrations(app: XCUIApplication) {
         print("⚙️ Testing Settings integrations...")
         
@@ -192,7 +186,6 @@ final class ComprehensiveScreenshotTest: XCTestCase {
         }
     }
     
-    @MainActor
     private func navigateBack(app: XCUIApplication) {
         // Try navigation bar first button (usually back)
         if app.navigationBars.firstMatch.buttons.firstMatch.exists {

@@ -5,7 +5,7 @@
 //  Helper extensions for UI testing
 //
 
-import XCTest
+@preconcurrency import XCTest
 
 @MainActor
 extension XCUIElement {
@@ -28,7 +28,7 @@ extension XCUIElement {
     }
 
     /// Type text with clearing existing content first
-    func clearAndTypeText(_ text: String) {
+    func clearFieldAndType(_ text: String) {
         tap()
 
         // Select all text
@@ -48,10 +48,7 @@ extension XCUIElement {
         return result == .completed
     }
 
-    /// Force tap even if element is not hittable
-    func forceTap() {
-        coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
-    }
+    /// Force tap even if element is not hittable (implementation in Extensions.swift)
 
     /// Check if element contains text
     func containsText(_ text: String) -> Bool {

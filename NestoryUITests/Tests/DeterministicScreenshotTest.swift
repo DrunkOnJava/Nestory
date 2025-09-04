@@ -5,20 +5,31 @@
 // Deterministic screenshot capture using Screen Registry
 //
 
-import XCTest
+@preconcurrency import XCTest
 
+@MainActor
 final class DeterministicScreenshotTest: XCTestCase {
     
-    var app: XCUIApplication!
+    var app: XCUIApplication?
     
-    override func setUpWithError() throws {
-        try super.setUpWithError()
+    /// Safe access to the app instance with proper error handling
+    private var safeApp: XCUIApplication {
+        guard let app = app else {
+            XCTFail("XCUIApplication is nil. Ensure setUp() has been called and completed successfully.")
+            // Return a new instance as fallback to prevent further crashes
+            return XCUIApplication()
+        }
+        return app
+    }
+    
+    override func setUp() async throws {
+        try await super.setUp()
         continueAfterFailure = false
         
         app = XCUIApplication()
         
         // Configure for deterministic testing
-        app.launchArguments = [
+        safeApp.launchArguments = [
             "UITEST_MODE",
             "DISABLE_ANIMATIONS",
             "USE_TEST_FIXTURES",
@@ -29,37 +40,37 @@ final class DeterministicScreenshotTest: XCTestCase {
             "-AppleLocale", "en_US"
         ]
         
-        app.launchEnvironment = [
+        safeApp.launchEnvironment = [
             "UI_TESTING": "1",
             "VERBOSE_LOGGING": "1"
         ]
     }
     
-    override func tearDownWithError() throws {
+    override func tearDown() async throws {
         app = nil
-        try super.tearDownWithError()
+        try await super.tearDown()
     }
     
     // MARK: - Single Route Test
     
     func testSingleRouteSnapshot() async throws {
         // Launch with specific target route
-        app.launchEnvironment["UITEST_TARGET_ROUTE"] = "inventory"
-        app.launch()
+        safeApp.launchEnvironment["UITEST_TARGET_ROUTE"] = "inventory"
+        safeApp.launch()
         
         // Wait for app to stabilize
-        let exists = app.wait(for: .runningForeground, timeout: 10)
+        let exists = safeApp.wait(for: .runningForeground, timeout: 10)
         XCTAssertTrue(exists, "App should be running")
         
         // Wait for the inventory screen
-        let inventoryView = app.otherElements["screen_inventory"]
+        let inventoryView = safeApp.otherElements["screen_inventory"]
         XCTAssertTrue(inventoryView.waitForExistence(timeout: 5), "Inventory screen should appear")
         
         // Wait for any loading to complete
         await waitForIdle()
         
         // Capture screenshot
-        let screenshot = app.screenshot()
+        let screenshot = safeApp.screenshot()
         let attachment = XCTAttachment(screenshot: screenshot)
         attachment.name = "inventory_base"
         attachment.lifetime = .keepAlways
@@ -90,10 +101,10 @@ final class DeterministicScreenshotTest: XCTestCase {
     // MARK: - Full Catalog Test
     
     func testCompleteScreenCatalog() async throws {
-        app.launch()
+        safeApp.launch()
         
         // Wait for app
-        XCTAssertTrue(app.wait(for: .runningForeground, timeout: 10))
+        XCTAssertTrue(safeApp.wait(for: .runningForeground, timeout: 10))
         
         // Capture main tabs
         let tabs = [
@@ -118,18 +129,17 @@ final class DeterministicScreenshotTest: XCTestCase {
     
     // MARK: - Helper Methods
     
-    @MainActor
     private func captureRoute(_ route: String) async {
         // Relaunch with target route
-        app.terminate()
-        app.launchEnvironment["UITEST_TARGET_ROUTE"] = route
-        app.launch()
+        safeApp.terminate()
+        safeApp.launchEnvironment["UITEST_TARGET_ROUTE"] = route
+        safeApp.launch()
         
         // Wait for app
-        XCTAssertTrue(app.wait(for: .runningForeground, timeout: 10))
+        XCTAssertTrue(safeApp.wait(for: .runningForeground, timeout: 10))
         
         // Wait for target screen
-        let targetScreen = app.otherElements["screen_\(route)"]
+        let targetScreen = safeApp.otherElements["screen_\(route)"]
         XCTAssertTrue(targetScreen.waitForExistence(timeout: 5), "\(route) screen should appear")
         
         // Wait for idle
@@ -139,9 +149,8 @@ final class DeterministicScreenshotTest: XCTestCase {
         captureScreenshot(name: route)
     }
     
-    @MainActor
-    private func navigateToTab(at index: Int) {
-        let tabBar = app.tabBars.firstMatch
+    private func navigateToTab(at index: Int) async {
+        let tabBar = safeApp.tabBars.firstMatch
         XCTAssertTrue(tabBar.waitForExistence(timeout: 5))
         
         let button = tabBar.buttons.element(boundBy: index)
@@ -154,7 +163,6 @@ final class DeterministicScreenshotTest: XCTestCase {
         XCTAssertTrue(isSelected, "Tab \(index) should be selected")
     }
     
-    @MainActor
     private func captureSettingsScreens() async {
         // Navigate to Settings tab
         await navigateToTab(at: 4)
@@ -164,31 +172,31 @@ final class DeterministicScreenshotTest: XCTestCase {
         captureScreenshot(name: "settings_main")
         
         // Navigate to Import/Export
-        let importExportButton = app.buttons["Import/Export"]
+        let importExportButton = safeApp.buttons["Import/Export"]
         if importExportButton.exists && importExportButton.isHittable {
             importExportButton.tap()
             await waitForIdle()
             captureScreenshot(name: "settings_import_export")
             
             // Go back
-            app.navigationBars.buttons.element(boundBy: 0).tap()
+            safeApp.navigationBars.buttons.element(boundBy: 0).tap()
             await waitForIdle()
         }
         
         // Navigate to Appearance
-        let appearanceButton = app.buttons["Appearance"]
+        let appearanceButton = safeApp.buttons["Appearance"]
         if appearanceButton.exists && appearanceButton.isHittable {
             appearanceButton.tap()
             await waitForIdle()
             captureScreenshot(name: "settings_appearance")
             
             // Go back
-            app.navigationBars.buttons.element(boundBy: 0).tap()
+            safeApp.navigationBars.buttons.element(boundBy: 0).tap()
             await waitForIdle()
         }
         
         // Navigate to About
-        let aboutButton = app.buttons["About"]
+        let aboutButton = safeApp.buttons["About"]
         if aboutButton.exists && aboutButton.isHittable {
             aboutButton.tap()
             await waitForIdle()
@@ -196,10 +204,9 @@ final class DeterministicScreenshotTest: XCTestCase {
         }
     }
     
-    @MainActor
     private func waitForIdle() async {
         // Wait for any activity indicators to disappear
-        let indicators = app.activityIndicators
+        let indicators = safeApp.activityIndicators
         let deadline = Date().addingTimeInterval(5)
         
         while Date() < deadline {
@@ -224,7 +231,7 @@ final class DeterministicScreenshotTest: XCTestCase {
     
     @discardableResult
     private func captureScreenshot(name: String) -> XCTAttachment {
-        let screenshot = app.screenshot()
+        let screenshot = safeApp.screenshot()
         let attachment = XCTAttachment(screenshot: screenshot)
         attachment.name = name
         attachment.lifetime = .keepAlways

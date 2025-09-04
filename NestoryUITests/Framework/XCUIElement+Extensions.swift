@@ -5,7 +5,7 @@
 // Extensions for deterministic UI testing
 //
 
-import XCTest
+@preconcurrency import XCTest
 
 extension XCUIElement {
     /// Wait for element to be selected with configurable timeout
@@ -57,5 +57,10 @@ extension XCUIElement {
         }
         
         typeText(text)
+    }
+    
+    /// Force tap at element center (for stubborn elements)
+    func forceTap() {
+        coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
     }
 }

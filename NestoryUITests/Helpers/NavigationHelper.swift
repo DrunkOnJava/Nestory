@@ -6,7 +6,7 @@
 // Provides reliable navigation patterns specific to Nestory's architecture
 //
 
-import XCTest
+@preconcurrency import XCTest
 
 /// Navigation helper for Nestory app UI testing
 @MainActor

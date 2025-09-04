@@ -5,7 +5,7 @@
 // Advanced screenshot capture and management utilities
 //
 
-import XCTest
+@preconcurrency import XCTest
 import CryptoKit
 
 /// Helper for advanced screenshot operations
@@ -21,6 +21,7 @@ struct ScreenshotHelper {
     // MARK: - Screenshot Capture
     
     /// Capture and save screenshot to file system
+    @MainActor 
     static func captureAndSave(app: XCUIApplication,
                                name: String,
                                subfolder: String? = nil) -> URL? {
@@ -51,6 +52,7 @@ struct ScreenshotHelper {
     }
     
     /// Batch capture multiple screenshots
+    @MainActor
     static func batchCapture(app: XCUIApplication,
                             views: [(name: String, setup: () -> Void)]) -> [URL] {
         var urls: [URL] = []
