@@ -48,18 +48,25 @@ public struct SettingsFeature: Sendable {
         case themeChanged(AppTheme)
         case currencyChanged(String)
         case notificationsToggled(Bool)
+        case loadCurrentTheme
+        case currentThemeLoaded(AppTheme)
     }
     
     public var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
             case .onAppear:
-                // Simple initialization without complex service calls
-                return .none
+                // Load current theme from ThemeManager on appear
+                return .send(.loadCurrentTheme)
                 
             case .themeChanged(let theme):
                 state.selectedTheme = theme
-                return .none
+                // Update the global theme manager
+                return .run { _ in
+                    await MainActor.run {
+                        ThemeManager.shared.setTheme(theme)
+                    }
+                }
                 
             case .currencyChanged(let currency):
                 state.selectedCurrency = currency
@@ -67,6 +74,20 @@ public struct SettingsFeature: Sendable {
                 
             case .notificationsToggled(let enabled):
                 state.notificationsEnabled = enabled
+                return .none
+                
+            case .loadCurrentTheme:
+                return .run { send in
+                    await MainActor.run {
+                        let currentTheme = ThemeManager.shared.selectedTheme
+                        Task {
+                            await send(.currentThemeLoaded(currentTheme))
+                        }
+                    }
+                }
+                
+            case .currentThemeLoaded(let theme):
+                state.selectedTheme = theme
                 return .none
             }
         }
