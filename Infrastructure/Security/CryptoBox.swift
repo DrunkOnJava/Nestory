@@ -15,16 +15,12 @@ public final class CryptoBox {
         let nonce = AES.GCM.Nonce()
         let sealedBox = try AES.GCM.seal(data, using: key, nonce: nonce)
 
-        guard let encryptedData = sealedBox.combined else {
-            throw CryptoError.encryptionFailed
-        }
-
         logger.debug("Encrypted \(data.count) bytes")
 
         return EncryptedData(
-            ciphertext: encryptedData,
+            ciphertext: sealedBox.ciphertext,
             nonce: nonce.withUnsafeBytes { Data($0) },
-            tag: sealedBox.tag,
+            tag: sealedBox.tag
         )
     }
 

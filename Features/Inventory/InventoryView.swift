@@ -33,7 +33,7 @@ public struct InventoryView: View {
                     message: "Start by adding your first item to the inventory",
                     systemImage: "archivebox"
                 ) {
-                    store.send(.addItemTapped)
+                    store.send(.itemOperation(.addItemTapped))
                 }
             } else {
                 EmptyInventoryView(
@@ -49,7 +49,7 @@ public struct InventoryView: View {
         List {
             ForEach(store.filteredItems) { item in
                 ItemRow(item: item) {
-                    store.send(.itemTapped(item))
+                    store.send(.itemOperation(.itemTapped(item)))
                 }
                 .listRowInsets(EdgeInsets(
                     top: 8,
@@ -61,7 +61,7 @@ public struct InventoryView: View {
                 .listRowBackground(Color.clear)
             }
             .onDelete { indexSet in
-                store.send(.deleteItems(indexSet))
+                store.send(.itemOperation(.deleteItems(indexSet)))
             }
         }
         .listStyle(.plain)
@@ -75,7 +75,7 @@ public struct InventoryView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
-                        store.send(.addItemTapped)
+                        store.send(.itemOperation(.addItemTapped))
                     } label: {
                         Image(systemName: "plus")
                     }
@@ -96,15 +96,18 @@ public struct InventoryView: View {
             }
         }
         .searchable(
-            text: $store.searchText.sending(\.searchTextChanged),
+            text: Binding(
+                get: { store.searchText },
+                set: { store.send(.filtering(.searchTextChanged($0))) }
+            ),
             prompt: "Search items, categories, or locations"
         )
         .alert(store: store.scope(state: \.$alert, action: \.alert))
         .onAppear {
-            store.send(.onAppear)
+            store.send(.lifecycle(.onAppear))
         }
         .refreshable {
-            await store.send(.loadItems).finish()
+            await store.send(.loading(.loadItems)).finish()
         }
     }
 }

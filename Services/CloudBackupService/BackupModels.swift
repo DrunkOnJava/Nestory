@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import SwiftUI
 
 // MARK: - Backup Status
 
@@ -29,6 +30,36 @@ public enum BackupStatus: Equatable {
         case categories = "Restoring categories..."
         case rooms = "Restoring rooms..."
         case items = "Restoring items..."
+    }
+    
+    public var iconName: String {
+        switch self {
+        case .idle: "circle"
+        case .backing: "arrow.up.circle"
+        case .restoring: "arrow.down.circle"
+        case .completed: "checkmark.circle"
+        case .failed: "xmark.circle"
+        }
+    }
+    
+    public var color: Color {
+        switch self {
+        case .idle: .gray
+        case .backing: .blue
+        case .restoring: .orange
+        case .completed: .green
+        case .failed: .red
+        }
+    }
+    
+    public var displayName: String {
+        switch self {
+        case .idle: "Idle"
+        case .backing(let phase): phase.rawValue
+        case .restoring(let phase): phase.rawValue
+        case .completed: "Completed"
+        case .failed: "Failed"
+        }
     }
 }
 

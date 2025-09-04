@@ -227,22 +227,20 @@ public final class LiveProductLookupService: ProductLookupService, ObservableObj
             if barcode.hasPrefix(prefix) {
                 var product = ProductInfo(
                     barcode: barcode,
-                    name: productData.name,
+                    title: productData.name,
                     brand: productData.brand,
-                    model: productData.model,
                     category: productData.category,
-                    estimatedValue: productData.estimatedValue
+                    price: productData.estimatedValue
                 )
 
                 // If brand not in database, try to extract from barcode
                 if product.brand == nil {
                     product = ProductInfo(
                         barcode: barcode,
-                        name: product.name,
+                        title: product.title,
                         brand: extractBrandFromBarcode(barcode),
-                        model: product.model,
                         category: product.category,
-                        estimatedValue: product.estimatedValue
+                        price: product.price
                     )
                 }
 
@@ -257,7 +255,7 @@ public final class LiveProductLookupService: ProductLookupService, ObservableObj
 
             return ProductInfo(
                 barcode: barcode,
-                name: generateProductName(from: barcode, brand: extractedBrand, category: suggestedCategory),
+                title: generateProductName(from: barcode, brand: extractedBrand, category: suggestedCategory),
                 brand: extractedBrand,
                 category: suggestedCategory
             )
@@ -313,28 +311,28 @@ public final class LiveProductLookupService: ProductLookupService, ObservableObj
 
 // MARK: - Known Product Database
 
-private let knownProductDatabase: [String: (name: String, brand: String?, model: String?, category: String?, estimatedValue: Decimal?)] = [
+private let knownProductDatabase: [String: (name: String, brand: String?, model: String?, category: String?, estimatedValue: Double?)] = [
     // Apple Products (common prefixes)
     "0885909": (
         name: "iPhone",
         brand: "Apple",
         model: nil,
         category: "Electronics",
-        estimatedValue: Decimal(800)
+        estimatedValue: 800.0
     ),
     "0190198": (
         name: "iPad",
         brand: "Apple",
         model: nil,
         category: "Electronics",
-        estimatedValue: Decimal(500)
+        estimatedValue: 500.0
     ),
     "0190199": (
         name: "MacBook",
         brand: "Apple",
         model: nil,
         category: "Electronics",
-        estimatedValue: Decimal(1200)
+        estimatedValue: 1200.0
     ),
 
     // Sony Products
@@ -343,7 +341,7 @@ private let knownProductDatabase: [String: (name: String, brand: String?, model:
         brand: "Sony",
         model: nil,
         category: "Electronics",
-        estimatedValue: Decimal(400)
+        estimatedValue: 400.0
     ),
 
     // Samsung Products
@@ -352,7 +350,7 @@ private let knownProductDatabase: [String: (name: String, brand: String?, model:
         brand: "Samsung",
         model: nil,
         category: "Electronics",
-        estimatedValue: Decimal(700)
+        estimatedValue: 700.0
     ),
 
     // Microsoft Products
@@ -361,7 +359,7 @@ private let knownProductDatabase: [String: (name: String, brand: String?, model:
         brand: "Microsoft",
         model: nil,
         category: "Electronics",
-        estimatedValue: Decimal(350)
+        estimatedValue: 350.0
     ),
 
     // Common household items
@@ -370,21 +368,21 @@ private let knownProductDatabase: [String: (name: String, brand: String?, model:
         brand: "Procter & Gamble",
         model: nil,
         category: "Health & Beauty",
-        estimatedValue: Decimal(10)
+        estimatedValue: 10.0
     ),
     "0043000": (
         name: "Cereal",
         brand: "Kellogg's",
         model: nil,
         category: "Food & Beverages",
-        estimatedValue: Decimal(5)
+        estimatedValue: 5.0
     ),
     "0070847": (
         name: "Food Product",
         brand: "General Mills",
         model: nil,
         category: "Food & Beverages",
-        estimatedValue: Decimal(8)
+        estimatedValue: 8.0
     ),
 ]
 
@@ -398,7 +396,7 @@ public final class MockProductLookupService: ProductLookupService {
         if type.contains("EAN") || type.contains("UPC") {
             return ProductInfo(
                 barcode: barcode,
-                name: "Mock Product",
+                title: "Mock Product",
                 brand: "Mock Brand",
                 category: "Electronics"
             )

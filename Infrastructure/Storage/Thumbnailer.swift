@@ -193,7 +193,7 @@ public final class Thumbnailer: @unchecked Sendable {
     }
 }
 
-public struct ProcessedImages {
+public struct ProcessedImages: @unchecked Sendable {
     public let original: UIImage
     public let thumbnail: UIImage
     public let display: UIImage

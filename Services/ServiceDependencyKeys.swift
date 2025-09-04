@@ -289,6 +289,34 @@ enum SearchHistoryServiceKey: DependencyKey {
     static let testValue: any SearchHistoryService = MockSearchHistoryService()
 }
 
+enum CategoryServiceKey: DependencyKey {
+    static var liveValue: any CategoryService {
+        do {
+            // Get the inventory service from the existing key
+            let inventoryService = InventoryServiceKey.liveValue
+            let service = LiveCategoryService(inventoryService: inventoryService)
+            
+            // Record successful service creation
+            Task { @MainActor in
+                ServiceHealthManager.shared.recordSuccess(for: .category)
+            }
+            
+            return service
+        } catch {
+            // Record service failure for health monitoring
+            Task { @MainActor in
+                ServiceHealthManager.shared.recordFailure(for: .category, error: error)
+                ServiceHealthManager.shared.notifyDegradedMode(service: .category)
+            }
+            
+            print("⚠️ Failed to create CategoryService: \(error.localizedDescription)")
+            print("🔄 Falling back to MockCategoryService for graceful degradation")
+            return MockCategoryService()
+        }
+    }
+    static let testValue: any CategoryService = MockCategoryService()
+}
+
 enum WarrantyTrackingServiceKey: @preconcurrency DependencyKey {
     static var liveValue: any WarrantyTrackingService {
         // Return a minimal nonisolated default for TCA dependencies

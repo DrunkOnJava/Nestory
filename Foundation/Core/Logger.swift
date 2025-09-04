@@ -125,7 +125,7 @@ extension Logger {
     /// Debug-only logging that compiles out in release builds
     public func debug(_ message: String, file: String = #file, function: String = #function, line: Int = #line) {
         let fileName = URL(fileURLWithPath: file).lastPathComponent
-        self.debug("[\(fileName):\(line)] \(function) - \(message)")
+        self.log(level: .debug, "[\(fileName):\(line)] \(function) - \(message)")
     }
 }
 #endif

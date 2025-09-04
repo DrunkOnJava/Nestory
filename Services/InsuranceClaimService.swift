@@ -114,12 +114,3 @@ public final class LiveInsuranceClaimService: InsuranceClaimService, ObservableO
 // MARK: - Re-exported Types for Backward Compatibility
 // Types are directly available since InsuranceClaimModels.swift is in the same Services module
 
-// MARK: - Array Extension for Chunking
-
-extension Array {
-    private func chunked(into size: Int) -> [[Element]] {
-        stride(from: 0, to: count, by: size).map {
-            Array(self[$0 ..< Swift.min($0 + size, count)])
-        }
-    }
-}

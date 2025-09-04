@@ -6,6 +6,7 @@
 
 import Foundation
 import SwiftData
+import SwiftUI
 import UniformTypeIdentifiers
 
 // MARK: - Core Models
@@ -110,6 +111,8 @@ public enum SubmissionMethod: String, CaseIterable, Codable, Sendable {
 public enum ClaimStatus: String, CaseIterable, Codable, Sendable {
     case draft = "Draft"
     case preparing = "Preparing"
+    case pending = "Pending"
+    case inProgress = "In Progress"
     case submitted = "Submitted"
     case acknowledged = "Acknowledged"
     case pendingDocuments = "Pending Documents"
@@ -121,14 +124,35 @@ public enum ClaimStatus: String, CaseIterable, Codable, Sendable {
     case settled = "Settled"
     case closed = "Closed"
 
-    var color: String {
+    var color: Color {
         switch self {
-        case .draft, .preparing: "orange"
-        case .submitted, .acknowledged: "blue"
-        case .pendingDocuments, .underReview: "yellow"
-        case .scheduledInspection: "purple"
-        case .approved, .settlementOffered, .settled: "green"
-        case .denied, .closed: "gray"
+        case .draft, .preparing: .orange
+        case .pending: .yellow
+        case .inProgress: .blue
+        case .submitted, .acknowledged: .blue
+        case .pendingDocuments, .underReview: .yellow
+        case .scheduledInspection: .purple
+        case .approved, .settlementOffered, .settled: .green
+        case .denied, .closed: .gray
+        }
+    }
+    
+    var iconName: String {
+        switch self {
+        case .draft: "doc.text"
+        case .preparing: "gearshape.2"
+        case .pending: "clock"
+        case .inProgress: "arrow.clockwise"
+        case .submitted: "paperplane"
+        case .acknowledged: "checkmark.circle"
+        case .pendingDocuments: "doc.badge.plus"
+        case .underReview: "magnifyingglass"
+        case .scheduledInspection: "calendar"
+        case .approved: "checkmark.seal"
+        case .settlementOffered: "dollarsign.circle"
+        case .denied: "xmark.circle"
+        case .settled: "checkmark.circle.fill"
+        case .closed: "folder"
         }
     }
 }

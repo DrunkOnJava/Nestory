@@ -19,7 +19,7 @@ public struct MockBarcodeScannerService: BarcodeScannerService {
         "MOCK123456"
     }
 
-    public func lookupProduct(barcode: String, type _: String) async -> ProductInfo? {
-        ProductInfo(barcode: barcode, name: "Mock Product", brand: "Mock Brand")
+    public func lookupProduct(barcode: String, type: String) async -> ProductInfo? {
+        ProductInfo(barcode: barcode, title: "Mock Product", brand: "Mock Brand")
     }
 }

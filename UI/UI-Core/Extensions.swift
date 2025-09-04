@@ -5,6 +5,7 @@
 //
 
 import SwiftUI
+import Foundation
 
 // MARK: - Color Extensions
 
@@ -32,13 +33,5 @@ extension Color {
             blue: Double(b) / 255,
             opacity: Double(a) / 255,
         )
-    }
-}
-
-// MARK: - Array Extensions
-
-extension Array {
-    public subscript(safe index: Index) -> Element? {
-        indices.contains(index) ? self[index] : nil
     }
 }

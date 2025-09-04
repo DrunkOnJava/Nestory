@@ -42,30 +42,6 @@ public struct BarcodeResult: Equatable, Sendable {
     }
 }
 
-public struct ProductInfo: Equatable, Sendable {
-    public let barcode: String
-    public let name: String
-    public let brand: String?
-    public let model: String?
-    public let category: String?
-    public let estimatedValue: Decimal?
-
-    public init(
-        barcode: String,
-        name: String,
-        brand: String? = nil,
-        model: String? = nil,
-        category: String? = nil,
-        estimatedValue: Decimal? = nil
-    ) {
-        self.barcode = barcode
-        self.name = name
-        self.brand = brand
-        self.model = model
-        self.category = category
-        self.estimatedValue = estimatedValue
-    }
-}
 
 // MARK: - Errors
 
