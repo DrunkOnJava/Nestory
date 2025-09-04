@@ -446,22 +446,25 @@ struct ItemDetailView: View {
 // Removed local definition to avoid redeclaration conflict
 
 #Preview {
-    let config = ModelConfiguration(isStoredInMemoryOnly: true)
-    let container = try! ModelContainer(for: Item.self, Category.self, Warranty.self, configurations: config)
-    let context = ModelContext(container)
+    if let container = try? ModelContainer(for: Item.self, Category.self, Warranty.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true)) {
+        let context = ModelContext(container)
+        
+        let category = Category(name: "Electronics", icon: "tv.fill", colorHex: "#FF6B6B")
+        let item = Item(name: "MacBook Pro", itemDescription: "13-inch M2", quantity: 1, category: category)
+        item.purchaseDate = Date()
+        item.purchasePrice = 1299.00
+        item.brand = "Apple"
 
-    let category = Category(name: "Electronics", icon: "tv.fill", colorHex: "#FF6B6B")
-    let item = Item(name: "MacBook Pro", itemDescription: "13-inch M2", quantity: 1, category: category)
-    item.purchaseDate = Date()
-    item.purchasePrice = 1299.00
-    item.brand = "Apple"
+        context.insert(category)
+        context.insert(item)
 
-    context.insert(category)
-    context.insert(item)
-
-    return NavigationStack {
-        ItemDetailView(item: item)
-            .modelContainer(container)
+        NavigationStack {
+            ItemDetailView(item: item)
+                .modelContainer(container)
+        }
+    } else {
+        Text("Preview Error: Failed to create ModelContainer")
+            .foregroundColor(.red)
     }
 }
 

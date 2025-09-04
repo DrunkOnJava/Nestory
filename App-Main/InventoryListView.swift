@@ -95,7 +95,9 @@ struct InventoryListView: View {
                 }
             }
             .sheet(isPresented: $showingAddItem) {
-                AddItemView()
+                AddItemView(store: Store(initialState: AddItemFeature.State()) {
+                    AddItemFeature()
+                })
             }
             .sheet(isPresented: $showingBulkClaim) {
                 InsuranceClaimView(items: Array(selectedItems))

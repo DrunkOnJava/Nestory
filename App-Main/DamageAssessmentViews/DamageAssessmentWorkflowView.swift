@@ -183,10 +183,15 @@ struct DamageAssessmentWorkflowView: View {
 }
 
 #Preview {
-    DamageAssessmentWorkflowView(
-        item: Item(name: "Test Item"),
-        modelContext: ModelContext(
-            try! ModelContainer(for: Item.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+    do {
+        let container = try ModelContainer(for: Item.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        return DamageAssessmentWorkflowView(
+            item: Item(name: "Test Item"),
+            modelContext: ModelContext(container)
         )
-    )
+    } catch {
+        return Text("Preview Error: Failed to create ModelContainer - \(error.localizedDescription)")
+            .foregroundColor(.red)
+            .padding()
+    }
 }

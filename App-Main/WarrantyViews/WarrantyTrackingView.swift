@@ -130,16 +130,22 @@ struct WarrantyTrackingView: View {
 
 #Preview {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
-    let container = try! ModelContainer(for: Item.self, configurations: config)
-    let context = ModelContext(container)
     
-    // Create and configure sample item outside the ViewBuilder
-    let item = Item(name: "MacBook Pro")
-    item.brand = "Apple"
-    item.modelNumber = "MacBook Pro 16-inch"
-    item.serialNumber = "ABC123DEF456"
-    
-    return WarrantyTrackingView(item: item, modelContext: context)
-        .modelContainer(container)
-        .environmentObject(LiveNotificationService())
+    do {
+        let container = try ModelContainer(for: Item.self, configurations: config)
+        let context = ModelContext(container)
+        
+        // Create and configure sample item outside the ViewBuilder
+        let item = Item(name: "MacBook Pro")
+        item.brand = "Apple"
+        item.modelNumber = "MacBook Pro 16-inch"
+        item.serialNumber = "ABC123DEF456"
+        
+        return WarrantyTrackingView(item: item, modelContext: context)
+            .modelContainer(container)
+            .environmentObject(LiveNotificationService())
+    } catch {
+        return Text("Preview Error: Failed to create ModelContainer - \(error.localizedDescription)")
+            .foregroundColor(.red)
+    }
 }

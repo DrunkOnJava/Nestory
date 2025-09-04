@@ -82,25 +82,25 @@ public struct RootFeature {
             switch action {
             case .inventory:
                 // Inventory actions are handled by the child reducer
-                return .none
+                return Effect.none
 
             case .search:
                 // Search actions are handled by the child reducer
-                return .none
+                return Effect.none
 
             case .analytics:
                 // Analytics actions are handled by the child reducer
-                return .none
+                return Effect.none
 
             case .settings:
                 // Settings actions are handled by the child reducer
-                return .none
+                return Effect.none
 
             case let .tabSelected(tab):
                 // In UI test mode, always allow tab selection without any side effects
                 if state.isUITestMode {
                     state.selectedTab = tab
-                    return .none
+                    return Effect.none
                 }
                 
                 state.selectedTab = tab
@@ -108,33 +108,33 @@ public struct RootFeature {
                 // Load data when switching to specific tabs
                 switch tab {
                 case .inventory:
-                    return .send(.inventory(.onAppear))
+                    return Effect.send(.inventory(.lifecycle(.onAppear)))
                 case .search:
-                    return .send(.search(.onAppear))
+                    return Effect.send(.search(.onAppear))
                 case .analytics:
-                    return .send(.analytics(.onAppear))
+                    return Effect.send(.analytics(.onAppear))
                 case .settings:
-                    return .send(.settings(.onAppear))
+                    return Effect.send(.settings(.onAppear))
                 default:
-                    return .none
+                    return Effect.none
                 }
 
             case .onAppear:
                 // In UI test mode, skip initialization to prevent interference
                 if state.isUITestMode {
-                    return .none
+                    return Effect.none
                 }
                 
                 // Initialize services and load initial data
-                return .merge(
-                    .send(.inventory(.onAppear)),
-                    .send(.search(.onAppear)),
-                    .send(.analytics(.onAppear)),
-                    .send(.settings(.onAppear))
+                return Effect.merge(
+                    Effect.send(.inventory(.lifecycle(.onAppear))),
+                    Effect.send(.search(.onAppear)),
+                    Effect.send(.analytics(.onAppear)),
+                    Effect.send(.settings(.onAppear))
                 )
             }
         }
-
+        
         // ✅ SCOPE: Integrate child features as TCA reducers
         Scope(state: \.inventory, action: \.inventory) {
             InventoryFeature()

@@ -150,7 +150,7 @@ public struct NavigationRouter {
     @MainActor
     private func navigateToAddItem() async {
         await navigateToTab(at: 0)
-        store.send(.inventory(.addItemTapped))
+        store.send(.inventory(.itemOperation(.addItemTapped)))
         try? await Task.sleep(nanoseconds: 200_000_000)
     }
     

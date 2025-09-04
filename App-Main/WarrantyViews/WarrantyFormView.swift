@@ -325,20 +325,23 @@ struct WarrantyFormView: View {
 // MARK: - Preview
 
 #Preview {
-    let config = ModelConfiguration(isStoredInMemoryOnly: true)
-    let container = try! ModelContainer(for: Item.self, Category.self, Warranty.self, configurations: config)
-    let context = ModelContext(container)
+    if let container = try? ModelContainer(for: Item.self, Category.self, Warranty.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true)) {
+        let context = ModelContext(container)
 
-    let category = Category(name: "Electronics", icon: "tv.fill", colorHex: "#FF6B6B")
-    let item = Item(name: "MacBook Pro", itemDescription: "13-inch M2", quantity: 1, category: category)
-    item.purchaseDate = Date()
-    item.brand = "Apple"
+        let category = Category(name: "Electronics", icon: "tv.fill", colorHex: "#FF6B6B")
+        let item = Item(name: "MacBook Pro", itemDescription: "13-inch M2", quantity: 1, category: category)
+        item.purchaseDate = Date()
+        item.brand = "Apple"
 
-    context.insert(category)
-    context.insert(item)
+        context.insert(category)
+        context.insert(item)
 
-    let notificationService = LiveNotificationService()
-    let warrantyService = LiveWarrantyTrackingService(modelContext: context, notificationService: notificationService)
+        let notificationService = LiveNotificationService()
+        let warrantyService = LiveWarrantyTrackingService(modelContext: context, notificationService: notificationService)
 
-    return WarrantyFormView(item: item, warrantyTrackingService: warrantyService)
+        WarrantyFormView(item: item, warrantyTrackingService: warrantyService)
+    } else {
+        Text("Preview Error: Failed to create ModelContainer")
+            .foregroundColor(.red)
+    }
 }

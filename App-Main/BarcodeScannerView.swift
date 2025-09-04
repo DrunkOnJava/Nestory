@@ -186,7 +186,7 @@ struct LegacyBarcodeScannerView: View {
             }
             // Set estimated value if available and no purchase price exists
             if item.purchasePrice == nil, let estimatedValue = product.estimatedValue {
-                item.purchasePrice = estimatedValue
+                item.purchasePrice = Decimal(estimatedValue)
             }
         }
 

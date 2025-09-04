@@ -173,12 +173,15 @@ struct DamageAssessmentReportView: View {
         )
     )
 
-    DamageAssessmentReportView(
-        workflow: workflow,
-        modelContext: ModelContext(
-            try! ModelContainer(for: Item.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+    if let container = try? ModelContainer(for: Item.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true)) {
+        DamageAssessmentReportView(
+            workflow: workflow,
+            modelContext: ModelContext(container)
         )
-    )
+    } else {
+        Text("Preview Error: Failed to create ModelContainer")
+            .foregroundColor(.red)
+    }
 }
 
 // MARK: - Architecture Documentation

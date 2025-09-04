@@ -158,10 +158,16 @@ struct InsuranceReportOptionsView: View {
 }
 
 #Preview {
-    InsuranceReportOptionsView(
-        items: [],
-        categories: [],
-        insuranceReportService: try! LiveInsuranceReportService(),
-        isGenerating: .constant(false),
-    )
+    if let insuranceReportService = try? LiveInsuranceReportService() {
+        InsuranceReportOptionsView(
+            items: [],
+            categories: [],
+            insuranceReportService: insuranceReportService,
+            isGenerating: .constant(false)
+        )
+    } else {
+        Text("Preview Error: Failed to create LiveInsuranceReportService")
+            .foregroundColor(.red)
+            .padding()
+    }
 }

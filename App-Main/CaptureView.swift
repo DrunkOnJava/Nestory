@@ -150,7 +150,9 @@ struct CaptureView: View {
             newItem.name = product.name.isEmpty ? "New Item" : product.name
             newItem.brand = product.brand
             newItem.modelNumber = product.model
-            newItem.purchasePrice = product.estimatedValue
+            if let estimatedValue = product.estimatedValue {
+                newItem.purchasePrice = Decimal(estimatedValue)
+            }
         }
         
         // Save item to model context
