@@ -21,7 +21,39 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 [bundle exec] fastlane ios tests
 ```
 
-Run unit/UI tests with scan
+Run unit/UI tests with comprehensive framework
+
+### ios ui_tests
+
+```sh
+[bundle exec] fastlane ios ui_tests
+```
+
+Run comprehensive UI tests with enterprise framework
+
+### ios performance_tests
+
+```sh
+[bundle exec] fastlane ios performance_tests
+```
+
+Run performance UI tests
+
+### ios accessibility_tests
+
+```sh
+[bundle exec] fastlane ios accessibility_tests
+```
+
+Run accessibility UI tests
+
+### ios smoke_tests
+
+```sh
+[bundle exec] fastlane ios smoke_tests
+```
+
+Run smoke tests
 
 ### ios build
 
@@ -37,7 +69,7 @@ Build archive for distribution
 [bundle exec] fastlane ios beta
 ```
 
-Build and upload to TestFlight
+Build and upload to TestFlight with comprehensive testing
 
 ### ios release
 
@@ -53,7 +85,7 @@ Submit to App Store (metadata + binary)
 [bundle exec] fastlane ios screenshots
 ```
 
-Capture localized screenshots
+Capture comprehensive screenshots with UI testing framework
 
 ### ios open_screenshots
 
@@ -141,7 +173,167 @@ Submit export compliance declaration
 [bundle exec] fastlane ios complete_submission
 ```
 
-Complete App Store submission workflow
+Complete App Store submission workflow with comprehensive testing
+
+### ios enterprise_test_suite
+
+```sh
+[bundle exec] fastlane ios enterprise_test_suite
+```
+
+Run complete enterprise test suite
+
+### ios generate_test_report
+
+```sh
+[bundle exec] fastlane ios generate_test_report
+```
+
+Generate comprehensive test report
+
+### ios validate_framework
+
+```sh
+[bundle exec] fastlane ios validate_framework
+```
+
+Validate UI testing framework configuration
+
+### ios configure_xcode_for_ui_testing
+
+```sh
+[bundle exec] fastlane ios configure_xcode_for_ui_testing
+```
+
+Configure Xcode project for UI testing with enterprise framework
+
+### ios update_build_settings
+
+```sh
+[bundle exec] fastlane ios update_build_settings
+```
+
+Update Xcode build settings dynamically
+
+### ios setup_test_schemes
+
+```sh
+[bundle exec] fastlane ios setup_test_schemes
+```
+
+Setup comprehensive test schemes
+
+### ios configure_entitlements
+
+```sh
+[bundle exec] fastlane ios configure_entitlements
+```
+
+Configure entitlements automatically
+
+### ios update_info_plists
+
+```sh
+[bundle exec] fastlane ios update_info_plists
+```
+
+Update Info.plist files dynamically
+
+### ios setup_provisioning
+
+```sh
+[bundle exec] fastlane ios setup_provisioning
+```
+
+Setup provisioning profiles automatically
+
+### ios generate_xcode_config
+
+```sh
+[bundle exec] fastlane ios generate_xcode_config
+```
+
+Generate comprehensive Xcode configuration
+
+### ios validate_xcode_config
+
+```sh
+[bundle exec] fastlane ios validate_xcode_config
+```
+
+Validate Xcode project configuration
+
+### ios reset_xcode_config
+
+```sh
+[bundle exec] fastlane ios reset_xcode_config
+```
+
+Reset and clean Xcode configuration
+
+### ios configure_swift_compiler
+
+```sh
+[bundle exec] fastlane ios configure_swift_compiler
+```
+
+Configure Swift compiler settings for different environments
+
+### ios configure_dynamic_frameworks
+
+```sh
+[bundle exec] fastlane ios configure_dynamic_frameworks
+```
+
+Setup dynamic linking and framework configuration
+
+### ios apply_performance_optimizations
+
+```sh
+[bundle exec] fastlane ios apply_performance_optimizations
+```
+
+Apply performance optimization build settings
+
+### ios configure_security_settings
+
+```sh
+[bundle exec] fastlane ios configure_security_settings
+```
+
+Configure security-focused build settings
+
+### ios setup_dev_environment
+
+```sh
+[bundle exec] fastlane ios setup_dev_environment
+```
+
+Setup complete development environment
+
+### ios configure_simulators
+
+```sh
+[bundle exec] fastlane ios configure_simulators
+```
+
+Configure iOS simulators for testing
+
+### ios install_certificates
+
+```sh
+[bundle exec] fastlane ios install_certificates
+```
+
+Install and configure certificates automatically
+
+### ios validate_environment
+
+```sh
+[bundle exec] fastlane ios validate_environment
+```
+
+Validate complete environment setup
 
 ### ios upload_direct
 

@@ -4,9 +4,9 @@
 devices([
   "iPhone 16 Pro Max",      # 6.9" Display
   "iPhone 16 Pro",          # 6.3" Display  
-  "iPhone 15",              # 6.1" Display
-  "iPad Pro (13-inch) (M4)", # 13" Display
-  "iPad Pro (11-inch) (M4)"  # 11" Display
+  "iPhone 16",              # 6.1" Display
+  "iPad Pro 13-inch (M4)",  # 13" Display
+  "iPad Pro 11-inch (M4)"   # 11" Display
 ])
 
 # Languages to capture
@@ -23,8 +23,8 @@ output_directory("./fastlane/screenshots")
 # Clear previous screenshots
 clear_previous_screenshots(true)
 
-# Reinstall app before running tests
-reinstall_app(true)
+# Reinstall app before running tests (disabled for non-interactive mode)
+reinstall_app(false)
 
 # Stop after first error
 stop_after_first_error(false)

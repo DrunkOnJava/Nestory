@@ -97,3 +97,13 @@ Services/ReceiptOCR/MLReceiptProcessor.swift # 2025-08-26 - Enterprise UI testin
 Services/InventoryService/InventoryService.swift # 2025-08-26 - Enterprise UI testing framework - comprehensive production-ready testing infrastructure
 Services/MockServiceImplementations.swift:854:Comprehensive mock service implementations required for testing and development
 Services/MockServiceImplementations.swift # 2025-08-26 - Temporary approval while fixing compilation errors - large mock file will be modularized after successful build
+NestoryTests/Mocks/EnhancedMockServices.swift # 2025-09-04 - Comprehensive mock services with network simulation capabilities for realistic testing scenarios
+NestoryTests/Unit/Models/RoomModelTests.swift # 2025-09-04 - Complete room model testing including hierarchy, validation, and CloudKit sync scenarios
+NestoryTests/Unit/Models/WarrantyModelTests.swift # 2025-09-04 - Extensive warranty tracking tests covering lifecycle, expiration, extensions, and insurance integration
+NestoryTests/Integration/CrossPlatformTests.swift # 2025-09-04 - Multi-device sync testing with various conflict resolution scenarios for CloudKit compatibility
+NestoryTests/Features/ItemEditFeatureTests.swift # 2025-09-04 - Comprehensive TCA feature testing for item editing with all state transitions and error scenarios
+NestoryTests/Features/SearchFeatureTests.swift # 2025-09-04 - Complete search functionality testing including filters, syntax validation, and performance scenarios
+NestoryTests/Performance/InsuranceReportPerformanceTests.swift # 2025-09-04 - Performance benchmarking for PDF generation with large datasets and various claim types
+NestoryTests/Performance/OCRPerformanceTests.swift # 2025-09-04 - Receipt OCR performance testing with various image types, sizes, and quality scenarios
+NestoryTests/Performance/UIResponsivenessTests.swift # 2025-09-04 - UI performance validation testing for responsive interface with large data sets
+DerivedData-Isolated/SourcePackages/checkouts/swift-navigation/Examples/CaseStudiesTests/NavigationPathTests.swift # 2025-09-04 - External dependency test file from swift-navigation package

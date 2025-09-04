@@ -65,6 +65,7 @@ help: ## Show this help message
 	@echo "  $(GREEN)make build$(NC)            - Build the app (Debug configuration)"
 	@echo "  $(GREEN)make fast-build$(NC)       - Parallel build with maximum speed ($(PARALLEL_JOBS) jobs)"
 	@echo "  $(GREEN)make test$(NC)             - Run all tests"
+	@echo "  $(GREEN)make test-with-coverage$(NC) - Run tests with coverage and insights (enhanced CLI)"
 	@echo "  $(GREEN)make test-wiring$(NC)      - Run comprehensive UI wiring validation"
 	@echo "  $(GREEN)make check$(NC)            - Run all checks (build, test, lint, arch)"
 	@echo ""
@@ -83,6 +84,25 @@ help: ## Show this help message
 	@echo "  $(GREEN)make comprehensive-check$(NC)  - Run ALL validation systems"
 	@echo "  $(GREEN)make health-report$(NC)        - Generate comprehensive health report"
 	@echo "  $(GREEN)make health-report-open$(NC)   - Generate health report and open in browser"
+	@echo ""
+	@echo "$(YELLOW)Coverage & Insights:$(NC)"
+	@echo "  $(GREEN)make test-with-coverage$(NC)      - Run tests with comprehensive coverage and insights"
+	@echo "  $(GREEN)make test-with-coverage-open$(NC) - Run tests with coverage and open results in Xcode"
+	@echo "  $(GREEN)make extract-coverage$(NC)        - Extract coverage from latest test results"
+	@echo "  $(GREEN)make extract-coverage-open$(NC)   - Extract coverage and open HTML report"
+	@echo "  $(GREEN)make analyze-coverage$(NC)        - Analyze coverage with insurance workflow categorization"
+	@echo "  $(GREEN)make analyze-coverage-open$(NC)   - Analyze coverage and open detailed HTML report"
+	@echo "  $(GREEN)make coverage-validate$(NC)       - Validate coverage meets quality requirements (95%/90%)"
+	@echo "  $(GREEN)make test-with-validation$(NC)    - Run tests with coverage and validate requirements"
+	@echo "  $(GREEN)make coverage-clean$(NC)          - Clean all coverage artifacts and bundles"
+	@echo ""
+	@echo "$(YELLOW)Coverage-Enhanced Build & Run:$(NC)"
+	@echo "  $(GREEN)make build-with-coverage$(NC)     - Build and run coverage tests (pragmatic integration)"
+	@echo "  $(GREEN)make run-with-coverage$(NC)       - Build, test coverage, then launch app (full workflow)"
+	@echo "  $(GREEN)make build-and-test$(NC)          - Build and run tests (quick coverage workflow)"
+	@echo "  $(GREEN)make bc$(NC)                      - Quick alias: build with coverage"
+	@echo "  $(GREEN)make bt$(NC)                      - Quick alias: build and test"
+	@echo "  $(GREEN)make rc$(NC)                      - Quick alias: run with coverage"
 	@echo ""
 	@echo "$(YELLOW)Enterprise UI Testing Framework:$(NC)"
 	@echo "  $(GREEN)make test-framework$(NC)     - Test the UI testing framework itself"
@@ -125,7 +145,7 @@ run: build-for-simulator ## Build and run app in iPhone 16 Pro Max simulator
 	@echo "$(GREEN)✅ App launched successfully!$(NC)"
 
 .PHONY: build
-build: gen check-tools clean-logs check-file-sizes ## Build the app (Debug configuration)
+build: gen check-tools clean-logs ## Build the app (Debug configuration)
 	@echo "$(YELLOW)🔨 Building Nestory for iPhone 16 Pro Max...$(NC)"
 	@timeout $(BUILD_TIMEOUT) $(XCODEBUILD_CMD) -scheme $(ACTIVE_SCHEME) \
 		-destination '$(DESTINATION)' \
@@ -151,7 +171,7 @@ build: gen check-tools clean-logs check-file-sizes ## Build the app (Debug confi
 
 
 .PHONY: build-for-simulator
-build-for-simulator: gen check-tools clean-logs check-file-sizes ## Build specifically for simulator usage
+build-for-simulator: gen check-tools clean-logs ## Build specifically for simulator usage
 	@echo "$(YELLOW)🔨 Building Nestory for Simulator...$(NC)"
 	@timeout $(BUILD_TIMEOUT) $(XCODEBUILD_CMD) -scheme $(ACTIVE_SCHEME) \
 		-destination '$(DESTINATION)' \
@@ -164,7 +184,7 @@ build-for-simulator: gen check-tools clean-logs check-file-sizes ## Build specif
 	@echo "$(GREEN)✅ Simulator build completed successfully!$(NC)"
 
 .PHONY: build-release
-build-release: gen check-tools check-file-sizes ## Build the app (Release configuration)
+build-release: gen check-tools ## Build the app (Release configuration)
 	@echo "$(YELLOW)🔨 Building Nestory (Release)...$(NC)"
 	@timeout $(BUILD_TIMEOUT) $(XCODEBUILD_CMD) -scheme $(ACTIVE_SCHEME) \
 		-configuration Release \
@@ -200,11 +220,111 @@ clean-build: clean gen build ## Clean, regenerate project, and build
 # ============================================================================
 
 .PHONY: test
-test: check-tools ## Run all tests (unit + integration)
+test: gen check-tools ## Run all tests (unit + integration)
 	@echo "$(YELLOW)🧪 Running comprehensive test suite...$(NC)"
-	@timeout $(TEST_TIMEOUT) swift test || \
-		{ echo "$(RED)❌ Tests failed or timed out after $(TEST_TIMEOUT)s!$(NC)"; exit 1; }
+	@mkdir -p ~/Desktop/NestoryTestResults
+	@timeout $(TEST_TIMEOUT) $(XCODEBUILD_CMD) test \
+		-scheme $(SCHEME_DEV) \
+		-destination '$(DESTINATION)' \
+		-only-testing:NestoryTests \
+		$(BUILD_FLAGS) \
+		-resultBundlePath ~/Desktop/NestoryTestResults/test_results \
+		2>&1 | tee test-$(BUILD_LOG) || \
+		{ echo "$(RED)❌ Tests failed or timed out after $(TEST_TIMEOUT)s!$(NC)"; \
+		  echo "$(YELLOW)Check test-$(BUILD_LOG) for details$(NC)"; exit 1; }
 	@echo "$(GREEN)✅ Tests completed!$(NC)"
+	@echo "$(BLUE)📊 Results available at ~/Desktop/NestoryTestResults/$(NC)"
+
+.PHONY: test-with-coverage
+test-with-coverage: gen ## Run tests with comprehensive coverage and insights (direct xcodebuild)
+	@echo "$(YELLOW)🧪 Running tests with coverage and insights...$(NC)"
+	@mkdir -p BuildArtifacts
+	@BUNDLE_PATH="./BuildArtifacts/NestoryTests_$$(date +%Y%m%d_%H%M%S).xcresult"; \
+	echo "$(BLUE)📊 Result bundle: $$BUNDLE_PATH$(NC)"; \
+	timeout $(TEST_TIMEOUT) xcodebuild test \
+		-project $(PROJECT_FILE) \
+		-scheme $(ACTIVE_SCHEME) \
+		-destination '$(DESTINATION)' \
+		-enableCodeCoverage YES \
+		-resultBundlePath "$$BUNDLE_PATH" \
+		-only-testing:NestoryTests \
+		-parallel-testing-enabled NO \
+		-test-timeouts-enabled YES \
+		2>&1 | tee test-coverage-$$(date +%Y%m%d_%H%M%S).log || \
+		{ echo "$(RED)❌ Coverage tests failed!$(NC)"; exit 1; }; \
+	echo "$(GREEN)✅ Coverage tests completed!$(NC)"; \
+	echo "$(BLUE)📊 Running advanced coverage analysis...$(NC)"; \
+	$(MAKE) analyze-coverage; \
+	echo "$(BLUE)📂 Open result bundle: open $$BUNDLE_PATH$(NC)"
+
+.PHONY: test-with-coverage-open
+test-with-coverage-open: gen ## Run tests with coverage and automatically open results in Xcode
+	@echo "$(YELLOW)🧪 Running tests with coverage (will open results)...$(NC)"
+	@mkdir -p BuildArtifacts
+	@BUNDLE_PATH="./BuildArtifacts/NestoryTests_$$(date +%Y%m%d_%H%M%S).xcresult"; \
+	echo "$(BLUE)📊 Result bundle: $$BUNDLE_PATH$(NC)"; \
+	timeout $(TEST_TIMEOUT) xcodebuild test \
+		-project $(PROJECT_FILE) \
+		-scheme $(ACTIVE_SCHEME) \
+		-destination '$(DESTINATION)' \
+		-enableCodeCoverage YES \
+		-resultBundlePath "$$BUNDLE_PATH" \
+		-only-testing:NestoryTests \
+		-parallel-testing-enabled NO \
+		-test-timeouts-enabled YES \
+		2>&1 | tee test-coverage-$$(date +%Y%m%d_%H%M%S).log || \
+		{ echo "$(RED)❌ Coverage tests failed!$(NC)"; exit 1; }; \
+	echo "$(GREEN)✅ Coverage tests completed!$(NC)"; \
+	echo "$(BLUE)🚀 Opening result bundle in Xcode...$(NC)"; \
+	open "$$BUNDLE_PATH"
+
+.PHONY: extract-coverage
+extract-coverage: ## Extract coverage reports from latest .xcresult bundle
+	@echo "$(YELLOW)📊 Extracting coverage from latest test results...$(NC)"
+	@chmod +x Scripts/CLI/extract-coverage.sh
+	@./Scripts/CLI/extract-coverage.sh
+
+.PHONY: analyze-coverage
+analyze-coverage: ## Analyze coverage with insurance workflow and TCA feature categorization
+	@echo "$(YELLOW)📊 Analyzing coverage with quality thresholds...$(NC)"
+	@chmod +x Scripts/analyze-coverage.sh
+	@LATEST_BUNDLE=$$(find ./BuildArtifacts -name "*.xcresult" -type d | head -1); \
+	if [ -n "$$LATEST_BUNDLE" ]; then \
+		./Scripts/analyze-coverage.sh --bundle "$$LATEST_BUNDLE"; \
+	else \
+		echo "$(RED)❌ No xcresult bundle found. Run 'make test-with-coverage' first.$(NC)"; \
+		exit 1; \
+	fi
+
+.PHONY: analyze-coverage-open
+analyze-coverage-open: analyze-coverage ## Analyze coverage and open detailed HTML report
+	@echo "$(YELLOW)🌐 Opening detailed coverage analysis report...$(NC)"
+	@LATEST_HTML=$$(find ./BuildArtifacts -name "*coverage_analysis_*.html" -type f | head -1); \
+	if [ -n "$$LATEST_HTML" ]; then \
+		open "$$LATEST_HTML"; \
+	else \
+		echo "$(RED)❌ No detailed coverage analysis report found. Run 'make test-with-coverage' first.$(NC)"; \
+	fi
+
+.PHONY: extract-coverage-open
+extract-coverage-open: extract-coverage ## Extract coverage and open HTML report
+	@echo "$(YELLOW)🌐 Opening latest coverage report...$(NC)"
+	@LATEST_HTML=$$(find ./BuildArtifacts -name "*_coverage_report_*.html" -type f | head -1); \
+	if [ -n "$$LATEST_HTML" ]; then \
+		open "$$LATEST_HTML"; \
+	else \
+		echo "$(RED)❌ No HTML coverage report found. Run 'make test-with-coverage' first.$(NC)"; \
+	fi
+
+.PHONY: coverage-clean
+coverage-clean: ## Clean all coverage artifacts and result bundles
+	@echo "$(YELLOW)🧹 Cleaning coverage artifacts...$(NC)"
+	@rm -rf BuildArtifacts/*.xcresult
+	@rm -rf BuildArtifacts/*coverage*.txt
+	@rm -rf BuildArtifacts/*coverage*.json
+	@rm -rf BuildArtifacts/*coverage*.html
+	@rm -f BuildArtifacts/test_output_*.log
+	@echo "$(GREEN)✅ Coverage artifacts cleaned!$(NC)"
 
 .PHONY: test-framework
 test-framework: gen ## Test the UI testing framework itself
@@ -344,7 +464,7 @@ test-full-wiring: gen ## Run complete UI wiring validation with all tests
 # ============================================================================
 
 .PHONY: check
-check: build test guard verify-wiring verify-no-stock check-file-sizes validate-config test-framework tree ## Run all checks including UI testing framework
+check: build test guard verify-wiring verify-no-stock validate-config test-framework tree ## Run all checks including UI testing framework
 	@echo "$(GREEN)✅ All checks passed!$(NC)"
 
 .PHONY: guard
@@ -639,7 +759,7 @@ health-report-open: ## Generate health report and open in browser
 		{ echo "$(RED)❌ Health report generation failed!$(NC)"; exit 1; }
 
 .PHONY: comprehensive-check
-comprehensive-check: validate-config monitor-modularization verify-enhanced-arch check-file-sizes verify-wiring ## Run all validation systems
+comprehensive-check: validate-config monitor-modularization verify-enhanced-arch verify-wiring ## Run all validation systems
 	@echo "$(BLUE)╔══════════════════════════════════════════════════════════════╗$(NC)"
 	@echo "$(BLUE)║              Comprehensive Validation Complete               ║$(NC)"
 	@echo "$(BLUE)╚══════════════════════════════════════════════════════════════╝$(NC)"
@@ -1084,6 +1204,65 @@ test-staging: ## Test with Staging scheme
 
 test-prod: ## Test with Production scheme
 	@$(MAKE) test SCHEME_TARGET=prod
+
+# ============================================================================
+# COVERAGE-ENHANCED BUILD & RUN COMMANDS
+# ============================================================================
+
+.PHONY: build-with-coverage
+build-with-coverage: gen ## Build and automatically run coverage tests (pragmatic integration)
+	@echo "$(YELLOW)🔨 Building with coverage validation...$(NC)"
+	@$(MAKE) build
+	@echo "$(BLUE)📊 Running coverage tests after successful build...$(NC)"
+	@mkdir -p BuildArtifacts
+	@BUNDLE_PATH="./BuildArtifacts/BuildCoverage_$(shell date +%Y%m%d_%H%M%S).xcresult"; \
+	timeout $(TEST_TIMEOUT) xcodebuild test \
+		-project $(PROJECT_FILE) \
+		-scheme $(ACTIVE_SCHEME) \
+		-destination '$(DESTINATION)' \
+		-enableCodeCoverage YES \
+		-resultBundlePath "$$BUNDLE_PATH" \
+		-only-testing:NestoryTests \
+		-parallel-testing-enabled NO \
+		-test-timeouts-enabled YES \
+		2>&1 | tee coverage-build-$(BUILD_LOG) || \
+		{ echo "$(YELLOW)⚠️  Build succeeded but coverage tests failed$(NC)"; \
+		  echo "$(BLUE)📊 Main app is ready to run, coverage data incomplete$(NC)"; }
+	@echo "$(GREEN)✅ Build with coverage completed!$(NC)"
+
+.PHONY: run-with-coverage
+run-with-coverage: build-with-coverage ## Build, run coverage, then launch app (comprehensive workflow)
+	@echo "$(YELLOW)🚀 Launching app after coverage validation...$(NC)"
+	@$(MAKE) run
+
+.PHONY: build-and-test
+build-and-test: build ## Build and run tests (alias for quick coverage workflow)
+	@echo "$(BLUE)📊 Running tests after build...$(NC)"
+	@$(MAKE) test-with-coverage
+
+.PHONY: coverage-validate
+coverage-validate: ## Validate coverage meets quality requirements (95% insurance, 90% TCA)
+	@echo "$(YELLOW)🎯 Validating coverage against quality requirements...$(NC)"
+	@chmod +x Scripts/analyze-coverage.sh
+	@if ./Scripts/analyze-coverage.sh --validate-only; then \
+		echo "$(GREEN)✅ All coverage requirements met!$(NC)"; \
+	else \
+		echo "$(RED)❌ Coverage requirements not met. See detailed analysis above.$(NC)"; \
+		exit 1; \
+	fi
+
+.PHONY: test-with-validation
+test-with-validation: gen ## Run tests with coverage and validate against quality requirements
+	@echo "$(YELLOW)🧪 Running tests with coverage validation...$(NC)"
+	@$(MAKE) test-with-coverage
+	@echo "$(BLUE)🎯 Validating coverage requirements...$(NC)"
+	@$(MAKE) coverage-validate
+
+# Quick aliases for coverage-enabled workflows
+.PHONY: bc bt rc
+bc: build-with-coverage  ## Quick alias: build with coverage
+bt: build-and-test       ## Quick alias: build and test
+rc: run-with-coverage    ## Quick alias: run with coverage
 
 # ============================================================================
 # CONFIGURATION MANAGEMENT

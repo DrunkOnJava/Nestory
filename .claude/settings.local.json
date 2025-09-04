@@ -64,7 +64,12 @@
       "Bash(git stash show:*)",
       "Bash(git stash pop:*)",
       "Bash(git merge:*)",
-      "Bash(git pull:*)"
+      "Bash(git pull:*)",
+      "Bash(bundle exec fastlane:*)",
+      "Bash(timeout 90 xcodebuild test:*)",
+      "Read(//Users/griffin/Downloads/**)",
+      "Read(//Users/griffin/.claude/**)",
+      "Bash(echo:*)"
     ],
     "deny": [],
     "ask": [],

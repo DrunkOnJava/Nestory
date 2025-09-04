@@ -16,7 +16,7 @@ PROJECT_FILE = Nestory.xcodeproj
 # CRITICAL: Always use iPhone 16 Pro Max for consistency
 SIMULATOR_NAME = iPhone 16 Pro Max
 SIMULATOR_OS = iOS Simulator
-DESTINATION = platform=iOS Simulator,name=iPhone 16 Pro Max
+DESTINATION = platform=iOS Simulator,id=0CFB3C64-CDE6-4F18-894D-F99C0D7D9A23
 
 # Build Timeouts
 BUILD_TIMEOUT = 300
