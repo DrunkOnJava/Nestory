@@ -6,6 +6,7 @@
 
 import SwiftUI
 import SwiftData
+import OSLog
 
 @MainActor
 public final class DamageAssessmentCore: ObservableObject {
@@ -54,8 +55,10 @@ public final class DamageAssessmentCore: ObservableObject {
                     showingDamageTypeSelector = false
                 }
             } catch {
-                // Handle error - could show alert
-                print("Failed to start assessment: \(error)")
+                Logger.service.error("Failed to start damage assessment: \(error.localizedDescription)")
+                #if DEBUG
+                Logger.service.debug("Damage assessment startup error details: \(error)")
+                #endif
             }
         }
     }
@@ -72,7 +75,10 @@ public final class DamageAssessmentCore: ObservableObject {
                     self.workflow = updatedWorkflow
                 }
             } catch {
-                print("Failed to complete step: \(error)")
+                Logger.service.error("Failed to complete damage assessment step: \(error.localizedDescription)")
+                #if DEBUG
+                Logger.service.debug("Step completion error details: \(error)")
+                #endif
             }
         }
     }
@@ -83,10 +89,12 @@ public final class DamageAssessmentCore: ObservableObject {
         Task {
             do {
                 let reportData = try await damageService.generateAssessmentReport(workflow)
-                // Handle the generated report - could save or share
-                print("Generated report with \(reportData.count) bytes")
+                Logger.service.info("Successfully generated damage assessment report with \(reportData.count) bytes")
             } catch {
-                print("Failed to generate report: \(error)")
+                Logger.service.error("Failed to generate damage assessment report: \(error.localizedDescription)")
+                #if DEBUG
+                Logger.service.debug("Report generation error details: \(error)")
+                #endif
             }
         }
     }

@@ -26,7 +26,6 @@ public final class ClaimSubmissionCore: ObservableObject {
     // Selection State
     @Published public var selectedItems: Set<UUID> = []
     @Published public var selectedCategories: Set<UUID> = []
-    @Published public var selectedRooms: Set<UUID> = []
 
     // Claim Configuration
     @Published public var claimType: InsuranceClaimType = .other
@@ -144,8 +143,7 @@ public final class ClaimSubmissionCore: ObservableObject {
 
     public func createAndSubmitClaim(
         items: [Item],
-        categories: [Category],
-        rooms: [Room]
+        categories: [Category]
     ) async {
         isProcessing = true
         defer { isProcessing = false }
@@ -157,7 +155,6 @@ public final class ClaimSubmissionCore: ObservableObject {
             let claim = try await claimExportService.createClaim(
                 items: selectedItemsArray,
                 categories: categories,
-                rooms: rooms,
                 insuranceCompany: insuranceCompany,
                 claimType: claimType,
                 submissionMethod: submissionMethod,
@@ -270,7 +267,6 @@ public final class ClaimSubmissionCore: ObservableObject {
     public func reset() {
         selectedItems.removeAll()
         selectedCategories.removeAll()
-        selectedRooms.removeAll()
 
         claimType = .other
         insuranceCompany = .generic

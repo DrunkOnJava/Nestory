@@ -149,11 +149,6 @@ struct EditItemView: View {
                                             .font(.caption)
                                             .foregroundColor(.green)
                                     }
-                                    if item.room != nil {
-                                        Label(item.room ?? "", systemImage: "location.fill")
-                                            .font(.caption)
-                                            .foregroundColor(.blue)
-                                    }
                                     if !item.documentNames.isEmpty {
                                         Label("\(item.documentNames.count) docs", systemImage: "doc.stack")
                                             .font(.caption)

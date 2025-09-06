@@ -17,6 +17,7 @@ import ComposableArchitecture
 import SwiftData
 import SwiftUI
 import UserNotifications
+import OSLog
 
 // APPLE_FRAMEWORK_OPPORTUNITY: Replace with AdServices - Implement privacy-respecting ad attribution for app marketing
 // APPLE_FRAMEWORK_OPPORTUNITY: Replace with BackgroundAssets - Download insurance form templates and product databases in background
@@ -36,7 +37,7 @@ struct NestoryApp: App {
             // - Removed unique constraints from all model IDs
             // - Made Item.receipts optional relationship
             // - All properties have defaults or are optional
-            let schema = Schema([Item.self, Category.self, Room.self, Warranty.self, Receipt.self, ClaimSubmission.self])
+            let schema = Schema([Item.self, Category.self, Warranty.self, Receipt.self])
             
             #if DEBUG
             // Development: Test with local-only first, then enable CloudKit
@@ -56,12 +57,12 @@ struct NestoryApp: App {
             
             return try ModelContainer(for: schema, configurations: [config])
         } catch {
-            print("❌ Primary storage configuration failed: \(error)")
-            print("🔄 Falling back to local-only storage...")
+            Logger.app.error("Primary storage configuration failed: \(error.localizedDescription)")
+            Logger.app.info("Falling back to local-only storage for graceful degradation")
             
             // Fallback to local-only storage for development
             do {
-                let schema = Schema([Item.self, Category.self, Room.self, Warranty.self, Receipt.self, ClaimSubmission.self])
+                let schema = Schema([Item.self, Category.self, Warranty.self, Receipt.self])
                 let fallbackConfig = ModelConfiguration(
                     schema: schema,
                     isStoredInMemoryOnly: false,
@@ -69,12 +70,12 @@ struct NestoryApp: App {
                 )
                 return try ModelContainer(for: schema, configurations: [fallbackConfig])
             } catch {
-                print("❌ Local storage fallback failed: \(error)")
-                print("🆘 Using in-memory storage as last resort...")
+                Logger.app.error("Local storage fallback failed: \(error.localizedDescription)")
+                Logger.app.warning("Using in-memory storage as last resort")
                 
                 // Last resort: in-memory storage
                 do {
-                    let schema = Schema([Item.self, Category.self, Room.self, Warranty.self, Receipt.self, ClaimSubmission.self])
+                    let schema = Schema([Item.self, Category.self, Warranty.self, Receipt.self])
                     let emergencyConfig = ModelConfiguration(
                         schema: schema,
                         isStoredInMemoryOnly: true,
@@ -82,8 +83,11 @@ struct NestoryApp: App {
                     )
                     return try ModelContainer(for: schema, configurations: [emergencyConfig])
                 } catch {
-                    print("🆘 Could not create any ModelContainer: \(error)")
-                    print("🔄 Creating absolute minimal container as last resort...")
+                    Logger.app.error("Could not create any ModelContainer: \(error.localizedDescription)")
+                    Logger.app.warning("Creating absolute minimal container as last resort")
+                    #if DEBUG
+                    Logger.app.debug("ModelContainer creation error details: \(error)")
+                    #endif
                     // Ultra-minimal container with just Item model
                     let minimalSchema = Schema([Item.self])
                     let ultraMinimalConfig = ModelConfiguration(

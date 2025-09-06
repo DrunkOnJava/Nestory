@@ -30,7 +30,6 @@ struct ContactInformation {
 struct ClaimSubmissionView: View {
     @Query private var items: [Item]
     @Query private var categories: [Category]
-    @Query private var rooms: [Room]
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     
@@ -428,6 +427,6 @@ public struct ClaimSubmissionView_Previews: PreviewProvider {
         NavigationStack {
             ClaimSubmissionView()
         }
-        .modelContainer(for: [Item.self, Category.self, Room.self])
+        .modelContainer(for: [Item.self, Category.self, ])
     }
 }

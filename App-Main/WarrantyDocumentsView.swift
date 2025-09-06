@@ -4,7 +4,7 @@
 // Purpose: Main coordinator view for warranty, location, and document management
 //
 // REMINDER: This view is WIRED UP in ItemDetailView and EditItemView
-// Provides warranty tracking, document attachments, and room assignment
+// Provides warranty tracking and document attachments
 
 import SwiftData
 import SwiftUI
@@ -20,8 +20,7 @@ struct WarrantyDocumentsView: View {
                 // Tab selector
                 Picker("View", selection: $selectedTab) {
                     Label("Warranty", systemImage: "shield").tag(0)
-                    Label("Location", systemImage: "location").tag(1)
-                    Label("Documents", systemImage: "doc.stack").tag(2)
+                    Label("Documents", systemImage: "doc.stack").tag(1)
                 }
                 .pickerStyle(.segmented)
                 .padding()
@@ -32,8 +31,6 @@ struct WarrantyDocumentsView: View {
                         case 0:
                             WarrantyManagementView(item: item)
                         case 1:
-                            LocationManagementView(item: item)
-                        case 2:
                             DocumentManagementView(item: item)
                         default:
                             EmptyView()
@@ -58,5 +55,5 @@ struct WarrantyDocumentsView: View {
 #Preview {
     let item = Item(name: "Test Item")
     return WarrantyDocumentsView(item: item)
-        .modelContainer(for: [Item.self, Room.self], inMemory: true)
+        .modelContainer(for: [Item.self, ], inMemory: true)
 }

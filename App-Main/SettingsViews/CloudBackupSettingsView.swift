@@ -17,7 +17,6 @@ struct CloudBackupSettingsView: View {
     @Dependency(\.cloudBackupService) var cloudBackup
     @Query private var items: [Item]
     @Query private var categories: [Category]
-    @Query private var rooms: [Room]
     @Environment(\.modelContext) private var modelContext
 
     @State private var showingRestoreConfirmation = false
@@ -113,8 +112,7 @@ struct CloudBackupSettingsView: View {
             do {
                 try await cloudBackup.performBackup(
                     items: items,
-                    categories: categories,
-                    rooms: rooms,
+                    categories: categories
                 )
                 backupResult = "Backup completed successfully! \(items.count) items backed up to iCloud."
                 showingBackupResult = true
@@ -129,7 +127,7 @@ struct CloudBackupSettingsView: View {
         Task {
             do {
                 let result = try await cloudBackup.performRestore(modelContext: modelContext)
-                backupResult = "Restore completed! Restored \(result.itemsRestored) items, \(result.categoriesRestored) categories, and \(result.roomsRestored) rooms from \(result.backupDate.formatted())."
+                backupResult = "Restore completed! Restored \(result.itemsRestored) items and \(result.categoriesRestored) categories from \(result.backupDate.formatted())."
                 showingBackupResult = true
             } catch {
                 backupResult = "Restore failed: \(error.localizedDescription)"
@@ -142,6 +140,6 @@ struct CloudBackupSettingsView: View {
 #Preview {
     Form {
         CloudBackupSettingsView()
-            .modelContainer(for: [Item.self, Category.self, Room.self], inMemory: true)
+            .modelContainer(for: [Item.self, Category.self], inMemory: true)
     }
 }

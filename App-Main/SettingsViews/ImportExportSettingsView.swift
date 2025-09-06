@@ -15,7 +15,6 @@ import SwiftUI
 struct ImportExportSettingsView: View {
     @Query private var items: [Item]
     @Query private var categories: [Category]
-    @Query private var rooms: [Room]
     @Environment(\.modelContext) private var modelContext
 
     @Dependency(\.insuranceReportService) var insuranceReportService
@@ -114,8 +113,7 @@ struct ImportExportSettingsView: View {
             InsuranceExportOptionsView(
                 items: items,
                 categories: categories,
-                rooms: rooms,
-                exportService: insuranceExportService,
+                exportService: insuranceExportService
             )
         }
         .sheet(isPresented: $showingClaimSubmission) {
@@ -212,6 +210,6 @@ struct ImportExportSettingsView: View {
 #Preview {
     Form {
         ImportExportSettingsView()
-            .modelContainer(for: [Item.self, Category.self, Room.self], inMemory: true)
+            .modelContainer(for: [Item.self, Category.self], inMemory: true)
     }
 }

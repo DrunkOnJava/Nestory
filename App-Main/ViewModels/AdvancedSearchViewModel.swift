@@ -155,12 +155,11 @@ public final class AdvancedSearchViewModel {
             }
         }
 
-        // Location filter
+        // Location filter - removed room functionality
         if !location.isEmpty {
             let locationQuery = location.lowercased()
             filteredItems = filteredItems.filter {
-                $0.room?.lowercased().contains(locationQuery) == true ||
-                    $0.specificLocation?.lowercased().contains(locationQuery) == true
+                $0.notes?.lowercased().contains(locationQuery) == true
             }
         }
 

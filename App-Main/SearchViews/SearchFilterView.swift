@@ -11,7 +11,6 @@ import SwiftUI
 struct SearchFilterView: View {
     @Binding var filters: SearchFilters
     @Query private var categories: [Category]
-    @Query private var rooms: [Room]
     @Environment(\.dismiss) private var dismiss
 
     @State private var minPrice = "0"
@@ -36,7 +35,6 @@ struct SearchFilterView: View {
             priceRangeSection
             documentationSection
             quantitySection
-            roomsSection
             resetSection
         }
     }
@@ -116,25 +114,6 @@ struct SearchFilterView: View {
         }
     }
     
-    @ViewBuilder
-    private var roomsSection: some View {
-        if !rooms.isEmpty {
-            Section("Rooms") {
-                ForEach(rooms) { room in
-                    RoomFilterRow(
-                        room: room,
-                        isSelected: filters.rooms.contains(room.name)
-                    ) {
-                        if filters.rooms.contains(room.name) {
-                            filters.rooms.remove(room.name)
-                        } else {
-                            filters.rooms.insert(room.name)
-                        }
-                    }
-                }
-            }
-        }
-    }
     
     private var resetSection: some View {
         Section {
@@ -158,7 +137,6 @@ struct SearchFilterView: View {
         filters.hasSerialNumber = false
         filters.minQuantity = 0
         filters.maxQuantity = 100
-        filters.rooms = []
         filters.dateRange = nil
         filters.documentationCompleteOnly = false
     }
@@ -283,28 +261,6 @@ struct CategoryFilterRow: View {
     }
 }
 
-struct RoomFilterRow: View {
-    let room: Room
-    let isSelected: Bool
-    let onTap: () -> Void
-    
-    var body: some View {
-        HStack {
-            Label(room.name, systemImage: room.icon)
-            
-            Spacer()
-            
-            if isSelected {
-                Image(systemName: "checkmark")
-                    .foregroundColor(.accentColor)
-                    .accessibilityLabel("Selected")
-            }
-        }
-        .contentShape(Rectangle())
-        .accessibilityAddTraits(.isButton)
-        .onTapGesture(perform: onTap)
-    }
-}
 
 // MARK: - Preview
 

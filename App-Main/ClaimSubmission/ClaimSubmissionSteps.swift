@@ -236,20 +236,18 @@ public struct ClaimSubmissionStepView: View {
     @ObservedObject var core: ClaimSubmissionCore
     let items: [Item]
     let categories: [Category]
-    let rooms: [Room]
+    // Rooms removed - using room names as strings in items instead
     let onSubmit: () -> Void
 
     public init(
         core: ClaimSubmissionCore,
         items: [Item],
         categories: [Category],
-        rooms: [Room],
         onSubmit: @escaping () -> Void
     ) {
         self.core = core
         self.items = items
         self.categories = categories
-        self.rooms = rooms
         self.onSubmit = onSubmit
     }
 

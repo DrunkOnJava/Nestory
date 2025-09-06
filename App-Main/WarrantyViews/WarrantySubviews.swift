@@ -6,29 +6,6 @@
 
 import SwiftUI
 
-// MARK: - Room Chip
-
-struct RoomChip: View {
-    let room: Room
-    let isSelected: Bool
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: 4) {
-                Image(systemName: room.icon)
-                Text(room.name)
-            }
-            .font(.caption)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(isSelected ? Color.accentColor : Color(.systemGray5))
-            .foregroundColor(isSelected ? .white : .primary)
-            .cornerRadius(20)
-        }
-    }
-}
-
 // MARK: - Document Row
 
 struct DocumentRow: View {

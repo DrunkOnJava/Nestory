@@ -231,23 +231,6 @@ struct ItemDetailView: View {
                                 .cornerRadius(6)
                             }
 
-                            // Location info
-                            if let room = item.room {
-                                HStack {
-                                    Image(systemName: "location.fill")
-                                        .foregroundColor(.blue)
-                                    VStack(alignment: .leading) {
-                                        Text(room)
-                                            .font(.headline)
-                                        if let location = item.specificLocation {
-                                            Text(location)
-                                                .font(.caption)
-                                                .foregroundColor(.secondary)
-                                        }
-                                    }
-                                    Spacer()
-                                }
-                            }
 
                             // Documents count
                             if !item.documentNames.isEmpty {

@@ -56,8 +56,6 @@ public struct NavigationRouter {
             await navigateToAddItem()
         case .categoryPicker:
             await navigateToCategoryPicker()
-        case .roomPicker:
-            await navigateToRoomPicker()
             
         // Search flows
         case .searchResults:
@@ -162,13 +160,6 @@ public struct NavigationRouter {
         try? await Task.sleep(nanoseconds: 200_000_000)
     }
     
-    @MainActor
-    private func navigateToRoomPicker() async {
-        await navigateToAddItem()
-        // TODO: Add roomPickerTapped action to InventoryFeature
-        // store.send(.inventory(.roomPickerTapped))
-        try? await Task.sleep(nanoseconds: 200_000_000)
-    }
     
     // MARK: - Search Navigation
     
