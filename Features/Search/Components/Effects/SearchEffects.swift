@@ -68,10 +68,7 @@ public struct SearchEffects: Sendable {
             let categories = try await inventoryService.fetchCategories()
             await send(.categoriesLoaded(categories))
             
-            // Load available rooms
-            let rooms = try await inventoryService.fetchRooms()
-            let roomNames = rooms.map { $0.name }
-            await send(.roomsLoaded(roomNames))
+            // Room functionality removed - room properties no longer available
             
             // Load search history
             let history = await searchHistoryService.loadHistory()

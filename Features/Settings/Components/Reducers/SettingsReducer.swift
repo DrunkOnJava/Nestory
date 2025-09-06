@@ -237,9 +237,8 @@ public struct SettingsReducer: Reducer, Sendable {
                         // Fetch all data needed for backup with error handling
                         let items = try await inventoryService.fetchItems()
                         let categories = try await inventoryService.fetchCategories()
-                        let rooms = try await inventoryService.fetchRooms()
                         
-                        try await cloudBackupService.performBackup(items: items, categories: categories, rooms: rooms)
+                        try await cloudBackupService.performBackup(items: items, categories: categories)
                         
                         // Record successful backup
                         Task { @MainActor in

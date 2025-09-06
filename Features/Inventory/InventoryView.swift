@@ -248,21 +248,7 @@ private struct ItemDetailPlaceholderView: View {
                         }
                     }
 
-                    // Location Information
-                    if let room = store.item.room, !room.isEmpty {
-                        GroupBox("Location") {
-                            HStack {
-                                Image(systemName: "location")
-                                    .foregroundColor(.secondary)
-                                Text(room)
-                                if let location = store.item.specificLocation, !location.isEmpty {
-                                    Text(" - \(location)")
-                                        .foregroundColor(.secondary)
-                                }
-                                Spacer()
-                            }
-                        }
-                    }
+                    // Location functionality removed
 
                     // Documentation Status
                     GroupBox("Documentation") {
@@ -421,8 +407,8 @@ struct ItemRow: View {
                                 .foregroundColor(.secondary)
                         }
 
-                        if let location = item.location {
-                            Label(location, systemImage: "location")
+                        if let notes = item.notes, !notes.isEmpty {
+                            Label(notes, systemImage: "note.text")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }

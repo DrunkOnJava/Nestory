@@ -437,7 +437,6 @@ struct SettingsViewComponents {
         InsuranceExportOptionsView(
             items: [],
             categories: [],
-            rooms: [],
             exportService: InsuranceExportService()
         )
     }

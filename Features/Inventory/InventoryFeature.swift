@@ -369,7 +369,6 @@ extension Item {
     func matchesSearch(_ searchText: String) -> Bool {
         name.localizedCaseInsensitiveContains(searchText) ||
         category?.name.localizedCaseInsensitiveContains(searchText) == true ||
-        room?.localizedCaseInsensitiveContains(searchText) == true ||
-        specificLocation?.localizedCaseInsensitiveContains(searchText) == true
+        notes?.localizedCaseInsensitiveContains(searchText) == true
     }
 }

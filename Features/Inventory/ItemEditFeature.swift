@@ -54,6 +54,7 @@ public struct ItemEditFeature: Sendable {
 
             case .saveTapped:
                 guard state.isValid else { return .none }
+                guard !state.isLoading else { return .none } // Prevent concurrent saves
                 state.isLoading = true
                 
                 return .run { [item = state.item] send in

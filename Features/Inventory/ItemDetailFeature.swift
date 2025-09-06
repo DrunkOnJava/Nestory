@@ -35,7 +35,9 @@ public struct ItemDetailFeature: Sendable {
 
             if item.imageData != nil { score += 1.0 }
             if item.purchasePrice != nil { score += 1.0 }
-            if item.serialNumber != nil, !item.serialNumber!.isEmpty { score += 1.0 }
+            if let serialNumber = item.serialNumber, !serialNumber.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { 
+                score += 1.0 
+            }
             if item.receiptImageData != nil { score += 1.0 }
 
             return score / maxScore
@@ -109,4 +111,3 @@ extension ItemDetailFeature.State: Equatable {
         // which doesn't participate in meaningful state equality for TCA diffing
     }
 }
-
