@@ -21,7 +21,7 @@ final class CategoryModelTests: XCTestCase {
         
         // Create in-memory model context for testing
         let configuration = ModelConfiguration(isStoredInMemoryOnly: true)
-        container = try ModelContainer(for: Category.self, Item.self, configurations: configuration)
+        container = try ModelContainer(for: Item.self, Category.self, Warranty.self, Receipt.self, configurations: configuration)
         modelContext = ModelContext(container)
     }
     
@@ -34,7 +34,7 @@ final class CategoryModelTests: XCTestCase {
     // MARK: - Initialization Tests
     
     func testBasicInitialization() {
-        let category = Category(name: "Electronics")
+        let category = Nestory.Category(name: "Electronics")
         
         // Test required properties
         XCTAssertEqual(category.name, "Electronics")
@@ -50,7 +50,7 @@ final class CategoryModelTests: XCTestCase {
     }
     
     func testFullInitialization() {
-        let category = Category(
+        let category = Nestory.Category(
             name: "Home & Garden",
             icon: "house.fill",
             colorHex: "#34C759"
@@ -63,8 +63,8 @@ final class CategoryModelTests: XCTestCase {
     }
     
     func testUniqueIdentifiers() {
-        let category1 = Category(name: "Category 1")
-        let category2 = Category(name: "Category 2")
+        let category1 = Nestory.Category(name: "Category 1")
+        let category2 = Nestory.Category(name: "Category 2")
         
         XCTAssertNotEqual(category1.id, category2.id)
     }
@@ -72,7 +72,7 @@ final class CategoryModelTests: XCTestCase {
     // MARK: - Property Tests
     
     func testNameProperty() {
-        let category = Category(name: "Books")
+        let category = Nestory.Category(name: "Books")
         
         XCTAssertEqual(category.name, "Books")
         
@@ -86,7 +86,7 @@ final class CategoryModelTests: XCTestCase {
     }
     
     func testIconProperty() {
-        let category = Category(name: "Music")
+        let category = Nestory.Category(name: "Music")
         
         // Test default icon
         XCTAssertEqual(category.icon, "folder.fill")
@@ -100,7 +100,7 @@ final class CategoryModelTests: XCTestCase {
     }
     
     func testColorProperty() {
-        let category = Category(name: "Art")
+        let category = Nestory.Category(name: "Art")
         
         // Test default color (iOS blue)
         XCTAssertEqual(category.colorHex, "#007AFF")
@@ -114,7 +114,7 @@ final class CategoryModelTests: XCTestCase {
     }
     
     func testItemCountProperty() {
-        let category = Category(name: "Sports")
+        let category = Nestory.Category(name: "Sports")
         
         // Test initial count
         XCTAssertEqual(category.itemCount, 0)
@@ -130,7 +130,7 @@ final class CategoryModelTests: XCTestCase {
     // MARK: - Relationship Tests
     
     func testItemRelationship() throws {
-        let category = Category(name: "Technology")
+        let category = Nestory.Category(name: "Technology")
         let item1 = Item(name: "iPhone", category: category)
         let item2 = Item(name: "iPad", category: category)
         
@@ -152,14 +152,14 @@ final class CategoryModelTests: XCTestCase {
     }
     
     func testEmptyItemRelationship() {
-        let category = Category(name: "Empty Category")
+        let category = Nestory.Category(name: "Empty Category")
         
         XCTAssertTrue(category.items?.isEmpty == true)
         XCTAssertEqual(category.itemCount, 0)
     }
     
     func testNullifyOnCategoryDeletion() throws {
-        let category = Category(name: "Temporary")
+        let category = Nestory.Category(name: "Temporary")
         let item = Item(name: "Test Item", category: category)
         
         modelContext.insert(category)
@@ -193,7 +193,7 @@ final class CategoryModelTests: XCTestCase {
         ]
         
         for (name, icon, color) in insuranceCategories {
-            let category = Category(name: name, icon: icon, colorHex: color)
+            let category = Nestory.Category(name: name, icon: icon, colorHex: color)
             
             XCTAssertEqual(category.name, name)
             XCTAssertEqual(category.icon, icon)
@@ -202,8 +202,9 @@ final class CategoryModelTests: XCTestCase {
         }
     }
     
+    @MainActor
     func testHighValueItemCategories() throws {
-        let jewelryCategory = Category(name: "Jewelry & Watches", icon: "diamond.fill", colorHex: "#FFD700")
+        let jewelryCategory = Nestory.Category(name: "Jewelry & Watches", icon: "diamond.fill", colorHex: "#FFD700")
         
         // Create high-value items
         let watch = TestDataFactory.createHighValueItem()
@@ -246,7 +247,7 @@ final class CategoryModelTests: XCTestCase {
         ]
         
         for categoryName in categories {
-            let category = Category(name: categoryName)
+            let category = Nestory.Category(name: categoryName)
             XCTAssertEqual(category.name, categoryName)
             XCTAssertFalse(category.name.isEmpty)
             XCTAssertTrue(category.name.count > 2, "Category names should be descriptive")
@@ -269,7 +270,7 @@ final class CategoryModelTests: XCTestCase {
         ]
         
         for (name, icon) in categoryIconPairs {
-            let category = Category(name: name, icon: icon)
+            let category = Nestory.Category(name: name, icon: icon)
             XCTAssertEqual(category.icon, icon)
             XCTAssertFalse(category.icon.isEmpty)
         }
@@ -278,7 +279,7 @@ final class CategoryModelTests: XCTestCase {
     // MARK: - Data Integrity Tests
     
     func testTimestampUpdates() {
-        let category = Category(name: "Timestamp Test")
+        let category = Nestory.Category(name: "Timestamp Test")
         let originalCreated = category.createdAt
         let originalUpdated = category.updatedAt
         
@@ -293,7 +294,7 @@ final class CategoryModelTests: XCTestCase {
     }
     
     func testDefaultValues() {
-        let category = Category(name: "Default Test")
+        let category = Nestory.Category(name: "Default Test")
         
         // Test all default values
         XCTAssertEqual(category.icon, "folder.fill")
@@ -303,7 +304,7 @@ final class CategoryModelTests: XCTestCase {
     }
     
     func testItemCountConsistency() throws {
-        let category = Category(name: "Count Test")
+        let category = Nestory.Category(name: "Count Test")
         
         modelContext.insert(category)
         try modelContext.save()
@@ -333,7 +334,7 @@ final class CategoryModelTests: XCTestCase {
     func testCategoryCreationPerformance() {
         measure {
             for i in 0..<1000 {
-                let category = Category(
+                let category = Nestory.Category(
                     name: "Category \(i)",
                     icon: "folder.fill",
                     colorHex: "#007AFF"
@@ -344,7 +345,7 @@ final class CategoryModelTests: XCTestCase {
     }
     
     func testCategoryWithManyItemsPerformance() throws {
-        let category = Category(name: "Performance Test")
+        let category = Nestory.Category(name: "Performance Test")
         modelContext.insert(category)
         
         // Create many items
@@ -365,7 +366,7 @@ final class CategoryModelTests: XCTestCase {
     // MARK: - Edge Cases
     
     func testEmptyStringProperties() {
-        let category = Category(name: "")
+        let category = Nestory.Category(name: "")
         
         XCTAssertEqual(category.name, "")
         
@@ -378,7 +379,7 @@ final class CategoryModelTests: XCTestCase {
     
     func testVeryLongCategoryName() {
         let longName = String(repeating: "A", count: 1000)
-        let category = Category(name: longName)
+        let category = Nestory.Category(name: longName)
         
         XCTAssertEqual(category.name.count, 1000)
         XCTAssertEqual(category.name, longName)
@@ -397,13 +398,13 @@ final class CategoryModelTests: XCTestCase {
         ]
         
         for name in specialNames {
-            let category = Category(name: name)
+            let category = Nestory.Category(name: name)
             XCTAssertEqual(category.name, name)
         }
     }
     
     func testInvalidColorValues() {
-        let category = Category(name: "Color Test")
+        let category = Nestory.Category(name: "Color Test")
         let invalidColors = ["invalid", "red", "blue", "123456", "rgb(255,0,0)", "hsl(0,100%,50%)"]
         
         for color in invalidColors {
@@ -413,7 +414,7 @@ final class CategoryModelTests: XCTestCase {
     }
     
     func testNegativeItemCount() {
-        let category = Category(name: "Negative Test")
+        let category = Nestory.Category(name: "Negative Test")
         
         category.itemCount = -5
         XCTAssertEqual(category.itemCount, -5) // Should accept negative values
@@ -427,14 +428,14 @@ final class CategoryModelTests: XCTestCase {
     func testHomeInventoryCategories() throws {
         // Test a realistic home inventory categorization system
         let homeCategories = [
-            Category(name: "Kitchen Appliances", icon: "refrigerator.fill", colorHex: "#FF6B6B"),
-            Category(name: "Living Room", icon: "sofa.fill", colorHex: "#4ECDC4"),
-            Category(name: "Bedroom Furniture", icon: "bed.double.fill", colorHex: "#45B7D1"),
-            Category(name: "Electronics", icon: "tv.fill", colorHex: "#96CEB4"),
-            Category(name: "Clothing", icon: "tshirt.fill", colorHex: "#FFEAA7"),
-            Category(name: "Jewelry", icon: "diamond.fill", colorHex: "#DDA0DD"),
-            Category(name: "Tools", icon: "hammer.fill", colorHex: "#98D8C8"),
-            Category(name: "Garden", icon: "leaf.fill", colorHex: "#82CD47")
+            Nestory.Category(name: "Kitchen Appliances", icon: "refrigerator.fill", colorHex: "#FF6B6B"),
+            Nestory.Category(name: "Living Room", icon: "sofa.fill", colorHex: "#4ECDC4"),
+            Nestory.Category(name: "Bedroom Furniture", icon: "bed.double.fill", colorHex: "#45B7D1"),
+            Nestory.Category(name: "Electronics", icon: "tv.fill", colorHex: "#96CEB4"),
+            Nestory.Category(name: "Clothing", icon: "tshirt.fill", colorHex: "#FFEAA7"),
+            Nestory.Category(name: "Jewelry", icon: "diamond.fill", colorHex: "#DDA0DD"),
+            Nestory.Category(name: "Tools", icon: "hammer.fill", colorHex: "#98D8C8"),
+            Nestory.Category(name: "Garden", icon: "leaf.fill", colorHex: "#82CD47")
         ]
         
         for category in homeCategories {
@@ -447,12 +448,12 @@ final class CategoryModelTests: XCTestCase {
         try modelContext.save()
         
         // Verify all categories were saved
-        let savedCategories = try modelContext.fetch(FetchDescriptor<Category>())
+        let savedCategories = try modelContext.fetch(FetchDescriptor<Nestory.Category>())
         XCTAssertEqual(savedCategories.count, homeCategories.count)
     }
     
     func testCategoryWithItemsIntegration() throws {
-        let electronicsCategory = Category(name: "Electronics", icon: "laptopcomputer", colorHex: "#007AFF")
+        let electronicsCategory = Nestory.Category(name: "Electronics", icon: "laptopcomputer", colorHex: "#007AFF")
         
         // Add various electronic items
         let items = [
@@ -484,7 +485,7 @@ final class CategoryModelTests: XCTestCase {
     
     func testCategoryForInsuranceReporting() {
         // Test categories optimized for insurance claim documentation
-        let insuranceOptimizedCategory = Category(
+        let insuranceOptimizedCategory = Nestory.Category(
             name: "High-Value Electronics",
             icon: "crown.fill",
             colorHex: "#FFD700"

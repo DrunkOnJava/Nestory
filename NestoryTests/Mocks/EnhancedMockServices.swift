@@ -7,14 +7,16 @@
 import Foundation
 import Combine
 import SwiftData
+import UIKit
 @testable import Nestory
 
 // MARK: - Network Simulation Framework
 
 /// Network condition simulator for realistic testing scenarios
-public class NetworkSimulator {
+@MainActor
+public final class NetworkSimulator: @unchecked Sendable {
     
-    public enum NetworkCondition {
+    public enum NetworkCondition: Sendable {
         case perfect
         case slow(latency: Double) // seconds
         case unstable(packetLoss: Double) // 0.0 to 1.0
@@ -54,15 +56,20 @@ public class NetworkSimulator {
         intermittentTimer?.invalidate()
         
         var isUp = true
-        intermittentTimer = Timer.scheduledTimer(withTimeInterval: uptime, repeats: true) { _ in
-            isUp.toggle()
-            self.isCurrentlyOnline = isUp
-            
-            // Switch timer interval based on current state
-            self.intermittentTimer?.invalidate()
-            let nextInterval = isUp ? uptime : downtime
-            self.intermittentTimer = Timer.scheduledTimer(withTimeInterval: nextInterval, repeats: false) { _ in
-                self.startIntermittentSimulation(uptime: uptime, downtime: downtime)
+        intermittentTimer = Timer.scheduledTimer(withTimeInterval: uptime, repeats: true) { [weak self] _ in
+            Task { @MainActor in
+                guard let self = self else { return }
+                isUp.toggle()
+                self.isCurrentlyOnline = isUp
+                
+                // Switch timer interval based on current state
+                self.intermittentTimer?.invalidate()
+                let nextInterval = isUp ? uptime : downtime
+                self.intermittentTimer = Timer.scheduledTimer(withTimeInterval: nextInterval, repeats: false) { [weak self] _ in
+                    Task { @MainActor in
+                        self?.startIntermittentSimulation(uptime: uptime, downtime: downtime)
+                    }
+                }
             }
         }
     }
@@ -133,12 +140,22 @@ public class EnhancedMockReceiptOCRService: ReceiptOCRServiceProtocol {
         )
     ]
     
+    // Additional method to match protocol requirements
+    public func processReceiptImage(_ image: UIImage) async throws -> ReceiptData {
+        // Convert UIImage to Data for processing
+        guard let imageData = image.jpegData(compressionQuality: 0.8) else {
+            throw ReceiptOCRError.invalidImageFormat
+        }
+        return try await processReceiptImage(imageData)
+    }
+    
     public func processReceiptImage(_ imageData: Data) async throws -> ReceiptData {
         // Simulate network conditions
         if shouldSimulateNetworkIssues {
             await NetworkSimulator.shared.simulate(condition: .slow(latency: 2.0))
             
-            if !NetworkSimulator.shared.isOnline {
+            let isOnline = await NetworkSimulator.shared.isOnline
+            if !isOnline {
                 throw ReceiptOCRError.networkUnavailable
             }
         }
@@ -237,7 +254,8 @@ public class EnhancedMockInsuranceReportService: InsuranceReportServiceProtocol 
         if shouldSimulateNetworkIssues {
             await NetworkSimulator.shared.simulate(condition: .unstable(packetLoss: 0.1))
             
-            if !NetworkSimulator.shared.isOnline {
+            let isOnline = await NetworkSimulator.shared.isOnline
+            if !isOnline {
                 throw InsuranceReportError.networkUnavailable
             }
         }
@@ -274,6 +292,24 @@ public class EnhancedMockInsuranceReportService: InsuranceReportServiceProtocol 
         
         let csvContent = csvHeader + csvRows
         return Data(csvContent.utf8)
+    }
+    
+    // Additional methods to match protocol requirements
+    public func generateInsuranceReport(items: [Item], categories: [Nestory.Category], options: InsuranceReportOptions) async throws -> Data {
+        // Delegate to main method, ignoring categories parameter in mock
+        return try await generateInsuranceReport(for: items, options: options)
+    }
+    
+    public func exportReport(_ data: Data, filename: String) async throws -> URL {
+        let tempDirectory = FileManager.default.temporaryDirectory
+        let fileURL = tempDirectory.appendingPathComponent(filename)
+        try data.write(to: fileURL)
+        return fileURL
+    }
+    
+    public func shareReport(_ url: URL) async {
+        // Mock implementation - just simulate sharing
+        try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 second delay
     }
     
     private func generateMockPDFContent(for items: [Item], options: InsuranceReportOptions) -> Data {
@@ -368,7 +404,8 @@ public class EnhancedMockCloudBackupService: CloudBackupServiceProtocol {
         if shouldSimulateNetworkIssues {
             await NetworkSimulator.shared.simulate(condition: .slow(latency: syncDelay))
             
-            if !NetworkSimulator.shared.isOnline {
+            let isOnline = await NetworkSimulator.shared.isOnline
+            if !isOnline {
                 throw CloudBackupError.networkUnavailable
             }
         }
@@ -391,7 +428,8 @@ public class EnhancedMockCloudBackupService: CloudBackupServiceProtocol {
         if shouldSimulateNetworkIssues {
             await NetworkSimulator.shared.simulate(condition: .slow(latency: syncDelay))
             
-            if !NetworkSimulator.shared.isOnline {
+            let isOnline = await NetworkSimulator.shared.isOnline
+            if !isOnline {
                 throw CloudBackupError.networkUnavailable
             }
         }
@@ -493,25 +531,27 @@ public class EnhancedMockNetworkClient {
     ) async throws -> T {
         
         if shouldSimulateNetworkIssues {
-            await NetworkSimulator.shared.simulate(condition: NetworkSimulator.shared.currentCondition)
+            let currentCondition = await NetworkSimulator.shared.currentCondition
+            await NetworkSimulator.shared.simulate(condition: currentCondition)
             
-            if !NetworkSimulator.shared.isOnline {
-                throw NetworkError.connectionFailed
+            let isOnline = await NetworkSimulator.shared.isOnline
+            if !isOnline {
+                throw Nestory.NetworkError.networkUnavailable
             }
         }
         
         try await Task.sleep(nanoseconds: UInt64(responseDelay * 1_000_000_000))
         
         if !shouldSucceed {
-            throw NetworkError.requestFailed(statusCode: 500)
+            throw Nestory.NetworkError.httpError(statusCode: 500, data: nil)
         }
         
         guard let mockResponse = mockResponses[endpoint] else {
-            throw NetworkError.notFound
+            throw Nestory.NetworkError.httpError(statusCode: 404, data: nil)
         }
         
         if mockResponse.statusCode >= 400 {
-            throw NetworkError.requestFailed(statusCode: mockResponse.statusCode)
+            throw Nestory.NetworkError.httpError(statusCode: mockResponse.statusCode, data: nil)
         }
         
         let responseData = try JSONSerialization.data(withJSONObject: mockResponse.data)
@@ -622,13 +662,7 @@ public enum CloudBackupError: Error {
     case authenticationFailed
 }
 
-public enum NetworkError: Error {
-    case connectionFailed
-    case requestFailed(statusCode: Int)
-    case notFound
-    case timeout
-    case invalidResponse
-}
+// Note: Using NetworkError from Infrastructure/Network/NetworkError.swift
 
 // MARK: - Date Formatters
 

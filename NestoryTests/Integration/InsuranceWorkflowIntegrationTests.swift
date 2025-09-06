@@ -7,6 +7,7 @@
 import XCTest
 import SwiftData
 import ComposableArchitecture
+import UIKit
 @testable import Nestory
 
 /// Minimal integration tests for insurance documentation workflows
@@ -19,17 +20,19 @@ final class InsuranceWorkflowIntegrationTests: XCTestCase {
     var modelContainer: ModelContainer!
     
     override func setUp() async throws {
-        try await super.setUp()
+        // Note: Not calling super.setUp() in async context due to Swift 6 concurrency
         
         // Create in-memory model container for testing
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
         do {
             modelContainer = try ModelContainer(
-                for: Item.self, Nestory.Category.self, Room.self, Receipt.self, Warranty.self,
+                for: Item.self, Category.self, Warranty.self, Receipt.self,
                 configurations: config
             )
         } catch {
+            // Use print instead of Logger in test files
             print("Failed to create test ModelContainer: \(error.localizedDescription)")
+            XCTFail("Failed to create test ModelContainer: \(error.localizedDescription)")
             throw error
         }
         
@@ -38,25 +41,24 @@ final class InsuranceWorkflowIntegrationTests: XCTestCase {
             initialState: RootFeature.State(),
             reducer: { RootFeature() }
         ) {
-            $0.inventoryService = MockInventoryService()
-            $0.insuranceReportService = MockInsuranceReportService()
-            $0.receiptOCRService = MockReceiptOCRService()
-            // Note: damageAssessmentService not available in current RootFeature
+            $0.inventoryService = TestMockInventoryService()
+            // Note: insuranceReportService and receiptOCRService are not directly on DependencyValues
+            // They may be part of specific features
         }
     }
     
     override func tearDown() async throws {
         store = nil
         modelContainer = nil
-        try await super.tearDown()
+        // Note: Not calling super.tearDown() in async context due to Swift 6 concurrency
     }
     
     // MARK: - Basic Inventory Tests
     
     /// Test basic inventory item creation for insurance documentation
     func testBasicInventoryItemCreation() async throws {
-        // Given: Insurance scenario with high-value items
-        let scenario = InsuranceTestScenarios.floodDamage()
+        // Given: Insurance scenario with high-value items  
+        let scenario = InsuranceTestScenarios.kitchenFloodingIncident()
         
         // When: Items are added to inventory
         for item in scenario.items {
@@ -78,10 +80,10 @@ final class InsuranceWorkflowIntegrationTests: XCTestCase {
 // MARK: - Mock Services for Testing
 
 /// Mock inventory service that simulates real behavior without actual persistence
-private final class MockInventoryService: InventoryService, @unchecked Sendable {
+private final class TestMockInventoryService: InventoryService, @unchecked Sendable {
     private var items: [Item] = []
     private var categories: [Nestory.Category] = []
-    private var rooms: [Room] = []
+    private var locationNames: [String] = []
     
     // MARK: - Core Operations
     func fetchItems() async throws -> [Item] {
@@ -132,129 +134,74 @@ private final class MockInventoryService: InventoryService, @unchecked Sendable 
     }
     
     // MARK: - Room Operations
-    func fetchRooms() async throws -> [Room] {
-        return rooms
-    }
-    
-    func saveRoom(_ room: Room) async throws {
-        rooms.append(room)
-    }
-    
-    func assignItemToRoom(itemId: UUID, roomId: UUID) async throws {
-        // Mock implementation
-    }
-    
-    func fetchItemsByRoom(roomId: UUID) async throws -> [Item] {
-        return items.filter { $0.room?.id == roomId }
-    }
     
     // MARK: - Batch Operations
-    func batchUpdateItems(_ items: [Item]) async throws {
+    func bulkImport(items: [Item]) async throws {
+        self.items.append(contentsOf: items)
+    }
+    
+    func bulkUpdate(items: [Item]) async throws {
         for item in items {
             try await updateItem(item)
         }
     }
     
-    func deleteItems(ids: [UUID]) async throws {
-        ids.forEach { id in
+    func bulkDelete(itemIds: [UUID]) async throws {
+        itemIds.forEach { id in
             items.removeAll { $0.id == id }
         }
     }
+    
+    func bulkSave(items: [Item]) async throws {
+        self.items.append(contentsOf: items)
+    }
+    
+    func bulkAssignCategory(itemIds: [UUID], categoryId: UUID) async throws {
+        // Mock implementation - would assign category to multiple items
+    }
+    
+    func exportInventory(format: ExportFormat) async throws -> Data {
+        return Data() // Mock export data
+    }
 }
 
+// ExportFormat is imported from Foundation/Models/ExportFormat.swift via @testable import Nestory
+
 /// Mock insurance report service
-private final class MockInsuranceReportService: InsuranceReportService, @unchecked Sendable {
-    func generateReport(for items: [Item]) async throws -> Data {
+private final class TestMockInsuranceReportService: InsuranceReportService, @unchecked Sendable {
+    func generateInsuranceReport(items: [Item], categories: [Nestory.Category], options: ReportOptions) async throws -> Data {
         return Data() // Mock PDF data
     }
     
-    func estimateClaimValue(for items: [Item]) async -> Decimal {
-        return items.reduce(Decimal.zero) { $0 + $1.purchasePrice }
+    func exportReport(_ data: Data, filename: String) async throws -> URL {
+        return URL(fileURLWithPath: "/tmp/\(filename)")
+    }
+    
+    func shareReport(_ url: URL) async {
+        // Mock implementation
     }
 }
 
 /// Mock receipt OCR service
-private final class MockReceiptOCRService: ReceiptOCRService, @unchecked Sendable {
-    func scanReceipt(imageData: Data) async throws -> Receipt {
-        return Receipt(
-            merchantName: "Mock Store",
+private final class TestMockReceiptOCRService: ReceiptOCRService, @unchecked Sendable {
+    func processReceiptImage(_ image: UIImage) async throws -> EnhancedReceiptData {
+        return EnhancedReceiptData(
+            vendor: "Mock Store",
+            total: Decimal(100.00),
+            tax: nil,
             date: Date(),
-            totalAmount: Decimal(100),
-            taxAmount: Decimal(10),
-            items: []
+            items: [],
+            categories: [],
+            confidence: 0.95,
+            rawText: "Mock Receipt Text",
+            boundingBoxes: [],
+            processingMetadata: ReceiptProcessingMetadata(
+                documentCorrectionApplied: false,
+                patternsMatched: [:],
+                mlClassifierUsed: false
+            )
         )
     }
 }
 
-// MARK: - Test Data Scenarios
-
-/// Predefined insurance claim scenarios for testing
-enum InsuranceTestScenarios {
-    
-    /// Creates a flood damage scenario with water-damaged items
-    static func floodDamage() -> (items: [Item], rooms: [Room]) {
-        let basement = Room(name: "Basement", floor: 0)
-        
-        let items = [
-            Item(
-                name: "Gaming Console",
-                brand: "Sony",
-                model: "PlayStation 5",
-                serialNumber: "PS5-123456",
-                purchasePrice: Decimal(500),
-                purchaseDate: Date().addingTimeInterval(-365 * 24 * 60 * 60),
-                category: nil,
-                room: basement,
-                notes: "Water damage from flooding"
-            ),
-            Item(
-                name: "4K Television",
-                brand: "Samsung",
-                model: "QN55Q80B",
-                serialNumber: "TV-789012",
-                purchasePrice: Decimal(1200),
-                purchaseDate: Date().addingTimeInterval(-180 * 24 * 60 * 60),
-                category: nil,
-                room: basement,
-                notes: "Water damage - non-functional"
-            ),
-            Item(
-                name: "Home Theater System",
-                brand: "Bose",
-                model: "Lifestyle 650",
-                serialNumber: "BOSE-345678",
-                purchasePrice: Decimal(3000),
-                purchaseDate: Date().addingTimeInterval(-730 * 24 * 60 * 60),
-                category: nil,
-                room: basement,
-                notes: "Complete water damage"
-            )
-        ]
-        
-        return (items, [basement])
-    }
-    
-    /// Creates a house fire scenario affecting multiple rooms
-    static func houseFire() -> (items: [Item], rooms: [Room]) {
-        let livingRoom = Room(name: "Living Room", floor: 1)
-        let kitchen = Room(name: "Kitchen", floor: 1)
-        let bedroom = Room(name: "Master Bedroom", floor: 2)
-        
-        // Create items across different rooms - simplified for testing
-        let items = [
-            Item(
-                name: "Laptop",
-                brand: "Apple",
-                model: "MacBook Pro",
-                serialNumber: "MBP-001",
-                purchasePrice: Decimal(2500),
-                purchaseDate: Date().addingTimeInterval(-90 * 24 * 60 * 60),
-                category: nil,
-                room: livingRoom,
-                notes: "Fire damage"
-            )
-        ]
-        
-        return (items, [livingRoom, kitchen, bedroom])
-    }
-}
+// InsuranceTestScenarios is defined in the separate file InsuranceTestScenarios.swift

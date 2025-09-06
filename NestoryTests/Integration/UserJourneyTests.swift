@@ -20,10 +20,10 @@ final class UserJourneyTests: XCTestCase {
     private var testStore: TestStore<RootFeature.State, RootFeature.Action>!
     
     override func setUp() async throws {
-        try await super.setUp()
+        // Note: Not calling super.setUp() in async context due to Swift 6 concurrency
         
         // Create in-memory container for user journey testing
-        let schema = Schema([Item.self, NestoryCategory.self, Room.self, Warranty.self, Receipt.self])
+        let schema = Schema([Item.self, Nestory.Category.self, Warranty.self, Receipt.self])
         let config = ModelConfiguration(
             schema: schema,
             isStoredInMemoryOnly: true
@@ -41,7 +41,7 @@ final class UserJourneyTests: XCTestCase {
         temporaryContainer = nil
         await testStore?.finish()
         testStore = nil
-        try await super.tearDown()
+        // Note: Not calling super.tearDown() in async context due to Swift 6 concurrency
     }
     
     // MARK: - Complete Insurance Documentation Journey
@@ -53,8 +53,7 @@ final class UserJourneyTests: XCTestCase {
         let context = temporaryContainer.mainContext
         
         // Step 1: User adds a new high-value item
-        let macbook = Item()
-        macbook.name = "MacBook Pro M3 Max 16\""
+        let macbook = Item(name: "MacBook Pro M3 Max 16\"")
         macbook.brand = "Apple"
         macbook.modelNumber = "MBP16-M3MAX-2024"
         macbook.serialNumber = "C02ABC123456DEF"
@@ -64,16 +63,14 @@ final class UserJourneyTests: XCTestCase {
         macbook.itemDescription = "16-inch MacBook Pro with M3 Max chip, 36GB RAM, 1TB SSD for professional video editing"
         
         // Step 2: Categorize the item
-        let electronics = NestoryCategory(name: "Electronics", icon: "laptopcomputer", colorHex: "#007AFF")
+        let electronics = Nestory.Category(name: "Electronics", icon: "laptopcomputer", colorHex: "#007AFF")
         context.insert(electronics)
         macbook.category = electronics
         
         // Step 3: Set location
-        macbook.room = "Home Office"
-        macbook.specificLocation = "Desk"
         
         // Step 4: Add condition information
-        macbook.itemCondition = .excellent
+        macbook.condition = "excellent"
         macbook.conditionNotes = "Brand new, perfect condition with original packaging"
         macbook.lastConditionUpdate = Date()
         
@@ -109,10 +106,10 @@ final class UserJourneyTests: XCTestCase {
         XCTAssertTrue(itemWithWarranty.warranty?.isActive ?? false, "Warranty should be active")
         
         // Step 6: Calculate documentation completeness score
-        let hasBasicInfo = !macbook.name.isEmpty && macbook.purchasePrice > 0
+        let hasBasicInfo = !macbook.name.isEmpty && (macbook.purchasePrice ?? Decimal.zero) > 0
         let hasDetailedInfo = macbook.serialNumber != nil && macbook.itemDescription != nil
         let hasWarranty = macbook.warranty != nil
-        let hasLocation = macbook.room != nil
+        let hasLocation = macbook.locationName != nil && !macbook.locationName!.isEmpty
         let hasCondition = !macbook.condition.isEmpty
         
         let completenessScore = 
@@ -125,14 +122,14 @@ final class UserJourneyTests: XCTestCase {
         XCTAssertEqual(completenessScore, 100, "High-value item should have complete documentation")
         
         // Step 7: Verify insurance readiness
-        let insuranceReady = completenessScore >= 80 && macbook.purchasePrice > 1000
+        let insuranceReady = completenessScore >= 80 && (macbook.purchasePrice ?? Decimal.zero) > 1000
         XCTAssertTrue(insuranceReady, "Item should be ready for insurance documentation")
         
         print("✅ Complete Insurance Documentation Journey:")
-        print("   • Item: \\(macbook.name)")
-        print("   • Value: $\\(macbook.purchasePrice)")
-        print("   • Documentation Score: \\(completenessScore)%")
-        print("   • Insurance Ready: \\(insuranceReady ? "Yes" : "No")")
+        print("   • Item: \(macbook.name)")
+        print("   • Value: $\(macbook.purchasePrice ?? Decimal.zero)")
+        print("   • Documentation Score: \(completenessScore)%")
+        print("   • Insurance Ready: \(insuranceReady ? "Yes" : "No")")
     }
     
     func testMultiItemClaimPreparationJourney() async throws {
@@ -142,9 +139,9 @@ final class UserJourneyTests: XCTestCase {
         let context = temporaryContainer.mainContext
         
         // Create categories first
-        let electronics = NestoryCategory(name: "Electronics", icon: "desktopcomputer", colorHex: "#007AFF")
-        let jewelry = NestoryCategory(name: "Jewelry", icon: "sparkles", colorHex: "#FFD700")
-        let furniture = NestoryCategory(name: "Furniture", icon: "bed.double", colorHex: "#8B4513")
+        let electronics = Nestory.Category(name: "Electronics", icon: "desktopcomputer", colorHex: "#007AFF")
+        let jewelry = Nestory.Category(name: "Jewelry", icon: "sparkles", colorHex: "#FFD700")
+        let furniture = Nestory.Category(name: "Furniture", icon: "bed.double", colorHex: "#8B4513")
         
         context.insert(electronics)
         context.insert(jewelry)
@@ -179,8 +176,8 @@ final class UserJourneyTests: XCTestCase {
         var categoryBreakdown: [String: (count: Int, value: Decimal)] = [:]
         
         for item in stolenItems {
-            let room = item.room ?? "Unknown"
             let category = item.category?.name ?? "Uncategorized"
+            let room = item.locationName ?? "Unknown"
             let value = item.purchasePrice ?? 0
             
             // Room breakdown
@@ -213,7 +210,7 @@ final class UserJourneyTests: XCTestCase {
         for item in stolenItems {
             let hasBasicInfo = !item.name.isEmpty && (item.purchasePrice ?? 0) > 0
             let hasCategory = item.category != nil
-            let hasLocation = item.room != nil
+            let hasLocation = item.locationName != nil && !item.locationName!.isEmpty
             let hasDescription = item.itemDescription?.isEmpty == false
             
             let itemScore = 
@@ -336,17 +333,19 @@ final class UserJourneyTests: XCTestCase {
             // Simulate damage percentage based on condition
             let damagePercentage: Decimal
             
-            switch item.itemCondition {
-            case .destroyed:
+            switch item.condition {
+            case "destroyed":
                 damagePercentage = 100
-            case .poor:
+            case "poor":
                 damagePercentage = 80
-            case .fair:
+            case "fair":
                 damagePercentage = 50
-            case .good:
+            case "good":
                 damagePercentage = 25
-            case .excellent:
+            case "excellent":
                 damagePercentage = 0
+            default:
+                damagePercentage = 25 // Default to moderate damage
             }
             
             let damageValue = originalValue * damagePercentage / 100
@@ -358,14 +357,14 @@ final class UserJourneyTests: XCTestCase {
         }
         
         // Step 4: Categorize damage by severity
-        let totalLoss = damagedItems.filter { $0.itemCondition == .destroyed }
-        let majorDamage = damagedItems.filter { $0.itemCondition == .poor }
-        let moderateDamage = damagedItems.filter { $0.itemCondition == .fair }
-        let minorDamage = damagedItems.filter { $0.itemCondition == .good }
+        let totalLoss = damagedItems.filter { $0.condition == "destroyed" }
+        let majorDamage = damagedItems.filter { $0.condition == "poor" }
+        let moderateDamage = damagedItems.filter { $0.condition == "fair" }
+        let minorDamage = damagedItems.filter { $0.condition == "good" }
         
         // Step 5: Calculate claim priority
         let highValueDamaged = damagedItems.filter { 
-            ($0.purchasePrice ?? 0) >= 1000 && $0.itemCondition != .excellent 
+            ($0.purchasePrice ?? 0) >= 1000 && $0.condition != "excellent" 
         }
         
         // Step 6: Verify damage assessment accuracy
@@ -407,16 +406,15 @@ final class UserJourneyTests: XCTestCase {
     private func createStolenItem(
         name: String,
         value: Int,
-        category: NestoryCategory,
+        category: Nestory.Category,
         room: String
     ) -> Item {
-        let item = Item()
-        item.name = name
+        let item = Item(name: name)
         item.purchasePrice = Decimal(value)
         item.purchaseDate = Date().addingTimeInterval(-Double.random(in: 86400...31536000)) // 1 day to 1 year ago
         item.category = category
-        item.room = room
-        item.itemCondition = .excellent // Assume good condition before theft
+        item.locationName = room
+        item.condition = "excellent" // Assume good condition before theft
         item.itemDescription = "High-quality \\(name.lowercased()) stolen in home break-in incident"
         return item
     }
@@ -437,8 +435,7 @@ final class UserJourneyTests: XCTestCase {
         var resultItems: [Item] = []
         
         for (name, value, timeOffset) in warrantyScenarios {
-            let item = Item()
-            item.name = name
+            let item = Item(name: name)
             item.purchasePrice = Decimal(value)
             item.purchaseDate = currentDate.addingTimeInterval(-86400 * 30) // Purchased 30 days ago
             
@@ -488,37 +485,36 @@ final class UserJourneyTests: XCTestCase {
     }
     
     private func createItemForDamageTest(name: String, value: Int, room: String) -> Item {
-        let item = Item()
-        item.name = name
+        let item = Item(name: name)
         item.purchasePrice = Decimal(value)
         item.purchaseDate = Date().addingTimeInterval(-86400 * 180) // 6 months ago
-        item.room = room
-        item.itemCondition = .excellent // Original condition before damage
+        item.locationName = room
+        item.condition = "excellent" // Original condition before damage
         item.itemDescription = "\\(name) in excellent condition before incident"
         return item
     }
     
     private func simulateDamageIncident(items: [Item]) -> [Item] {
         // Simulate water damage incident with varying severity
-        let damageScenarios: [ItemCondition] = [.destroyed, .poor, .fair, .good, .excellent]
+        let damageScenarios: [String] = ["destroyed", "poor", "fair", "good", "excellent"]
         
         for (index, item) in items.enumerated() {
             // Apply damage based on room/location exposure
-            switch item.room {
+            switch item.locationName ?? "" {
             case "Kitchen":
-                item.itemCondition = .destroyed // Worst damage from water source
+                item.condition = "destroyed" // Worst damage from water source
                 item.conditionNotes = "Severe water damage from pipe burst - total loss"
             case "Living Room":
-                item.itemCondition = .poor // Major damage from flooding
+                item.condition = "poor" // Major damage from flooding
                 item.conditionNotes = "Extensive water damage - electronics non-functional"
             case "Master Bedroom":
-                item.itemCondition = .fair // Moderate damage
+                item.condition = "fair" // Moderate damage
                 item.conditionNotes = "Water damage to base/legs, some functionality affected"
             case "Home Office":
-                item.itemCondition = .good // Minor damage
+                item.condition = "good" // Minor damage
                 item.conditionNotes = "Minor water exposure - mostly cosmetic damage"
             default:
-                item.itemCondition = .excellent // No damage
+                item.condition = "excellent" // No damage
             }
             
             item.lastConditionUpdate = Date()

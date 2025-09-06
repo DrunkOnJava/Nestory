@@ -15,11 +15,11 @@ struct InsuranceTestScenarios {
     
     /// Complete water damage scenario from kitchen flooding
     static func kitchenFloodingIncident() -> InsuranceTestScenarioData {
-        let rooms = TestDataFactory.createStandardRooms()
+        let roomNames = TestDataFactory.createStandardRooms()
         let categories = TestDataFactory.createStandardCategories()
         
-        let kitchen = rooms.first { $0.name == "Kitchen" }!
-        let livingRoom = rooms.first { $0.name == "Living Room" }!
+        let kitchen = "Kitchen"
+        let livingRoom = "Living Room"
         
         let electronicsCategory = categories.first { $0.name == "Electronics" }!
         let appliancesCategory = categories.first { $0.name == "Appliances" }!
@@ -35,9 +35,8 @@ struct InsuranceTestScenarios {
                 item.brand = "KitchenAid"
                 item.modelNumber = "KSM150PSER"
                 item.purchasePrice = Decimal(399.99)
-                item.currentValue = Decimal(0) // Total loss
+                // Total loss - represented by condition and notes
                 item.category = appliancesCategory
-                item.room = kitchen.name
                 item.notes = "Submerged in 3 inches of water for 6+ hours"
             },
             
@@ -50,9 +49,8 @@ struct InsuranceTestScenarios {
                 item.brand = "Samsung"
                 item.modelNumber = "UN50TU8000"
                 item.purchasePrice = Decimal(649.99)
-                item.currentValue = Decimal(0)
+                // Total loss - represented by condition and notes
                 item.category = electronicsCategory
-                item.room = livingRoom.name
                 item.serialNumber = "SAM123456789"
             },
             
@@ -64,9 +62,8 @@ struct InsuranceTestScenarios {
             ).apply { item in
                 item.brand = "West Elm"
                 item.purchasePrice = Decimal(1299.00)
-                item.currentValue = Decimal(200.00) // Warped beyond repair
+                // Warped beyond repair - reflected in condition 'poor'
                 item.category = furnitureCategory
-                item.room = kitchen.name
                 item.condition = "poor"
                 item.notes = "Solid oak table warped and finish damaged"
             }
@@ -76,10 +73,12 @@ struct InsuranceTestScenarios {
             title: "Kitchen Flooding Incident",
             description: "Dishwasher malfunction caused 3 inches of standing water",
             incidentDate: Calendar.current.date(byAdding: .day, value: -7, to: Date())!,
-            claimAmount: items.reduce(Decimal.zero) { $0 + $1.purchasePrice },
+            claimAmount: items.reduce(into: Decimal.zero) { result, item in
+                result += item.purchasePrice ?? Decimal.zero
+            },
             items: items,
             categories: categories,
-            rooms: rooms,
+            roomNames: roomNames,
             incidentType: .waterDamage,
             severity: .major
         )
@@ -87,12 +86,12 @@ struct InsuranceTestScenarios {
     
     /// House fire scenario with smoke and fire damage
     static func houseFire() -> InsuranceTestScenarioData {
-        let rooms = TestDataFactory.createStandardRooms()
+        let roomNames = TestDataFactory.createStandardRooms()
         let categories = TestDataFactory.createStandardCategories()
         
-        let bedroom = rooms.first { $0.name == "Master Bedroom" }!
-        let livingRoom = rooms.first { $0.name == "Living Room" }!
-        let office = rooms.first { $0.name == "Home Office" }!
+        let bedroom = "Master Bedroom"
+        let livingRoom = "Living Room"
+        let office = "Home Office"
         
         let clothingCategory = categories.first { $0.name == "Clothing" }!
         let electronicsCategory = categories.first { $0.name == "Electronics" }!
@@ -106,9 +105,8 @@ struct InsuranceTestScenarios {
                 severity: "total-loss"
             ).apply { item in
                 item.purchasePrice = Decimal(8500.00) // Entire wardrobe estimated value
-                item.currentValue = Decimal(0)
+                // Total loss due to fire - reflected in notes
                 item.category = clothingCategory
-                item.room = bedroom.name
                 item.itemDescription = "Complete wardrobe including suits, dresses, casual wear, and shoes"
                 item.notes = "Total loss due to direct fire damage and smoke"
             },
@@ -120,9 +118,8 @@ struct InsuranceTestScenarios {
                 severity: "total-loss"
             ).apply { item in
                 item.purchasePrice = Decimal(4500.00)
-                item.currentValue = Decimal(0)
+                // Fire damage total loss - reflected in notes
                 item.category = electronicsCategory
-                item.room = office.name
                 item.itemDescription = "Complete home office: MacBook Pro, monitor, printer, desk accessories"
                 item.notes = "Fire originated near electrical outlet in office"
             },
@@ -134,9 +131,8 @@ struct InsuranceTestScenarios {
                 severity: "major"
             ).apply { item in
                 item.purchasePrice = Decimal(3200.00)
-                item.currentValue = Decimal(800.00) // Salvageable but needs professional cleaning
+                // Salvageable but needs professional cleaning - reflected in condition 'fair'
                 item.category = furnitureCategory
-                item.room = livingRoom.name
                 item.condition = "fair"
                 item.notes = "Heavy smoke damage, requires professional restoration"
             }
@@ -146,10 +142,12 @@ struct InsuranceTestScenarios {
             title: "Residential Fire Damage",
             description: "Electrical fire in home office spread to adjacent rooms",
             incidentDate: Calendar.current.date(byAdding: .day, value: -3, to: Date())!,
-            claimAmount: items.reduce(Decimal.zero) { $0 + $1.purchasePrice },
+            claimAmount: items.reduce(into: Decimal.zero) { result, item in
+                result += item.purchasePrice ?? Decimal.zero
+            },
             items: items,
             categories: categories,
-            rooms: rooms,
+            roomNames: roomNames,
             incidentType: .fireDamage,
             severity: .catastrophic
         )
@@ -157,11 +155,11 @@ struct InsuranceTestScenarios {
     
     /// Theft scenario - selective high-value items
     static func selectiveTheft() -> InsuranceTestScenarioData {
-        let rooms = TestDataFactory.createStandardRooms()
+        let roomNames = TestDataFactory.createStandardRooms()
         let categories = TestDataFactory.createStandardCategories()
         
-        let bedroom = rooms.first { $0.name == "Master Bedroom" }!
-        let office = rooms.first { $0.name == "Home Office" }!
+        let bedroom = "Master Bedroom"
+        let office = "Home Office"
         
         let electronicsCategory = categories.first { $0.name == "Electronics" }!
         let jewelryCategory = categories.first { $0.name == "Jewelry" }!
@@ -177,9 +175,8 @@ struct InsuranceTestScenarios {
                 item.modelNumber = "MBP16-M3MAX-2024"
                 item.serialNumber = "C02XYZ123ABC"
                 item.purchasePrice = Decimal(4299.00)
-                item.currentValue = Decimal(3800.00)
+                // Current market value for insurance - use purchasePrice as basis
                 item.category = electronicsCategory
-                item.room = office.name
                 item.notes = "Stolen during targeted burglary - serial number reported to police"
             },
             
@@ -190,7 +187,6 @@ struct InsuranceTestScenarios {
             ).apply { item in
                 item.itemDescription = "Wedding ring set, diamond earrings, tennis bracelet"
                 item.category = jewelryCategory
-                item.room = bedroom.name
                 item.notes = "Stolen from bedroom jewelry box - appraisal documents available"
                 item.tags = ["stolen", "high-value", "jewelry", "certified"]
             },
@@ -204,9 +200,8 @@ struct InsuranceTestScenarios {
                 item.brand = "Canon"
                 item.modelNumber = "EOS-R5-KIT"
                 item.purchasePrice = Decimal(6499.00)
-                item.currentValue = Decimal(5800.00)
+                // Current market value for insurance - use purchasePrice as basis
                 item.category = electronicsCategory
-                item.room = office.name
                 item.itemDescription = "Professional camera body with 24-70mm and 70-200mm lenses"
                 item.notes = "Complete photography kit stolen - all serial numbers documented"
             }
@@ -216,10 +211,12 @@ struct InsuranceTestScenarios {
             title: "Targeted Burglary",
             description: "Selective theft of high-value electronics and jewelry",
             incidentDate: Calendar.current.date(byAdding: .day, value: -1, to: Date())!,
-            claimAmount: items.reduce(Decimal.zero) { $0 + $1.currentValue },
+            claimAmount: items.reduce(into: Decimal.zero) { result, item in
+                result += item.purchasePrice ?? Decimal.zero
+            },
             items: items,
             categories: categories,
-            rooms: rooms,
+            roomNames: roomNames,
             incidentType: .theft,
             severity: .major
         )
@@ -227,13 +224,13 @@ struct InsuranceTestScenarios {
     
     /// Natural disaster - tornado damage
     static func tornadoDamage() -> InsuranceTestScenarioData {
-        let rooms = TestDataFactory.createStandardRooms()
+        let roomNames = TestDataFactory.createStandardRooms()
         let categories = TestDataFactory.createStandardCategories()
         
-        let items = TestDataFactory.createLargeDataset(itemCount: 25).items.map { item in
+        let items = TestDataFactory.createLargeDataset(itemCount: 25).map { item in
             // Convert to damaged items
             item.condition = ["poor", "fair"].randomElement() ?? "poor"
-            item.currentValue = item.purchasePrice * Decimal(Double.random(in: 0.0...0.3)) // 0-30% of original value
+            // Tornado damage reduces value to 0-30% of original - reflected in condition and notes
             item.notes = "Tornado damage: \(["structural damage", "water exposure", "debris impact", "wind damage"].randomElement() ?? "tornado damage")"
             item.tags.append(contentsOf: ["tornado", "natural-disaster", "total-loss"])
             return item
@@ -243,10 +240,12 @@ struct InsuranceTestScenarios {
             title: "F3 Tornado Damage",
             description: "Direct tornado strike causing widespread property damage",
             incidentDate: Calendar.current.date(byAdding: .day, value: -14, to: Date())!,
-            claimAmount: items.reduce(Decimal.zero) { $0 + $1.purchasePrice },
+            claimAmount: items.reduce(into: Decimal.zero) { result, item in
+                result += item.purchasePrice ?? Decimal.zero
+            },
             items: items,
             categories: categories,
-            rooms: rooms,
+            roomNames: roomNames,
             incidentType: .naturalDisaster,
             severity: .catastrophic
         )
@@ -257,14 +256,13 @@ struct InsuranceTestScenarios {
     /// High-value purchase with complete documentation
     static func luxuryPurchaseWithReceipts() -> InsuranceTestScenarioData {
         let categories = TestDataFactory.createStandardCategories()
-        let rooms = TestDataFactory.createStandardRooms()
+        let roomNames = TestDataFactory.createStandardRooms()
         
         let luxuryItem = TestDataFactory.createHighValueItem(
             name: "Hermès Birkin 35 Handbag",
             value: Decimal(25000.00)
         ).apply { item in
             item.category = categories.first { $0.name == "Clothing" }
-            item.room = rooms.first { $0.name == "Master Bedroom" }?.name
             item.itemDescription = "Hermès Birkin 35 in Togo leather with palladium hardware"
             item.brand = "Hermès"
             item.serialNumber = "HER-BIRKIN-123456"
@@ -279,7 +277,7 @@ struct InsuranceTestScenarios {
             claimAmount: Decimal(25000.00),
             items: [luxuryItem],
             categories: categories,
-            rooms: rooms,
+            roomNames: roomNames,
             incidentType: .theft, // Common scenario for luxury items
             severity: .minor
         )
@@ -295,10 +293,12 @@ struct InsuranceTestScenarios {
             title: "Large Inventory Performance Test",
             description: "Testing with \(itemCount) items for performance validation",
             incidentDate: Date(),
-            claimAmount: dataset.items.reduce(Decimal.zero) { $0 + $1.currentValue },
-            items: dataset.items,
-            categories: dataset.categories,
-            rooms: dataset.rooms,
+            claimAmount: dataset.reduce(into: Decimal.zero) { result, item in
+                result += item.purchasePrice ?? Decimal.zero
+            },
+            items: dataset,
+            categories: TestDataFactory.createStandardCategories(),
+            roomNames: TestDataFactory.createStandardRooms(),
             incidentType: .naturalDisaster,
             severity: .catastrophic
         )
@@ -313,8 +313,8 @@ struct InsuranceTestScenarioData {
     let incidentDate: Date
     let claimAmount: Decimal
     let items: [Item]
-    let categories: [NestoryCategory]
-    let rooms: [Room]
+    let categories: [Nestory.Category]
+    let roomNames: [String]
     let incidentType: InsuranceIncidentType
     let severity: IncidentSeverity
 }
@@ -356,7 +356,7 @@ enum IncidentSeverity: String, CaseIterable {
 extension InsuranceTestScenarioData {
     /// Calculate total replacement value for insurance claim
     var totalReplacementValue: Decimal {
-        items.reduce(Decimal.zero) { $0 + $1.currentValue }
+        items.reduce(Decimal.zero) { $0 + ($1.purchasePrice ?? Decimal.zero) }
     }
     
     /// Calculate depreciated value for settlement
@@ -380,7 +380,7 @@ extension InsuranceTestScenarioData {
     /// Items requiring immediate attention (high value or total loss)
     var priorityItems: [Item] {
         items.filter { item in
-            item.currentValue > Decimal(1000) || item.currentValue == Decimal.zero
+            (item.purchasePrice ?? Decimal.zero) > Decimal(1000) || item.condition == "poor"
         }
     }
 }

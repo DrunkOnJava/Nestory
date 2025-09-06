@@ -6,6 +6,7 @@
 
 import XCTest
 import SwiftData
+import UIKit
 @testable import Nestory
 
 @MainActor
@@ -14,24 +15,24 @@ final class ErrorRecoveryTests: XCTestCase {
     // MARK: - Test Infrastructure
     
     private var temporaryContainer: ModelContainer!
-    private var mockInventoryService: MockInventoryService!
-    private var mockOCRService: MockReceiptOCRService!
-    private var mockInsuranceService: MockInsuranceReportService!
+    private var mockInventoryService: ConfigurableMockInventoryService!
+    private var mockOCRService: ConfigurableMockReceiptOCRService!
+    private var mockInsuranceService: ConfigurableMockInsuranceReportService!
     
     override func setUp() async throws {
-        try await super.setUp()
+        // Note: Not calling super.setUp() in async context due to Swift 6 concurrency
         
         // Create in-memory container for error testing
-        let schema = Schema([Item.self, Category.self, Room.self, Warranty.self])
+        let schema = Schema([Item.self, Category.self, Warranty.self])
         let config = ModelConfiguration(
             schema: schema,
             isStoredInMemoryOnly: true
         )
         
         temporaryContainer = try ModelContainer(for: schema, configurations: [config])
-        mockInventoryService = MockInventoryService()
-        mockOCRService = MockReceiptOCRService()
-        mockInsuranceService = MockInsuranceReportService()
+        mockInventoryService = ConfigurableMockInventoryService()
+        mockOCRService = ConfigurableMockReceiptOCRService()
+        mockInsuranceService = ConfigurableMockInsuranceReportService()
     }
     
     override func tearDown() async throws {
@@ -39,7 +40,7 @@ final class ErrorRecoveryTests: XCTestCase {
         mockInventoryService = nil
         mockOCRService = nil
         mockInsuranceService = nil
-        try await super.tearDown()
+        // Note: Not calling super.tearDown() in async context due to Swift 6 concurrency
     }
     
     // MARK: - Database Error Recovery Tests
@@ -49,17 +50,16 @@ final class ErrorRecoveryTests: XCTestCase {
         
         // Simulate database connection failure
         mockInventoryService.shouldFailDatabaseOperations = true
-        mockInventoryService.failureError = DatabaseError.connectionFailed
         
         do {
-            _ = try await mockInventoryService.getAllItems()
+            _ = try await mockInventoryService.fetchItems()
             XCTFail("Expected database error")
         } catch let error as DatabaseError {
             XCTAssertEqual(error, .connectionFailed)
             
             // Verify graceful recovery
             mockInventoryService.shouldFailDatabaseOperations = false
-            let items = try await mockInventoryService.getAllItems()
+            let items = try await mockInventoryService.fetchItems()
             XCTAssertNotNil(items)
         }
     }
@@ -110,7 +110,7 @@ final class ErrorRecoveryTests: XCTestCase {
             try context.save()
             
             // Test memory-efficient fetching
-            let fetchDescriptor = FetchDescriptor<Item>(
+            var fetchDescriptor = FetchDescriptor<Item>(
                 predicate: #Predicate<Item> { item in
                     item.purchasePrice ?? 0 > 1000
                 }
@@ -135,7 +135,7 @@ final class ErrorRecoveryTests: XCTestCase {
         mockOCRService.shouldTimeout = true
         mockOCRService.timeoutDelay = 5.0
         
-        let testImage = createTestReceiptImage()
+        let testImage = createTestReceiptUIImage()
         
         do {
             _ = try await mockOCRService.processReceiptImage(testImage)
@@ -154,18 +154,17 @@ final class ErrorRecoveryTests: XCTestCase {
         // Test behavior when network connectivity is lost during sync
         
         mockInventoryService.shouldFailNetworkOperations = true
-        mockInventoryService.networkError = NetworkError.connectionFailed
         
         let item = Item(name: "Network Test Item")
         
         do {
             try await mockInventoryService.syncItemToCloud(item)
             XCTFail("Expected network error")
-        } catch let error as NetworkError {
-            XCTAssertEqual(error, .connectionLost)
+        } catch let error as Nestory.NetworkError {
+            XCTAssertEqual(error, .networkUnavailable)
             
             // Verify local storage continues working
-            let localItems = try await mockInventoryService.getAllItems()
+            let localItems = try await mockInventoryService.fetchItems()
             XCTAssertNotNil(localItems)
         }
     }
@@ -200,7 +199,6 @@ final class ErrorRecoveryTests: XCTestCase {
         // Test behavior when disk space is exhausted during image storage
         
         mockInventoryService.shouldFailDiskOperations = true
-        mockInventoryService.diskError = FileSystemError.diskSpaceExhausted
         
         let item = Item(name: "Disk Space Test Item")
         let largeImageData = Data(repeating: 0xFF, count: 10_000_000) // 10MB
@@ -248,9 +246,8 @@ final class ErrorRecoveryTests: XCTestCase {
         // Test fallback when OCR service is unavailable
         
         mockOCRService.shouldFailProcessing = true
-        mockOCRService.processingError = ReceiptOCRError.serviceUnavailable
         
-        let testImage = createTestReceiptImage()
+        let testImage = createTestReceiptUIImage()
         
         do {
             _ = try await mockOCRService.processReceiptImage(testImage)
@@ -270,7 +267,6 @@ final class ErrorRecoveryTests: XCTestCase {
         // Test handling of PDF generation failures
         
         mockInsuranceService.shouldFailPDFGeneration = true
-        mockInsuranceService.pdfError = InsuranceReportError.generationFailed
         
         let items = [
             Item(name: "Report Item 1"),
@@ -278,16 +274,24 @@ final class ErrorRecoveryTests: XCTestCase {
         ]
         
         do {
-            _ = try await mockInsuranceService.generateInsuranceReport(for: items)
+            _ = try await mockInsuranceService.generateInsuranceReport(
+                items: items,
+                categories: [],
+                options: ReportOptions()
+            )
             XCTFail("Expected PDF generation failure")
         } catch let error as InsuranceReportError {
             XCTAssertEqual(error, .generationFailed)
             
             // Verify alternative export options still work
             mockInsuranceService.shouldFailPDFGeneration = false
-            let csvData = try mockInsuranceService.exportItemsAsCSV(items)
-            XCTAssertNotNil(csvData)
-            XCTAssertFalse(csvData.isEmpty)
+            let report = try await mockInsuranceService.generateInsuranceReport(
+                items: items,
+                categories: [],
+                options: ReportOptions()
+            )
+            XCTAssertNotNil(report)
+            XCTAssertFalse(report.isEmpty)
         }
     }
     
@@ -367,9 +371,16 @@ final class ErrorRecoveryTests: XCTestCase {
     
     // MARK: - Helper Methods
     
-    private func createTestReceiptImage() -> Data {
-        // Create minimal test image data
-        return Data([0x89, 0x50, 0x4E, 0x47]) // PNG header bytes
+    private func createTestReceiptUIImage() -> UIImage {
+        // Create minimal test image
+        let size = CGSize(width: 100, height: 100)
+        UIGraphicsBeginImageContext(size)
+        let context = UIGraphicsGetCurrentContext()
+        context?.setFillColor(UIColor.white.cgColor)
+        context?.fill(CGRect(origin: .zero, size: size))
+        let image = UIGraphicsGetImageFromCurrentImageContext() ?? UIImage()
+        UIGraphicsEndImageContext()
+        return image
     }
 }
 
@@ -389,56 +400,103 @@ enum FileSystemError: Error, Equatable {
     case corruptedFile
 }
 
-// MARK: - Enhanced Mock Services with Error Simulation
+// MARK: - Configurable Mock Services for Error Recovery Testing
 
-extension MockInventoryService {
-    var shouldFailDatabaseOperations: Bool {
-        get { UserDefaults.standard.bool(forKey: "MockInventoryService.shouldFailDatabaseOperations") }
-        set { UserDefaults.standard.set(newValue, forKey: "MockInventoryService.shouldFailDatabaseOperations") }
+class ConfigurableMockInventoryService: InventoryService, @unchecked Sendable {
+    var shouldFailDatabaseOperations = false
+    var shouldFailNetworkOperations = false
+    var shouldFailDiskOperations = false
+    var shouldFailPartialSync = false
+    var partialSyncFailureIndex = 0
+    var syncedItems: [Item] = []
+    
+    // MARK: - InventoryService Implementation
+    private var items: [Item] = []
+    private var categories: [Nestory.Category] = []
+    private var locationNames: [String] = []
+    
+    func fetchItems() async throws -> [Item] {
+        if shouldFailDatabaseOperations {
+            throw DatabaseError.connectionFailed
+        }
+        return items
     }
     
-    var shouldFailNetworkOperations: Bool {
-        get { UserDefaults.standard.bool(forKey: "MockInventoryService.shouldFailNetworkOperations") }
-        set { UserDefaults.standard.set(newValue, forKey: "MockInventoryService.shouldFailNetworkOperations") }
+    func fetchItem(id: UUID) async throws -> Item? {
+        return items.first { $0.id == id }
     }
     
-    var shouldFailDiskOperations: Bool {
-        get { UserDefaults.standard.bool(forKey: "MockInventoryService.shouldFailDiskOperations") }
-        set { UserDefaults.standard.set(newValue, forKey: "MockInventoryService.shouldFailDiskOperations") }
+    func saveItem(_ item: Item) async throws {
+        items.append(item)
     }
     
-    var shouldFailPartialSync: Bool {
-        get { UserDefaults.standard.bool(forKey: "MockInventoryService.shouldFailPartialSync") }
-        set { UserDefaults.standard.set(newValue, forKey: "MockInventoryService.shouldFailPartialSync") }
+    func updateItem(_ item: Item) async throws {
+        if let index = items.firstIndex(where: { $0.id == item.id }) {
+            items[index] = item
+        }
     }
     
-    var partialSyncFailureIndex: Int {
-        get { UserDefaults.standard.integer(forKey: "MockInventoryService.partialSyncFailureIndex") }
-        set { UserDefaults.standard.set(newValue, forKey: "MockInventoryService.partialSyncFailureIndex") }
+    func deleteItem(id: UUID) async throws {
+        items.removeAll { $0.id == id }
     }
     
-    // Note: Error properties cannot be easily stored in UserDefaults, using fallback values
-    var failureError: Error? {
-        return DatabaseError.connectionFailed
+    func searchItems(query: String) async throws -> [Item] {
+        return items.filter { item in
+            item.name.localizedCaseInsensitiveContains(query) ||
+            item.brand?.localizedCaseInsensitiveContains(query) == true
+        }
     }
     
-    var networkError: Error? {
-        return NetworkError.connectionFailed
+    func fetchCategories() async throws -> [Nestory.Category] {
+        return categories
     }
     
-    var diskError: Error? {
-        return FileSystemError.diskSpaceExhausted
+    func saveCategory(_ category: Nestory.Category) async throws {
+        categories.append(category)
     }
     
-    // For testing purposes, we'll track synced items in UserDefaults as count
-    var syncedItems: [Item] {
-        get { [] } // Simplified for testing
-        set { UserDefaults.standard.set(newValue.count, forKey: "MockInventoryService.syncedItemsCount") }
+    func assignItemToCategory(itemId: UUID, categoryId: UUID) async throws {
+        // Mock implementation
     }
+    
+    func fetchItemsByCategory(categoryId: UUID) async throws -> [Item] {
+        return items.filter { $0.category?.id == categoryId }
+    }
+    
+    
+    func bulkImport(items: [Item]) async throws {
+        self.items.append(contentsOf: items)
+    }
+    
+    func bulkUpdate(items: [Item]) async throws {
+        for item in items {
+            try await updateItem(item)
+        }
+    }
+    
+    func bulkDelete(itemIds: [UUID]) async throws {
+        itemIds.forEach { id in
+            items.removeAll { $0.id == id }
+        }
+    }
+    
+    func bulkSave(items: [Item]) async throws {
+        self.items.append(contentsOf: items)
+    }
+    
+    func bulkAssignCategory(itemIds: [UUID], categoryId: UUID) async throws {
+        // Mock implementation
+    }
+    
+    func exportInventory(format: ExportFormat) async throws -> Data {
+        return Data() // Mock export data
+    }
+    
+    // MARK: - Additional Error Recovery Methods
     
     func syncItemToCloud(_ item: Item) async throws {
         if shouldFailNetworkOperations {
-            throw networkError ?? NetworkError.connectionFailed
+            throw NetworkError.networkUnavailable
         }
         syncedItems.append(item)
     }
@@ -447,7 +505,7 @@ extension MockInventoryService {
         if shouldFailPartialSync {
             for (index, item) in items.enumerated() {
                 if index == partialSyncFailureIndex {
-                    throw NetworkError.connectionFailed
+                    throw NetworkError.networkUnavailable
                 }
                 syncedItems.append(item)
             }
@@ -458,78 +516,75 @@ extension MockInventoryService {
     
     func saveItemImage(_ item: Item, imageData: Data) throws {
         if shouldFailDiskOperations {
-            throw diskError ?? FileSystemError.diskSpaceExhausted
+            throw FileSystemError.diskSpaceExhausted
         }
         item.imageData = imageData
     }
     
     func getItem(by id: UUID) throws -> Item? {
         if shouldFailDatabaseOperations {
-            throw failureError ?? DatabaseError.connectionFailed
+            throw DatabaseError.connectionFailed
         }
         return Item(name: "Mock Item")
     }
 }
 
-extension MockReceiptOCRService {
-    var shouldTimeout: Bool {
-        get { UserDefaults.standard.bool(forKey: "MockReceiptOCRService.shouldTimeout") }
-        set { UserDefaults.standard.set(newValue, forKey: "MockReceiptOCRService.shouldTimeout") }
-    }
+final class ConfigurableMockReceiptOCRService: ReceiptOCRService, @unchecked Sendable {
+    var shouldTimeout = false
+    var timeoutDelay: Double = 5.0
+    var shouldFailProcessing = false
     
-    var timeoutDelay: Double {
-        get { UserDefaults.standard.double(forKey: "MockReceiptOCRService.timeoutDelay") }
-        set { UserDefaults.standard.set(newValue, forKey: "MockReceiptOCRService.timeoutDelay") }
-    }
-    
-    var shouldFailProcessing: Bool {
-        get { UserDefaults.standard.bool(forKey: "MockReceiptOCRService.shouldFailProcessing") }
-        set { UserDefaults.standard.set(newValue, forKey: "MockReceiptOCRService.shouldFailProcessing") }
-    }
-    
-    // Note: processingError cannot be stored in UserDefaults easily, so we'll use a simple fallback
-    var processingError: Error? {
-        return ReceiptOCRError.processingFailed
-    }
-    
-    func processReceiptImage(_ imageData: Data) async throws -> ReceiptData {
+    func processReceiptImage(_ image: UIImage) async throws -> EnhancedReceiptData {
         if shouldTimeout {
             try await Task.sleep(nanoseconds: UInt64(timeoutDelay * 1_000_000_000))
-            throw ReceiptOCRError.serviceUnavailable
+            throw ReceiptOCRError.processingFailed
         }
         
         if shouldFailProcessing {
-            throw processingError ?? ReceiptOCRError.processingFailed
+            throw ReceiptOCRError.processingFailed
         }
         
-        return ReceiptData(
-            merchantName: "Mock Store",
-            totalAmount: Decimal(99.99),
-            purchaseDate: Date(),
-            items: []
+        return EnhancedReceiptData(
+            vendor: "Mock Store",
+            total: Decimal(99.99),
+            tax: nil,
+            date: Date(),
+            items: [],
+            categories: [],
+            confidence: 0.95,
+            rawText: "Mock Receipt Text",
+            boundingBoxes: [],
+            processingMetadata: ReceiptProcessingMetadata(
+                documentCorrectionApplied: false,
+                patternsMatched: [:],
+                mlClassifierUsed: false
+            )
         )
     }
 }
 
-extension MockInsuranceReportService {
-    var shouldFailPDFGeneration: Bool {
-        get { UserDefaults.standard.bool(forKey: "MockInsuranceReportService.shouldFailPDFGeneration") }
-        set { UserDefaults.standard.set(newValue, forKey: "MockInsuranceReportService.shouldFailPDFGeneration") }
-    }
+class ConfigurableMockInsuranceReportService: InsuranceReportService, @unchecked Sendable {
+    var shouldFailPDFGeneration = false
     
-    var pdfError: Error? {
-        return InsuranceReportError.generationFailed
-    }
-    
-    func generateInsuranceReport(for items: [Item]) async throws -> Data {
+    func generateInsuranceReport(
+        items: [Item],
+        categories: [Nestory.Category],
+        options: ReportOptions
+    ) async throws -> Data {
         if shouldFailPDFGeneration {
-            throw pdfError ?? InsuranceReportError.generationFailed
+            throw InsuranceReportError.generationFailed
         }
         return Data("Mock PDF Content".utf8)
     }
     
-    func exportItemsAsCSV(_ items: [Item]) throws -> Data {
-        let csvContent = items.map { "\($0.name),\($0.purchasePrice ?? 0)" }.joined(separator: "\n")
-        return Data(csvContent.utf8)
+    func exportReport(
+        _ data: Data,
+        filename: String
+    ) async throws -> URL {
+        return URL(fileURLWithPath: "/tmp/\(filename)")
+    }
+    
+    func shareReport(_ url: URL) async {
+        // Mock implementation
     }
 }

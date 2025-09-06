@@ -21,7 +21,7 @@ final class WarrantyModelTests: XCTestCase {
         
         // Create in-memory model context for testing
         let configuration = ModelConfiguration(isStoredInMemoryOnly: true)
-        container = try ModelContainer(for: Warranty.self, Item.self, configurations: configuration)
+        container = try ModelContainer(for: Item.self, Category.self, Warranty.self, Receipt.self, configurations: configuration)
         modelContext = ModelContext(container)
     }
     
@@ -532,6 +532,7 @@ final class WarrantyModelTests: XCTestCase {
         XCTAssertNotNil(appleCare.claimWebsite)
     }
     
+    @MainActor
     func testExtendedWarrantyForHighValueItem() {
         let highValueItem = TestDataFactory.createHighValueItem()
         let startDate = Date()

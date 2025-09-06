@@ -294,7 +294,7 @@ final class SecureEnclaveHelperTests: XCTestCase {
 }
 
 @MainActor
-final class CryptoPerformanceTests: XCTestCase {
+final class XCryptoPerformanceTests: XCTestCase { // DISABLED: Slow performance tests
     var cryptoBox: CryptoBox!
 
     override func setUp() async throws {

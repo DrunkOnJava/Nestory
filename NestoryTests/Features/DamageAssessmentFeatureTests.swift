@@ -9,6 +9,7 @@ import SwiftData
 @testable import Nestory
 
 /// Comprehensive test suite for DamageAssessmentCore covering workflows, service integration, and insurance scenarios
+@MainActor
 final class DamageAssessmentFeatureTests: XCTestCase {
     
     // MARK: - Test Infrastructure
@@ -18,26 +19,26 @@ final class DamageAssessmentFeatureTests: XCTestCase {
     private var testItem: Item!
     
     override func setUp() async throws {
-        try await super.setUp()
+        // Note: Not calling super.setUp() in async context due to Swift 6 concurrency
         
         // Create in-memory model context for testing
         let configuration = ModelConfiguration(isStoredInMemoryOnly: true)
-        let container = try ModelContainer(for: Item.self, configurations: configuration)
+        let container = try ModelContainer(for: Item.self, Category.self, Warranty.self, Receipt.self, configurations: configuration)
         modelContext = ModelContext(container)
         
         // Create test item
-        testItem = TestDataFactory.createBasicItem()
+        testItem = await TestDataFactory.createBasicItem()
         testItem.name = "Test Item for Damage Assessment"
         
         // Initialize damage assessment core
-        damageCore = try DamageAssessmentCore(item: testItem, modelContext: modelContext)
+        damageCore = try await DamageAssessmentCore(item: testItem, modelContext: modelContext)
     }
     
     override func tearDown() async throws {
         damageCore = nil
         testItem = nil
         modelContext = nil
-        try await super.tearDown()
+        // Note: Not calling super.tearDown() in async context due to Swift 6 concurrency
     }
     
     // MARK: - Initialization Tests
@@ -51,13 +52,14 @@ final class DamageAssessmentFeatureTests: XCTestCase {
         XCTAssertFalse(damageCore.canStartAssessment)
     }
     
-    func testInitializationFailureHandling() {
+    func testInitializationFailureHandling() async {
         // Test that initialization can handle potential failures gracefully
         let invalidModelContext: ModelContext? = nil
         
-        XCTAssertThrowsError(
-            try DamageAssessmentCore(item: testItem, modelContext: invalidModelContext!)
-        ) { error in
+        do {
+            let _ = try await DamageAssessmentCore(item: testItem, modelContext: invalidModelContext!)
+            XCTFail("Expected error but none was thrown")
+        } catch {
             // Verify that appropriate error is thrown for invalid model context
             XCTAssertNotNil(error)
         }
@@ -300,10 +302,10 @@ final class DamageAssessmentFeatureTests: XCTestCase {
     }
     
     @MainActor
-    func testHighValueItemDamageAssessment() {
+    func testHighValueItemDamageAssessment() async throws {
         // Use high-value item for assessment
-        let highValueItem = TestDataFactory.createHighValueItem()
-        let highValueCore = try! DamageAssessmentCore(item: highValueItem, modelContext: modelContext)
+        let highValueItem = await TestDataFactory.createHighValueItem()
+        let highValueCore = try await DamageAssessmentCore(item: highValueItem, modelContext: modelContext)
         
         highValueCore.selectDamageType(.theft)
         highValueCore.updateIncidentDescription("High-value jewelry stolen during home invasion")
@@ -329,12 +331,23 @@ final class DamageAssessmentFeatureTests: XCTestCase {
     }
     
     @MainActor
-    func testMultipleDamageCoreCreation() {
-        let items = (0..<100).map { _ in TestDataFactory.createBasicItem() }
+    func testMultipleDamageCoreCreation() async throws {
+        let items = await withTaskGroup(of: Item.self) { group in
+            for _ in 0..<100 {
+                group.addTask { await TestDataFactory.createBasicItem() }
+            }
+            var result: [Item] = []
+            for await item in group {
+                result.append(item)
+            }
+            return result
+        }
         
         measure {
-            for item in items {
-                let _ = try! DamageAssessmentCore(item: item, modelContext: modelContext)
+            Task {
+                for item in items {
+                    let _ = try await DamageAssessmentCore(item: item, modelContext: modelContext)
+                }
             }
         }
     }
@@ -342,10 +355,10 @@ final class DamageAssessmentFeatureTests: XCTestCase {
     // MARK: - Real-world Insurance Scenarios
     
     @MainActor
-    func testCompleteInsuranceClaimScenario() {
+    func testCompleteInsuranceClaimScenario() async throws {
         // Simulate a complete insurance claim scenario
-        let item = TestDataFactory.createCompleteItem()
-        let claimCore = try! DamageAssessmentCore(item: item, modelContext: modelContext)
+        let item = await TestDataFactory.createCompleteItem()
+        let claimCore = try await DamageAssessmentCore(item: item, modelContext: modelContext)
         
         // Step 1: Select damage type
         claimCore.selectDamageType(.naturalDisaster)

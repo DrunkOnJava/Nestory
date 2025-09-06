@@ -23,7 +23,7 @@ final class CloudKitSyncTests: XCTestCase {
         // Create in-memory model context for testing
         // Note: Real CloudKit testing would require CloudKit container configuration
         let configuration = ModelConfiguration(isStoredInMemoryOnly: true)
-        container = try ModelContainer(for: Item.self, Category.self, Room.self, Warranty.self, configurations: configuration)
+        container = try ModelContainer(for: Item.self, Category.self, Warranty.self, Receipt.self, configurations: configuration)
         modelContext = ModelContext(container)
     }
     
@@ -35,12 +35,14 @@ final class CloudKitSyncTests: XCTestCase {
     
     // MARK: - CloudKit Schema Validation Tests
     
+    @MainActor
     func testCloudKitCompatibleModels() {
         // Test that all models have CloudKit-compatible structure
         let item = TestDataFactory.createCompleteItem()
-        let category = Category(name: "Electronics")
-        let room = Room(name: "Living Room")
-        let warranty = Warranty(provider: "Apple", startDate: Date(), expiresAt: Date(timeIntervalSinceNow: 86400))
+        let category = Nestory.Category(name: "Electronics")
+        
+        // Create warranty first
+        let warranty = Warranty(provider: "Test", type: .manufacturer, startDate: Date(), expiresAt: Date())
         
         // CloudKit requires optional relationships for proper sync
         XCTAssertNotNil(category.items, "Category.items should be optional array for CloudKit")
@@ -49,7 +51,6 @@ final class CloudKitSyncTests: XCTestCase {
         // All models should have stable UUIDs
         XCTAssertNotNil(item.id)
         XCTAssertNotNil(category.id)
-        XCTAssertNotNil(room.id)
         XCTAssertNotNil(warranty.id)
         
         // CloudKit requires proper timestamp tracking
@@ -63,7 +64,7 @@ final class CloudKitSyncTests: XCTestCase {
     
     func testCloudKitRecordNaming() {
         // Test that model names are CloudKit-friendly
-        let modelNames = ["Item", "Category", "Room", "Warranty"]
+        let modelNames = ["Item", "Category", "Warranty"]
         
         for name in modelNames {
             // CloudKit record names should be valid
@@ -76,7 +77,7 @@ final class CloudKitSyncTests: XCTestCase {
     // MARK: - Data Consistency Tests
     
     func testItemCategoryConsistency() throws {
-        let electronics = Category(name: "Electronics", icon: "laptopcomputer")
+        let electronics = Nestory.Category(name: "Electronics", icon: "laptopcomputer")
         let laptop = Item(name: "MacBook Pro", category: electronics)
         
         modelContext.insert(electronics)
@@ -102,19 +103,17 @@ final class CloudKitSyncTests: XCTestCase {
         XCTAssertEqual(warranty.item?.name, "iPhone")
     }
     
+    @MainActor
     func testBulkDataConsistency() throws {
         // Test data consistency with larger datasets (insurance claim scenarios)
-        let homeRooms = Room.createDefaultRooms()
+        let homeRoomNames = TestDataFactory.createStandardRooms()
         let categories = [
-            Category(name: "Electronics", icon: "laptopcomputer"),
-            Category(name: "Furniture", icon: "sofa"),
-            Category(name: "Jewelry", icon: "diamond")
+            Nestory.Category(name: "Electronics", icon: "laptopcomputer"),
+            Nestory.Category(name: "Furniture", icon: "sofa"),
+            Nestory.Category(name: "Jewelry", icon: "diamond")
         ]
         
         // Insert base data
-        for room in homeRooms {
-            modelContext.insert(room)
-        }
         for category in categories {
             modelContext.insert(category)
         }
@@ -124,7 +123,7 @@ final class CloudKitSyncTests: XCTestCase {
             let item = TestDataFactory.createCompleteItem()
             item.name = "Item \(i)"
             item.category = categories[i % categories.count]
-            item.room = homeRooms[i % homeRooms.count].name
+            item.locationName = homeRoomNames[i % homeRoomNames.count]
             return item
         }
         
@@ -140,11 +139,10 @@ final class CloudKitSyncTests: XCTestCase {
         
         for item in savedItems {
             XCTAssertNotNil(item.category, "All items should maintain category relationships")
-            XCTAssertNotNil(item.room, "All items should maintain room assignments")
         }
         
         // Verify category item counts
-        let savedCategories = try modelContext.fetch(FetchDescriptor<Category>())
+        let savedCategories = try modelContext.fetch(FetchDescriptor<Nestory.Category>())
         for category in savedCategories {
             let expectedCount = items.filter { $0.category?.name == category.name }.count
             XCTAssertEqual(category.items?.count, expectedCount, "Category \(category.name) should have correct item count")
@@ -185,6 +183,7 @@ final class CloudKitSyncTests: XCTestCase {
         XCTAssertEqual(winningItem.notes, "Updated by device 2", "Later update should win")
     }
     
+    @MainActor
     func testConflictResolutionWithInsuranceData() {
         // Test conflict resolution for insurance-critical data
         let insuranceItem = TestDataFactory.createHighValueItem()
@@ -233,27 +232,25 @@ final class CloudKitSyncTests: XCTestCase {
     
     // MARK: - Large Dataset Sync Tests
     
+    @MainActor
     func testLargeDatasetSyncSimulation() throws {
         // Simulate syncing a large home inventory for insurance purposes
         let categories = [
-            Category(name: "Electronics", icon: "laptopcomputer"),
-            Category(name: "Furniture", icon: "sofa"),
-            Category(name: "Jewelry", icon: "diamond"),
-            Category(name: "Appliances", icon: "refrigerator"),
-            Category(name: "Clothing", icon: "tshirt"),
-            Category(name: "Books", icon: "book"),
-            Category(name: "Art", icon: "paintbrush"),
-            Category(name: "Sports", icon: "sportscourt")
+            Nestory.Category(name: "Electronics", icon: "laptopcomputer"),
+            Nestory.Category(name: "Furniture", icon: "sofa"),
+            Nestory.Category(name: "Jewelry", icon: "diamond"),
+            Nestory.Category(name: "Appliances", icon: "refrigerator"),
+            Nestory.Category(name: "Clothing", icon: "tshirt"),
+            Nestory.Category(name: "Books", icon: "book"),
+            Nestory.Category(name: "Art", icon: "paintbrush"),
+            Nestory.Category(name: "Sports", icon: "sportscourt")
         ]
         
-        let rooms = Room.createDefaultRooms()
+        let roomNames = TestDataFactory.createStandardRooms()
         
         // Insert base data
         for category in categories {
             modelContext.insert(category)
-        }
-        for room in rooms {
-            modelContext.insert(room)
         }
         
         // Create comprehensive home inventory (500 items)
@@ -272,11 +269,11 @@ final class CloudKitSyncTests: XCTestCase {
             
             item.name = "Inventory Item \(i)"
             item.category = categories[i % categories.count]
-            item.room = rooms[i % rooms.count].name
+            item.locationName = roomNames[i % roomNames.count]
             
             if i % 20 == 0 {
-                // Add specific location for detailed tracking
-                item.specificLocation = "Shelf \(i % 5 + 1)"
+                // Mark high-priority items for insurance tracking
+                item.tags.append("high-priority")
             }
             
             return item
@@ -301,7 +298,6 @@ final class CloudKitSyncTests: XCTestCase {
         // Verify relationships are maintained
         for item in savedItems {
             XCTAssertNotNil(item.category, "Item \(item.name) should have category")
-            XCTAssertNotNil(item.room, "Item \(item.name) should have room assignment")
         }
         
         // Verify category distribution
@@ -313,11 +309,12 @@ final class CloudKitSyncTests: XCTestCase {
     
     // MARK: - Sync Failure Recovery Tests
     
+    @MainActor
     func testPartialSyncRecovery() throws {
         // Test scenario where sync is interrupted mid-process
         let categories = [
-            Category(name: "Electronics"),
-            Category(name: "Furniture")
+            Nestory.Category(name: "Electronics"),
+            Nestory.Category(name: "Furniture")
         ]
         
         let items = (0..<20).map { i in
@@ -358,6 +355,7 @@ final class CloudKitSyncTests: XCTestCase {
         XCTAssertEqual(allSavedItems.count, 20, "All items should be saved after recovery")
     }
     
+    @MainActor
     func testSyncConsistencyAfterNetworkFailure() throws {
         // Test data consistency when network connection is lost during sync
         let item = TestDataFactory.createCompleteItem()
@@ -396,14 +394,14 @@ final class CloudKitSyncTests: XCTestCase {
     
     // MARK: - Multi-Device Insurance Scenario Tests
     
+    @MainActor
     func testInsuranceClaimDataSync() throws {
         // Test synchronizing insurance claim data across devices
         let fireIncident = InsuranceTestScenarios.kitchenFloodingIncident()
         
         // Device 1 (iPad): Creates initial damage assessment
-        let device1Items = fireIncident.damagedItems.prefix(3).map { itemData in
+        let device1Items = fireIncident.items.prefix(3).map { itemData in
             let item = Item(name: itemData.name)
-            item.room = itemData.room
             item.itemCondition = .damaged
             item.conditionNotes = "Fire damage assessment from iPad"
             item.updatedAt = Date()
@@ -411,9 +409,8 @@ final class CloudKitSyncTests: XCTestCase {
         }
         
         // Device 2 (iPhone): Adds photos and detailed assessments
-        let device2Items = Array(fireIncident.damagedItems.suffix(3)).map { itemData in
+        let device2Items = Array(fireIncident.items.suffix(3)).map { itemData in
             let item = Item(name: itemData.name)
-            item.room = itemData.room
             item.itemCondition = .damaged
             item.imageData = "damage_photo_iphone".data(using: .utf8)!
             item.conditionPhotos = ["before".data(using: .utf8)!, "after".data(using: .utf8)!]
@@ -447,6 +444,7 @@ final class CloudKitSyncTests: XCTestCase {
     
     // MARK: - Performance and Scalability Tests
     
+    @MainActor
     func testSyncPerformanceWithLargeDataset() {
         // Test sync performance with insurance-sized datasets
         let itemCount = 1000
@@ -463,11 +461,12 @@ final class CloudKitSyncTests: XCTestCase {
         }
     }
     
+    @MainActor
     func testQueryPerformanceAfterSync() throws {
         // Test query performance after large sync operations
         let categories = [
-            Category(name: "High Value", icon: "crown"),
-            Category(name: "Standard", icon: "folder")
+            Nestory.Category(name: "High Value", icon: "crown"),
+            Nestory.Category(name: "Standard", icon: "folder")
         ]
         
         for category in categories {
@@ -530,6 +529,7 @@ final class CloudKitSyncTests: XCTestCase {
     
     // MARK: - Error Handling and Edge Cases
     
+    @MainActor
     func testSyncWithCorruptedData() {
         // Test handling of corrupted or invalid data during sync
         let validItem = TestDataFactory.createCompleteItem()
@@ -562,7 +562,7 @@ final class CloudKitSyncTests: XCTestCase {
     
     func testConcurrentModifications() throws {
         // Test concurrent modifications to the same dataset
-        let sharedCategory = Category(name: "Shared Category")
+        let sharedCategory = Nestory.Category(name: "Shared Category")
         modelContext.insert(sharedCategory)
         try modelContext.save()
         

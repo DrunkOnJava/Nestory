@@ -21,10 +21,10 @@ final class CrossPlatformTests: XCTestCase {
     private var mockSyncCoordinator: MockSyncCoordinator!
     
     override func setUp() async throws {
-        try await super.setUp()
+        // Note: Not calling super.setUp() in async context due to Swift 6 concurrency
         
         // Create separate containers to simulate different devices
-        let schema = Schema([Item.self, Category.self, Room.self, Warranty.self])
+        let schema = Schema([Item.self, Nestory.Category.self, Warranty.self])
         let primaryConfig = ModelConfiguration(
             schema: schema,
             isStoredInMemoryOnly: true
@@ -45,7 +45,7 @@ final class CrossPlatformTests: XCTestCase {
         secondaryContainer = nil
         mockCloudBackupService = nil
         mockSyncCoordinator = nil
-        try await super.tearDown()
+        // Note: Not calling super.tearDown() in async context due to Swift 6 concurrency
     }
     
     // MARK: - Basic Multi-Device Sync Tests
@@ -92,25 +92,23 @@ final class CrossPlatformTests: XCTestCase {
         let primaryContext = primaryContainer.mainContext
         
         // Create comprehensive insurance item on primary device
-        let category = Category(name: "Electronics", icon: "tv.fill", colorHex: "#007AFF")
-        let room = Room(name: "Living Room")
+        let category = Nestory.Category(name: "Electronics", icon: "tv.fill", colorHex: "#007AFF")
         let warranty = Warranty(
             provider: "Apple",
-            expiresAt: Date().addingTimeInterval(365 * 24 * 60 * 60), // 1 year
-            terms: "Standard manufacturer warranty"
+            type: .manufacturer,
+            startDate: Date(),
+            expiresAt: Date().addingTimeInterval(365 * 24 * 60 * 60) // 1 year
         )
         
         let item = Item(name: "MacBook Pro M3")
         item.purchasePrice = Decimal(2499)
         item.category = category
-        item.room = room.name
         item.warranty = warranty
         item.serialNumber = "MBP2024123456"
         item.itemDescription = "16-inch MacBook Pro with M3 Max chip"
         item.imageData = createMockImageData()
         
         primaryContext.insert(category)
-        primaryContext.insert(room)
         primaryContext.insert(warranty)
         primaryContext.insert(item)
         try primaryContext.save()
@@ -119,7 +117,6 @@ final class CrossPlatformTests: XCTestCase {
         try await mockCloudBackupService.syncComplexItemToCloud(
             item: item,
             category: category,
-            room: room,
             warranty: warranty
         )
         
@@ -133,20 +130,17 @@ final class CrossPlatformTests: XCTestCase {
         XCTAssertEqual(syncedData.item.name, "MacBook Pro M3")
         XCTAssertEqual(syncedData.item.purchasePrice, Decimal(2499))
         XCTAssertEqual(syncedData.category?.name, "Electronics")
-        XCTAssertEqual(syncedData.room?.name, "Living Room")
         XCTAssertEqual(syncedData.warranty?.provider, "Apple")
         XCTAssertNotNil(syncedData.item.imageData)
         
         // Verify data integrity on secondary device
         let secondaryContext = secondaryContainer.mainContext
         let items = try secondaryContext.fetch(FetchDescriptor<Item>())
-        let categories = try secondaryContext.fetch(FetchDescriptor<Category>())
-        let rooms = try secondaryContext.fetch(FetchDescriptor<Room>())
+        let categories = try secondaryContext.fetch(FetchDescriptor<Nestory.Category>())
         let warranties = try secondaryContext.fetch(FetchDescriptor<Warranty>())
         
         XCTAssertEqual(items.count, 1)
         XCTAssertEqual(categories.count, 1)
-        XCTAssertEqual(rooms.count, 1)
         XCTAssertEqual(warranties.count, 1)
     }
     
@@ -427,8 +421,6 @@ final class CrossPlatformTests: XCTestCase {
         item.imageData = createMockImageData() // Simulates camera capture
         
         // Simulate iOS-specific location data
-        item.room = "Kitchen" // Set via iOS location services
-        item.specificLocation = "Added via iOS GPS integration"
         
         let primaryContext = primaryContainer.mainContext
         primaryContext.insert(item)
@@ -443,8 +435,6 @@ final class CrossPlatformTests: XCTestCase {
         )
         
         // Verify iOS-specific data syncs to macOS
-        XCTAssertEqual(syncedItem.room, "Kitchen")
-        XCTAssertEqual(syncedItem.specificLocation, "Added via iOS GPS integration")
         XCTAssertNotNil(syncedItem.imageData)
     }
     
@@ -510,8 +500,8 @@ final class CrossPlatformTests: XCTestCase {
     
     private func createMockImageData(color: String = "default") -> Data {
         // Create distinctive mock image data for testing
-        let prefix = color == "red" ? [0xFF, 0x00, 0x00] : 
-                    color == "blue" ? [0x00, 0x00, 0xFF] : [0x89, 0x50, 0x4E]
+        let prefix: [UInt8] = color == "red" ? [0xFF, 0x00, 0x00] : 
+                             color == "blue" ? [0x00, 0x00, 0xFF] : [0x89, 0x50, 0x4E]
         return Data(prefix + [0x47]) // PNG-like header
     }
     
@@ -523,7 +513,7 @@ final class CrossPlatformTests: XCTestCase {
 
 // MARK: - Mock Services for Cross-Platform Testing
 
-final class MockCloudBackupService {
+final class MockCloudBackupService: @unchecked Sendable {
     var cloudItems: [UUID: Item] = [:]
     var queuedItems: [Item] = []
     var syncOperationCount: Int = 0
@@ -548,7 +538,7 @@ final class MockCloudBackupService {
         syncOperationCount += 1
     }
     
-    func syncComplexItemToCloud(item: Item, category: NestoryCategory?, room: Room?, warranty: Warranty?) async throws {
+    func syncComplexItemToCloud(item: Item, category: Nestory.Category?, warranty: Warranty?) async throws {
         cloudItems[item.id] = item
         syncOperationCount += 1
     }
@@ -598,12 +588,12 @@ final class MockCloudBackupService {
         
         // Simulate packet loss
         if Double.random(in: 0...1) < packetLossRate {
-            throw NetworkError.connectionLost
+            throw NetworkError.timeout
         }
     }
 }
 
-final class MockSyncCoordinator {
+final class MockSyncCoordinator: @unchecked Sendable {
     
     func syncItemFromCloud(itemId: UUID, to context: ModelContext) async throws -> Item {
         // Simulate fetching from cloud and inserting to local context
@@ -626,25 +616,24 @@ final class MockSyncCoordinator {
         return localItem
     }
     
-    func syncComplexItemFromCloud(itemId: UUID, to context: ModelContext) async throws -> (item: Item, category: NestoryCategory?, room: Room?, warranty: Warranty?) {
+    func syncComplexItemFromCloud(itemId: UUID, to context: ModelContext) async throws -> (item: Item, category: Nestory.Category?, warranty: Warranty?) {
         // Simulate complex sync with relationships
         let item = try await syncItemFromCloud(itemId: itemId, to: context)
         
         // Simulate relationship objects
-        let category = NestoryCategory(name: "Electronics", icon: "tv.fill", colorHex: "#007AFF")
-        let room = Room(name: "Living Room")
+        let category = Nestory.Category(name: "Electronics", icon: "tv.fill", colorHex: "#007AFF")
         let warranty = Warranty(
             provider: "Apple",
-            expiresAt: Date().addingTimeInterval(365 * 24 * 60 * 60),
-            terms: "Standard manufacturer warranty"
+            type: .manufacturer,
+            startDate: Date(),
+            expiresAt: Date().addingTimeInterval(365 * 24 * 60 * 60)
         )
         
         context.insert(category)
-        context.insert(room)
         context.insert(warranty)
         try context.save()
         
-        return (item, category, room, warranty)
+        return (item, category, warranty)
     }
     
     func resolveConflict(itemId: UUID) async throws -> Item {
@@ -680,13 +669,3 @@ enum SyncError: Error {
     case quotaExceeded
 }
 
-// MARK: - Mock Room Model for Testing
-
-final class Room {
-    var id: UUID = UUID()
-    var name: String
-    
-    init(name: String) {
-        self.name = name
-    }
-}

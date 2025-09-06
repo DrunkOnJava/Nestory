@@ -21,7 +21,7 @@ final class ItemModelTests: XCTestCase {
         
         // Create in-memory model context for testing
         let configuration = ModelConfiguration(isStoredInMemoryOnly: true)
-        container = try ModelContainer(for: Item.self, Category.self, configurations: configuration)
+        container = try ModelContainer(for: Item.self, Category.self, Warranty.self, Receipt.self, configurations: configuration)
         modelContext = ModelContext(container)
     }
     
@@ -79,11 +79,11 @@ final class ItemModelTests: XCTestCase {
         let item = Item(name: "Laptop")
         
         // Test setting financial information
-        item.purchasePrice = 2500.0
+        item.purchasePrice = Decimal(2500.0)
         item.purchaseDate = Date(timeIntervalSince1970: 1640995200) // 2022-01-01
         item.currency = "EUR"
         
-        XCTAssertEqual(item.purchasePrice, 2500.0)
+        XCTAssertEqual(item.purchasePrice, Decimal(2500.0))
         XCTAssertNotNil(item.purchaseDate)
         XCTAssertEqual(item.currency, "EUR")
     }
@@ -104,17 +104,17 @@ final class ItemModelTests: XCTestCase {
     func testLocationProperties() {
         let item = Item(name: "TV")
         
-        // Test room only
-        item.room = "Living Room"
-        XCTAssertEqual(item.location, "Living Room")
+        // Test location name only
+        item.locationName = "Living Room"
+        XCTAssertEqual(item.locationName, "Living Room")
         
-        // Test room with specific location
-        item.specificLocation = "Entertainment Center"
-        XCTAssertEqual(item.location, "Living Room - Entertainment Center")
+        // Test specific location
+        item.locationName = "Living Room - Entertainment Center"
+        XCTAssertEqual(item.locationName, "Living Room - Entertainment Center")
         
-        // Test nil room
-        item.room = nil
-        XCTAssertNil(item.location)
+        // Test nil location
+        item.locationName = nil
+        XCTAssertNil(item.locationName)
     }
     
     func testConditionProperties() {
@@ -280,7 +280,7 @@ final class ItemModelTests: XCTestCase {
         
         // Make it insurance-ready
         item.imageData = "jewelry_photo".data(using: .utf8)!
-        item.purchasePrice = 5000.0
+        item.purchasePrice = Decimal(5000.0)
         item.receiptImageData = "receipt_photo".data(using: .utf8)!
         item.serialNumber = "JW123456789"
         item.itemDescription = "14K gold wedding ring with diamond"
@@ -297,7 +297,7 @@ final class ItemModelTests: XCTestCase {
         let item = Item(name: "Rolex Watch")
         
         // High-value item should have comprehensive documentation
-        item.purchasePrice = 15000.0
+        item.purchasePrice = Decimal(15000.0)
         item.serialNumber = "116610LN"
         item.brand = "Rolex"
         item.modelNumber = "Submariner Date"
@@ -307,7 +307,7 @@ final class ItemModelTests: XCTestCase {
         item.warrantyExpirationDate = Date(timeIntervalSinceNow: 5 * 365 * 24 * 60 * 60) // 5 years
         item.warrantyProvider = "Rolex International Warranty"
         
-        XCTAssertEqual(item.purchasePrice, 15000.0)
+        XCTAssertEqual(item.purchasePrice, Decimal(15000.0))
         XCTAssertEqual(item.serialNumber, "116610LN")
         XCTAssertEqual(item.brand, "Rolex")
         XCTAssertEqual(item.modelNumber, "Submariner Date")
@@ -393,7 +393,7 @@ final class ItemModelTests: XCTestCase {
                 let item = Item(name: "Performance Test Item \(i)")
                 item.purchasePrice = Decimal(i)
                 item.quantity = i % 10 + 1
-                _ = item.location // Access computed property
+                _ = item.locationName // Access location property
                 _ = item.photos // Access computed property
                 _ = item.itemCondition // Access computed property
             }
@@ -403,8 +403,6 @@ final class ItemModelTests: XCTestCase {
     func testComputedPropertyPerformance() {
         let items = (0..<100).map { i in
             let item = Item(name: "Item \(i)")
-            item.room = "Room \(i)"
-            item.specificLocation = "Location \(i)"
             item.imageData = "data\(i)".data(using: .utf8)!
             item.receiptImageData = "receipt\(i)".data(using: .utf8)!
             item.conditionPhotos = ["photo\(i)_1".data(using: .utf8)!, "photo\(i)_2".data(using: .utf8)!]
@@ -413,7 +411,7 @@ final class ItemModelTests: XCTestCase {
         
         measure {
             for item in items {
-                _ = item.location
+                _ = item.locationName
                 _ = item.photos
                 _ = item.itemCondition
             }

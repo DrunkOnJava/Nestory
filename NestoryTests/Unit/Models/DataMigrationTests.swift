@@ -21,7 +21,7 @@ class DataMigrationTests: XCTestCase {
     private var modernContainer: ModelContainer!
     
     override func setUp() async throws {
-        try await super.setUp()
+        // Note: Not calling super.setUp() in async context due to Swift 6 concurrency
         
         // Create temporary directory for test databases
         temporaryURL = FileManager.default.temporaryDirectory
@@ -44,7 +44,7 @@ class DataMigrationTests: XCTestCase {
             try? FileManager.default.removeItem(at: temporaryURL)
         }
         
-        try await super.tearDown()
+        // Note: Not calling super.tearDown() in async context due to Swift 6 concurrency
     }
     
     // MARK: - Schema Evolution Tests
@@ -71,7 +71,7 @@ class DataMigrationTests: XCTestCase {
         try legacyContainer.mainContext.save()
         
         // Create modern schema (V2) - Item with warranty relationship
-        let modernSchema = Schema([Item.self, Warranty.self, Category.self, Room.self])
+        let modernSchema = Schema([Item.self, Category.self, Warranty.self, Receipt.self])
         let modernConfig = ModelConfiguration(
             schema: modernSchema,
             url: temporaryURL.appendingPathComponent("modern.sqlite"),
@@ -94,7 +94,7 @@ class DataMigrationTests: XCTestCase {
     func testInsuranceDataPreservationDuringMigration() async throws {
         // Test that critical insurance data survives schema changes
         
-        let schema = Schema([Item.self, Category.self, Room.self, Warranty.self])
+        let schema = Schema([Item.self, Category.self, Warranty.self, Receipt.self])
         let config = ModelConfiguration(
             schema: schema,
             url: temporaryURL.appendingPathComponent("insurance.sqlite"),
@@ -125,12 +125,12 @@ class DataMigrationTests: XCTestCase {
         // Verify critical insurance properties preserved
         for item in preservedItems {
             XCTAssertFalse(item.name.isEmpty, "Item name should be preserved")
-            XCTAssertGreaterThan(item.estimatedValue, 0, "Insurance value should be preserved")
+            XCTAssertGreaterThan(item.purchasePrice ?? 0, 0, "Insurance value should be preserved")
             XCTAssertNotNil(item.purchaseDate, "Purchase date critical for insurance claims")
             
             // Verify insurance-specific properties
             if item.name.contains("High-Value") {
-                XCTAssertGreaterThanOrEqual(item.estimatedValue, 1000,
+                XCTAssertGreaterThanOrEqual(item.purchasePrice ?? 0, 1000,
                                           "High-value items should maintain proper valuation")
             }
         }
@@ -139,7 +139,7 @@ class DataMigrationTests: XCTestCase {
     func testWarrantyMigrationIntegrity() async throws {
         // Test warranty data migration for insurance claims
         
-        let schema = Schema([Item.self, Warranty.self])
+        let schema = Schema([Item.self, Category.self, Warranty.self, Receipt.self])
         let config = ModelConfiguration(
             schema: schema,
             url: temporaryURL.appendingPathComponent("warranty.sqlite"),
@@ -188,7 +188,7 @@ class DataMigrationTests: XCTestCase {
     func testCategoryHierarchyMigrationStability() async throws {
         // Test category structure preservation for insurance reporting
         
-        let schema = Schema([Category.self, Item.self])
+        let schema = Schema([Item.self, Category.self, Warranty.self, Receipt.self])
         let config = ModelConfiguration(
             schema: schema,
             url: temporaryURL.appendingPathComponent("categories.sqlite"),
@@ -199,13 +199,12 @@ class DataMigrationTests: XCTestCase {
         let context = container.mainContext
         
         // Create insurance category hierarchy
-        let electronics = Category(name: "Electronics", icon: "desktopcomputer", color: "blue")
-        let computers = Category(name: "Computers", icon: "laptopcomputer", color: "blue")
-        let smartphones = Category(name: "Smartphones", icon: "iphone", color: "blue")
+        let electronics = Nestory.Category(name: "Electronics", icon: "desktopcomputer", colorHex: "blue")
+        let computers = Nestory.Category(name: "Computers", icon: "laptopcomputer", colorHex: "blue")
+        let smartphones = Nestory.Category(name: "Smartphones", icon: "iphone", colorHex: "blue")
         
-        // Create hierarchy: Electronics > Computers
-        computers.parent = electronics
-        electronics.children = [computers]
+        // Create category relationships (flat structure - hierarchy removed from current model)
+        // Note: Category hierarchy has been simplified in current model
         
         // Create items in categories
         let laptop = TestDataFactory.createCompleteItem()
@@ -231,7 +230,7 @@ class DataMigrationTests: XCTestCase {
         
         // Verify category hierarchy preserved
         let categories = try newContext.fetch(
-            FetchDescriptor<Category>(sortBy: [SortDescriptor(\.name)])
+            FetchDescriptor<Nestory.Category>(sortBy: [SortDescriptor(\.name)])
         )
         
         XCTAssertEqual(categories.count, 3, "All categories should be preserved")
@@ -243,9 +242,9 @@ class DataMigrationTests: XCTestCase {
             return
         }
         
-        XCTAssertNotNil(computersCategory.parent, "Parent relationship should be preserved")
-        XCTAssertEqual(computersCategory.parent?.id, electronicsCategory.id,
-                      "Parent-child relationship should be correctly maintained")
+        // Note: Category hierarchy was simplified - parent/child relationships removed
+        XCTAssertEqual(computersCategory.name, "Computers", "Category should be preserved")
+        XCTAssertEqual(electronicsCategory.name, "Electronics", "Electronics category should be preserved")
         
         // Verify items maintain category relationships
         let items = try newContext.fetch(FetchDescriptor<Item>())
@@ -259,7 +258,7 @@ class DataMigrationTests: XCTestCase {
     func testRoomLocationMigrationForInsurance() async throws {
         // Test room location data critical for insurance claims
         
-        let schema = Schema([Room.self, Item.self])
+        let schema = Schema([Item.self])
         let config = ModelConfiguration(
             schema: schema,
             url: temporaryURL.appendingPathComponent("rooms.sqlite"),
@@ -269,23 +268,17 @@ class DataMigrationTests: XCTestCase {
         let container = try ModelContainer(for: schema, configurations: [config])
         let context = container.mainContext
         
-        // Create rooms with floor information (important for insurance)
-        let livingRoom = Room(name: "Living Room", icon: "sofa", floor: "Ground Floor")
-        let masterBedroom = Room(name: "Master Bedroom", icon: "bed.double", floor: "Second Floor")
-        
-        // Create items with room locations
+        // Create items with location names (important for insurance)
         let tv = TestDataFactory.createHighValueItem()
         tv.name = "65\" OLED TV"
-        tv.room = livingRoom
-        tv.estimatedValue = 2500
+        tv.purchasePrice = Decimal(2500)
+        tv.locationName = "Living Room"
         
         let jewelry = TestDataFactory.createHighValueItem()
         jewelry.name = "Wedding Ring Set"
-        jewelry.room = masterBedroom
-        jewelry.estimatedValue = 5000
+        jewelry.purchasePrice = Decimal(5000)
+        jewelry.locationName = "Master Bedroom"
         
-        context.insert(livingRoom)
-        context.insert(masterBedroom)
         context.insert(tv)
         context.insert(jewelry)
         
@@ -295,24 +288,22 @@ class DataMigrationTests: XCTestCase {
         let newContainer = try ModelContainer(for: schema, configurations: [config])
         let newContext = newContainer.mainContext
         
-        // Verify room and location data preserved
-        let rooms = try newContext.fetch(FetchDescriptor<Room>())
+        // Verify location data preserved
         let items = try newContext.fetch(FetchDescriptor<Item>())
         
-        XCTAssertEqual(rooms.count, 2, "All rooms should be preserved")
         XCTAssertEqual(items.count, 2, "All items should be preserved")
         
-        // Verify high-value items maintain room locations
+        // Verify high-value items maintain location information
         for item in items {
-            XCTAssertNotNil(item.room, "Room location should be preserved for insurance claims")
-            XCTAssertFalse(item.room!.name.isEmpty, "Room name should be preserved")
-            XCTAssertNotNil(item.room!.floor, "Floor information should be preserved for insurance")
+            XCTAssertFalse(item.locationName?.isEmpty ?? true, "Item locations should be preserved")
         }
         
         // Verify specific high-value item locations
         let tvItem = items.first { $0.name.contains("TV") }
-        XCTAssertEqual(tvItem?.room?.name, "Living Room", "TV location should be preserved")
-        XCTAssertEqual(tvItem?.room?.floor, "Ground Floor", "Floor info critical for insurance")
+        let jewelryItem = items.first { $0.name.contains("Ring") }
+        
+        XCTAssertEqual(tvItem?.locationName, "Living Room", "TV location should be preserved")
+        XCTAssertEqual(jewelryItem?.locationName, "Master Bedroom", "Jewelry location should be preserved")
     }
     
     // MARK: - CloudKit Migration Tests
@@ -385,7 +376,7 @@ class DataMigrationTests: XCTestCase {
         // Test recovery from migration failures
         
         // Create a scenario that might cause migration issues
-        let schema = Schema([Item.self, Category.self])
+        let schema = Schema([Item.self, Category.self, Warranty.self, Receipt.self])
         
         // Create container with potential issue (invalid path)
         let invalidURL = URL(fileURLWithPath: "/invalid/path/that/does/not/exist")
@@ -418,7 +409,7 @@ class DataMigrationTests: XCTestCase {
     func testDataIntegrityAfterMigrationFailure() async throws {
         // Test data integrity when partial migration occurs
         
-        let schema = Schema([Item.self, Category.self])
+        let schema = Schema([Item.self, Category.self, Warranty.self, Receipt.self])
         let config = ModelConfiguration(
             schema: schema,
             url: temporaryURL.appendingPathComponent("integrity.sqlite"),
@@ -429,7 +420,7 @@ class DataMigrationTests: XCTestCase {
         let context = container.mainContext
         
         // Create test data
-        let category = Category(name: "Test Electronics", icon: "desktopcomputer", color: "blue")
+        let category = Nestory.Category(name: "Test Electronics", icon: "desktopcomputer", colorHex: "blue")
         let item = TestDataFactory.createCompleteItem()
         item.category = category
         
@@ -442,7 +433,7 @@ class DataMigrationTests: XCTestCase {
         let newContext = newContainer.mainContext
         
         // Verify data integrity preserved
-        let categories = try newContext.fetch(FetchDescriptor<Category>())
+        let categories = try newContext.fetch(FetchDescriptor<Nestory.Category>())
         let items = try newContext.fetch(FetchDescriptor<Item>())
         
         XCTAssertEqual(categories.count, 1, "Category should be preserved")
@@ -460,7 +451,7 @@ class DataMigrationTests: XCTestCase {
     func testLargeDatasetMigrationPerformance() async throws {
         // Test migration performance with large insurance dataset
         
-        let schema = Schema([Item.self, Category.self, Room.self])
+        let schema = Schema([Item.self, Category.self, Warranty.self, Receipt.self])
         let config = ModelConfiguration(
             schema: schema,
             url: temporaryURL.appendingPathComponent("performance.sqlite"),
@@ -473,19 +464,15 @@ class DataMigrationTests: XCTestCase {
         // Create large dataset (1000 items for performance testing)
         let startTime = CFAbsoluteTimeGetCurrent()
         
-        // Create categories and rooms
-        let electronics = Category(name: "Electronics", icon: "desktopcomputer", color: "blue")
-        let livingRoom = Room(name: "Living Room", icon: "sofa")
-        
+        // Create categories
+        let electronics = Nestory.Category(name: "Electronics", icon: "desktopcomputer", colorHex: "blue")
         context.insert(electronics)
-        context.insert(livingRoom)
         
         // Create 1000 test items
         for i in 0..<1000 {
             let item = TestDataFactory.createCompleteItem()
             item.name = "Test Item \(i)"
             item.category = electronics
-            item.room = livingRoom.name
             context.insert(item)
         }
         
@@ -515,7 +502,8 @@ class DataMigrationTests: XCTestCase {
     
     private func createLegacyInsuranceItem() -> Item {
         // Simulate legacy Item model for migration testing
-        let item = Item(name: "Legacy Insurance Item", estimatedValue: 1500)
+        let item = Item(name: "Legacy Insurance Item")
+        item.purchasePrice = Decimal(1500)
         item.serialNumber = "LEG123456789"
         item.purchaseDate = Date()
         item.itemDescription = "Legacy item for migration testing"
@@ -535,7 +523,7 @@ class DataMigrationTests: XCTestCase {
     private func createHighValueElectronics() -> Item {
         let item = TestDataFactory.createHighValueItem()
         item.name = "High-Value MacBook Pro M3"
-        item.estimatedValue = 3500
+        item.purchasePrice = Decimal(3500)
         item.serialNumber = "HVMB2024001"
         item.purchaseDate = Calendar.current.date(byAdding: .month, value: -3, to: Date())
         return item
@@ -544,7 +532,7 @@ class DataMigrationTests: XCTestCase {
     private func createJewelryItem() -> Item {
         let item = TestDataFactory.createHighValueItem()
         item.name = "Diamond Wedding Ring"
-        item.estimatedValue = 4500
+        item.purchasePrice = Decimal(4500)
         item.purchaseDate = Calendar.current.date(byAdding: .year, value: -2, to: Date())
         item.itemDescription = "1.5 carat diamond solitaire setting"
         return item
@@ -553,7 +541,7 @@ class DataMigrationTests: XCTestCase {
     private func createFurnitureItem() -> Item {
         let item = TestDataFactory.createCompleteItem()
         item.name = "Italian Leather Sofa Set"
-        item.estimatedValue = 2200
+        item.purchasePrice = Decimal(2200)
         item.purchaseDate = Calendar.current.date(byAdding: .month, value: -8, to: Date())
         return item
     }
@@ -561,7 +549,7 @@ class DataMigrationTests: XCTestCase {
     private func createApplianceItem() -> Item {
         let item = TestDataFactory.createCompleteItem()
         item.name = "Sub-Zero Refrigerator"
-        item.estimatedValue = 8500
+        item.purchasePrice = Decimal(8500)
         item.serialNumber = "SZ2024REF001"
         item.purchaseDate = Calendar.current.date(byAdding: .year, value: -1, to: Date())
         return item
@@ -577,12 +565,12 @@ extension DataMigrationTests {
         for item in items {
             // Critical insurance fields should be preserved
             XCTAssertFalse(item.name.isEmpty, "Item name required for insurance claims")
-            XCTAssertGreaterThan(item.estimatedValue, 0, "Item value required for insurance")
+            XCTAssertGreaterThan(item.purchasePrice ?? 0, 0, "Item value required for insurance")
             XCTAssertNotNil(item.purchaseDate, "Purchase date required for insurance claims")
             
             // Optional but important fields should be preserved if present
-            if !item.serialNumber.isEmpty {
-                XCTAssertGreaterThan(item.serialNumber.count, 5,
+            if !(item.serialNumber?.isEmpty ?? true) {
+                XCTAssertGreaterThan(item.serialNumber?.count ?? 0, 5,
                                    "Serial numbers should be meaningful length")
             }
         }

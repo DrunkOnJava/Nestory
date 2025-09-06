@@ -381,10 +381,19 @@ func assertValidUUID(
         sourceLocation: sourceLocation,
     )
 
-    let uuidRegex = try! NSRegularExpression(
-        pattern: "^[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$",
-        options: .caseInsensitive,
-    )
+    let uuidRegex: NSRegularExpression
+    do {
+        uuidRegex = try NSRegularExpression(
+            pattern: "^[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$",
+            options: .caseInsensitive
+        )
+    } catch {
+        XCTFail(
+            "Failed to create UUID regex pattern: \(error.localizedDescription)",
+            sourceLocation: sourceLocation
+        )
+        return
+    }
 
     let range = NSRange(location: 0, length: uuidString.count)
     #expect(
