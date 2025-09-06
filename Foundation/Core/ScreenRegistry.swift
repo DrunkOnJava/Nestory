@@ -20,7 +20,6 @@ public enum ScreenRoute: String, CaseIterable {
     case itemEdit = "item_edit"
     case addItem = "add_item"
     case categoryPicker = "category_picker"
-    case roomPicker = "room_picker"
     
     // MARK: - Search Flows
     case searchResults = "search_results"
@@ -35,7 +34,6 @@ public enum ScreenRoute: String, CaseIterable {
     
     // MARK: - Analytics Flows
     case valueByCategory = "value_by_category"
-    case valueByRoom = "value_by_room"
     case warrantyReport = "warranty_report"
     case depreciationReport = "depreciation_report"
     
@@ -75,7 +73,6 @@ public enum ScreenRoute: String, CaseIterable {
         case .itemEdit: return "Edit Item"
         case .addItem: return "Add Item"
         case .categoryPicker: return "Category Picker"
-        case .roomPicker: return "Room Picker"
         case .searchResults: return "Search Results"
         case .searchFilters: return "Search Filters"
         case .advancedSearch: return "Advanced Search"
@@ -84,7 +81,6 @@ public enum ScreenRoute: String, CaseIterable {
         case .receiptScanner: return "Receipt Scanner"
         case .barcodeScanner: return "Barcode Scanner"
         case .valueByCategory: return "Value by Category"
-        case .valueByRoom: return "Value by Room"
         case .warrantyReport: return "Warranty Report"
         case .depreciationReport: return "Depreciation Report"
         case .importExport: return "Import/Export"
@@ -139,7 +135,7 @@ public enum ScreenRoute: String, CaseIterable {
         switch self {
         // Inventory children
         case .itemDetail, .itemEdit, .addItem, 
-             .categoryPicker, .roomPicker:
+             .categoryPicker:
             return .inventory
             
         // Search children
@@ -152,7 +148,7 @@ public enum ScreenRoute: String, CaseIterable {
             return .capture
             
         // Analytics children
-        case .valueByCategory, .valueByRoom, 
+        case .valueByCategory, 
              .warrantyReport, .depreciationReport:
             return .analytics
             
@@ -211,13 +207,13 @@ extension ScreenRoute {
             case .tabs:
                 return [.inventory, .search, .capture, .analytics, .settings]
             case .inventory:
-                return [.itemDetail, .itemEdit, .addItem, .categoryPicker, .roomPicker]
+                return [.itemDetail, .itemEdit, .addItem, .categoryPicker]
             case .search:
                 return [.searchResults, .searchFilters, .advancedSearch]
             case .capture:
                 return [.cameraCapture, .photoLibrary, .receiptScanner, .barcodeScanner]
             case .analytics:
-                return [.valueByCategory, .valueByRoom, .warrantyReport, .depreciationReport]
+                return [.valueByCategory, .warrantyReport, .depreciationReport]
             case .settings:
                 return [.importExport, .csvImport, .jsonExport, .cloudBackup, 
                        .notifications, .appearance, .about]
