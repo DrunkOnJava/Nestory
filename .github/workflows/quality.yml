@@ -103,14 +103,14 @@ jobs:
       
       - name: Upload Build Status
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: build-status
           path: BUILD_STATUS.md
       
       - name: Upload Test Results
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: test-results
           path: |

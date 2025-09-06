@@ -139,7 +139,7 @@ jobs:
           
       - name: Upload Artifacts
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: build-artifacts-${{ runner.arch }}
           path: |
@@ -191,7 +191,7 @@ jobs:
           EOF
           
       - name: Upload Documentation
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: documentation
           path: docs/
@@ -230,7 +230,7 @@ jobs:
           EOF
           
       - name: Upload Benchmark Results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: benchmarks-${{ runner.name }}
           path: benchmark-results.json
