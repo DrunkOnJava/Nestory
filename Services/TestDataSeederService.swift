@@ -62,7 +62,6 @@ final class LiveTestDataSeederService: TestDataSeederService {
     private func createSampleItem(name: String, category: String, value: Double, room: String) -> Item {
         let item = Item(name: name)
         item.purchasePrice = Decimal(value)
-        item.room = room
         item.notes = "Sample item for testing"
         item.purchaseDate = Date().addingTimeInterval(-Double.random(in: 0...31536000)) // Random date in past year
         return item

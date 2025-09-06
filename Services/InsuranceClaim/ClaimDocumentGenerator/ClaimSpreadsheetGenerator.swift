@@ -112,7 +112,7 @@ public struct ClaimSpreadsheetGenerator {
         let purchasePrice = item.purchasePrice?.description ?? ""
         let purchaseDate = ClaimDocumentHelpers.formatDate(item.purchaseDate)
         let condition = item.condition
-        let location = item.room ?? ""
+        let location = item.notes ?? ""
         let photoCount = String(item.photos.count)
         let documentCount = "0" // Documents not available in current Item model
         

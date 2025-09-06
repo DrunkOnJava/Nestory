@@ -46,8 +46,6 @@ public protocol InventoryService: Sendable {
     func assignItemToCategory(itemId: UUID, categoryId: UUID) async throws // Link item to category
     func fetchItemsByCategory(categoryId: UUID) async throws -> [Item] // Filter by category
     
-    // 🏠 ROOM OPERATIONS: Location management for items
-    func fetchRooms() async throws -> [Room] // Load all rooms
 
     // Batch Operations for Performance
     func bulkImport(items: [Item]) async throws
@@ -263,20 +261,6 @@ public struct LiveInventoryService: InventoryService, @unchecked Sendable {
         }
     }
 
-    public func fetchRooms() async throws -> [Room] {
-        let descriptor = FetchDescriptor<Room>(
-            sortBy: [SortDescriptor(\.name)]
-        )
-
-        do {
-            let rooms = try modelContext.fetch(descriptor)
-            logger.debug("Fetched \(rooms.count) rooms")
-            return rooms
-        } catch {
-            logger.error("Failed to fetch rooms: \(error.localizedDescription)")
-            throw InventoryError.fetchFailed(error.localizedDescription)
-        }
-    }
 
     public func bulkImport(items: [Item]) async throws {
         let signpost = OSSignposter()
@@ -434,8 +418,6 @@ public struct LiveInventoryService: InventoryService, @unchecked Sendable {
                     purchasePrice: item.purchasePrice,
                     purchaseDate: item.purchaseDate,
                     currency: item.currency,
-                    room: item.room,
-                    specificLocation: item.specificLocation,
                     condition: item.condition,
                     categoryName: item.category?.name,
                     createdAt: item.createdAt,
@@ -462,7 +444,7 @@ public struct LiveInventoryService: InventoryService, @unchecked Sendable {
                 let priceString = item.purchasePrice?.description ?? ""
                 let currencyString = item.currency
                 let quantityString = item.quantity.description
-                let locationString = item.room ?? ""
+                let locationString = ""
                 let conditionString = ""
                 let categoryString = item.category?.name ?? ""
                 let createdString = item.createdAt.ISO8601Format()
@@ -568,8 +550,6 @@ public struct ItemTransferObject: Codable {
     public let purchasePrice: Decimal?
     public let purchaseDate: Date?
     public let currency: String
-    public let room: String?
-    public let specificLocation: String?
     public let condition: String
     public let categoryName: String?
     public let createdAt: Date

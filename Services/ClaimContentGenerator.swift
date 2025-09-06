@@ -27,14 +27,14 @@ public final class ClaimContentGenerator {
         options: ClaimPackageOptions
     ) async throws -> ClaimCoverLetter {
         let totalValue = items.compactMap(\.purchasePrice).reduce(0, +)
-        let affectedRooms = Set(items.compactMap(\.room))
+        let affectedCategories = Set(items.compactMap(\.category?.name))
 
         let summary = ClaimSummary(
             claimType: scenario.type,
             incidentDate: scenario.incidentDate,
             totalItems: items.count,
             totalValue: totalValue,
-            affectedRooms: Array(affectedRooms),
+            affectedRooms: Array(affectedCategories),
             description: scenario.description
         )
 
@@ -62,7 +62,6 @@ public final class ClaimContentGenerator {
         let standardForm = try await insuranceExportService.exportInventory(
             items: items,
             categories: Array(Set(items.compactMap(\.category))),
-            rooms: [], // TODO: Define Room type or use String array
             format: InsuranceExportService.ExportFormat.standardForm,
             options: ExportOptions()
         )
@@ -78,7 +77,6 @@ public final class ClaimContentGenerator {
         let spreadsheet = try await insuranceExportService.exportInventory(
             items: items,
             categories: Array(Set(items.compactMap(\.category))),
-            rooms: [], // TODO: Define Room type or use String array
             format: InsuranceExportService.ExportFormat.detailedSpreadsheet,
             options: ExportOptions()
         )

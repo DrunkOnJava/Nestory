@@ -54,7 +54,6 @@ struct MockInventoryService: InventoryService, Sendable {
         let items = try await fetchItems()
         return items.filter { $0.category?.id == categoryId }
     }
-    func fetchRooms() async throws -> [Room] { createMockRooms() }
     func bulkImport(items _: [Item]) async throws {}
     func bulkUpdate(items _: [Item]) async throws {}
     func bulkDelete(itemIds _: [UUID]) async throws {}
@@ -70,13 +69,11 @@ struct MockInventoryService: InventoryService, Sendable {
         macbook.brand = "Apple"
         macbook.purchasePrice = 2399
         macbook.purchaseDate = Date().addingTimeInterval(-365 * 24 * 60 * 60)
-        macbook.room = "Home Office"
         
         let iphone = Item(name: "iPhone 15 Pro", itemDescription: "Natural Titanium", quantity: 1, category: electronics)
         iphone.brand = "Apple"
         iphone.purchasePrice = 1199
         iphone.purchaseDate = Date().addingTimeInterval(-90 * 24 * 60 * 60)
-        iphone.room = "Bedroom"
         
         return [macbook, iphone]
     }
@@ -89,14 +86,6 @@ struct MockInventoryService: InventoryService, Sendable {
         ]
     }
     
-    private func createMockRooms() -> [Room] {
-        [
-            Room(name: "Home Office", icon: "desktopcomputer"),
-            Room(name: "Living Room", icon: "sofa"),
-            Room(name: "Kitchen", icon: "fork.knife"),
-            Room(name: "Bedroom", icon: "bed.double")
-        ]
-    }
 }
 
 struct MockPhotoIntegrationService: PhotoIntegrationService, Sendable {

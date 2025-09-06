@@ -49,9 +49,7 @@ public struct BackupDataTransformer: @unchecked Sendable {
         record["warrantyProvider"] = item.warrantyProvider
         record["warrantyNotes"] = item.warrantyNotes
 
-        // Location
-        record["room"] = item.room
-        record["specificLocation"] = item.specificLocation
+        // Location functionality removed
 
         // Tags
         record["tags"] = item.tags
@@ -96,20 +94,6 @@ public struct BackupDataTransformer: @unchecked Sendable {
         return record
     }
 
-    // MARK: - Room Transformation
-
-    public func transformRoom(_ room: Room) -> CKRecord {
-        let recordID = CKRecord.ID(zoneID: backupZone.zoneID)
-        let record = CKRecord(recordType: "BackupRoom", recordID: recordID)
-
-        record["roomID"] = room.id.uuidString
-        record["name"] = room.name
-        record["icon"] = room.icon
-        record["roomDescription"] = room.roomDescription
-        record["floor"] = room.floor
-
-        return record
-    }
 
     // MARK: - Batch Transformations
 
@@ -117,7 +101,4 @@ public struct BackupDataTransformer: @unchecked Sendable {
         categories.map { transformCategory($0) }
     }
 
-    public func transformRooms(_ rooms: [Room]) -> [CKRecord] {
-        rooms.map { transformRoom($0) }
-    }
 }

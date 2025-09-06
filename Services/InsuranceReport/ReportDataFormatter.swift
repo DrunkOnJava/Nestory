@@ -72,9 +72,9 @@ public struct ReportDataFormatter {
         // Quantity
         details.append("Quantity: \(item.quantity)")
 
-        // Location
-        if let room = item.room {
-            details.append("Location: \(room)")
+        // Location (using notes as replacement for room)
+        if let notes = item.notes, !notes.isEmpty {
+            details.append("Notes: \(notes)")
         }
 
         // Warranty status

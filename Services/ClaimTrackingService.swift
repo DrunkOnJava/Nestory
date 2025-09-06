@@ -7,6 +7,7 @@
 import Foundation
 import SwiftData
 import UserNotifications
+import OSLog
 
 // MARK: - Modularized Claim Tracking Service
 
@@ -83,8 +84,10 @@ public final class ClaimTrackingService: ObservableObject {
             
             await refreshData()
         } catch {
-            // Handle error gracefully - could add error publishing here
-            print("Failed to update claim status: \(error)")
+            Logger.service.error("Failed to update claim status: \(error.localizedDescription)")
+            #if DEBUG
+            Logger.service.debug("Claim status update error details: \(error)")
+            #endif
         }
     }
     
@@ -98,7 +101,10 @@ public final class ClaimTrackingService: ObservableObject {
             try await followUpManager.markFollowUpCompleted(followUp, notes: notes)
             await refreshData()
         } catch {
-            print("Failed to mark follow-up completed: \(error)")
+            Logger.service.error("Failed to mark follow-up completed: \(error.localizedDescription)")
+            #if DEBUG
+            Logger.service.debug("Follow-up completion error details: \(error)")
+            #endif
         }
     }
     
@@ -117,7 +123,10 @@ public final class ClaimTrackingService: ObservableObject {
             )
             await refreshData()
         } catch {
-            print("Failed to create follow-up: \(error)")
+            Logger.service.error("Failed to create follow-up: \(error.localizedDescription)")
+            #if DEBUG
+            Logger.service.debug("Follow-up creation error details: \(error)")
+            #endif
         }
     }
     
@@ -172,7 +181,10 @@ public final class ClaimTrackingService: ObservableObject {
             )
             await refreshData()
         } catch {
-            print("Failed to record correspondence: \(error)")
+            Logger.service.error("Failed to record correspondence: \(error.localizedDescription)")
+            #if DEBUG
+            Logger.service.debug("Correspondence recording error details: \(error)")
+            #endif
         }
     }
     
@@ -189,7 +201,10 @@ public final class ClaimTrackingService: ObservableObject {
             )
             await refreshData()
         } catch {
-            print("Failed to record document addition: \(error)")
+            Logger.service.error("Failed to record document addition: \(error.localizedDescription)")
+            #if DEBUG
+            Logger.service.debug("Document addition error details: \(error)")
+            #endif
         }
     }
     

@@ -17,8 +17,6 @@ public enum SpreadsheetExporter {
                 DataFormatHelpers.escapeCSV(item.name),
                 DataFormatHelpers.escapeCSV(item.itemDescription ?? ""),
                 DataFormatHelpers.escapeCSV(item.category?.name ?? ""),
-                DataFormatHelpers.escapeCSV(item.room ?? ""),
-                DataFormatHelpers.escapeCSV(item.specificLocation ?? ""),
                 String(item.quantity),
                 DataFormatHelpers.escapeCSV(item.brand ?? ""),
                 DataFormatHelpers.escapeCSV(item.modelNumber ?? ""),

@@ -22,7 +22,6 @@ public final class ClaimExportFormatters {
     public func exportClaimData(
         items: [Item],
         categories: [Category],
-        rooms: [Room],
         format: InsuranceCompanyFormat,
         claim: ClaimSubmission
     ) async throws -> ExportResult {
@@ -38,9 +37,9 @@ public final class ClaimExportFormatters {
         case .allstate, .statefarm, .geico:
             return try await exportSpreadsheetFormat(items: items, format: format)
         case .progressive, .farmers, .generic:
-            return try await exportPDFFormat(items: items, categories: categories, rooms: rooms, options: options)
+            return try await exportPDFFormat(items: items, categories: categories, options: options)
         case .liberty, .travelers:
-            return try await exportComprehensivePackage(items: items, categories: categories, rooms: rooms, options: options)
+            return try await exportComprehensivePackage(items: items, categories: categories, options: options)
         case .nationwide, .usaa:
             return try await exportJSONFormat(items: items, options: options)
         }
@@ -76,7 +75,6 @@ public final class ClaimExportFormatters {
         try await insuranceExportService.exportInventory(
             items: items,
             categories: [],
-            rooms: [],
             format: .detailedSpreadsheet,
             options: ExportOptions()
         )
@@ -85,13 +83,11 @@ public final class ClaimExportFormatters {
     private func exportPDFFormat(
         items: [Item],
         categories: [Category],
-        rooms: [Room],
         options: ExportOptions
     ) async throws -> ExportResult {
         try await insuranceExportService.exportInventory(
             items: items,
             categories: categories,
-            rooms: rooms,
             format: .standardForm,
             options: options
         )
@@ -100,13 +96,11 @@ public final class ClaimExportFormatters {
     private func exportComprehensivePackage(
         items: [Item],
         categories: [Category],
-        rooms: [Room],
         options: ExportOptions
     ) async throws -> ExportResult {
         try await insuranceExportService.exportInventory(
             items: items,
             categories: categories,
-            rooms: rooms,
             format: .digitalPackage,
             options: options
         )

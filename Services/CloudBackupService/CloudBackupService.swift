@@ -26,7 +26,7 @@ public protocol CloudBackupService: AnyObject, Sendable {
 
     // MARK: - Backup Operations
 
-    func performBackup(items: [Item], categories: [Category], rooms: [Room]) async throws
+    func performBackup(items: [Item], categories: [Category]) async throws
     func estimateBackupSize(items: [Item]) -> String
     func getBackupInfo() async throws -> BackupMetadata?
 

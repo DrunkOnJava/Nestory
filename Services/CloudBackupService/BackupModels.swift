@@ -20,7 +20,6 @@ public enum BackupStatus: Equatable {
         case preparing = "Preparing backup..."
         case clearing = "Clearing previous backup..."
         case categories = "Backing up categories..."
-        case rooms = "Backing up rooms..."
         case items = "Backing up items..."
         case metadata = "Saving metadata..."
     }
@@ -28,7 +27,6 @@ public enum BackupStatus: Equatable {
     public enum RestorePhase: String {
         case preparing = "Preparing restore..."
         case categories = "Restoring categories..."
-        case rooms = "Restoring rooms..."
         case items = "Restoring items..."
     }
     
@@ -72,18 +70,15 @@ public enum BackupStatus: Equatable {
 public struct RestoreResult {
     public let itemsRestored: Int
     public let categoriesRestored: Int
-    public let roomsRestored: Int
     public let backupDate: Date
 
     public init(
         itemsRestored: Int,
         categoriesRestored: Int,
-        roomsRestored: Int,
         backupDate: Date
     ) {
         self.itemsRestored = itemsRestored
         self.categoriesRestored = categoriesRestored
-        self.roomsRestored = roomsRestored
         self.backupDate = backupDate
     }
 }

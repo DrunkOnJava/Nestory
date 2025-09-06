@@ -116,10 +116,9 @@ public final class LiveCloudBackupService: CloudBackupService, ObservableObject 
 
     // MARK: - Backup Operations
 
-    public func performBackup(items: [Item], categories: [Category], rooms: [Room]) async throws {
+    public func performBackup(items: [Item], categories: [Category]) async throws {
         let itemCount = items.count
         let categoryCount = categories.count
-        let roomCount = rooms.count
 
         // Comprehensive CloudKit availability check
         guard await checkCloudKitAvailability() else {
@@ -137,7 +136,7 @@ public final class LiveCloudBackupService: CloudBackupService, ObservableObject 
             )
         }
 
-        logger.info("Starting CloudKit backup with \(items.count) items, \(categories.count) categories, \(rooms.count) rooms")
+        logger.info("Starting CloudKit backup with \(items.count) items, \(categories.count) categories")
 
         isBackingUp = true
         backupStatus = .backing(.preparing)
@@ -177,17 +176,6 @@ public final class LiveCloudBackupService: CloudBackupService, ObservableObject 
                 logger.info("Successfully backed up \(categoryRecords.count) categories")
             }
 
-            // Backup rooms with validation
-            backupStatus = .backing(.rooms)
-            progress = 0.3
-            let roomRecords = backupTransformer.transformRooms(rooms)
-
-            if !roomRecords.isEmpty {
-                try await executeCloudKitOperation {
-                    try await operations.saveRecords(roomRecords)
-                }
-                logger.info("Successfully backed up \(roomRecords.count) rooms")
-            }
 
             // Backup items with comprehensive error handling
             backupStatus = .backing(.items)
@@ -278,11 +266,6 @@ public final class LiveCloudBackupService: CloudBackupService, ObservableObject 
         let categoryRecords = try await operations.fetchRecords(recordType: "BackupCategory")
         let categories = restoreTransformer.restoreCategories(from: categoryRecords, modelContext: modelContext)
 
-        // Restore rooms
-        backupStatus = .restoring(.rooms)
-        progress = 0.3
-        let roomRecords = try await operations.fetchRecords(recordType: "BackupRoom")
-        let rooms = restoreTransformer.restoreRooms(from: roomRecords, modelContext: modelContext)
 
         // Restore items
         backupStatus = .restoring(.items)
@@ -302,8 +285,7 @@ public final class LiveCloudBackupService: CloudBackupService, ObservableObject 
         return RestoreResult(
             itemsRestored: items.count,
             categoriesRestored: categories.count,
-            roomsRestored: rooms.count,
-            backupDate: metadata.exportDate,
+            backupDate: metadata.exportDate
         )
     }
 

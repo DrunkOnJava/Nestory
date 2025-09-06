@@ -84,7 +84,7 @@ public struct ReliableMockInventoryService: InventoryService, Sendable {
         return items.filter { item in
             item.name.localizedCaseInsensitiveContains(query) ||
             item.category?.name.localizedCaseInsensitiveContains(query) == true ||
-            item.room?.localizedCaseInsensitiveContains(query) == true ||
+            item.notes?.localizedCaseInsensitiveContains(query) == true ||
             item.brand?.localizedCaseInsensitiveContains(query) == true ||
             item.modelNumber?.localizedCaseInsensitiveContains(query) == true
         }
@@ -114,10 +114,6 @@ public struct ReliableMockInventoryService: InventoryService, Sendable {
         return items.filter { $0.category?.id == categoryId }
     }
     
-    public func fetchRooms() async throws -> [Room] {
-        try await simulateNetworkConditions()
-        return createMockRooms()
-    }
     
     public func bulkImport(items: [Item]) async throws {
         try await simulateNetworkConditions()
@@ -213,8 +209,6 @@ private func createMockItems() -> [Item] {
     macbook.serialNumber = "C02YX0ABMD6T"
     macbook.purchasePrice = 2399
     macbook.purchaseDate = Date().addingTimeInterval(-365 * 24 * 60 * 60) // 1 year ago
-    macbook.room = "Home Office"
-    macbook.specificLocation = "Desk"
     macbook.condition = ItemCondition.excellent.rawValue
     macbook.imageData = createMockImageData(for: "MacBook") // Mock photo for documentation status
     macbook.receiptImageData = createMockImageData(for: "Receipt") // Mock receipt for documentation status
@@ -236,8 +230,6 @@ private func createMockItems() -> [Item] {
     chair.modelNumber = "AER1C23DW"
     chair.purchasePrice = 1395
     chair.purchaseDate = Date().addingTimeInterval(-180 * 24 * 60 * 60) // 6 months ago
-    chair.room = "Home Office"
-    chair.specificLocation = "Under desk"
     chair.condition = ItemCondition.likeNew.rawValue
     chair.imageData = createMockImageData(for: "Herman Miller Chair") // Mock photo for documentation status
     chair.receiptImageData = createMockImageData(for: "Receipt") // Mock receipt for documentation status
@@ -260,8 +252,6 @@ private func createMockItems() -> [Item] {
     mixer.serialNumber = "KA240507-2023"
     mixer.purchasePrice = 429
     mixer.purchaseDate = Date().addingTimeInterval(-730 * 24 * 60 * 60) // 2 years ago
-    mixer.room = "Kitchen"
-    mixer.specificLocation = "Counter next to stove"
     mixer.condition = ItemCondition.good.rawValue
     mixer.imageData = createMockImageData(for: "KitchenAid Mixer") // Mock photo for documentation status
     mixer.receiptImageData = createMockImageData(for: "Receipt") // Mock receipt for documentation status
@@ -284,8 +274,6 @@ private func createMockItems() -> [Item] {
     iphone.serialNumber = "F2LYX1AFQH"
     iphone.purchasePrice = 1199
     iphone.purchaseDate = Date().addingTimeInterval(-90 * 24 * 60 * 60) // 3 months ago
-    iphone.room = "Bedroom"
-    iphone.specificLocation = "Nightstand"
     iphone.condition = ItemCondition.excellent.rawValue
     iphone.imageData = createMockImageData(for: "iPhone 15 Pro") // Mock photo for documentation status
     iphone.receiptImageData = createMockImageData(for: "Receipt") // Mock receipt for documentation status
@@ -307,8 +295,6 @@ private func createMockItems() -> [Item] {
     headphones.modelNumber = "WH-1000XM4"
     headphones.purchasePrice = 348
     headphones.purchaseDate = Date().addingTimeInterval(-420 * 24 * 60 * 60) // ~14 months ago
-    headphones.room = "Home Office"
-    headphones.specificLocation = "Desk drawer"
     headphones.condition = ItemCondition.good.rawValue
     headphones.imageData = createMockImageData(for: "Sony Headphones") // Mock photo for documentation status
     headphones.receiptImageData = createMockImageData(for: "Receipt") // Mock receipt for documentation status
@@ -334,17 +320,6 @@ private func createMockCategories() -> [Category] {
     ]
 }
 
-private func createMockRooms() -> [Room] {
-    return [
-        Room(name: "Home Office", icon: "desktopcomputer"),
-        Room(name: "Living Room", icon: "sofa"),
-        Room(name: "Kitchen", icon: "fork.knife"),
-        Room(name: "Bedroom", icon: "bed.double"),
-        Room(name: "Garage", icon: "car"),
-        Room(name: "Basement", icon: "stairs"),
-        Room(name: "Attic", icon: "house.lodge")
-    ]
-}
 
 /// Creates mock image data for testing documentation completeness
 private func createMockImageData(for description: String) -> Data {

@@ -27,18 +27,6 @@ public struct RestoreDataTransformer: @unchecked Sendable {
         return category
     }
 
-    // MARK: - Room Restoration
-
-    public func restoreRoom(from record: CKRecord) -> Room {
-        let room = Room(
-            name: record["name"] as? String ?? "Unknown",
-            icon: record["icon"] as? String ?? "door.left.hand.open",
-            roomDescription: record["roomDescription"] as? String,
-            floor: record["floor"] as? String,
-        )
-
-        return room
-    }
 
     // MARK: - Item Restoration
 
@@ -68,9 +56,7 @@ public struct RestoreDataTransformer: @unchecked Sendable {
         item.warrantyProvider = record["warrantyProvider"] as? String
         item.warrantyNotes = record["warrantyNotes"] as? String
 
-        // Location
-        item.room = record["room"] as? String
-        item.specificLocation = record["specificLocation"] as? String
+        // Location functionality removed
 
         // Tags and documents
         item.tags = record["tags"] as? [String] ?? []
@@ -108,22 +94,6 @@ public struct RestoreDataTransformer: @unchecked Sendable {
         return categories
     }
 
-    public func restoreRooms(
-        from records: [(CKRecord.ID, Result<CKRecord, Error>)],
-        modelContext: ModelContext,
-    ) -> [Room] {
-        var rooms: [Room] = []
-
-        for (_, result) in records {
-            guard case let .success(record) = result else { continue }
-
-            let room = restoreRoom(from: record)
-            modelContext.insert(room)
-            rooms.append(room)
-        }
-
-        return rooms
-    }
 
     @MainActor
     public func restoreItems(

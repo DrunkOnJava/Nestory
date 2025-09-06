@@ -36,7 +36,6 @@ public final class ClaimExportService: ObservableObject {
     public func createClaim(
         items: [Item],
         categories: [Category],
-        rooms: [Room],
         insuranceCompany: InsuranceCompanyFormat,
         claimType: InsuranceClaimType,
         submissionMethod: SubmissionMethod,
@@ -46,7 +45,6 @@ public final class ClaimExportService: ObservableObject {
         try await core.createClaim(
             items: items,
             categories: categories,
-            rooms: rooms,
             insuranceCompany: insuranceCompany,
             claimType: claimType,
             submissionMethod: submissionMethod,

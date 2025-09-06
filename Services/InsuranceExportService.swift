@@ -65,7 +65,6 @@ public final class InsuranceExportService: ObservableObject {
     public func exportInventory(
         items: [Item],
         categories: [Category],
-        rooms: [Room],
         format: ExportFormat,
         options: ExportOptions,
     ) async throws -> ExportResult {
@@ -78,15 +77,14 @@ public final class InsuranceExportService: ObservableObject {
 
         switch format {
         case .standardForm:
-            return try await exportStandardForm(items: items, rooms: rooms, options: options)
+            return try await exportStandardForm(items: items, options: options)
         case .detailedSpreadsheet:
             return try await exportDetailedSpreadsheet(items: items)
         case .digitalPackage:
             return try await exportDigitalPackage(
                 items: items,
                 categories: categories,
-                rooms: rooms,
-                options: options,
+                options: options
             )
         case .xmlFormat:
             return try await exportXMLFormat(items: items, options: options)
@@ -94,8 +92,7 @@ public final class InsuranceExportService: ObservableObject {
             return try await exportClaimsReadyPackage(
                 items: items,
                 categories: categories,
-                rooms: rooms,
-                options: options,
+                options: options
             )
         }
     }
@@ -104,13 +101,11 @@ public final class InsuranceExportService: ObservableObject {
 
     private func exportStandardForm(
         items: [Item],
-        rooms: [Room],
         options: ExportOptions,
     ) async throws -> ExportResult {
         let htmlContent = await StandardFormExporter.generateHTMLReport(
             items: items,
-            rooms: rooms,
-            options: options,
+            options: options
         ) { [weak self] progress in
             Task { @MainActor in
                 self?.exportProgress = progress
@@ -179,23 +174,21 @@ public final class InsuranceExportService: ObservableObject {
     private func exportDigitalPackage(
         items: [Item],
         categories _: [Category],
-        rooms: [Room],
         options: ExportOptions,
     ) async throws -> ExportResult {
         // This would create a ZIP file with all assets
         // For now, return the standard form
-        try await exportStandardForm(items: items, rooms: rooms, options: options)
+        try await exportStandardForm(items: items, options: options)
     }
 
     private func exportClaimsReadyPackage(
         items: [Item],
         categories _: [Category],
-        rooms: [Room],
         options: ExportOptions,
     ) async throws -> ExportResult {
         // This creates a comprehensive package for insurance claims
         // For now, use the standard form
-        try await exportStandardForm(items: items, rooms: rooms, options: options)
+        try await exportStandardForm(items: items, options: options)
     }
 }
 
@@ -215,8 +208,6 @@ public struct ExportOptions {
     public var includeReceipts = true
     /// Whether to include warranty information
     public var includeWarrantyInfo = true
-    /// Whether to group items by room in the export
-    public var groupByRoom = true
     /// Whether to calculate and include depreciated values
     public var includeDepreciation = false
     /// Annual depreciation rate (default 10%)

@@ -55,7 +55,7 @@ public enum HTMLTemplateGenerator {
         """
     }
 
-    public static func generateSummarySection(items: [Item], rooms: [Room]) -> String {
+    public static func generateSummarySection(items: [Item]) -> String {
         let totalValue = items.compactMap(\.purchasePrice).reduce(0, +)
         let itemsWithReceipts = items.count { $0.receiptImageData != nil }
         let itemsWithSerialNumbers = items.count { $0.serialNumber != nil }
@@ -86,8 +86,8 @@ public enum HTMLTemplateGenerator {
                     <div class="summary-label">Under Warranty</div>
                 </div>
                 <div class="summary-item">
-                    <div class="summary-value">\(rooms.count)</div>
-                    <div class="summary-label">Rooms Documented</div>
+                    <div class="summary-value">\(Set(items.compactMap(\.category?.name)).count)</div>
+                    <div class="summary-label">Categories</div>
                 </div>
             </div>
         </div>

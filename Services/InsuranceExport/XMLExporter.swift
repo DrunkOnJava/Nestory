@@ -50,8 +50,6 @@ public enum XMLExporter {
                 <Description>\(DataFormatHelpers.escapeXML(item.itemDescription ?? ""))</Description>
                 <Category>\(DataFormatHelpers.escapeXML(item.category?.name ?? ""))</Category>
                 <Location>
-                    <Room>\(DataFormatHelpers.escapeXML(item.room ?? ""))</Room>
-                    <SpecificLocation>\(DataFormatHelpers.escapeXML(item.specificLocation ?? ""))</SpecificLocation>
                 </Location>
                 <Identification>
                     <Brand>\(DataFormatHelpers.escapeXML(item.brand ?? ""))</Brand>

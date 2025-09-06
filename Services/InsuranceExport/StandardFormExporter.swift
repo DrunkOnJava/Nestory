@@ -10,7 +10,6 @@ public enum StandardFormExporter {
     @MainActor
     public static func generateHTMLReport(
         items: [Item],
-        rooms: [Room],
         options: ExportOptions,
         progressHandler: ((Double) -> Void)? = nil,
     ) async -> String {
@@ -29,14 +28,10 @@ public enum StandardFormExporter {
         htmlContent += HTMLTemplateGenerator.generateHeader(options: options)
 
         // Add summary
-        htmlContent += HTMLTemplateGenerator.generateSummarySection(items: items, rooms: rooms)
+        htmlContent += HTMLTemplateGenerator.generateSummarySection(items: items)
 
-        // Group items by room if requested
-        if options.groupByRoom {
-            htmlContent += generateRoomSections(items: items, progressHandler: progressHandler)
-        } else {
-            htmlContent += generateCompleteInventory(items: items, progressHandler: progressHandler)
-        }
+        // Add all items
+        htmlContent += generateCompleteInventory(items: items, progressHandler: progressHandler)
 
         // Add footer
         htmlContent += HTMLTemplateGenerator.generateFooter(items: items)
@@ -49,39 +44,14 @@ public enum StandardFormExporter {
         return htmlContent
     }
 
-    private static func generateRoomSections(
-        items: [Item],
-        progressHandler: ((Double) -> Void)?,
-    ) -> String {
-        var html = ""
-        let itemsByRoom = Dictionary(grouping: items) { $0.room ?? "Unassigned" }
-        var processedCount = 0
-
-        for (room, roomItems) in itemsByRoom.sorted(by: { $0.key < $1.key }) {
-            let roomTotal = roomItems.compactMap(\.purchasePrice).reduce(0, +)
-
-            html += """
-            <div class="section">
-                <div class="section-title">\(room) - \(roomItems.count) items - Total: \(DataFormatHelpers.formatCurrency(roomTotal))</div>
-            """
-
-            for item in roomItems {
-                html += generateItemCard(item: item)
-                processedCount += 1
-                progressHandler?(Double(processedCount) / Double(items.count) * 0.8)
-            }
-
-            html += "</div>"
-        }
-
-        return html
-    }
-
     private static func generateCompleteInventory(
         items: [Item],
-        progressHandler: ((Double) -> Void)?,
+        progressHandler: ((Double) -> Void)?
     ) -> String {
-        var html = "<div class=\"section\"><div class=\"section-title\">Complete Inventory</div>"
+        var html = """
+        <div class="section">
+            <div class="section-title">Complete Inventory - \(items.count) items</div>
+        """
 
         for (index, item) in items.enumerated() {
             html += generateItemCard(item: item)
@@ -135,9 +105,7 @@ public enum StandardFormExporter {
             html += "<div class=\"detail-row\"><span class=\"detail-label\">Warranty:</span> \(isActive ? "Active until" : "Expired") \(DataFormatHelpers.formatDate(warranty))</div>"
         }
 
-        if let location = item.specificLocation {
-            html += "<div class=\"detail-row\"><span class=\"detail-label\">Location:</span> \(DataFormatHelpers.escapeHTML(location))</div>"
-        }
+        // Location functionality removed - room properties no longer available
 
         html += "</div>"
 
