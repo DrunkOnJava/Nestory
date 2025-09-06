@@ -60,6 +60,7 @@ public final class Item: @unchecked Sendable {
 
     // 🏷️ ORGANIZATION: Categorization and searchability
     public var tags: [String] = [] // User-defined tags for flexible organization
+    public var locationName: String? // Room or location where item is kept
     public var imageData: Data? // Primary item photo for identification
     public var receiptImageData: Data? // Receipt photo for purchase verification
     public var extractedReceiptText: String? // OCR-extracted text from receipt
@@ -69,18 +70,6 @@ public final class Item: @unchecked Sendable {
     public var warrantyProvider: String? // Who provides warranty service
     public var warrantyNotes: String? // Warranty terms and conditions
 
-    // 🏠 LOCATION TRACKING: Where items are stored
-    public var room: String? // Room location (Living Room, Office, etc.)
-    public var specificLocation: String? // Specific location within room
-    
-    // 📍 COMPUTED LOCATION: Combined location string for display
-    public var location: String? {
-        guard let room = room else { return nil }
-        if let specific = specificLocation {
-            return "\(room) - \(specific)"
-        }
-        return room
-    }
 
     // 📄 DOCUMENT ATTACHMENTS: Supporting documentation
     public var manualPDFData: Data? // Product manual for reference
@@ -215,9 +204,9 @@ extension Item: Equatable {
 extension Item: Codable {
     private enum CodingKeys: String, CodingKey {
         case id, name, itemDescription, brand, modelNumber, serialNumber, barcode, notes
-        case quantity, purchasePrice, purchaseDate, currency, tags
+        case quantity, purchasePrice, purchaseDate, currency, tags, locationName
         case warrantyExpirationDate, warrantyProvider, warrantyNotes
-        case room, specificLocation, condition, conditionNotes, lastConditionUpdate
+        case condition, conditionNotes, lastConditionUpdate
         case createdAt, updatedAt
         // Note: Data properties, relationships, and complex properties excluded for export simplicity
     }
@@ -237,11 +226,10 @@ extension Item: Codable {
         try container.encodeIfPresent(purchaseDate, forKey: .purchaseDate)
         try container.encode(currency, forKey: .currency)
         try container.encode(tags, forKey: .tags)
+        try container.encodeIfPresent(locationName, forKey: .locationName)
         try container.encodeIfPresent(warrantyExpirationDate, forKey: .warrantyExpirationDate)
         try container.encodeIfPresent(warrantyProvider, forKey: .warrantyProvider)
         try container.encodeIfPresent(warrantyNotes, forKey: .warrantyNotes)
-        try container.encodeIfPresent(room, forKey: .room)
-        try container.encodeIfPresent(specificLocation, forKey: .specificLocation)
         try container.encode(condition, forKey: .condition)
         try container.encodeIfPresent(conditionNotes, forKey: .conditionNotes)
         try container.encodeIfPresent(lastConditionUpdate, forKey: .lastConditionUpdate)
@@ -267,11 +255,10 @@ extension Item: Codable {
         self.purchaseDate = try container.decodeIfPresent(Date.self, forKey: .purchaseDate)
         self.currency = try container.decode(String.self, forKey: .currency)
         self.tags = try container.decode([String].self, forKey: .tags)
+        self.locationName = try container.decodeIfPresent(String.self, forKey: .locationName)
         self.warrantyExpirationDate = try container.decodeIfPresent(Date.self, forKey: .warrantyExpirationDate)
         self.warrantyProvider = try container.decodeIfPresent(String.self, forKey: .warrantyProvider)
         self.warrantyNotes = try container.decodeIfPresent(String.self, forKey: .warrantyNotes)
-        self.room = try container.decodeIfPresent(String.self, forKey: .room)
-        self.specificLocation = try container.decodeIfPresent(String.self, forKey: .specificLocation)
         self.condition = try container.decode(String.self, forKey: .condition)
         self.conditionNotes = try container.decodeIfPresent(String.self, forKey: .conditionNotes)
         self.lastConditionUpdate = try container.decodeIfPresent(Date.self, forKey: .lastConditionUpdate)

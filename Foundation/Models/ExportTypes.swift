@@ -11,7 +11,6 @@ public struct ExportData: Equatable, Sendable, Codable, Identifiable {
     public let id = UUID()
     public let items: [Item]
     public let categories: [Category]
-    public let rooms: [Room]
     public let metadata: BackupMetadata
     public let exportFormat: ExportFormat
     public let createdAt: Date
@@ -19,13 +18,11 @@ public struct ExportData: Equatable, Sendable, Codable, Identifiable {
     public init(
         items: [Item],
         categories: [Category],
-        rooms: [Room],
         metadata: BackupMetadata,
         exportFormat: ExportFormat
     ) {
         self.items = items
         self.categories = categories
-        self.rooms = rooms
         self.metadata = metadata
         self.exportFormat = exportFormat
         self.createdAt = Date()
