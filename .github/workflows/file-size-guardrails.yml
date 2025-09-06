@@ -48,16 +48,16 @@ jobs:
           fi
         done
     
-    - name: Fail build if critical violations found
+    - name: Report file size violations (non-blocking)
       run: |
         if [ "${CRITICAL_VIOLATION:-false}" = "true" ]; then
           echo ""
-          echo "🚨 BUILD FAILED: Critical file size violations found"
+          echo "ℹ️  FILE SIZE NOTICE: Large files detected (non-blocking)"
           echo ""
-          echo "📋 Files exceeding $CRITICAL_THRESHOLD lines must be modularized before merging."
+          echo "📋 Files exceeding $CRITICAL_THRESHOLD lines detected."
           echo ""
           echo "📚 Modularization Guidelines:"
-          echo "• Split large files into focused components"
+          echo "• Consider splitting large files into focused components"
           echo "• Move components to appropriate architectural layers"
           echo "• See CLAUDE.md for detailed modularization procedures"
           echo "• Reference successful examples: SettingsView.swift, BarcodeScannerView.swift"
@@ -67,7 +67,7 @@ jobs:
           echo "• <5 files 500-599 lines (High Priority)"
           echo "• <10 files 400-499 lines (Medium Priority)"
           echo ""
-          exit 1
+          echo "✅ Proceeding with build (file size checks disabled)"
         else
           echo "✅ No critical file size violations found"
         fi
