@@ -100,10 +100,31 @@ cleanup() {
     
     echo -e "\n${YELLOW}Cleanup triggered by: $signal${NC}"
     
-    # Calculate metrics
+    # Calculate metrics - Fixed: ensure we get clean integer values
     local duration=$(($(date +%s) - BUILD_START_TIME))
-    local errors=$(grep -c "error:" "$BUILD_LOG" 2>/dev/null || echo 0)
-    local warnings=$(grep -c "warning:" "$BUILD_LOG" 2>/dev/null || echo 0)
+    local errors
+    local warnings
+    
+    # Safe error/warning count with fallback to 0 if file doesn't exist or grep fails
+    if [[ -f "$BUILD_LOG" ]]; then
+        errors=$(grep -c "error:" "$BUILD_LOG" 2>/dev/null || echo "0")
+        warnings=$(grep -c "warning:" "$BUILD_LOG" 2>/dev/null || echo "0")
+    else
+        errors="0"
+        warnings="0"
+    fi
+    
+    # Ensure we have clean integers (remove any whitespace/newlines)
+    errors=$(echo "$errors" | tr -d '\n\r\t ')
+    warnings=$(echo "$warnings" | tr -d '\n\r\t ')
+    
+    # Validate that we have actual numbers
+    if ! [[ "$errors" =~ ^[0-9]+$ ]]; then
+        errors="0"
+    fi
+    if ! [[ "$warnings" =~ ^[0-9]+$ ]]; then
+        warnings="0"
+    fi
     
     # Push metrics if enabled
     if [ "$ENABLE_METRICS" = true ]; then

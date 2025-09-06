@@ -220,42 +220,55 @@ clean-build: clean gen build ## Clean, regenerate project, and build
 # ============================================================================
 
 .PHONY: test
-test: gen check-tools ## Run all tests (unit + integration)
-	@echo "$(YELLOW)🧪 Running comprehensive test suite...$(NC)"
-	@mkdir -p ~/Desktop/NestoryTestResults
-	@timeout $(TEST_TIMEOUT) $(XCODEBUILD_CMD) test \
+test: gen check-tools ## Run all tests (unit + integration + UI) with modern practices
+	@echo "$(YELLOW)🧪 Running comprehensive test suite with modern practices...$(NC)"
+	@mkdir -p BuildArtifacts/TestResults
+	@RESULT_BUNDLE="./BuildArtifacts/TestResults/AllTests_$$(date +%Y%m%d_%H%M%S).xcresult"; \
+	echo "$(BLUE)📊 Result bundle: $$RESULT_BUNDLE$(NC)"; \
+	xcodebuild test \
 		-scheme $(SCHEME_DEV) \
 		-destination '$(DESTINATION)' \
-		-only-testing:NestoryTests \
+		-enableCodeCoverage YES \
+		-parallel-testing-enabled YES \
+		-test-timeouts-enabled YES \
+		-maximum-concurrent-test-simulator-destinations 1 \
+		-resultBundlePath "$$RESULT_BUNDLE" \
 		$(BUILD_FLAGS) \
-		-resultBundlePath ~/Desktop/NestoryTestResults/test_results \
-		2>&1 | tee test-$(BUILD_LOG) || \
-		{ echo "$(RED)❌ Tests failed or timed out after $(TEST_TIMEOUT)s!$(NC)"; \
-		  echo "$(YELLOW)Check test-$(BUILD_LOG) for details$(NC)"; exit 1; }
-	@echo "$(GREEN)✅ Tests completed!$(NC)"
-	@echo "$(BLUE)📊 Results available at ~/Desktop/NestoryTestResults/$(NC)"
+		2>&1 | tee "BuildArtifacts/test-$$(date +%Y%m%d_%H%M%S).log" || \
+		{ echo "$(RED)❌ Tests failed!$(NC)"; \
+		  echo "$(BLUE)📊 View detailed results: open $$RESULT_BUNDLE$(NC)"; \
+		  echo "$(BLUE)📊 Extract test summary: xcrun xcresulttool get test-results summary --path $$RESULT_BUNDLE$(NC)"; \
+		  exit 1; }; \
+	echo "$(GREEN)✅ All tests completed successfully!$(NC)"; \
+	echo "$(BLUE)📊 View results in Xcode: open $$RESULT_BUNDLE$(NC)"; \
+	echo "$(BLUE)📊 Extract failures: xcrun xcresulttool get test-results issues --path $$RESULT_BUNDLE$(NC)"
+
+.PHONY: test-automated
+test-automated: ## Run fully automated tests without debug screen interruptions
+	@echo "$(YELLOW)🤖 Running automated tests without debug interruptions...$(NC)"
+	@./Scripts/automated-test-runner.sh
 
 .PHONY: test-with-coverage
-test-with-coverage: gen ## Run tests with comprehensive coverage and insights (direct xcodebuild)
-	@echo "$(YELLOW)🧪 Running tests with coverage and insights...$(NC)"
-	@mkdir -p BuildArtifacts
-	@BUNDLE_PATH="./BuildArtifacts/NestoryTests_$$(date +%Y%m%d_%H%M%S).xcresult"; \
-	echo "$(BLUE)📊 Result bundle: $$BUNDLE_PATH$(NC)"; \
-	timeout $(TEST_TIMEOUT) xcodebuild test \
-		-project $(PROJECT_FILE) \
-		-scheme $(ACTIVE_SCHEME) \
+test-with-coverage: gen ## Run tests with comprehensive coverage analysis using modern tools
+	@echo "$(YELLOW)🧪 Running tests with comprehensive coverage analysis...$(NC)"
+	@mkdir -p BuildArtifacts/Coverage
+	@COVERAGE_BUNDLE="./BuildArtifacts/Coverage/Coverage_$$(date +%Y%m%d_%H%M%S).xcresult"; \
+	echo "$(BLUE)📊 Coverage bundle: $$COVERAGE_BUNDLE$(NC)"; \
+	xcodebuild test \
+		-scheme $(SCHEME_DEV) \
 		-destination '$(DESTINATION)' \
 		-enableCodeCoverage YES \
-		-resultBundlePath "$$BUNDLE_PATH" \
-		-only-testing:NestoryTests \
-		-parallel-testing-enabled NO \
+		-parallel-testing-enabled YES \
 		-test-timeouts-enabled YES \
-		2>&1 | tee test-coverage-$$(date +%Y%m%d_%H%M%S).log || \
-		{ echo "$(RED)❌ Coverage tests failed!$(NC)"; exit 1; }; \
+		-maximum-concurrent-test-simulator-destinations 1 \
+		-resultBundlePath "$$COVERAGE_BUNDLE" \
+		$(BUILD_FLAGS) \
+		2>&1 | tee "BuildArtifacts/Coverage/coverage-$$(date +%Y%m%d_%H%M%S).log" || \
+		{ echo "$(RED)❌ Coverage tests failed!$(NC)"; \
+		  echo "$(BLUE)📊 View coverage: open $$COVERAGE_BUNDLE$(NC)"; exit 1; }; \
 	echo "$(GREEN)✅ Coverage tests completed!$(NC)"; \
-	echo "$(BLUE)📊 Running advanced coverage analysis...$(NC)"; \
-	$(MAKE) analyze-coverage; \
-	echo "$(BLUE)📂 Open result bundle: open $$BUNDLE_PATH$(NC)"
+	echo "$(BLUE)📊 Extract coverage report: xcrun xcresulttool get code-coverage report --path $$COVERAGE_BUNDLE$(NC)"; \
+	echo "$(BLUE)📂 Open in Xcode for detailed analysis: open $$COVERAGE_BUNDLE$(NC)"
 
 .PHONY: test-with-coverage-open
 test-with-coverage-open: gen ## Run tests with coverage and automatically open results in Xcode
@@ -277,6 +290,31 @@ test-with-coverage-open: gen ## Run tests with coverage and automatically open r
 	echo "$(GREEN)✅ Coverage tests completed!$(NC)"; \
 	echo "$(BLUE)🚀 Opening result bundle in Xcode...$(NC)"; \
 	open "$$BUNDLE_PATH"
+
+.PHONY: analyze-test-results
+analyze-test-results: ## Analyze test results using modern xcresulttool commands
+	@echo "$(YELLOW)🔍 Analyzing test results with modern tools...$(NC)"
+	@if [ -z "$(RESULT_BUNDLE)" ]; then \
+		LATEST_BUNDLE=$$(find BuildArtifacts -name "*.xcresult" -type d | head -1); \
+		if [ -z "$$LATEST_BUNDLE" ]; then \
+			echo "$(RED)❌ No test result bundles found in BuildArtifacts/$(NC)"; \
+			echo "$(BLUE)💡 Run 'make test' or 'make test-with-coverage' first$(NC)"; \
+			exit 1; \
+		fi; \
+		echo "$(BLUE)📊 Using latest result bundle: $$LATEST_BUNDLE$(NC)"; \
+		RESULT_BUNDLE="$$LATEST_BUNDLE"; \
+	fi; \
+	echo "$(BLUE)📋 Test Summary:$(NC)"; \
+	xcrun xcresulttool get test-results summary --path "$$RESULT_BUNDLE" || echo "$(YELLOW)⚠️  Could not extract summary$(NC)"; \
+	echo ""; \
+	echo "$(BLUE)🚨 Failed Tests:$(NC)"; \
+	xcrun xcresulttool get test-results issues --path "$$RESULT_BUNDLE" || echo "$(GREEN)✅ No test failures found!$(NC)"; \
+	echo ""; \
+	echo "$(BLUE)📊 Coverage Summary:$(NC)"; \
+	xcrun xcresulttool get code-coverage report --path "$$RESULT_BUNDLE" || echo "$(YELLOW)⚠️  No coverage data available$(NC)"; \
+	echo ""; \
+	echo "$(BLUE)🔗 Open in Xcode for detailed analysis:$(NC)"; \
+	echo "  open \"$$RESULT_BUNDLE\""
 
 .PHONY: extract-coverage
 extract-coverage: ## Extract coverage reports from latest .xcresult bundle

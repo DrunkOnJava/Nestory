@@ -227,6 +227,7 @@ targets:
           - "AddItemView.swift.deprecated"
           - "CategoriesView.swift.deprecated"
           - "**/README.md"  # Exclude documentation files from build
+      - path: App-Main/Components  # Insurance export decomposed components
       # Modularized App-Main Components (Post-Phase 1-4 Refactoring)
       # Damage Assessment Modular Components
       - path: App-Main/DamageAssessmentViews/RepairCostEstimation/Cards
