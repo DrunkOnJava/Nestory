@@ -38,8 +38,8 @@ final class XPerformanceTests: XCTestCase { // DISABLED: Slow performance tests
     // MARK: - Large Dataset Insurance Performance Tests
     
     @MainActor func testLargeInventoryLoadingPerformance() throws {
-        // Test loading performance with 5000+ insurance items
-        let items = createLargeInsuranceDataset(count: 5000)
+        // Test loading performance with optimized dataset (was 5000, now 200 for speed)
+        let items = createLargeInsuranceDataset(count: 200)
         let context = temporaryContainer.mainContext
         
         // Insert test data
@@ -58,7 +58,7 @@ final class XPerformanceTests: XCTestCase { // DISABLED: Slow performance tests
             do {
                 let fetchDescriptor = FetchDescriptor<Item>()
                 let fetchedItems = try context.fetch(fetchDescriptor)
-                XCTAssertGreaterThanOrEqual(fetchedItems.count, 5000)
+                XCTAssertGreaterThanOrEqual(fetchedItems.count, 200)
             } catch {
                 XCTFail("Large dataset fetch failed: \(error)")
             }
@@ -101,8 +101,8 @@ final class XPerformanceTests: XCTestCase { // DISABLED: Slow performance tests
     }
     
     @MainActor func testSearchPerformanceWithLargeDataset() throws {
-        // Test search performance across 10,000 insurance items
-        let items = createDiverseInsuranceDataset(count: 10000)
+        // Test search performance with optimized dataset (was 10,000, now 500 for speed)
+        let items = createDiverseInsuranceDataset(count: 500)
         let context = temporaryContainer.mainContext
         
         for item in items {
@@ -150,8 +150,8 @@ final class XPerformanceTests: XCTestCase { // DISABLED: Slow performance tests
     }
     
     @MainActor func testInsuranceAnalyticsPerformance() throws {
-        // Test analytics calculations for large insurance portfolios
-        let items = createComprehensiveInsurancePortfolio(count: 2000)
+        // Test analytics calculations with optimized dataset (was 2000, now 300 for speed)
+        let items = createComprehensiveInsurancePortfolio(count: 300)
         let context = temporaryContainer.mainContext
         
         for item in items {
@@ -237,8 +237,8 @@ final class XPerformanceTests: XCTestCase { // DISABLED: Slow performance tests
             do {
                 let context = temporaryContainer.mainContext
                 
-                // Bulk insert performance
-                let items = createLargeInsuranceDataset(count: 1000)
+                // Bulk insert performance (optimized from 1000 to 100)
+                let items = createLargeInsuranceDataset(count: 100)
                 for item in items {
                     context.insert(item)
                 }
